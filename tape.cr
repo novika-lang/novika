@@ -216,14 +216,14 @@ class Tape(T)
 
     if at_begin?
       io << "| "
-      iter.join(io, ' ') do |element, io|
+      iter.join(io, ' ') do |element|
         executed = exec_recursive(:to_s) do
           io << element
         end
         io << "reflection" unless executed
       end
     elsif at_end?
-      iter.join(io, ' ') do |element, io|
+      iter.join(io, ' ') do |element|
         executed = exec_recursive(:to_s) do
           io << element
         end
@@ -231,14 +231,14 @@ class Tape(T)
       end
       io << " |"
     else
-      iter.first(cursor).join(io, ' ') do |element, io|
+      iter.first(cursor).join(io, ' ') do |element|
         executed = exec_recursive(:to_s) do
           io << element
         end
         io << "reflection" unless executed
       end
       io << " | "
-      iter.join(io, ' ') do |element, io|
+      iter.join(io, ' ') do |element|
         executed = exec_recursive(:to_s) do
           io << element
         end
