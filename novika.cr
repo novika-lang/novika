@@ -63,12 +63,27 @@ struct BigDecimal
   include Form
 end
 
+struct QuotedWord
+  include Form
+
+  protected getter word : String
+
+  def initialize(@word)
+  end
+
+  def open(world)
+    word.push(world)
+  end
+
+  def to_s(io)
+    io << '#' << word
+  end
+end
+
 class String
   include Form
 
   def open(world)
-    return lchop.push(world) if starts_with?('#')
-
     if entry = world.cont.at?(self)
       entry.open(world)
     else
@@ -79,7 +94,7 @@ class String
   end
 end
 
-abstract struct Entry
+abstract class Entry
   protected getter form : Form
 
   def initialize(@form)
@@ -87,15 +102,19 @@ abstract struct Entry
 
   delegate :push, :prevable?, to: form
 
+  def submit(@form)
+    self
+  end
+
   def open(world)
     push(world)
   end
 end
 
-struct PushEntry < Entry
+class PushEntry < Entry
 end
 
-struct OpenEntry < Entry
+class OpenEntry < Entry
   def open(world)
     form.open(world)
   end
@@ -186,13 +205,30 @@ class Block
   include Form
   include Tabular
 
+  alias Table = Hash(String, Entry)
+
   protected getter tape : Tape(Form) { Tape(Form).new }
-  protected getter table : Hash(String, Entry) { {} of String => Entry }
+  protected getter table : Table { Table.new }
+
+  protected getter reach : Table { Table.new }
+  protected property? leaf = true
 
   getter! parent : Block?
   getter prototype : Block
 
-  def initialize(@parent = nil, @prototype = self)
+  def initialize(
+    @parent = nil,
+    @prototype = self,
+    @reach = nil
+  )
+  end
+
+  protected def initialize(
+    @parent : Block?,
+    @tape : Tape(Form),
+    @reach : Table,
+    @prototype = self
+  )
   end
 
   protected def tape(default = nil)
@@ -201,6 +237,10 @@ class Block
 
   protected def table(default = nil)
     @table ? yield table : default
+  end
+
+  def next?
+    tape &.next?
   end
 
   def empty?
@@ -212,7 +252,13 @@ class Block
   end
 
   def add(form)
-    tap { tape.add(form) }
+    tap &.tape.add(form)
+  end
+
+  def add(form : Block)
+    self.leaf = false
+
+    tap &.tape.add(form)
   end
 
   def to(index)
@@ -235,10 +281,6 @@ class Block
     tape(0, &.cursor)
   end
 
-  def each
-    tape &.each { |item| yield item }
-  end
-
   def to?(index)
     self if tape index.zero? ? true : false, &.to?(index)
   end
@@ -247,24 +289,24 @@ class Block
     tape &.at?(index) || die("index out of bounds")
   end
 
+  def at?(name : String)
+    reach[name] ||= table &.[name]? || parent?.try &.at?(name) || return
+  end
+
   def at(name : String, entry : Entry)
-    table[name] = entry
+    table[name] = reach[name] = entry
   end
 
   def at(name : String, form : Form)
-    table[name] = PushEntry.new(form)
+    at(name, PushEntry.new(form))
   end
 
   def at(name : String, &code : World ->)
-    table[name] = OpenEntry.new Builtin.new(code)
+    at(name, OpenEntry.new Builtin.new(code))
   end
 
   def has?(name : String)
     table &.has_key?(name)
-  end
-
-  def at?(name : String)
-    table &.[name]? || parent?.try &.at?(name)
   end
 
   def attach(other : Block)
@@ -272,11 +314,7 @@ class Block
   end
 
   def detach
-    Block.new(parent?).tap do |copy|
-      tape.each do |form|
-        copy.add(form)
-      end
-    end
+    Block.new(parent?, Tape.borrow(tape), reach)
   end
 
   def prevable?
@@ -292,11 +330,15 @@ class Block
   end
 
   def instance(parent = self)
-    inst = Block.new(parent, prototype)
-    tape.each do |form|
-      inst.add(form.is_a?(Block) ? form.instance(inst) : form)
+    if leaf?
+      Block.new(parent, Tape.borrow(tape), reach, prototype)
+    else
+      inst = Block.new(parent, prototype, reach)
+      tape.each do |form|
+        inst.add(form.is_a?(Block) ? form.instance(inst) : form)
+      end
+      inst
     end
-    inst
   end
 
   def slurp(source)
@@ -306,7 +348,7 @@ class Block
       if match = $~["num"]?
         block.add(match.to_big_d)
       elsif match = $~["word"]?
-        block.add(match)
+        block.add(match.starts_with?('#') ? QuotedWord.new(match.lchop) : match)
       elsif match = $~["quote"]?
         block.add Quote.new(match, unesc: true)
       elsif match = $~["comment"]?
@@ -344,10 +386,12 @@ class World
     stacks.add(Block.new)
   end
 
+  @[AlwaysInline]
   def cont
     conts.top.assert(Block)
   end
 
+  @[AlwaysInline]
   def stack
     stacks.top.assert(Block)
   end
@@ -363,8 +407,7 @@ class World
     conts.add start.to(0)
 
     until conts.empty?
-      while cont.to?(cont.cursor + 1)
-        form = cont.top
+      while form = cont.next?
         begin
           form.opened(self)
         rescue e : FormDied

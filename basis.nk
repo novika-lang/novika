@@ -171,8 +171,10 @@ root #@: [
   conts attach
 ] @: continues
 
-[ "( -- ): executes current conitnuation (current block) again. Looping
-   primitive. You can exit via '.'. Normally use `while`, `loop`, etc."
+[ "( -- ): executes current continuation (current block) again.
+   Looping primitive. You can exit via '.'. Normally prefer to
+   use `while`, `loop`, etc. DOES NOTE REINSTANTIATE on iterations:
+   make sure to use `new` in the right places."
   [
     drop "the call to 'again'"
     dup 0 |to
@@ -226,7 +228,7 @@ root #@: [
   [
     dup prototype needle same?
       [ ahead break ] "Yes: break the loop."
-      [ drop ]         "No: drop the continuation."
+      [ drop ]        "No: drop the continuation."
     sel open
 
     again
@@ -238,9 +240,10 @@ root #@: [
 [ "( D B -- ): a primitive while loop taking a Determiner block and
    a Body block. Executes Determiner, Body in the same empty stack,
    each time new."
-  2dup [ ] rot there tip
+  2dup [ ] new rot there tip
     [ swap there drop ] "Yes: execute the block."
-    [ drop "stack" "No: break out of the loop."
+    [ drop "stack"      "No: break out of the loop."
+      drop "block"
       drop "block"
       drop "determiner"
       ahead break ]
@@ -278,7 +281,7 @@ root #@: [
 
   list 0 |to
 
-  [ list dup |at 1 + over count same? ]
+  [ list dup |at 1 + over count = ]
   [
     "Due to a bug in |at/|to, we get wrong value (0),
      so must add 2."
@@ -320,9 +323,7 @@ root #@: [
    stack. Does nothing if odd count in List."
   ahead reach $: block
 
-  dup count even? => [
-    [ |> 2enclose block there drop ] |each
-  ]
+  dup count even? => [ [ |> 2enclose block there drop ] |each ]
 ] @: pairs:
 
 [ "( V [ D[ ... ] B[ ... ] ... ] ) -- B' ): finds Determiner which
@@ -338,6 +339,10 @@ root #@: [
   ]
 ] @: choose
 
+
+"BUG: map inside `times` doesn't work, returns raw block. Guess
+ somewhere block doesn't get 0 |to'd or something. `again` may
+ be the one to blame."
 
 
 [

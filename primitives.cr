@@ -133,15 +133,11 @@ def primitives
       name = world.stack.drop.assert(String)
       block = world.stack.drop.assert(Block)
 
-      until !block || block.has?(name)
-        block = block.parent?
-      end
-
-      unless block
+      unless entry = block.at?(name)
         name.die("cannot #submit forms to an entry that does not exist")
       end
 
-      block.at(name, form)
+      entry.submit(form)
     end
 
     prims.at("|at") do |world|
@@ -183,6 +179,10 @@ def primitives
       dest = world.stack.drop.assert(Block)
       src = world.stack.drop.assert(Block)
       dest.attach(src)
+    end
+
+    prims.at("new") do |world|
+      world.stack.drop.assert(Block).instance.push(world)
     end
 
     prims.at("echo") do |world|

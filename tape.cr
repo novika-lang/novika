@@ -1,6 +1,6 @@
 # A tape is an array with an insertion/deletion point (the cursor).
 class Tape(T)
-  protected getter array = [] of T
+  protected getter array : Array(T) = [] of T
 
   # Returns the position of cursor over the tape.
   getter cursor = 0
@@ -17,6 +17,11 @@ class Tape(T)
     Tape(T).new.tap do |tape|
       list.each { |element| tape.add(element) }
     end
+  end
+
+  #
+  def self.borrow(tape : Tape(T)) forall T
+    Tape(T).new(tape.array.dup, tape.cursor)
   end
 
   # Moves the cursor to *index* if *index* is in bounds.
@@ -60,21 +65,25 @@ class Tape(T)
   end
 
   # Returns whether the tape is empty.
+  @[AlwaysInline]
   def empty?
     count.zero?
   end
 
   # Returns the amount of elements in the tape.
+  @[AlwaysInline]
   def count
     array.size
   end
 
   # Returns whether the cursor is in the beginning of the tape.
+  @[AlwaysInline]
   def at_begin?
     cursor.zero?
   end
 
   # Returns whether the cursor is in the end of the tape.
+  @[AlwaysInline]
   def at_end?
     cursor == count
   end
@@ -88,6 +97,7 @@ class Tape(T)
   # tape.to?(0) # | 1 2 3
   # tape.top?   # nil
   # ```
+  @[AlwaysInline]
   def top?
     at?(cursor - 1)
   end
@@ -102,8 +112,14 @@ class Tape(T)
   # tape.to?(2) # 1 2 | 3
   # tape.peek?  # 3
   # ```
+  @[AlwaysInline]
   def peek?
     at?(cursor)
+  end
+
+  @[AlwaysInline]
+  def next?
+    array.unsafe_fetch(cursor.tap { @cursor += 1 }) unless cursor > count
   end
 
   # Returns the last element in the tape if it has one,
@@ -116,6 +132,7 @@ class Tape(T)
   # tape.to?(2) # 1 2 | 3
   # tape.last?  # 3
   # ```
+  @[AlwaysInline]
   def last?
     at?(count - 1)
   end
@@ -123,13 +140,13 @@ class Tape(T)
   # Returns the element at *index* if *index* is in bounds,
   # else nil.
   def at?(index)
-    array[index] if index.in?(0...count)
+    array.unsafe_fetch(index) if index.in?(0...count)
   end
 
   # Sets the element at *index* to *elem* if *index* is in
   # bounds, else returns nil.
   def at?(index, set elem)
-    array[index] = elem if index.in?(0...count)
+    array.unsafe_put(index, elem) if index.in?(0...count)
   end
 
   # Adds *element* before the cursor, and moves the cursor
@@ -202,11 +219,6 @@ class Tape(T)
     (cursor...count).each do |index|
       yield array[index]
     end
-  end
-
-  # Returns a new tape with elements processed by the block.
-  def map
-    Tape(T).new(array.map { |element| (yield element).as(T) }, cursor)
   end
 
   def to_s(io)
