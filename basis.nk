@@ -206,13 +206,13 @@ root #@: [
 [ "( -- ): returns from the current continuation (current block). The
    weakest return."
    ahead prototype $: needle
-   
+
    [
     prototype needle same?
       [ ahead break ] "Yes: break the loop."
       [ ]             "No: drop the continuation."
     sel open
-    
+
     again
    ] continues
 
@@ -245,7 +245,7 @@ root #@: [
       drop "determiner"
       ahead break ]
   sel open
-  
+
   again
 ] @: while
 
@@ -279,7 +279,7 @@ root #@: [
   list 0 |to
 
   [ list dup |at 1 + over count same? ]
-  [ 
+  [
     "Due to a bug in |at/|to, we get wrong value (0),
      so must add 2."
     list dup |at 2 + |to
@@ -302,7 +302,7 @@ root #@: [
 
 [ "( A -- true/false ): leaves whether A = 0"
   0 =
-] @: zero? 
+] @: zero?
 
 [ "( A B -- true/false ): leaves whether A is divisible by B."
   rem zero?
@@ -334,22 +334,22 @@ root #@: [
     value enclose rot there tip => [
       "Found a truthy determiner: execute its block and quit."
       swap there drop ^
-    ] 
+    ]
   ]
 ] @: choose
 
 
 
-[ 
+[
   ahead reach +
 ] @: i+
 
 
 1000 times: [
-  echo 
+  echo
   [ 1 2 3 ]
   [ i+ 1 ]
-  map echo 
+  map echo
 
 '3' [
   [ '1' = ] [ '1' echo ]
