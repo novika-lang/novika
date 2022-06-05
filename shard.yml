@@ -1,0 +1,13 @@
+name: novika
+version: 0.0.1
+
+authors:
+  - homonoidian <homonoidian@yandex.ru>
+
+targets:
+  novika:
+    main: novika.cr
+
+crystal: 1.4.1
+
+license: MIT
