@@ -13,6 +13,10 @@ The repository is unorganized. Code is raw. Beware.
 
 For an example of Novika code, see `basis.nk`.
 
+> Agony: This revision is in agony. It so happens that block copy on
+> write and lookup redesign are actually required for Novika. Otherwise,
+> it's **too** slow and naïve.
+
 ## Language notes
 
 - Novika has *words* and *blocks*. Together they are known as *forms*.
