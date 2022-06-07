@@ -3,448 +3,570 @@ require "./tape"
 require "colorize"
 require "./primitives"
 
-NKRX = /
-    (?<num>         \d+) (?:\s+|$)
-  | (?<bb>           \[) (?:\s+|$)
-  | (?<be>           \]) (?:\s+|$)
-  | (?<word>   [^"'\s]+)
-  |'(?<quote>     [^']*)'
-  |"(?<comment>   [^"]*)"
-  |\s+
-/x
+module Novika
+  # The regex that splits Novika source code into morphemes.
+  MORPHEMES = /
+      (?<num>         \d+) (?:\s+|$)
+    | (?<bb>           \[) (?:\s+|$)
+    | (?<be>           \]) (?:\s+|$)
+    | (?<word>   [^"'\s]+)
+    |'(?<quote>     [^']*)'
+    |"(?<comment>   [^"]*)"
+    |\s+
+  /x
 
-class FormDied < Exception
-end
-
-module Form
-  def die(details)
-    raise FormDied.new(details)
+  # Raised when a form dies. The details of the death are found
+  # in the error message.
+  class FormDied < Exception
   end
 
-  def sel(a, b)
-    a
-  end
+  # Form is an umbrella for words and blocks. Since some words
+  # (like numbers, quotes) are just too different from words as
+  # we know them, they have their own types directly subordinate
+  # to Form.
+  module Form
+    # Raises `FormDied` providing *details*.
+    def die(details)
+      raise FormDied.new(details)
+    end
 
-  def opened(world)
-    open(world)
-  end
+    # Selects either *a* or *b*. Novika defines `False` to be the
+    # only form selecting *b*. All other forms select *a*.
+    def sel(a, b)
+      a
+    end
 
-  def open(world)
-    push(world)
-  end
+    # Reacts to this form's enclosing block being opened in *world*.
+    def opened(world)
+      open(world)
+    end
 
-  def push(world)
-    world.stack.add(self)
-  end
+    # Rects to this form being opened in *world*.
+    def open(world)
+      push(world)
+    end
 
-  def prevable?
-    false
-  end
-
-  def assert(type : T.class) forall T
-    is_a?(T) ? self : die("bad type: #{self.class}, expected: #{type}")
-  end
-
-  def echo(io)
-    io.puts(self)
-  end
-end
-
-module Tabular
-  abstract def at?(name : String)
-  abstract def die(details)
-
-  def at(name : String)
-    at?(name) || die("undefined table property: #{name}")
-  end
-end
-
-struct BigDecimal
-  include Form
-end
-
-struct QuotedWord
-  include Form
-
-  protected getter word : String
-
-  def initialize(@word)
-  end
-
-  def open(world)
-    word.push(world)
-  end
-
-  def to_s(io)
-    io << '#' << word
-  end
-end
-
-class String
-  include Form
-
-  def open(world)
-    if entry = world.cont.at?(self)
-      entry.open(world)
-    else
-      # Run the lookup fallback block, '/default'.
+    # Pushes this form onto *world*'s active stack.
+    def push(world)
       world.stack.add(self)
-      world.cont.at("/default").open(world)
     end
-  end
-end
 
-abstract class Entry
-  protected getter form : Form
+    # Asserts that this form is of the given *type*. Dies if
+    # it's not.
+    def assert(type : T.class) forall T
+      is_a?(T) ? self : die("bad type: #{self.class}, expected: #{type}")
+    end
 
-  def initialize(@form)
-  end
-
-  delegate :push, :prevable?, to: form
-
-  def submit(@form)
-    self
-  end
-
-  def open(world)
-    push(world)
-  end
-end
-
-class PushEntry < Entry
-end
-
-class OpenEntry < Entry
-  def open(world)
-    form.open(world)
-  end
-end
-
-struct Builtin
-  include Form
-
-  protected getter code : World ->
-
-  def initialize(@code)
-  end
-
-  def prevable?
-    true
-  end
-
-  def open(world)
-    code.call(world)
-  end
-
-  def to_s(io)
-    io << "[native code]"
-  end
-end
-
-struct Quote
-  include Form
-
-  protected getter string : String
-
-  def initialize(@string, unesc = false)
-    if unesc
-      @string = string
-        .gsub("\\n", '\n')
-        .gsub("\\t", '\t')
-        .gsub("\\r", '\r')
-        .gsub("\\v", '\v')
+    # Appends this form's `echo` word string representation
+    # to *io*.
+    def echo(io)
+      io.puts(self)
     end
   end
 
-  def +(other)
-    Quote.new(string + other.string)
+  # Implements table access.
+  module ITable
+    protected abstract def die(details)
+
+    # Returns the table entry for *name*.
+    abstract def at?(name : Form)
+
+    # Returns the table entry for *name*, or dies.
+    def at(name : Form)
+      at?(name) || die("undefined table property: #{name}")
+    end
   end
 
-  def echo(io)
-    io.puts(string)
+  struct ::BigDecimal
+    include Novika::Form
   end
 
-  def to_s(io)
-    io << "'"; string.dump_unquoted(io); io << "'"
-  end
-end
+  # Quoted words are words prefixed by '#': e.g., `#foo`. It lets
+  # you keep automatic word opening one manual `open` away.
+  struct QuotedWord
+    include Form
 
-abstract struct Boolean
-  include Form
+    protected getter word : String
 
-  def self.[](bool)
-    bool ? True.new : False.new
-  end
+    # Quotes the given *word*.
+    def initialize(@word)
+    end
 
-  def self.same?(a : Reference, b : Reference)
-    Boolean[a.same?(b)]
-  end
+    def open(world)
+      word.push(world)
+    end
 
-  def self.same?(a, b)
-    Boolean[a == b]
-  end
-end
+    def to_s(io)
+      io << '#' << word
+    end
 
-struct True < Boolean
-  def to_s(io)
-    io << "true"
-  end
-end
-
-struct False < Boolean
-  def sel(a, b)
-    b
+    def_equals_and_hash word
   end
 
-  def to_s(io)
-    io << "false"
-  end
-end
+  class ::String
+    include Novika::Form
 
-class Block
-  include Form
-  include Tabular
-
-  alias Table = Hash(String, Entry)
-
-  protected getter tape : Tape(Form) { Tape(Form).new }
-  protected getter table : Table { Table.new }
-
-  protected getter reach : Table { Table.new }
-  protected property? leaf = true
-
-  getter! parent : Block?
-  getter prototype : Block
-
-  def initialize(
-    @parent = nil,
-    @prototype = self,
-    @reach = nil
-  )
-  end
-
-  protected def initialize(
-    @parent : Block?,
-    @tape : Tape(Form),
-    @reach : Table,
-    @prototype = self,
-    @leaf = true
-  )
-  end
-
-  protected def tape(default = nil)
-    @tape ? yield tape : default
-  end
-
-  protected def table(default = nil)
-    @table ? yield table : default
-  end
-
-  def next?
-    tape &.next?
-  end
-
-  def empty?
-    tape(true, &.empty?)
-  end
-
-  def flat?
-    table(true, &.empty?)
-  end
-
-  def add(form)
-    tap &.tape.add(form)
-  end
-
-  def add(form : Block)
-    self.leaf = false
-
-    tap &.tape.add(form)
-  end
-
-  def to(index)
-    to?(index) || die("cursor out of bounds: #{index}")
-  end
-
-  def top
-    tape &.top? || die("no top for block")
-  end
-
-  def drop
-    tape &.drop? || die("cannot drop at start")
-  end
-
-  def count
-    tape(0, &.count)
-  end
-
-  def cursor
-    tape(0, &.cursor)
-  end
-
-  def to?(index)
-    self if tape index.zero? ? true : false, &.to?(index)
-  end
-
-  def at(index : Int32)
-    tape &.at?(index) || die("index out of bounds")
-  end
-
-  def at?(name : String)
-    reach[name] ||= table &.[name]? || parent?.try &.at?(name) || return
-  end
-
-  def at(name : String, entry : Entry)
-    table[name] = reach[name] = entry
-  end
-
-  def at(name : String, form : Form)
-    at(name, PushEntry.new(form))
-  end
-
-  def at(name : String, &code : World ->)
-    at(name, OpenEntry.new Builtin.new(code))
-  end
-
-  def has?(name : String)
-    table &.has_key?(name)
-  end
-
-  def attach(other : Block)
-    tape.replace(other.tape)
-  end
-
-  def detach
-    Block.new(parent?, Tape.borrow(tape), reach, leaf: leaf?)
-  end
-
-  def prevable?
-    true
-  end
-
-  def opened(world)
-    push(world)
-  end
-
-  def open(world)
-    world.conts.add instance.to(0)
-  end
-
-  def instance(parent = self)
-    if leaf?
-      Block.new(parent, Tape.borrow(tape), reach.dup, prototype, leaf?)
-    else
-      inst = Block.new(parent, prototype, reach.dup)
-      tape.each do |form|
-        inst.add(form.is_a?(Block) ? form.instance(inst) : form)
+    def open(world)
+      if entry = world.cont.at?(self)
+        entry.open(world)
+      else
+        # Run the lookup fallback block, '/default'.
+        world.stack.add(self)
+        world.cont.at("/default").open(world)
       end
-      inst
     end
   end
 
-  def slurp(source)
-    start, block = 0, self
+  # Represents a table entry. Holds the value form.
+  class Entry
+    protected getter form : Form
 
-    while NKRX.match(source, pos: start)
-      if match = $~["num"]?
-        block.add(match.to_big_d)
-      elsif match = $~["word"]?
-        block.add(match.starts_with?('#') ? QuotedWord.new(match.lchop) : match)
-      elsif match = $~["quote"]?
-        block.add Quote.new(match, unesc: true)
-      elsif match = $~["comment"]?
-        # block.describe(match) if block.empty?
-      elsif $~["bb"]?
-        block = Block.new(block)
-      elsif $~["be"]?
-        block = block.parent.tap &.add(block)
+    def initialize(@form)
+    end
+
+    # Pushes this entry's value form onto the active stack.
+    delegate :push, to: form
+
+    # :ditto:
+    def open(world)
+      push(world)
+    end
+
+    # Makes *form* the value form of this entry.
+    def submit(@form)
+      self
+    end
+
+    def_equals_and_hash form
+  end
+
+  # A kind of entry that opens its value form upon retrieval.
+  class OpenEntry < Entry
+    # Opens this entry's value form in *world*.
+    def open(world)
+      form.open(world)
+    end
+  end
+
+  # Wraps a snippet of Crystal (native) code, namely a Crystal
+  # `Proc`, for usage in the Novika-world.
+  struct Builtin
+    include Form
+
+    protected getter code : World ->
+
+    def initialize(@code)
+    end
+
+    def open(world)
+      code.call(world)
+    end
+
+    def to_s(io)
+      io << "[native code]"
+    end
+
+    def_equals_and_hash code
+  end
+
+  # Represents Novika quotes, which are known as strings in most
+  # other programming languages.
+  struct Quote
+    include Form
+
+    protected getter string : String
+
+    # Initializes a quote from the given *string*.
+    #
+    # If *peel* is set to true, one slash will be removed before
+    # every escape sequence in *string*: for example, `\\n` will
+    # become `\n`, etc.
+    def initialize(@string, peel = false)
+      if peel
+        @string = string
+          .gsub("\\n", '\n')
+          .gsub("\\t", '\t')
+          .gsub("\\r", '\r')
+          .gsub("\\v", '\v')
       end
-
-      start += $0.size
     end
 
-    self
+    # Concatenates two quotes, and returns the resulting quote.
+    def +(other)
+      Quote.new(string + other.string)
+    end
+
+    def echo(io)
+      io.puts(string)
+    end
+
+    def to_s(io)
+      io << "'"; string.dump_unquoted(io); io << "'"
+    end
+
+    def_equals_and_hash string
   end
 
-  def to_s(io)
-    io << "[ "
-    io << tape << " " unless empty?
-    io << ". " << table.keys.join(' ') << " " unless flat?
-    io << "]"
-  end
-end
+  # Represents a boolean (true/false) value.
+  abstract struct Boolean
+    include Form
 
-class World
-  include Form
-  include Tabular
+    # Creates a `Boolean` subclass for the given *object*.
+    def self.[](object)
+      object ? True.new : False.new
+    end
 
-  getter conts : Block
-  getter stacks : Block
+    # Returns a `Boolean` for whether two objects, *a* and
+    # *b*, are the same.
+    def self.same?(a : Reference, b : Reference)
+      Boolean[a.same?(b)]
+    end
 
-  def initialize
-    @conts = Block.new
-    @stacks = Block.new
-    stacks.add(Block.new)
-  end
-
-  @[AlwaysInline]
-  def cont
-    conts.top.assert(Block)
-  end
-
-  @[AlwaysInline]
-  def stack
-    stacks.top.assert(Block)
-  end
-
-  def at?(name : String)
-    case name
-    when "conts"  then conts
-    when "stacks" then stacks
+    # :ditto:
+    def self.same?(a, b)
+      Boolean[a == b]
     end
   end
 
-  def open(start : Block)
-    conts.add start.to(0)
+  # Represents a truthy `Boolean`.
+  struct True < Boolean
+    def to_s(io)
+      io << "true"
+    end
 
-    until conts.empty?
-      while form = cont.next?
-        begin
-          form.opened(self)
-        rescue e : FormDied
-          handler = cont.at("/died")
-          stack.add Quote.new(e.message.not_nil!)
-          handler.open(self)
+    def_equals_and_hash
+  end
+
+  # Represents a falsey `Boolean`. `False` is the only falsey
+  # form in Novika.
+  struct False < Boolean
+    def sel(a, b)
+      b
+    end
+
+    def to_s(io)
+      io << "false"
+    end
+
+    def_equals_and_hash
+  end
+
+  # Blocks are, together with words, the principal forms of Novika,
+  # and are at the core of the whole idea.
+  #
+  # Blocks provide a unified interface to `Tape` and `Table`. On
+  # one hand, they are a collection of other forms. On the other,
+  # they are objects (through the form to form map called block
+  # table, and delegation via `/default`).
+  class Block
+    include Form
+    include ITable
+
+    alias Table = Hash(Form, Entry)
+
+    protected getter tape : Tape(Form) { Tape(Form).new }
+    protected getter table : Table { Table.new }
+
+    # Optimization:
+
+    # Returns a table of all retrieved entries.
+    protected getter reach : Table { Table.new }
+
+    # Returns and allows to set whether this block is a leaf.
+    # A block is a leaf when it has no blocks in the tape.
+    #
+    # Useful for not copying recursively during instantiation
+    # (`instance`). Even though no copies are made, it's still
+    # slower than not copying at all.
+    protected property? leaf = true
+
+    # Returns the parent of this block. Think of it as the AST
+    # parent, observed at parse-time.
+    getter! parent : Block?
+
+    # Returns the prototype of this block. Block instances return
+    # their prototype (AST) blocks, AST blocks return themselves.
+    getter prototype : Block
+
+    def initialize(@parent = nil, @prototype = self)
+    end
+
+    protected def initialize(
+      @parent : Block?,
+      @prototype : Block,
+      @reach : Table
+    )
+    end
+
+    protected def initialize(
+      @parent : Block?,
+      @tape : Tape(Form),
+      @reach : Table,
+      @prototype = self,
+      @leaf = true
+    )
+    end
+
+    protected def tape(default = nil)
+      @tape ? yield tape : default
+    end
+
+    protected def table(default = nil)
+      @table ? yield table : default
+    end
+
+    # See `Tape#next?`.
+    def next?
+      tape(&.next?)
+    end
+
+    # Returns whether the tape is empty.
+    def empty?
+      tape(default: true, &.empty?)
+    end
+
+    # Returns whether the table is empty.
+    def flat?
+      table(default: true, &.empty?)
+    end
+
+    # Adds *form* to the tape. See `Tape#add`.
+    def add(form)
+      tap &.tape.add(form)
+    end
+
+    # :ditto:
+    def add(form : Block)
+      self.leaf = false
+
+      tap &.tape.add(form)
+    end
+
+    # See `Tape#to?`. Returns self.
+    def to?(index)
+      self if tape.to?(index)
+    end
+
+    # Moves tape cursor to *index* and returns self, or dies if
+    # *index* is out of bounds. See `to?`.
+    def to(index)
+      to?(index) || die("cursor out of bounds: #{index}")
+    end
+
+    # Returns the top form (the form before the cursor), dies
+    # if none. See `Tape#top?`.
+    def top
+      tape(&.top?) || die("no top for block")
+    end
+
+    # Drops and returns the top form. Dies if none. See `Tape#drop?`.
+    def drop
+      tape(&.drop?) || die("cannot drop at start")
+    end
+
+    # Returns the amount of forms in the tape. Cursor position
+    # is ignored.
+    def count
+      tape(default: 0, &.count)
+    end
+
+    # Returns the position of the cursor.
+    def cursor
+      tape(default: 0, &.cursor)
+    end
+
+    # Returns the form at *index* in the tape. Dies if *index*
+    # is out of bounds. See `Tape#at?`.
+    def at(index : Int32)
+      tape &.at?(index) || die("index out of bounds")
+    end
+
+    def at?(name : Form)
+      reach[name] ||= table(&.[name]?) || parent?.try &.at?(name) || return
+    end
+
+    # Binds *name* to *entry* in this block's table.
+    def at(name : Form, entry : Entry)
+      table[name] = reach[name] = entry
+    end
+
+    # Dies, since block names would require some sort of
+    # automatic rehashing.
+    #
+    # TODO: Support this in future revisions by allowing blocks
+    # to subscribe to other blocks?
+    def at(name : Block, entry)
+      die("cannot have blocks as table entry names")
+    end
+
+    # Binds *name* to *form* in this block's table.
+    def at(name : Form, form : Form)
+      at(name, Entry.new(form))
+    end
+
+    # Makes an `OpenEntry` called *name* for *code* wrapped
+    # in `Builtin`.
+    def at(name : Form, &code : World ->)
+      at(name, OpenEntry.new Builtin.new(code))
+    end
+
+    # Returns whether this block's table has an entry called *name*.
+    def has?(name : Form)
+      table &.has_key?(name)
+    end
+
+    # See `Tape#replace`.
+    def attach(other : Block)
+      tape.replace(other.tape)
+    end
+
+    # Returns a shallow copy of this block.
+    def detach
+      Block.new(parent?, Tape.borrow(tape), reach, leaf: leaf?)
+    end
+
+    def opened(world)
+      push(world)
+    end
+
+    def open(world)
+      world.conts.add instance.to(0)
+    end
+
+    # Creates and returns an instance of this block, under the
+    # given *parent*.
+    def instance(parent = self)
+      if leaf?
+        Block.new(parent, Tape.borrow(tape), reach.dup, prototype, leaf?)
+      else
+        Block.new(parent, prototype, reach.dup).tap do |inst|
+          tape.each do |form|
+            inst.add(form.is_a?(Block) ? form.instance(inst) : form)
+          end
         end
       end
-
-      conts.drop
     end
+
+    # Parses all forms from string *source*, and adds them to
+    # this block. Returns self.
+    def slurp(source)
+      start, block = 0, self
+
+      while MORPHEMES.match(source, pos: start)
+        if match = $~["num"]?
+          block.add(match.to_big_d)
+        elsif match = $~["word"]?
+          block.add(match.starts_with?('#') ? QuotedWord.new(match.lchop) : match)
+        elsif match = $~["quote"]?
+          block.add Quote.new(match, peel: true)
+        elsif match = $~["comment"]?
+          # block.describe(match) if block.empty?
+        elsif $~["bb"]?
+          block = Block.new(block)
+        elsif $~["be"]?
+          block = block.parent.tap &.add(block)
+        end
+
+        start += $0.size
+      end
+
+      self
+    end
+
+    def to_s(io)
+      io << String.build do |buf|
+        buf << "[ "
+        unless empty?
+          executed = exec_recursive(:to_s) { buf << tape << " " }
+          break "reflection" unless executed
+        end
+        buf << ". " << table.keys.join(' ') << " " unless flat?
+        buf << "]"
+      end
+    end
+
+    def_equals_and_hash tape, table
   end
 
-  def to_s(io)
-    io << "[world object]"
+  # Novika interpreter and context, united.
+  class World
+    include Form
+    include ITable
+
+    # Returns the continuations block.
+    getter conts : Block
+
+    # Returns the stacks block.
+    getter stacks : Block
+
+    def initialize
+      @conts = Block.new
+      @stacks = Block.new
+      stacks.add(Block.new)
+    end
+
+    # Returns the active continuation (a `Block`).
+    @[AlwaysInline]
+    def cont
+      conts.top.assert(Block)
+    end
+
+    # Returns the active stack (a `Block`).
+    @[AlwaysInline]
+    def stack
+      stacks.top.assert(Block)
+    end
+
+    # Provides two fields (hence two possible values for *name*):
+    # `#conts` (see `conts`), and `#stacks` (see `stacks`). For
+    # any other *name* returns nil.
+    def at?(name : Form)
+      case name
+      when "conts"  then conts
+      when "stacks" then stacks
+      end
+    end
+
+    # Starts the interpreter loop.
+    def start
+      until conts.empty?
+        while form = cont.next?
+          begin
+            form.opened(self)
+          rescue e : FormDied
+            handler = cont.at("/died")
+            stack.add Quote.new(e.message.not_nil!)
+            handler.open(self)
+          end
+        end
+
+        conts.drop
+      end
+    end
+
+    def to_s(io)
+      io << "[world object]"
+    end
   end
 end
 
 source = File.read("basis.nk")
 
-world = World.new
-require "benchmark"
-
-block = Block.new(primitives)
+world = Novika::World.new
+block = Novika::Block.new(Novika.primitives)
 block.slurp(source)
 
 begin
-  world.open(block)
+  world.conts.add block.to(0)
+  world.start
 rescue e : Exception
-  e.inspect_with_backtrace(STDOUT) unless e.is_a?(FormDied)
+  e.inspect_with_backtrace(STDOUT) unless e.is_a?(Novika::FormDied)
 
   puts e.message.colorize.red.bold
 
   count = world.conts.count
   (0...count).each do |index|
-    cont = world.conts.at(index).as(Block)
+    cont = world.conts.at(index).as(Novika::Block)
     output = "  IN #{cont.top.colorize.bold}"
     output = output.ljust(32)
     excerpt = ("… #{cont.same?(block) ? "toplevel" : cont}"[0, 64] + " …").colorize.dark_gray

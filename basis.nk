@@ -346,7 +346,7 @@ root #@: [
 ] @: i+
 
 
-1000 times: [
+100 times: [
   echo
   [ 1 2 3 ]
   [ i+ 1 ]
@@ -359,3 +359,10 @@ root #@: [
 ] choose
 
 ]
+
+
+[ ] $: b
+b 123 #hi pushes
+b 'moose' #bye pushes
+b 123 pull echo
+b 'moose' pull echo

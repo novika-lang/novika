@@ -19,7 +19,8 @@ class Tape(T)
     end
   end
 
-  #
+  # Returns a shallow (tape class and internal array) copy
+  # of *tape*.
   def self.borrow(tape : Tape(T)) forall T
     Tape(T).new(tape.array.dup, tape.cursor)
   end
@@ -117,6 +118,9 @@ class Tape(T)
     at?(cursor)
   end
 
+  # Returns the element immediately preceding the cursor, and
+  # advances the cursor forward by one. Returns nil if cursor
+  # will advance out of tape bounds.
   @[AlwaysInline]
   def next?
     array.unsafe_fetch(cursor.tap { @cursor += 1 }) if cursor < count
@@ -211,15 +215,8 @@ class Tape(T)
     @array = other
   end
 
-  # Yields every element to the block.
+  # Yields each element.
   delegate :each, to: array
-
-  # Yields elements after the cursor to the block.
-  def rest
-    (cursor...count).each do |index|
-      yield array[index]
-    end
-  end
 
   def to_s(io)
     return io << "|" if empty?
@@ -227,35 +224,11 @@ class Tape(T)
     iter = array.each
 
     if at_begin?
-      io << "| "
-      iter.join(io, ' ') do |element|
-        executed = exec_recursive(:to_s) do
-          io << element
-        end
-        io << "reflection" unless executed
-      end
+      io << "| "; iter.join(io, ' ')
     elsif at_end?
-      iter.join(io, ' ') do |element|
-        executed = exec_recursive(:to_s) do
-          io << element
-        end
-        io << "reflection" unless executed
-      end
-      io << " |"
+      iter.join(io, ' '); io << " |"
     else
-      iter.first(cursor).join(io, ' ') do |element|
-        executed = exec_recursive(:to_s) do
-          io << element
-        end
-        io << "reflection" unless executed
-      end
-      io << " | "
-      iter.join(io, ' ') do |element|
-        executed = exec_recursive(:to_s) do
-          io << element
-        end
-        io << "reflection" unless executed
-      end
+      iter.first(cursor).join(io, ' '); io << " | "; iter.join(io, ' ')
     end
   end
 
