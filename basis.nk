@@ -122,12 +122,28 @@ root #@: [
   same?
 ] @: =
 
+[ "( A -- true/false ): leaves whether A = 0"
+  0 =
+] @: zero?
+
+[ "( A B -- true/false ): leaves whether A is divisible by B."
+  rem zero?
+] @: /?
+
+[ "( N -- true/false ): leaves whether A is even (divisible by two)."
+  2 /?
+] @: even?
+
+[ "( N -- true/false ): leaves whether A is odd."
+  even? not
+] @: odd?
+
 [ "( A B -- B ): drop before top."
   swap drop
 ] @: nip
 
 [ "( B -- true/false ): leaves whether Block is empty."
-  count 0 =
+  count zero?
 ] @: empty?
 
 [ "( [ ... T ] cherry: B -- ): executes cherry on block. If that
@@ -242,9 +258,9 @@ root #@: [
    each time new."
   2dup [ ] new rot there tip
     [ swap there drop ] "Yes: execute the block."
-    [ drop "stack"      "No: break out of the loop."
-      drop "block"
-      drop "block"
+    [ drop "stack"
+      drop "body"
+      drop "body"
       drop "determiner"
       ahead break ]
   sel open
@@ -296,28 +312,13 @@ root #@: [
   [ dup enclose block there drop ] |each
 ] @: each
 
-[ "( L B -- L ): opens Block with each item in List, replaces the
-   item with block's value."
-  $: block dup
+[ "( L B -- L1 ): opens Block with each item in List, replaces
+   the item with block's value inside a new block."
+  $: block new dup
 
   [ enclose block there cherry ] |each
 ] @: map
 
-[ "( A -- true/false ): leaves whether A = 0"
-  0 =
-] @: zero?
-
-[ "( A B -- true/false ): leaves whether A is divisible by B."
-  rem zero?
-] @: /?
-
-[ "( N -- true/false ): leaves whether A is even (divisible by two)."
-  2 /?
-] @: even?
-
-[ "( N -- true/false ): leaves whether A is odd."
-  even? not
-] @: odd?
 
 [ "( L pairs: B -- ): opens Block with pairs in List on a fresh
    stack. Does nothing if odd count in List."
@@ -338,11 +339,6 @@ root #@: [
     ]
   ]
 ] @: choose
-
-
-"BUG: map inside `times` doesn't work, returns raw block. Guess
- somewhere block doesn't get 0 |to'd or something. `again` may
- be the one to blame."
 
 
 [

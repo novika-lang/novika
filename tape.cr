@@ -119,7 +119,7 @@ class Tape(T)
 
   @[AlwaysInline]
   def next?
-    array.unsafe_fetch(cursor.tap { @cursor += 1 }) unless cursor > count
+    array.unsafe_fetch(cursor.tap { @cursor += 1 }) if cursor < count
   end
 
   # Returns the last element in the tape if it has one,

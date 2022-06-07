@@ -227,7 +227,8 @@ class Block
     @parent : Block?,
     @tape : Tape(Form),
     @reach : Table,
-    @prototype = self
+    @prototype = self,
+    @leaf = true
   )
   end
 
@@ -314,7 +315,7 @@ class Block
   end
 
   def detach
-    Block.new(parent?, Tape.borrow(tape), reach)
+    Block.new(parent?, Tape.borrow(tape), reach, leaf: leaf?)
   end
 
   def prevable?
@@ -331,9 +332,9 @@ class Block
 
   def instance(parent = self)
     if leaf?
-      Block.new(parent, Tape.borrow(tape), reach, prototype)
+      Block.new(parent, Tape.borrow(tape), reach.dup, prototype, leaf?)
     else
-      inst = Block.new(parent, prototype, reach)
+      inst = Block.new(parent, prototype, reach.dup)
       tape.each do |form|
         inst.add(form.is_a?(Block) ? form.instance(inst) : form)
       end
