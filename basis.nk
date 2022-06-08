@@ -48,7 +48,7 @@ root #fromRight [
   over count 1 - swap - fromLeft
 ] opens
 
-root #<< [ "( [ ... ] E -- [ ... E] ): inserts Element into block."
+root #<< [ "( [ ... ] E -- [ ... E ] ): inserts Element into block."
   over gulp
 ] opens
 
@@ -116,7 +116,7 @@ root #@: [
 
 [ "( [ ... T ) -- [ ... T ] T ): leaves block and its Top value."
   >> dup <| << |>
-] @: tip
+] @: top
 
 [ "( A B -- ): leaves whether two values are equal."
   same?
@@ -256,9 +256,9 @@ root #@: [
 [ "( D B -- ): a primitive while loop taking a Determiner block and
    a Body block. Executes Determiner, Body in the same empty stack,
    each time new."
-  2dup [ ] new rot there tip
+  2dup [ ] new rot there top
     [ swap there drop ] "Yes: execute the block."
-    [ drop "stack"
+    [ drop "stack"      "No: drop everything and break."
       drop "body"
       drop "body"
       drop "determiner"
@@ -290,12 +290,11 @@ root #@: [
   ahead reach "( N B )" times
 ] @: times:
 
-[ "( L B -- ): opens Block with List as stack, cursor in List block
-   after the each element."
+[ "( L B -- ): opens Block with List as stack, cursor in List
+   block after each element. You should choose initial cursor
+   position in L manually."
   $: body
   $: list
-
-  list 0 |to
 
   [ list dup |at 1 + over count = ]
   [
@@ -304,19 +303,19 @@ root #@: [
     list dup |at 2 + |to
     list body there
   ] until
-] @: |each
+] @: |slideRight
 
 [ "( L B -- ): opens Block with each item in List on a new stack."
-  $: block
+  dup 0 |to $: block
 
-  [ dup enclose block there drop ] |each
+  [ dup enclose block there drop ] |slideRight
 ] @: each
 
 [ "( L B -- L1 ): opens Block with each item in List, replaces
    the item with block's value inside a new block."
-  $: block new dup
+  $: block new dup 0 |to dup
 
-  [ enclose block there cherry ] |each
+  [ enclose block there cherry ] |slideRight
 ] @: map
 
 
@@ -324,7 +323,7 @@ root #@: [
    stack. Does nothing if odd count in List."
   ahead reach $: block
 
-  dup count even? => [ [ |> 2enclose block there drop ] |each ]
+  dup count even? => [ dup 0 |to [ |> 2enclose block there drop ] |slideRight ]
 ] @: pairs:
 
 [ "( V [ D[ ... ] B[ ... ] ... ] ) -- B' ): finds Determiner which
@@ -333,7 +332,7 @@ root #@: [
   swap $: value
 
   pairs: [ "( D B )"
-    value enclose rot there tip => [
+    value enclose rot there top => [
       "Found a truthy determiner: execute its block and quit."
       swap there drop ^
     ]
@@ -366,3 +365,8 @@ b 123 #hi pushes
 b 'moose' #bye pushes
 b 123 pull echo
 b 'moose' pull echo
+
+[ 1 2 3 4 5 6 7 8 9 ] dup 1 |to $: myList
+myList 1 |to
+myList #+ |slideRight
+myList echo
