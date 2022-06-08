@@ -142,7 +142,7 @@ module Novika
       end
 
       prims.at("|at") do |world|
-        (world.stack.drop.assert(Block).cursor - 1).to_big_d.push(world)
+        world.stack.drop.assert(Block).cursor.to_big_d.push(world)
       end
 
       prims.at("|to") do |world|

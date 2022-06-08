@@ -19,11 +19,11 @@ root #stack [ "( -- S ): leaves current stack block."
 ] opens
 
 root #<| [ "( -- ): moves current stack's cursor once to the left."
-  stack dup |at 1 - |to
+  stack |at 1 - stack swap |to
 ] opens
 
 root #|> [ "( -- ): moves current stack's cursor once to the right."
-  stack dup |at 1 + |to
+  stack |at 1 + stack swap |to
 ] opens
 
 root #over [ "( A B -- A B A ): duplicates over the ToS."
@@ -118,9 +118,25 @@ root #@: [
   >> dup <| << |>
 ] @: top
 
-[ "( A B -- ): leaves whether two values are equal."
+[ "( A B C -- C A B ): inverse of rotate"
+  rot rot
+] @: -rot
+
+[ "( A B -- true/false ): leaves whether two values are equal."
   same?
 ] @: =
+
+[ "( A B -- true/false ): leaves whether A <= B."
+  2dup < -rot = or
+] @: <=
+
+[ "( A B -- true/false ): leaves whether A > B."
+  <= not 
+] @: >
+
+[ "( A B -- true/false ): leaves whether A >= B."
+  < not
+] @: >=
 
 [ "( A -- true/false ): leaves whether A = 0"
   0 =
@@ -177,6 +193,14 @@ root #@: [
 [ "( F -- I ): leaves Inverse of Form (false => true, else false)."
   false same?
 ] @: not
+
+[ "( A B -- A/false ): leaves whether both A and B are truthy."
+  [ ] [ drop false ] br
+] @: and
+
+[ "( A B -- true/A ): leaves whether A or B or both are truthy."
+  [ drop true ] [ ] br
+] @: or
 
 [ "( B -- ): makes detached continuations stack the stack for the
    duration of Block. Attaches after Block."
@@ -291,19 +315,35 @@ root #@: [
 ] @: times:
 
 [ "( L B -- ): opens Block with List as stack, cursor in List
-   block after each element. You should choose initial cursor
-   position in L manually."
+   block after each element sliding rightwards. You should
+   choose initial cursor position in List manually."
   $: body
   $: list
 
-  [ list dup |at 1 + over count = ]
+  [ list dup |at over count = ]
   [
-    "Due to a bug in |at/|to, we get wrong value (0),
-     so must add 2."
-    list dup |at 2 + |to
+    list dup |at 1 + |to
     list body there
   ] until
 ] @: |slideRight
+
+[ "( L B -- ): opens Block with List as stack, cursor in List
+   block after each element sliding leftwards. You should choose
+   initial cursor position in List manually."
+  $: body
+  $: list
+
+  [ list |at 0 = ]
+  [
+    list count $: tmp
+    list body there
+    list count tmp >= => [
+      "If the amount of items in the list has not
+       changed, or increased, slide leftwards."
+       list dup |at 1 - |to
+    ]
+  ] until
+] @: |slideLeft
 
 [ "( L B -- ): opens Block with each item in List on a new stack."
   dup 0 |to $: block
@@ -317,7 +357,6 @@ root #@: [
 
   [ enclose block there cherry ] |slideRight
 ] @: map
-
 
 [ "( L pairs: B -- ): opens Block with pairs in List on a fresh
    stack. Does nothing if odd count in List."
@@ -367,6 +406,7 @@ b 123 pull echo
 b 'moose' pull echo
 
 [ 1 2 3 4 5 6 7 8 9 ] dup 1 |to $: myList
-myList 1 |to
 myList #+ |slideRight
 myList echo
+
+[ 1 2 3 ] [ echo ] |slideLeft
