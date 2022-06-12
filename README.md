@@ -3,19 +3,19 @@
 Novika is an interpreted programming language, somewhat related to
 Forth, Red/Rebol, Self, and Lisp.
 
-This repo is the most recent (9th) reference implementation of Novika.
+This branch is the most recent (10th) prototype implementation of Novika.
 
 This implementation is slow (very slow) and buggy. Currently, it can't
 even be used for experimentation, let alone production. Mainly due to
-core components being relatively undeveloped.
+core components being relatively undeveloped/unexplored.
 
-The repository is unorganized. Code is raw. Beware.
+The repository is unorganized. Code is raw and naïve at times.
+Beware. Help if you can. Poke around. There is little docs on
+the language itself, so explore and infer :)
 
-For an example of Novika code, see `basis.nk`.
+For an example of Novika code, see `basis.nk`, and observe how it
+gradually grows the language's vocabulary.
 
-> Agony: This revision is in agony. It so happens that block copy on
-> write and lookup redesign are actually required for Novika. Otherwise,
-> it's **too** slow and naïve.
 
 ## Language notes
 
@@ -28,7 +28,8 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
 
 - Words are immutable. Block is the only mutable kind of form.
 
-- Words are separated by whitespaces. Word is an umbrella for:
+- Words are separated by whitespaces. In this sense, Novika is
+  whitespace-sensitive. Word is an umbrella for:
   - Word: `foo bar +baz 2dup a.Ny.Comb-ina+t\iOn`
   - Quoted word: `#foo`
   - Number: `123`
@@ -49,19 +50,21 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
 - If definition is not found in the enclosing block, the parent block
   (one that encloses the enclosing block) is checked, etc. When the
   parent block is reached and the definition is still not found, the
-  `/default` word is opened in the original block, with quoted word
+  `*fallback` word is opened in the original block, with quoted word
   on the stack.
+
+- The described process as a whole is called *resolution*.
 
 - All forms except words are pushed onto the stack. Stack holds
   intermediate results. Stack is a block. With `there`, custom
   stack block may be specified.
 
     ```novika
-    [ ] [ 1 2 + ] there "-- [ 3 ]"
+    [ ] [ 1 2 + ] there echo "[ 3 | ]"
     ```
 
-- Blocks need to be opened explicitly unless they are under a word
-  that does that:
+- Blocks need to be opened explicitly unless they are under a word/
+  definition that does that:
 
     ```novika
     [ 1 2 + ] open "3"
@@ -71,13 +74,13 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
     1+2 "3"
     ```
 
-- Blocks are objects. Blocks are instantiated upon opening. `self`
-  pushes the instance. `self prototype` pushes the prototype block,
+- Blocks are objects. Blocks are instantiated upon opening. `this`
+  pushes the instance. `this prototype` pushes the prototype block,
   which is the block you with your eyes in this example:
 
   ```novika
   [ $: y  $: x
-    self
+    this
   ] @: newPoint
 
   0 0 newPoint "[ | . x y ]"
@@ -85,11 +88,14 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
     #y . "todo, and .y later"
   ```
 
+- `this` is also the current continuation, so it's dirty. Cursor
+  there is placed before the currently opened word.
+
 Working with the insertion point:
 
 ```novika
   [ 1 2 3 ] "[ 1 2 3 | ]"
-  [ 1 2 3 ] #<| there "[ 1 2 | 3 ]
+  [ 1 2 3 ] [ <| ] there "[ 1 2 | 3 ]
   [ + ] there  "[ 3 | 3 ]"
   [ echo ] there "Prints 3 ;; [ | 3]"
   open "3"
@@ -97,19 +103,28 @@ Working with the insertion point:
 
 ## Installation
 
-TODO: Write installation instructions here
+Wut?
 
 ## Usage
 
-TODO: Write usage instructions here
+`shards build --release --production --progress --no-debug` and
+every other switch you can come up with :)
+
+Then `./bin/novika basis.nk`. If you want to type in some code,
+type it at the end of basis.nk (UX/UI sucks huh?). I guess
+you'd also want to remove whatever example code there is already
+(currently the `1000 times:` thingy).
 
 ## Development
 
-TODO: Write development instructions here
+Look at source. Explore `crystal docs novika.cr`.
+
+Then `crystal run novika.cr -- basis.nk`. Make it break. See
+where and why. Easy, huh? Maybe `flamegraph` it?
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/novika_9/fork>)
+1. Fork it (<https://github.com/homonoidian/novika/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -117,4 +132,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [homonoidian](https://github.com/your-github-user) - creator and maintainer
+- [homonoidian](https://github.com/homonoidian) - creator and maintainer
