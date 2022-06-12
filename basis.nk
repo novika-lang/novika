@@ -1,0 +1,403 @@
+this #<| [
+  "( -- ): moves stack cursor once to the left."
+  stack |at 1 - stack swap |to
+] opens
+
+
+this #|> [
+  "( -- ): moves stack cursor once to the right."
+  stack |at 1 + stack swap |to
+] opens
+
+
+this #ahead [
+  "( -- B ): leaves caller Block on the stack."
+  conts dup count 3 - fromLeft #block get
+] opens
+
+
+this #there [
+  "( S B -- S ): opens Block in Stack, leaves Stack."
+  <| dup |> hydrate
+] opens
+
+
+this #eject [
+  "( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
+   leaves the Form after cursor in Block."
+  [ |> ] there cherry
+] opens
+
+
+this #@: [
+  "( F @: N ): makes an opener entry called Name for Form."
+  ahead swap ahead eject swap opens
+] opens
+
+
+[ "( F $: N -- ): makes a pusher entry called Name for Form."
+  ahead swap ahead eject swap pushes
+] @: $:
+
+
+[ "( V =: N -- ): submits Value to an already defined entry
+   under the specified Name."
+  ahead swap ahead eject swap submit
+] @: =:
+
+
+[	"( A B -- A B A ): duplicates over the top."
+  <| dup |> swap
+] @: over
+
+
+[ "( A B C -- B C A ): brings thirdmost to the top."
+  <| swap |> swap
+] @: rot
+
+
+[ "( A B C -- C A B ): makes top third from the top."
+  rot rot
+] @: -rot
+
+
+[ "( A B -- A B A B ): duplicates a pair."
+  over over
+] @: 2dup
+
+
+[ "( F [ ... ] -- [ ... F ] -- ): adds Form to Block, then
+   drops both."
+  swap shove
+] @: gulp
+
+
+[ "( [ ... ] F -- [ ... F ] ): inserts Form into block."
+  over gulp
+] @: <<
+
+
+[ "( [ ... F ] -- [ ... ] F ): removes Form from block, leaves both."
+  dup cherry
+] @: >>
+
+
+[ "( F -- [ F ] ): wraps Form in a new block."
+  [ ] swap <<
+] @: enclose
+
+
+[ "( A B -- [ A B ] ): wraps a pair of forms in a new block."
+  swap
+
+  [ ] swap <<
+      swap <<
+] @: 2enclose
+
+
+[ "( [ ... T ]B -- [ ... T ]B T ): leaves Block and its Top value."
+  >> dup <| << |>
+] @: top
+
+
+[ "( B I -- F ): returns Index-th Form from right in Block;
+   I = 0 is the last (rightmost) element."
+  over count 1 - swap - fromLeft
+] @: fromRight
+
+[ "( B . N -- F ): looks up Form under Name in caller table."
+  ahead eject get
+] @: ->
+
+
+[ "( A B -- true/false ): leaves whether two values are equal."
+  same?
+] @: =
+
+
+[ "( A B -- true/false ): leaves whether A <= B."
+  2dup < -rot = or
+] @: <=
+
+
+[ "( A B -- true/false ): leaves whether A > B."
+  <= not
+] @: >
+
+
+[ "( A B -- true/false ): leaves whether A >= B."
+  < not
+] @: >=
+
+
+[ "( A -- true/false ): leaves whether A = 0"
+  0 =
+] @: zero?
+
+
+[ "( A B -- true/false ): leaves whether A is divisible by B."
+  rem zero?
+] @: /?
+
+
+[ "( N -- true/false ): leaves whether A is even (divisible by two)."
+  2 /?
+] @: even?
+
+
+[ "( N -- true/false ): leaves whether A is odd."
+  even? not
+] @: odd?
+
+
+[ "( B -- true/false ): leaves whether Block is empty."
+  count zero?
+] @: empty?
+
+
+[ "( F -- I ): leaves Inverse of Form (false => true, else false)."
+  false same?
+] @: not
+
+
+[ "( F --  B ): leaves Form as Boolean."
+  not not
+] @: true?
+
+
+[ "( B -- ? ): opens Block in the active stack."
+  stack swap hydrate
+] @: open
+
+
+[ "( B -- T ): activates an empty stack for the duration of Block,
+   and leaves Top form in the stack. Dies if none."
+  [ ] swap there cherry
+] @: val
+
+
+[ "( B -- ): activates an empty stack for the duration of Block."
+  [ ] swap hydrate
+] @: do
+
+
+[ "( D T F -- ? ): opens True/False forms depending on Determiner
+   being true/false."
+  sel open
+] @: br
+
+
+[ "( D => T -- ? ): opens True form if Determiner is truthy."
+  ahead eject [ ] br
+] @: =>
+
+
+[ "( A B -- A/false ): leaves whether both A and B are truthy."
+  [ true? ] [ drop false ] br
+] @: and
+
+
+[ "( A B -- true/A ): leaves whether A or B or both are truthy."
+  [ drop true ] [ true? ] br
+] @: or
+
+
+[ "( B -- ): makes detached continuations stack the stack for
+   the duration of Block. Attaches after Block."
+  conts detach
+    "Don't forget to drop the call to continues (as it will
+     obscure what the caller expects continuations block to be)"
+    [ drop ] there swap there
+  conts attach
+] @: continues
+
+
+[ "( -- ): executes caller again. Looping primitive. Too low-
+   level for users, prefer not to use (use `loop` instead).
+   Beware that it does not re-instantiate the block."
+  [
+    drop "the call to repeat"
+    dup -> block 0 |to
+  ] continues
+] @: repeat
+
+
+[ "( B -- ): drops all continuations before (and including)
+   those for which Block leaves truthy value when opened with
+   the continuation on top of an empty stack, coming from the
+   right-hand side."
+  $: needle?
+
+  [
+    enclose needle? there cherry
+      [ ]  "Hit the needle! Don't recurse."
+      rec  "Not the needle. Recurse."
+    br
+  ] dup $: rec continues
+] @: dropContinuationsUntil
+
+
+[ "( B -- I ): injects `break` and `continue` into an Instance
+   of Block. `break` drops continuations until and including
+   the caller block, and `continue`, drops them up to and
+   including the Body block (and/or its instances)."
+    dup $: body
+    new $: instance
+  ahead $: caller
+
+  instance #break [ "( -- ): quits from the enclosing loop."
+    [ -> block caller same? ] dropContinuationsUntil
+  ] opens
+
+  instance #continue [ "( -- ): quits from current loop iteration."
+    [ -> block prototype body same? ] dropContinuationsUntil
+  ] opens
+
+  instance
+] @: newWithBreakAndContinue
+
+
+[ "( B -- ): basic infinite loop over Block. `break` and `continue`
+   are made available in Block. Block is opened in an empty stack."
+  newWithBreakAndContinue $: block
+
+  [ "The actual loop body (note the `repeat`)."
+    [ ] new block there
+
+    repeat
+  ] open
+] @: loop
+
+
+[ "( loop: B -- ): prefix version of `loop`. Has no difference
+   in regards to functionality."
+  ahead eject loop
+] @: loop:
+
+
+[ "( C B -- ): opens Condition in caller's stack, Body in a
+   new stack with Condition's result on top, all while this
+   result is truthy. Similar to `loop`, words `break` and
+   `continue` are made available in Body."
+  newWithBreakAndContinue $: body $: condition stack $: cStack
+
+  loop: [
+    cStack condition there cherry dup
+      [ enclose body there ] "Condition truthy: enclose & proceed with body!"
+      [ drop break ]         "Condition falsey: drop the false and get out."
+    br
+  ]
+] @: while
+
+
+[ "( while: C B -- ): prefix version of `while`. Has no difference
+   in regards to functionality."
+  ahead eject
+  ahead eject
+  while
+] @: while:
+
+
+[ "( C B -- ): inverse of `while` (opens Body while Condition
+   is **false**), for more info see `while`."
+  $: body @: condition
+
+  [ condition not ] body while
+] @: until
+
+
+[ "( until: C B -- ): prefix version of `until`. Has no difference
+   in regards to functionality."
+  ahead eject
+  ahead eject
+  until
+] @: until:
+
+
+[ "( N B -- ): opens Body N times. Body is opened in a new
+   stack with current N. `break` and `continue` available."
+  newWithBreakAndContinue $: body $: stop
+
+  0 $: start
+
+  while: [ start stop < ] [
+    start enclose body there
+    start 1 + =: start
+  ]
+] @: times
+
+
+[ "( N times: B -- ): infix version of `times`."
+  ahead eject times
+] @: times:
+
+
+[ """( Lb B -- Lb ): slides cursor in List block from left to
+   right, in steps of one, and THEN opens Block with List block
+   as the stack each step. Leaves List block. `break` and `continue`
+   are available.
+
+  >>> [ 1 2 3 ] dup 1 |to [ + ] |->
+
+  ! Sliding step is marked with '*', block iteration postfixed
+    by a '+'.
+
+   +------+-------+-------------+ 
+   | #    | form  |    list     |
+   +======+=======+=============+
+   | 0    |       | [ 1 2 3 | ] |
+   | 1    | 1 |to | [ 1 | 2 3 ] |
+   | *    |       | [ 1 2 | 3 ] |
+   | 3+   |    +  | [ 3 | 3 ]   |
+   | *    |       | [ 3 3 | ]   |
+   | 5+   |    +  | [ 6 | ]     |
+   +------+-------+-------------+
+
+  === [ 6 ]
+  """
+  newWithBreakAndContinue $: body $: list
+
+  until: [ list dup |at over count = ]
+  [
+    list dup |at 1 + |to
+    list body there
+  ]
+
+  list
+] @: |->
+
+
+[ "( Lb B -- Lb ): similar to `|->`, but moves from right to
+   left. Consult `|->`."
+  newWithBreakAndContinue $: body new $: list
+
+  until: [ list |at 0 = ]
+  [
+    list count $: tmp
+    list body there
+    list count tmp >= => [
+      "If the amount of items in the list has not
+       changed, or increased, slide leftwards."
+       list dup |at 1 - |to
+    ]
+  ]
+
+  list
+] @: <-|
+
+
+[ "( Lb B -- ): opens Block with each item in List block on
+   top of a new stack. List block is unchanged. `break` and
+   `continue` are available."
+  newWithBreakAndContinue $: block
+
+  new dup 0 |to [ dup enclose block there drop ] |-> 
+] @: each
+
+
+[ "( Lb each: B -- ): infix version of `each`. "
+  ahead eject each
+] @: each:
+
+
+1000 times: [ echo [ 1 2 3 ] each: [ 2 * drop ] ]
