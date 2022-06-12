@@ -262,7 +262,7 @@ this #@: [
   newWithBreakAndContinue $: block
 
   [ "The actual loop body (note the `repeat`)."
-    [ ] new block there
+    [ ] new block hydrate
 
     repeat
   ] open
@@ -391,13 +391,12 @@ this #@: [
    `continue` are available."
   newWithBreakAndContinue $: block
 
-  new dup 0 |to [ dup enclose block there drop ] |-> 
+  new dup 0 |to [ dup enclose block there drop ] |-> drop
 ] @: each
 
 
 [ "( Lb each: B -- ): infix version of `each`. "
   ahead eject each
 ] @: each:
-
 
 1000 times: [ echo [ 1 2 3 ] each: [ 2 * drop ] ]
