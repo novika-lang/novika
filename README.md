@@ -76,16 +76,17 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
 
 - Blocks are objects. Blocks are instantiated upon opening. `this`
   pushes the instance. `this prototype` pushes the prototype block,
-  which is the block you with your eyes in this example:
+  which is the block you see with your eyes in this example:
 
   ```novika
-  [ $: y  $: x
+  [ $: y $: x
     this
   ] @: newPoint
 
-  0 0 newPoint "[ | . x y ]"
-    #x . "todo, and .x later"
-    #y . "todo, and .y later"
+  1 2 newPoint $: pt
+  pt echo "[ | . x y ]"
+  pt -> x echo "1"
+  pt -> y echo "2"
   ```
 
 - `this` is also the current continuation, so it's dirty. Cursor
