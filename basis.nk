@@ -337,7 +337,7 @@ this #@: [
    as the stack each step. Leaves List block. `break` and `continue`
    are available.
 
-  >>> [ 1 2 3 ] dup 1 |to [ + ] |->
+  >>> [ 1 2 3 ] dup 1 |to [ + ] |slideRight
 
   ! Sliding step is marked with '*', block iteration postfixed
     by a '+'.
@@ -364,11 +364,16 @@ this #@: [
   ]
 
   list
+] @: |slideRight
+
+
+[ "( Lb |-> B -- Lb ): infix version of `|slideRight`."
+  ahead eject |slideRight
 ] @: |->
 
 
-[ "( Lb B -- Lb ): similar to `|->`, but moves from right to
-   left. Consult `|->`."
+[ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
+   from right to left. Consult `|slideRight`."
   newWithBreakAndContinue $: body new $: list
 
   until: [ list |at 0 = ]
@@ -383,6 +388,11 @@ this #@: [
   ]
 
   list
+] @: |slideLeft
+
+
+[ "( Lb <-| B -- Lb ): infix version of `|slideLeft`."
+  ahead eject |slideLeft
 ] @: <-|
 
 
@@ -391,7 +401,7 @@ this #@: [
    `continue` are available."
   newWithBreakAndContinue $: block
 
-  new dup 0 |to [ dup enclose block there drop ] |-> drop
+  new dup 0 |to |-> [ dup enclose block there drop ] drop
 ] @: each
 
 
@@ -399,4 +409,4 @@ this #@: [
   ahead eject each
 ] @: each:
 
-1000 times: [ echo [ 1 2 3 ] each: [ 2 * drop ] ]
+1000 times: [ echo [ 1 2 3 ] each: [ 2 * echo ] ]
