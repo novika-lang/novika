@@ -21,6 +21,13 @@ module Novika::Primitives
       world.conts.push(world)
     end
 
+    # Creates a Continuation from a Stack and a Block: ( S B -- C ).
+    target.at("newContinuation") do |world|
+      block = world.stack.drop.assert(Block)
+      stack = world.stack.drop.assert(Block)
+      Continuation.new(block, stack).push(world)
+    end
+
     # Pushes the current continuation Block: ( -- B ). Dirty!
     target.at("this") do |world|
       world.block.push(world)
@@ -112,6 +119,31 @@ module Novika::Primitives
       Boolean.same?(a, b).push(world)
     end
 
+    # Leaves whether Form is a block: ( F -- true/false )
+    target.at("block?") do |world|
+      Boolean[world.stack.drop.is_a?(Block)].push(world)
+    end
+
+    # Leaves whether Form is a word: ( F -- true/false )
+    target.at("word?") do |world|
+      Boolean[world.stack.drop.is_a?(Word)].push(world)
+    end
+
+    # Leaves whether Form is a decimal: ( F -- true/false )
+    target.at("decimal?") do |world|
+      Boolean[world.stack.drop.is_a?(Decimal)].push(world)
+    end
+
+    # Leaves whether Form is a quote: ( F -- true/false )
+    target.at("quote?") do |world|
+      Boolean[world.stack.drop.is_a?(Quote)].push(world)
+    end
+
+    # Leaves whether Form is a boolean: ( F -- true/false )
+    target.at("boolean?") do |world|
+      Boolean[world.stack.drop.is_a?(Boolean)].push(world)
+    end
+
     # Creates a definition for Name in Block that pushes Form
     # when resolved there: ( B N F -- ).
     target.at("pushes") do |world|
@@ -143,11 +175,26 @@ module Novika::Primitives
       entry.submit(form)
     end
 
-    # Looks up the value Form of Name in Block's table: ( B N -- F )
-    target.at("get") do |world|
+    # Leaves whether Table can fetch value for Name: ( T N -- true/false ).
+    target.at("entry:exists?") do |world|
+      name = world.stack.drop
+      block = world.stack.drop.assert(ReadableTable)
+      Boolean[block.has?(name)].push(world)
+    end
+
+    # Leaves the value Form under Name in Block's table: ( B N -- F )
+    target.at("entry:fetch") do |world|
       name = world.stack.drop
       block = world.stack.drop.assert(ReadableTable)
       block.at(name).push(world)
+    end
+
+    # Leaves whether an entry called Name in Block is an open
+    # entry: ( B N -- true/false ).
+    target.at("entry:isOpenEntry?") do |world|
+      name = world.stack.drop
+      block = world.stack.drop.assert(ReadableTable)
+      Boolean[block.at(name).is_a?(OpenEntry)].push(world)
     end
 
     # Makes a shallow copy of Block's tape, and leaves a Copy
@@ -207,9 +254,74 @@ module Novika::Primitives
       world.stack.drop.push(world.stack.drop.assert(Block))
     end
 
-    # Shows Form in the console: ( F -- )
-    target.at("echo") do |world|
+    # Shows Form in the console: ( F -- ).
+    target.at("rawEcho") do |world|
       world.stack.drop.echo(STDOUT)
+    end
+
+    # Dies with Details quote: ( D -- ).
+    target.at("die") do |world|
+      raise FormDied.new(world.stack.drop.assert(Quote).string)
+    end
+
+    # Quote concatenation: ( Q1 Q2 -- Q3 ).
+    target.at("stitch") do |world|
+      b = world.stack.drop.assert(Quote)
+      a = world.stack.drop.assert(Quote)
+      world.stack.add(a + b)
+    end
+
+    # File system ------------------------------------------
+
+    # Leaves whether Path quote exists: ( Pq -- true/false )
+    target.at("fs:exists?") do |world|
+      path = world.stack.drop.assert(Quote)
+      status = File.exists?(path.string)
+      Boolean[status].push(world)
+    end
+
+    # Leaves whether Path quote is readable: ( Pq -- true/false )
+    target.at("fs:readable?") do |world|
+      path = world.stack.drop.assert(Quote)
+      status = File.readable?(path.string)
+      Boolean[status].push(world)
+    end
+
+    # Leaves whether Path quote exists and points to a directory:
+    # ( Pq -- true/false )
+    target.at("fs:dir?") do |world|
+      path = world.stack.drop.assert(Quote)
+      status = Dir.exists?(path.string)
+      Boolean[status].push(world)
+    end
+
+    # Leaves whether Path quote exists and points to a file:
+    # ( Pq -- true/false )
+    target.at("fs:file?") do |world|
+      path = world.stack.drop.assert(Quote)
+      status = File.file?(path.string)
+      Boolean[status].push(world)
+    end
+
+    # Leaves whether Path quote exists and points to a symlink:
+    # ( Pq -- true/false )
+    target.at("fs:symlink?") do |world|
+      path = world.stack.drop.assert(Quote)
+      status = File.symlink?(path.string)
+      Boolean[status].push(world)
+    end
+
+    # Creates a file at Path: ( P -- ).
+    target.at("fs:touch") do |world|
+      path = world.stack.drop.assert(Quote)
+      File.touch(path.string)
+    end
+
+    # Reads and leaves Contents of File: ( F -- C )
+    target.at("fs:read") do |world|
+      path = world.stack.drop.assert(Quote)
+      contents = File.read(path.string)
+      Quote.new(contents).push(world)
     end
   end
 end

@@ -12,13 +12,21 @@ this #|> [
 
 this #ahead [
   "( -- B ): leaves caller Block on the stack."
-  conts dup count 3 - fromLeft #block get
+  conts dup count 3 - fromLeft #block entry:fetch
+] opens
+
+
+this #burp [
+  "( B F -- ): inserts Form to Block: adds Form to Block,
+   and moves cursor back again."
+  <| dup |> shove dup |at 1 - |to
 ] opens
 
 
 this #there [
-  "( S B -- S ): opens Block in Stack, leaves Stack."
-  <| dup |> hydrate
+  "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
+   is transferred to block."
+  <| dup |> ahead #hydrate burp
 ] opens
 
 
@@ -34,7 +42,6 @@ this #@: [
   ahead swap ahead eject swap opens
 ] opens
 
-
 [ "( F $: N -- ): makes a pusher entry called Name for Form."
   ahead swap ahead eject swap pushes
 ] @: $:
@@ -44,6 +51,16 @@ this #@: [
    under the specified Name."
   ahead swap ahead eject swap submit
 ] @: =:
+
+
+[ "( A B -- ): drops a pair of forms."
+  drop drop
+] @: 2drop
+
+
+[ "( A B -- B ): drops over the top."
+  swap drop
+] @: nip
 
 
 [	"( A B -- A B A ): duplicates over the top."
@@ -105,9 +122,24 @@ this #@: [
   over count 1 - swap - fromLeft
 ] @: fromRight
 
-[ "( B . N -- F ): looks up Form under Name in caller table."
-  ahead eject get
+
+[ "( T -> N -- F ): infix for `fetch`."
+  ahead eject entry:fetch
 ] @: ->
+
+
+[ "( T . N -- F ): same as `->`, but adds `open` ahead if the
+   entry is an open(er) entry."
+  ahead                $: caller
+  ahead eject          $: name
+  dup name entry:fetch $: form
+
+  name entry:isOpenEntry? => [
+    caller [ #open <| ] hydrate
+  ]
+
+  form
+] @: .
 
 
 [ "( A B -- true/false ): leaves whether two values are equal."
@@ -165,8 +197,8 @@ this #@: [
 ] @: true?
 
 
-[ "( B -- ? ): opens Block in the active stack."
-  stack swap hydrate
+[ "( B -- B' ): opens Block in the active stack."
+  stack swap ahead #hydrate burp
 ] @: open
 
 
@@ -193,13 +225,29 @@ this #@: [
 
 
 [ "( A B -- A/false ): leaves whether both A and B are truthy."
-  [ true? ] [ drop false ] br
+  $: b @: a
+
+  a b false br
 ] @: and
 
 
 [ "( A B -- true/A ): leaves whether A or B or both are truthy."
-  [ drop true ] [ true? ] br
+  $: b @: a
+  
+  a true b br
 ] @: or
+
+
+[ "( T N fetch: B -- ): looks up under Name in Table block,
+   and opens Block with that on ToS (on caller stack). If not
+   found (or T is not block), does nothing."
+  ahead eject @: block
+
+  [ over block? ] [ 2dup entry:exists? ] and
+    [ entry:fetch block ] "Has the entry, fetch and open block."
+    [ 2drop             ] "Doesnt have, drop T N."
+  br
+] @: fetch:
 
 
 [ "( B -- ): makes detached continuations stack the stack for
@@ -235,6 +283,13 @@ this #@: [
     br
   ] dup $: rec continues
 ] @: dropContinuationsUntil
+
+
+[ "( -- ): returns to the CC of the block above the caller."
+  ahead prototype parent $: above
+
+  [ -> block prototype above same? ] dropContinuationsUntil
+] @: ^
 
 
 [ "( B -- I ): injects `break` and `continue` into an Instance
@@ -401,7 +456,7 @@ this #@: [
    `continue` are available."
   newWithBreakAndContinue $: block
 
-  new dup 0 |to |-> [ dup enclose block there drop ] drop
+  new dup 0 |to |-> [ dup enclose block hydrate ] drop
 ] @: each
 
 
@@ -409,4 +464,105 @@ this #@: [
   ahead eject each
 ] @: each:
 
+
+[ "( F -- ): prints Form in the console. If Form is a block
+   with *view word defined, opens *view in an empty stack
+   and prints ToS form after *view there."
+  dup #*view fetch: [
+    "If there's a *echo word defined on the block, print
+     whatever ToS it leaves."
+    val rawEcho drop ^
+  ]
+  rawEcho
+] @: echo
+
+
+[ "( Q1 ~ Q2 -- Q ): infix Quote stitch (binary concatenation).
+  TODOOOOOOOOO"
+  ahead       $: caller
+  ahead eject $: other 
+
+  other dup word? => [ caller swap entry:fetch ] stitch
+] @: ~
+
+
+[ "( Pq -- P ): exchanges Path quote for a Path block with
+   path-related vocabulary."
+  $: pathQuote
+
+  [ "( -- true/false ): same as `fs:exists?`."
+    pathQuote fs:exists?
+  ] @: exists?
+
+  [ "( -- true/false ): same as `fs:readable?`"
+    exists? pathQuote fs:readable? and
+  ] @: readable?
+
+  [ "( -- true/false ): same as `fs:dir?`."
+    pathQuote fs:dir?
+  ] @: dir?
+
+  [ "( -- true/false ): same as `fs:file?`."
+    pathQuote fs:file?
+  ] @: file?
+
+  [ "( -- true/false ): same as `fs:symlink?`."
+    pathQuote fs:symlink?
+  ] @: symlink?
+
+  [ '<Path: ' ~ pathQuote ~ '>' ] @: *view
+
+  this
+] @: path
+
+
+[ "( P -- F ): exchanges a Path block for a File block with
+   file-related vocabulary."
+  $: path
+
+  path . exists?   $: exists?
+  path . readable? $: readable?
+
+  [ exists? not ] [ path . file? ] or not
+    => [ 'File needs a file path, but got: ' path . *view stitch die ]
+
+  [ "( -- Pq ): leaves the Path quote."
+    path . pathQuote
+  ] @: asQuote
+
+  [ "( -- ): creates this file if it doesn't exist. Sets its
+     access and modification times to current time."
+    asQuote fs:touch
+
+    true =: exists?
+  ] @: touch
+
+  [ "( contents: B -- ): makes an empty stack, leaves this
+     file's contents quote on top there if this file exists
+     and is readable."
+    ahead eject $: block
+
+    exists? readable? and =>
+      [ asQuote fs:read enclose block hydrate ]
+  ] @: contents:
+
+  [ '<File at: ' asQuote stitch ~ '>' ] @: *view
+
+  this
+] @: file
+
+
 1000 times: [ echo [ 1 2 3 ] each: [ 2 * echo ] ]
+
+'hello.nk' path $: helloPath
+helloPath . exists? echo "Should be false"
+helloPath . file? echo   "Should be false"
+
+helloPath file $: helloFile
+
+helloFile . touch
+helloFile . contents: [ 'Wrong!' echo ] "Should not run"
+
+helloPath . exists? echo "Should be true."
+helloPath . file? echo   "Should be true."
+helloPath . dir? echo    "Should be false."

@@ -83,6 +83,11 @@ module Novika
     def at(name : Form)
       at?(name) || die("undefined table property: #{name}")
     end
+
+    # Returns whether this table has *name* table entry.
+    def has?(name)
+      !!at?(name)
+    end
   end
 
   # Words open entries they're assigned to in the table
