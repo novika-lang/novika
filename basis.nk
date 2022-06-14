@@ -16,7 +16,7 @@ this #ahead [
 ] opens
 
 
-this #burp [
+this #inject [
   "( B F -- ): inserts Form to Block: adds Form to Block,
    and moves cursor back again."
   <| dup |> shove dup |at 1 - |to
@@ -26,7 +26,7 @@ this #burp [
 this #there [
   "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
    is transferred to block."
-  <| dup |> ahead #hydrate burp
+  <| dup |> ahead #hydrate inject
 ] opens
 
 
@@ -198,7 +198,7 @@ this #@: [
 
 
 [ "( B -- B' ): opens Block in the active stack."
-  stack swap ahead #hydrate burp
+  stack swap ahead #hydrate inject
 ] @: open
 
 
