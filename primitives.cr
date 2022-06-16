@@ -271,6 +271,32 @@ module Novika::Primitives
       world.stack.add(a + b)
     end
 
+    # ( B -- Nb ): gathers all table entry names into
+    # Name block.
+    target.at("ls") do |world|
+      block = world.stack.drop.assert(Block)
+      result = Block.new
+      block.ls.each do |form|
+        result.add(form)
+      end
+      result.push(world)
+    end
+
+    # ( C P -- C ): changes the parent of Child to Parent.
+    target.at("reparent") do |world|
+      pb = world.stack.drop.assert(Block)
+      cb = world.stack.top.assert(Block)
+      cb.parent = pb
+    end
+
+    # ( B Q -- B ): parses Quote and adds all forms from
+    # Quote to Block.
+    target.at("slurp") do |world|
+      source = world.stack.drop.assert(Quote)
+      block = world.stack.top.assert(Block)
+      block.slurp(source.string)
+    end
+
     # File system ------------------------------------------
 
     # Leaves whether Path quote exists: ( Pq -- true/false )

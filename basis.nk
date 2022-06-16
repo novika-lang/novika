@@ -1,43 +1,45 @@
-this #<| [
+this #root this pushes
+
+root #<| [
   "( -- ): moves stack cursor once to the left."
   stack |at 1 - stack swap |to
 ] opens
 
 
-this #|> [
+root #|> [
   "( -- ): moves stack cursor once to the right."
   stack |at 1 + stack swap |to
 ] opens
 
 
-this #ahead [
+root #ahead [
   "( -- B ): leaves caller Block on the stack."
   conts dup count 3 - fromLeft #block entry:fetch
 ] opens
 
 
-this #inject [
+root #inject [
   "( B F -- ): inserts Form to Block: adds Form to Block,
    and moves cursor back again."
   <| dup |> shove dup |at 1 - |to
 ] opens
 
 
-this #there [
+root #there [
   "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
    is transferred to block."
   <| dup |> ahead #hydrate inject
 ] opens
 
 
-this #eject [
+root #eject [
   "( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
    leaves the Form after cursor in Block."
   [ |> ] there cherry
 ] opens
 
 
-this #@: [
+root #@: [
   "( F @: N ): makes an opener entry called Name for Form."
   ahead swap ahead eject swap opens
 ] opens
@@ -195,6 +197,10 @@ this #@: [
 [ "( F --  B ): leaves Form as Boolean."
   not not
 ] @: true?
+
+[ "( B -- Bc ): takes a Block and leaves an empty Block child." 
+  [ ] swap reparent
+] @: child
 
 
 [ "( B -- B' ): opens Block in the active stack."
@@ -496,7 +502,7 @@ this #@: [
 
   [ "( -- true/false ): same as `fs:readable?`"
     exists? pathQuote fs:readable? and
-  ] @: readable?
+  ] @: available?
 
   [ "( -- true/false ): same as `fs:dir?`."
     pathQuote fs:dir?
@@ -520,10 +526,9 @@ this #@: [
    file-related vocabulary."
   $: path
 
-  path . exists?   $: exists?
-  path . readable? $: readable?
+  path . available? $: available?
 
-  [ exists? not ] [ path . file? ] or not
+  [ available? not ] [ path . file? ] or not
     => [ 'File needs a file path, but got: ' path . *view stitch die ]
 
   [ "( -- Pq ): leaves the Path quote."
@@ -534,7 +539,7 @@ this #@: [
      access and modification times to current time."
     asQuote fs:touch
 
-    true =: exists?
+    true =: available?
   ] @: touch
 
   [ "( contents: B -- ): makes an empty stack, leaves this
@@ -542,8 +547,7 @@ this #@: [
      and is readable."
     ahead eject $: block
 
-    exists? readable? and =>
-      [ asQuote fs:read enclose block hydrate ]
+    available? => [ asQuote fs:read enclose block hydrate ]
   ] @: contents:
 
   [ '<File at: ' asQuote stitch ~ '>' ] @: *view
@@ -552,17 +556,69 @@ this #@: [
 ] @: file
 
 
+[ "( R D -- ): copies the contents of Donor's table to Recipient,
+   overriding the same-named entries in Recipient."
+  $: donor $: recpt
+
+  donor ls each: [ $: word
+    donor word entry:fetch $: value
+
+    recpt word value
+      donor word entry:isOpenEntry?
+        [ opens ]
+        [ pushes ]
+      br
+  ]
+] @: mergeTables
+
+
+[ "( Pq -- ): reads file(s) at Path quote (dies if not available),
+   slurps into and opens in a root child, then merges the tables
+   of root and that root child; in other words, implements primitive
+   file-based importing."
+  dup $: rawPath path $: usePath
+
+  usePath . available? not =>
+    [ 'the provided path (' ~ rawPath ~ ') does not exist' die ]
+
+  usePath . dir? =>
+    "TODO: Import all .nk files in the directory."
+    [ 'unimplemented' ~ rawPath die ]
+  
+  usePath file $: asFile
+
+  asFile . contents: [ $: fileContents
+    "Evaluate the imported program in a root offspring,
+     and in an empty stack."
+    root child fileContents slurp $: importedRoot
+
+    importedRoot 0 |to
+
+    "Create a continuation, it will run immediately after
+     the 'gulp'. Then execution will return after 'gulp'."
+    [ ] importedRoot newContinuation conts gulp
+
+    root importedRoot mergeTables
+  ]
+] @: use
+
+
 1000 times: [ echo [ 1 2 3 ] each: [ 2 * echo ] ]
 
-'hello.nk' path $: helloPath
+'foo.nk' path $: helloPath
 helloPath . exists? echo "Should be false"
 helloPath . file? echo   "Should be false"
 
 helloPath file $: helloFile
 
+helloFile . contents: [ echo ] "Should not run the first time."
 helloFile . touch
-helloFile . contents: [ 'Wrong!' echo ] "Should not run"
 
 helloPath . exists? echo "Should be true."
 helloPath . file? echo   "Should be true."
 helloPath . dir? echo    "Should be false."
+
+'hello.nk' use
+
+x echo
+y echo

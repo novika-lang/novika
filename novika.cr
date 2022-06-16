@@ -354,7 +354,7 @@ module Novika
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
-    getter! parent : Block?
+    property! parent : Block?
 
     # Returns the prototype of this block. Block instances return
     # their prototype (AST) blocks, AST blocks return themselves.
