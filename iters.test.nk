@@ -1,0 +1,46 @@
+[ 1 2 3 ] [ echo ] each
+[ 1 2 3 ] each: [ echo ]
+
+[ ] [ + echo ] pairs
+
+[ 1 2 3 4 ] [ + echo ] pairs
+[ 1 2 3 4 ] pairs: [ + echo ]
+
+[ ] [ + echo ] consPairs
+[ 1 ] [ + echo ] consPairs
+
+[ 1 2 ] [ + echo ] consPairs
+[ 1 2 3 ] [ + echo ] consPairs
+
+[ 1 2 3 ] consPairs: [ + echo ]
+
+[ 1 2 3 ] [ 1 + ] map echo
+[ 1 2 3 ] map: [ 1 + ] echo
+
+[ ] [ 100 > ] only echo
+[ 1 2 3 ] [ ] only echo
+
+[ 1 100 2 300 4 600 10 ] [ 100 > ] only echo
+[ 1 100 2 300 4 600 10 ] only: [ 100 > ] echo
+
+[ ] [ + ] 0 reduce echo
+[ 1 ] [ + ] 0 reduce echo
+[ 1 2 3 ] [ + ] 0 reduce echo
+[ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce echo
+
+[ 1 2 3 ] [ 2 > ] amount echo
+[ 1 2 3 ] [ 100 > ] amount echo
+[ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount echo
+
+[ 1 2 3 ] # [ 2 > ] echo
+
+[ ] [ 100 < ] all? echo
+[ 1 2 3 ] [ 100 < ] all? echo
+[ 101 1 2 3 ] [ 100 < ] all? echo
+
+[ ] [ 100 < ] any? echo
+[ 1 2 3 ] [ 3 = ] any? echo
+[ 101 3 2000 ] [ 100 < ] any? echo
+[ 1002 350 2000 ] [ 100 < ] any? echo
+
+stack echo
