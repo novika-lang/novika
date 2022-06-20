@@ -336,16 +336,16 @@ root #@: [
 ] @: loop:
 
 
-[ "( C B -- ): opens Condition in caller's stack, Body in a
-   new stack with Condition's result on top, all while this
-   result is truthy. Similar to `loop`, words `break` and
-   `continue` are made available in Body."
-  newWithBreakAndContinue $: body $: condition stack $: cStack
+[ "( C B -- ): opens Condition in an empty stack, Body in a
+   new stack with Condition's result on top, all while Condition
+   top is truthy after it's opened. Similar to `loop`, words `break`
+   and `continue` are made available in Body."
+  newWithBreakAndContinue $: body $: condition
 
   loop: [
-    cStack condition there cherry dup
-      [ enclose body there ] "Condition truthy: enclose & proceed with body!"
-      [ drop break ]         "Condition falsey: drop the false and get out."
+    condition val dup
+      [ enclose body hydrate ] "Condition truthy: enclose & proceed with body!"
+      [ drop break ]           "Condition falsey: drop the false and get out."
     br
   ]
 ] @: while
@@ -382,7 +382,7 @@ root #@: [
   0 $: start
 
   while: [ start stop < ] [
-    start enclose body there
+    start enclose body hydrate
     start 1 + =: start
   ]
 ] @: times
@@ -421,7 +421,7 @@ root #@: [
   until: [ list dup |at over count = ]
   [
     list dup |at 1 + |to
-    list body there
+    list body hydrate
   ]
 
   list
@@ -440,10 +440,10 @@ root #@: [
   until: [ list |at 0 = ]
   [
     list count $: tmp
-    list body there
+    list body hydrate
     list count tmp >= => [
-      "If the amount of items in the list has not
-       changed, or increased, slide leftwards."
+      "If the amount of items in the list has not changed, or
+       increased, slide leftwards."
        list dup |at 1 - |to
     ]
   ]
@@ -457,7 +457,7 @@ root #@: [
 ] @: <-|
 
 
-[ "( Lb B -- ): opens Block with each item in List block on
+[ "( Lb B -- ): opens Block with each item of List block on
    top of a new stack. List block is unchanged. `break` and
    `continue` are available."
   newWithBreakAndContinue $: block
@@ -469,6 +469,101 @@ root #@: [
 [ "( Lb each: B -- ): infix version of `each`. "
   ahead eject each
 ] @: each:
+
+
+[ "( Lb B -- ): opens Block with pairs of items from List block on
+   top of an empty stack."
+  $: block $: list
+
+  list empty? => [ ^ ]
+  list count odd? =>
+    [ 'for pairs to work, there should be an even count of items in block' die ]
+  
+  list new dup 0 |to
+    "Force cursor at 0. Also, we can safely drop below (and we do),
+     since the block copy is ours thanks to `new`."
+    |-> [ |> 2enclose block hydrate ] drop
+] @: pairs
+
+[ "( Lb pairs: B -- ): infix version of `pairs`."
+  ahead eject pairs
+] @: pairs:
+
+
+[
+  $: block $: list
+
+  list empty? [ ^ ]
+  
+  list new dup 1 |to
+    |-> [ 2dup 2enclose block hydrate ] drop
+] @: consPairs
+
+
+[ "( Lb B -- MLb ): opens Block with each item of List block
+   on top of a new stack. Replaces item in List block with
+   Block's stack top after it was opened. Leaves the resulting
+   Modified version of List block."
+  $: block
+
+  new dup 0 |to |-> [ enclose block there cherry ] drop
+] @: map
+
+
+[ "( Lb B -- MLb ): opens Block with each item of List block
+   on top of a new stack. Removes that item in Modified List
+   block if Block's stack top is false after it was opened."
+  $: block
+
+  new dup 0 |to |-> [ $: item
+    item enclose block there cherry
+      [ item ] "Truthy value on Block's ToS: leave item."
+      [      ] "Falsey value on Block's ToS: drop item."
+    br
+  ]
+] @: filter
+
+
+[ "( Lb B D -- F )"
+  $: default @: block new $: list
+
+  list 0 |to
+  list default << |-> [ block ]
+  cherry
+] @: reduce
+
+
+[ "( Lb B -- N )"
+  @: block 0 $: amount
+
+  "Go thru each item and check if block opens to true there,
+   if it does, increment the count."
+  each: [ block => [ amount 1 + =: amount ] ]
+
+  amount
+] @: enumerate
+
+
+[ "( Lb B -- true/false )"
+  @: block true $: status
+
+  "Go thru each item and check if block opens to true there;
+   if it doesn't, quit the loop with status = false."
+  each: [ block not => [ false =: status break ] ] 
+
+  status
+] @: all?
+
+
+[ "( Lb B -- true/false )"
+  @: block false $: status
+
+  "Go thru each item and check if block opens to true there;
+   if it does, quit the loop with status = true."
+  each: [ block => [ true =: status break ] ]
+
+  status
+] @: any?
 
 
 [ "( F -- ): prints Form in the console. If Form is a block
@@ -569,7 +664,7 @@ root #@: [
         [ pushes ]
       br
   ]
-] @: mergeTables
+] @: use:merge
 
 
 [ "( Pq -- ): reads file(s) at Path quote (dies if not available),
@@ -590,35 +685,17 @@ root #@: [
   asFile . contents: [ $: fileContents
     "Evaluate the imported program in a root offspring,
      and in an empty stack."
-    root child fileContents slurp $: importedRoot
+    root child fileContents slurp $: foreignRoot
 
-    importedRoot 0 |to
+    foreignRoot 0 |to
 
     "Create a continuation, it will run immediately after
      the 'gulp'. Then execution will return after 'gulp'."
-    [ ] importedRoot newContinuation conts gulp
+    [ ] foreignRoot newContinuation conts gulp
 
-    root importedRoot mergeTables
+    root foreignRoot use:merge
   ]
 ] @: use
 
 
-1000 times: [ echo [ 1 2 3 ] each: [ 2 * echo ] ]
-
-'foo.nk' path $: helloPath
-helloPath . exists? echo "Should be false"
-helloPath . file? echo   "Should be false"
-
-helloPath file $: helloFile
-
-helloFile . contents: [ echo ] "Should not run the first time."
-helloFile . touch
-
-helloPath . exists? echo "Should be true."
-helloPath . file? echo   "Should be true."
-helloPath . dir? echo    "Should be false."
-
-'hello.nk' use
-
-x echo
-y echo
+'playground.nk' use
