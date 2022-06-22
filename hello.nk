@@ -67,3 +67,41 @@ block [
 block [ * consProduct * =: consProduct ] consPairs
 
 consProduct echo
+
+[ $: y
+  $: x
+
+  [
+    [ ] x enquote <<  ' @ ' << y enquote <<
+    [ stitch ] '' reduce
+  ] @: *enquote
+
+  this
+] @: point
+
+"These should be nicely printed:"
+100 200 point echo
+300 400 point echo
+
+[
+  new $: extenderInstance $: extendee
+
+  "Run extenderInstance in itself."
+  extenderInstance 0 |to
+  [ ] extenderInstance newContinuation conts gulp
+
+  "Make extender instance's parent = extendee's parent."
+  extenderInstance extendee parent reparent
+  extendee swap reparent
+] @: extend
+
+[ x y + Algebraic stuff test huh? ] $: block
+
+block new orphan reparent [
+  "Extend with a word trap that does nothing."
+  [ ] @: *trap
+] extend
+
+[ ] swap there echo "should be: [ #x #y #+ #Algebraic #stuff #test #huh? ]"
+
+stack echo "should be [ | ]"

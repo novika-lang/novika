@@ -54,19 +54,3 @@ root #@: [
    under the specified Name."
   ahead swap ahead eject swap submit
 ] @: =:
-
-
-"TODO: implement echo in Crystal, because this way it is
- recursive in some cases, and not suitable for debugging!"
-
-
-[ "( F -- ): prints Form in the console. If Form is a block
-   with *view word defined, opens *view in an empty stack
-   and prints ToS form after *view there."
-  dup #*view fetch: [
-    "If there's a *echo word defined on the block, print
-     whatever ToS it leaves."
-    val rawEcho drop ^
-  ]
-  rawEcho
-] @: echo

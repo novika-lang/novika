@@ -18,9 +18,13 @@ module Novika
     |\s+
   /x
 
-  # Raised when a form dies. The details of the death are found
-  # in the error message.
+  # Raised when a form dies.
   class FormDied < Exception
+    # Returns a string describing the reasons of this death.
+    getter details : String
+
+    def initialize(@details)
+    end
   end
 
   # Form is an umbrella for words and blocks. Since some words
@@ -65,14 +69,16 @@ module Novika
       is_a?(T) ? self : die("bad type: #{self.class}, expected: #{type}")
     end
 
-    # Appends this form's `echo` word string representation
-    # to *io*.
-    def echo(io)
-      io.puts(self)
+    # Returns this form's quote representation. May require
+    # Novika code to be run. Hence *world* has to be provided,
+    # the name is so strange.
+    def enquote(world)
+      Quote.new(to_s)
     end
   end
 
-  # Supports the word `at`.
+  # Enables support for `entry:fetch`, `entry:exists?`,
+  # `entry:isOpenEntry?`, and the derived words.
   module ReadableTable
     protected abstract def die(details)
 
@@ -96,8 +102,14 @@ module Novika
   struct Word
     include Form
 
-    DIED     = Word.new("*died")
-    FALLBACK = Word.new("*fallback")
+    # Standard death handler entry name.
+    DIED = Word.new("*died")
+
+    # Standard word trap entry name.
+    TRAP = Word.new("*trap")
+
+    # Standard to-`Quote` conversion entry name.
+    ENQUOTE = Word.new("*enquote")
 
     protected getter id : String
 
@@ -107,16 +119,16 @@ module Novika
     delegate :starts_with?, to: id
 
     # Converts this word into a `QuotedWord`.
-    def quote
+    def to_quoted_word
       QuotedWord.new(id)
     end
 
     def opened(world)
       if entry = world.block.at?(self)
         entry.open(world)
-      elsif fallback = world.block.at?(FALLBACK)
-        world.stack.add(quote)
-        fallback.open(world)
+      elsif trap = world.block.at?(TRAP)
+        world.stack.add(to_quoted_word)
+        trap.open(world)
       else
         die("definition for #{self} not found in the enclosing block(s)")
       end
@@ -256,8 +268,8 @@ module Novika
       Quote.new(string + other.string)
     end
 
-    def echo(io)
-      io.puts(string)
+    def enquote(world)
+      self
     end
 
     def to_s(io)
@@ -346,6 +358,10 @@ module Novika
   class Block
     include Form
     include ReadableTable
+
+    # Maximum amount of forms to display in block's string
+    # representation.
+    MAX_COUNT_TO_S = 128
 
     protected getter tape = Tape(Form).new
     protected getter table = {} of Form => Entry
@@ -538,7 +554,7 @@ module Novika
     # *world*. *stack* may be provided for the stack this
     # block will operate on.
     def open(world, over stack = world.stack)
-      world.continue with: self, over: stack
+      world.enable(self, stack)
     end
 
     # Returns a new block with a shallow copy of this block's
@@ -570,6 +586,17 @@ module Novika
       end
     end
 
+    def enquote(world)
+      if enquote = at?(Word::ENQUOTE)
+        form = world[enquote, push(Block.new)].drop
+        unless form.is_a?(Block) && same?(form)
+          return form.enquote(world)
+        end
+      end
+
+      super
+    end
+
     def spotlight(io)
       # junk todo
       io << "[ ".colorize.dark_gray.bold
@@ -595,10 +622,14 @@ module Novika
 
       io << "[ "
 
-      tape.each
-        .map { |form| form.is_a?(Block) ? "[…]" : form.to_s }.to_a
-        .insert(cursor, "|")
-        .join(io, ' ')
+      if count > MAX_COUNT_TO_S
+        io << "… " << count << " forms here …"
+      else
+        tape.each
+          .map { |form| form.is_a?(Block) ? "[…]" : form.to_s }.to_a
+          .insert(cursor, "|")
+          .join(io, ' ')
+      end
 
       unless list?
         io << " . "; ls.join(io, ' ')
@@ -627,81 +658,152 @@ module Novika
   end
 
   # Novika interpreter and context.
-  class World
+  struct World
     include Form
 
-    # Returns the continuations block.
+    # Maximum amount of trace entries in error reports. After
+    # passing this number, only `MAX_TRACE` *last* entries
+    # will be displayed.
+    MAX_TRACE = 64
+
+    # Maximum amount of enabled continuations in `conts`. After
+    # passing this number, `FormDied` is raised to bring attention
+    # to such dangerous depth.
+    #
+    # NOTE: this number should be forgiving and probably settable
+    # from the language.
+    MAX_CONTS = 32_000
+
+    # Maximum allowed world nesting. Used, for instance, to
+    # prevent very deep recursion in `World::ENQUOTE` et al.
+    MAX_WORLD_NESTING = 1000
+
+    # Returns the nesting number. Normally zero, for nested
+    # worlds increases with each nest. Allows us to sort of
+    # "track" Crystal's call stack and stop nesting when it's
+    # becomes dangerously deep.
+    protected getter nesting : Int32
+
+    # Returns the continuations block (aka continuations stack).
     getter conts = Block.new
 
-    # Returns the active continuation.
-    getter cont : Continuation { conts.top.assert(Continuation) }
-
-    # Returns the active continuation's block.
-    getter block : Block { cont.block }
-
-    # Returns the active continuation's stack.
-    getter stack : Block { cont.stack }
-
     def initialize
-      # Subscribe and invalidate cache on change:
-      conts.track do
-        @cont = nil
-        @block = nil
-        @stack = nil
+      @nesting = 0
+    end
+
+    protected def initialize(@nesting)
+    end
+
+    # Returns the active continuation.
+    def cont
+      conts.top.assert(Continuation)
+    end
+
+    # See the corresponding method in `Continuation`.
+    delegate :block, :stack, to: cont
+
+    # Reports about an *error* into *io*.
+    def report(e : FormDied, io = STDOUT)
+      io << "Sorry: ".colorize.red.bold << e.details << "."
+      io.puts
+      io.puts
+
+      omitted = Math.max(0, conts.count - MAX_TRACE)
+      count = conts.count - omitted
+
+      conts.each.skip(omitted).with_index do |cont_, index|
+        cont_ = cont_.assert(Continuation)
+
+        io << "  " << (index == count - 1 ? '└' : '├') << ' '
+        io << "IN".colorize.bold << ' '
+        cont_.block.spotlight(io)
+        io.puts
+
+        io << "  " << (index == count - 1 ? ' ' : '│') << ' '
+        io << "OVER".colorize.bold << ' ' << cont_.stack
+        io.puts
       end
+
+      io.puts
     end
 
-    # Adds an instance of *form* block to the continuations.
-    def continue(with form : Block, over stack)
-      conts.add Continuation.new(form.instance.to(0), stack)
+    # Focal point for adding continuations. Returns self.
+    #
+    # The place where continuation stack's depth is tracked.
+    protected def enable(cont_ : Continuation)
+      if conts.count > MAX_CONTS
+        raise FormDied.new("continuations stack dangerously deep (> #{MAX_CONTS})")
+      end
+
+      tap { conts.add(cont_) }
     end
 
-    # Adds an empty continuation with *stack*, and opens *form*.
-    def continue(with form, over stack)
-      conts.add Continuation.new(block, stack)
-      form.open(self)
+    # Adds an instance of *form* block to the continuations
+    # block, with *stack* set as the continuation stack.
+    #
+    # Returns self.
+    def enable(form : Block, stack)
+      enable Continuation.new(form.instance.to(0), stack)
     end
 
-    # Exhausts the continuations.
+    # Adds an empty continuation with *stack* as set as the
+    # continuation stack, and opens (normally pushes) *form*
+    # there immediately.
+    #
+    # Returns self.
+    def enable(form, stack)
+      if conts.empty?
+        # In case we're running in an empty world.
+        conts.add Continuation.new(Block.new, stack)
+      end
+
+      enable Continuation.new(block, stack)
+
+      tap { form.open(self) }
+    end
+
+    # Exhausts all enabled continuations, starting from the
+    # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
-      # junk todo
-
       until conts.empty?
         while form = block.next?
           begin
             form.opened(self)
           rescue e : FormDied
-            if handler = block.at?(Word::DIED)
-              stack.add Quote.new(e.message.not_nil!)
-              handler.open(self)
-              next
+            if died = block.at?(Word::DIED)
+              stack.add(Quote.new(e.details))
+              begin
+                died.open(self)
+                next
+              rescue e : FormDied
+                puts "DEATH HANDLER DIED".colorize.yellow.bold
+              end
             end
-
-            print "Sorry: ".colorize.red.bold, e.message.not_nil!, "."
-            puts
-            puts
-
-            ind = "  "
-            conts.each.with_index do |cc, index|
-              cc = cc.assert(Continuation)
-              bar1 = index == conts.count - 1 ? "→" : "|"
-              bar2 = index == conts.count - 1 ? " " : "|"
-
-              print ind, bar1, " IN ".colorize.bold
-              cc.block.spotlight(STDOUT)
-              puts
-
-              print ind, bar2, " OVER ".colorize.bold, cc.stack
-              puts
-            end
-
-            puts
-            abort "Sorry! Exiting because of this error."
+            report(e)
+            abort("Sorry! Exiting because of this error.")
           end
         end
-
         conts.drop
       end
+    end
+
+    # Enables *form* in this world's offspring, with *stack*
+    # set as the stack, and exhausts the offspring. Returns
+    # *stack*. Exists to simplify calls to Novika from Crystal.
+    # Raises if cannot nest (due to exceeding recursion depth,
+    # see `MAX_WORLD_NESTING`).
+    def [](form, stack stack_ = stack)
+      if nesting > MAX_WORLD_NESTING
+        raise FormDied.new(
+          "too many worlds (> #{MAX_WORLD_NESTING}) of the same " \
+          "origin world:probably deep recursion in a word called " \
+          "from native code, such as #{Word::ENQUOTE}")
+      end
+
+      world = World.new(nesting + 1)
+      world.enable(form, stack_)
+      world.exhaust
+      stack_
     end
   end
 end
@@ -712,7 +814,7 @@ CFILE = "file".colorize.green
 def help : NoReturn
   abort <<-END
   Welcome to Novika, and thanks for trying it out!
-  
+
   One or more arguments must be provided for Novika to properly pick
   up what you're trying to run. For instance:
 
@@ -733,7 +835,7 @@ def help : NoReturn
   You can try running the following command:
 
     $ novika core hello.nk
-  
+
   END
 end
 

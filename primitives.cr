@@ -86,7 +86,7 @@ module Novika::Primitives
     target.at("hydrate") do |world|
       form = world.stack.drop
       stack = world.stack.drop.assert(Block)
-      world.continue(form, stack)
+      world.enable(form, stack)
     end
 
     # Leaves an Instance of a Block: ( B -- I ).
@@ -263,8 +263,14 @@ module Novika::Primitives
     end
 
     # Shows Form in the console: ( F -- ).
-    target.at("rawEcho") do |world|
-      world.stack.drop.echo(STDOUT)
+    target.at("echo") do |world|
+      quote = world.stack.drop.enquote(world)
+      puts quote.string
+    end
+
+    # Leaves Quote representation of Form: ( F -- Qr ).
+    target.at("enquote") do |world|
+      world.stack.drop.enquote(world).push(world)
     end
 
     # Dies with Details quote: ( D -- ).
