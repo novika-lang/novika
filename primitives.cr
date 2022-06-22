@@ -254,6 +254,14 @@ module Novika::Primitives
       world.stack.drop.push(world.stack.drop.assert(Block))
     end
 
+    # Leaves the top Form in Block.
+    #
+    # ( [ ... F | ... ]B -- F )
+    target.at("top") do |world|
+      block = world.stack.drop.assert(Block)
+      block.top.push(world)
+    end
+
     # Shows Form in the console: ( F -- ).
     target.at("rawEcho") do |world|
       world.stack.drop.echo(STDOUT)
@@ -295,6 +303,11 @@ module Novika::Primitives
       source = world.stack.drop.assert(Quote)
       block = world.stack.top.assert(Block)
       block.slurp(source.string)
+    end
+
+    # ( -- O ): Leaves an Orphan (a parent-less block)
+    target.at("orphan") do |world|
+      Block.new.push(world)
     end
 
     # File system ------------------------------------------

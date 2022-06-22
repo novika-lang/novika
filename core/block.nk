@@ -43,10 +43,7 @@
   >>> 'Hi!' enclose
   === [ 'Hi!' | ]
   """
-
-  "TODO: orphan instead of [ ] to prevent scope (table) leak
-   thru stack."
-  [ ] swap <<
+  orphan swap <<
 ] @: enclose
 
 
@@ -57,23 +54,9 @@
   """
   swap
 
-  "TODO: orphan instead of [ ] to prevent scope (table) leak
-   thru stack."
-
-  [ ] swap <<
-      swap <<
+  orphan swap <<
+         swap <<
 ] @: 2enclose
-
-
-[ """( [ ... F | ... ]B -- [ ... F | ... ]B F ): leaves Block
-   and its top Form.
-
-  >>> ''
-  """
-  "TODO: Make this a builtin to prevent excessive Array.dupping, I
-   mean the method already exists in Crystal!"
-  >> dup <| << |>
-] @: top
 
 
 [ """( B I -- F ): returns Index-th Form from right in Block.
