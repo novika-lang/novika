@@ -1,28 +1,72 @@
-[ "( A B -- ): drops a pair of forms."
+[ """( A B -- ): drops a pair of forms.
+
+  >>> 1 2
+  === 1 2
+  >>> 2drop
+  ===
+  """
   drop drop
 ] @: 2drop
 
 
-[ "( A B -- B ): drops over the top."
+[ """( A B -- B ): drops a form under the top.
+
+  >>> 1 2
+  === 1 2
+  >>> nip
+  === 2
+  """
   swap drop
 ] @: nip
 
 
-[	"( A B -- A B A ): duplicates over the top."
+[ """( A B -- A B A ): duplicates a form over the top.
+
+  >>> 1 2
+  === 1 2
+  >>> over
+  === 1 2 1
+  """
   <| dup |> swap
 ] @: over
 
 
-[ "( A B C -- B C A ): brings thirdmost to the top."
+[ """( A B -- A B A B ): duplicates a pair of forms.
+
+  >>> 1 2
+  === 1 2
+  >>> 2dup
+  === 1 2 1 2
+  """
+  over over
+] @: 2dup
+
+
+[ """( A B C -- B C A ): moves thirdmost form to the top.
+
+  >>> 1 2 3
+  === 1 2 3
+  >>> rot
+  === 2 3 1
+  >>> rot
+  === 3 1 2
+  >>> rot
+  === 1 2 3
+  """
   <| swap |> swap
 ] @: rot
 
 
-[ "( A B C -- C A B ): makes top third from the top."
+[ """( A B C -- C A B ): moves top form so it's thirdmost.
+
+  >>> 1 2 3
+  === 1 2 3
+  >>> -rot
+  === 3 1 2
+  >>> -rot
+  === 2 3 1
+  >>> -rot
+  === 1 2 3
+  """
   rot rot
 ] @: -rot
-
-
-[ "( A B -- A B A B ): duplicates a pair."
-  over over
-] @: 2dup

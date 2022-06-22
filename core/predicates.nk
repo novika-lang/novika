@@ -54,6 +54,6 @@
 ] @: true?
 
 
-[ "( F -- true/false ): leaves inverse boolean for Form.)"
+[ "( F -- true/false ): leaves inverse boolean for Form."
   false?
 ] @: not

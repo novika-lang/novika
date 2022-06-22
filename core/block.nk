@@ -1,58 +1,165 @@
-[ "( F [ ... ] -- [ ... F ] -- ): adds Form to Block, then
-   drops both."
+[ """( F [ ... | ... ]B -- [ ... F | ... ]B -- ): adds Form
+   to Block, and drops both.
+
+  >>> 3 [ 1 2 ] gulp
+  === [ 1 2 3 | ]
+  """
   swap shove
 ] @: gulp
 
 
-[ "( [ ... ] F -- [ ... F ] ): inserts Form into block."
+[ """( [ ... F | ... ]B -- F [ ... | ... ]B ] ): drops Form
+   from Block onto stack, before Block. Inverse of `gulp`.
+
+  >>> [ 1 2 3 ] spit
+  === 3 [ 1 2 | ]
+  """
+  dup cherry swap
+] @: spit
+
+
+[ """( [ ... | ... ]B F -- [ ... F | ... ]B ): adds Form into
+    the given Block.
+
+  >>> [ 1 2 ] 3 <<
+  === [ 1 2 3 | ]
+  """
   over gulp
 ] @: <<
 
 
-[ "( [ ... F ] -- [ ... ] F ): removes Form from block."
+[ """( [ ... F | ... ]B -- [ ... | ... ]B F ): drops Form from
+   block. Inverse of `<<`.
+
+  >>> [ 1 2 3 ] >>
+  === [ 1 2 | ] 3
+  """
   dup cherry
 ] @: >>
 
 
-[ "( F -- [ F ] ): wraps Form in a new block."
+[ """( F -- [ F ] ): encloses Form in a block.
+
+  >>> 'Hi!' enclose
+  === [ 'Hi!' | ]
+  """
+
+  "TODO: orphan instead of [ ] to prevent scope (table) leak
+   thru stack."
   [ ] swap <<
 ] @: enclose
 
 
-[ "( A B -- [ A B ] ): wraps a pair of forms in a new block."
+[ """( F1 F2 -- [ F1 F2 ] ): encloses a pair of Forms in a block.
+
+  >>> 'Hello' 'World' 2enclose
+  === [ 'Hello' 'World' | ]
+  """
   swap
+
+  "TODO: orphan instead of [ ] to prevent scope (table) leak
+   thru stack."
 
   [ ] swap <<
       swap <<
 ] @: 2enclose
 
 
-[ "( [ ... T ]B -- [ ... T ]B T ): leaves Block and its Top value."
+[ """( [ ... F | ... ]B -- [ ... F | ... ]B F ): leaves Block
+   and its top Form.
+
+  >>> ''
+  """
+  "TODO: Make this a builtin to prevent excessive Array.dupping, I
+   mean the method already exists in Crystal!"
   >> dup <| << |>
 ] @: top
 
 
-[ "( B I -- F ): returns Index-th Form from right in Block;
-   I = 0 is the last (rightmost) element."
+[ """( B I -- F ): returns Index-th Form from right in Block.
+
+  >>> [ 1 2 3 ] 0 fromRight
+  === 3
+
+  >>> [ 1 2 3 ] 1 fromRight
+  === 2
+
+  >>> [ 1 2 3 ] 2 fromRight
+  === 1
+  """
   over count 1 - swap - fromLeft
 ] @: fromRight
 
 
-[ "( B -- Bc ): takes a Block and leaves an empty Block child." 
+[ "( B -- Bc ): leaves an empty Block child."
   [ ] swap reparent
 ] @: child
 
 
-[ "( T -> N -- F ): infix for `entry:fetch`."
+[ """( T -> N -- F ): infix for `entry:fetch`.
+
+  >>> [ 200 $: x
+        100 $: y
+        [ x y + ] @: sum
+        this
+      ] open
+  === [ | . x y sum ]
+  >>> dup -> x
+  === [ | . x y sum ] 200
+  >>> over -> y
+  === [ | . x y sum ] 200 100
+  >>> rot -> sum
+  === 200 100 [ x y + ]
+  >>> open
+  === 200 100 300 (note: [ x y + ] block is a closure)
+  """
   ahead eject entry:fetch
 ] @: ->
 
 
-[ "( T . N -- F ): same as `->`, but adds `open` ahead if the
-   entry is an open(er) entry."
-  ahead                $: caller
-  ahead eject          $: name
-  dup name entry:fetch $: form
+[ """( T . N -- F ): same as `->`, but adds `open` ahead if
+   the entry is an open(er) entry.
+
+  >>> [ 200 $: x
+        100 $: y
+        [ x y + ] @: sum
+        this
+      ] open
+  === [ | . x y sum ]
+  >>> dup . x over . y
+  === [ | . x y sum ] 200 100
+  >>> rot . sum
+  === 200 100 300
+
+  Preserves (carries through) `ahead`, but makes the caller
+  block's instance dirty (which should not cause any trouble
+  from the user's perspective).
+
+  >>> [ $: bool
+
+        [ ahead eject
+            bool
+              [ echo ]
+              [ drop ]
+            br
+        ] @: bar:
+
+        this
+      ] @: foo
+  >>> true foo
+  === [ | . bar ]
+  >>> . bar: 100
+  STDOUT: 100
+  ===
+  >>> false foo
+  === [ | . bar ]
+  >>> . bar: 100
+  ===
+  """
+  ahead $: caller
+  ahead eject $: name
+
+  "( B )" dup name entry:fetch $: form
 
   name entry:isOpenEntry? =>
     [ caller [ #open <| ] hydrate ]
@@ -61,13 +168,25 @@
 ] @: .
 
 
-[ "( T N fetch: B -- ): looks up under Name in Table block,
+[ """( T N fetch: B -- ): looks up under Name in Table block,
    and opens Block with that on ToS (on caller stack). If not
-   found (or T is not block), does nothing."
+   found (or T is not block), does nothing.
+
+  >>> 'This is not a block!' #x fetch: [ echo ]
+  ===
+
+  >>> [ 100 $: x 200 $: y this ] open
+  === [ | . x y ]
+  >>> dup #x fetch: [ echo ]
+  STDOUT: 100
+  === [ | . x y ]
+  >>> dup #undefinedThing fetch: [ echo ]
+  === [ | . x y ]
+  """
   ahead eject @: block
 
   [ over block? ] [ 2dup entry:exists? ] and
-    [ entry:fetch block ] "Has the entry, fetch and open block."
+    [ entry:fetch block ] "Has the entry, fetch and open Block."
     [ 2drop             ] "Doesnt have, drop T N."
   br
 ] @: fetch:
@@ -82,7 +201,7 @@
   ! Sliding step is marked with '*', block iteration postfixed
     by a '+'.
 
-   +------+-------+-------------+ 
+   +------+-------+-------------+
    | #    | form  |    list     |
    +======+=======+=============+
    | 0    |       | [ 1 2 3 | ] |
@@ -184,7 +303,7 @@
 
   list count odd? =>
     [ 'for pairs to work, there should be an even count of items in block' die ]
-  
+
   list new dup 0 |to
     "Force cursor at 0. Also, we can safely drop below (and we do),
      since the block copy is ours thanks to `new`."
@@ -205,7 +324,7 @@
 
 [ """( Lb B -- ): opens Block with consequtive pairs of items
    from List block on top of an empty stack.
-   
+
   >>> [ ] [ + echo ] consPairs
   >>> [ 1 ] [ + echo ] consPairs
   [Does nothing]
@@ -226,7 +345,7 @@
 
 
 [ """( Lb B -- ): infix version of `consPairs`.
-   
+
   >>> [ 1 2 3 ] consPairs: [ + echo ]
   STDOUT: 3
   STDOUT: 5
@@ -267,7 +386,7 @@
 [ """( Lb B -- MLb ): opens Block with each item of List block
    on top of an empty stack. Removes that item in Modified List
    block if Block's stack top is false after it was opened.
-   
+
   >>> [ ] [ 100 > ] only
   === [ | ] (a different block!)
 
@@ -289,7 +408,7 @@
 
 
 [ """( Lb B -- MLb ): infix version of `only`.
-  
+
   >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
   === [ 300 600 | ]
   """
@@ -325,7 +444,7 @@
 [ """( Lb B -- A ): leaves the Amount of items for which Block,
    when opened with an item on top of an empty stack, returns
    a truthy form.
-  
+
   >>> [ 1 2 3 ] [ 2 > ] amount
   === 1 (i.e., 3)
 
@@ -340,7 +459,7 @@
   "Go thru each item and check if block opens to true there,
    if it does, increment the count."
   each: [ block => [ amt 1 + =: amt ] ]
-  
+
   amt
 ] @: amount
 
@@ -357,7 +476,7 @@
 [ """( Lb B -- true/false ): whether Block leaves true for all
    items in List block, when opened with each item on top of
    an empty stack.
-   
+
   >>> [ ] [ 100 < ] all?
   === true (BEWARE)
 
@@ -371,7 +490,7 @@
 
   "Go thru each item and check if block opens to true there;
    if it doesn't, quit the loop with status = false."
-  each: [ block not => [ false =: status break ] ] 
+  each: [ block not => [ false =: status break ] ]
 
   status
 ] @: all?
@@ -380,7 +499,7 @@
 [ """( Lb B -- true/false ): whether Block leaves true for any
    item in List block, when opened with each item on top of an
    empty stack.
-  
+
   >>> [ ] [ 100 < ] any?
   === false (BEWARE)
 
