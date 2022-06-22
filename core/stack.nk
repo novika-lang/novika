@@ -1,0 +1,28 @@
+[ "( A B -- ): drops a pair of forms."
+  drop drop
+] @: 2drop
+
+
+[ "( A B -- B ): drops over the top."
+  swap drop
+] @: nip
+
+
+[	"( A B -- A B A ): duplicates over the top."
+  <| dup |> swap
+] @: over
+
+
+[ "( A B C -- B C A ): brings thirdmost to the top."
+  <| swap |> swap
+] @: rot
+
+
+[ "( A B C -- C A B ): makes top third from the top."
+  rot rot
+] @: -rot
+
+
+[ "( A B -- A B A B ): duplicates a pair."
+  over over
+] @: 2dup

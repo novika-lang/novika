@@ -1,0 +1,403 @@
+[ "( F [ ... ] -- [ ... F ] -- ): adds Form to Block, then
+   drops both."
+  swap shove
+] @: gulp
+
+
+[ "( [ ... ] F -- [ ... F ] ): inserts Form into block."
+  over gulp
+] @: <<
+
+
+[ "( [ ... F ] -- [ ... ] F ): removes Form from block."
+  dup cherry
+] @: >>
+
+
+[ "( F -- [ F ] ): wraps Form in a new block."
+  [ ] swap <<
+] @: enclose
+
+
+[ "( A B -- [ A B ] ): wraps a pair of forms in a new block."
+  swap
+
+  [ ] swap <<
+      swap <<
+] @: 2enclose
+
+
+[ "( [ ... T ]B -- [ ... T ]B T ): leaves Block and its Top value."
+  >> dup <| << |>
+] @: top
+
+
+[ "( B I -- F ): returns Index-th Form from right in Block;
+   I = 0 is the last (rightmost) element."
+  over count 1 - swap - fromLeft
+] @: fromRight
+
+
+[ "( B -- Bc ): takes a Block and leaves an empty Block child." 
+  [ ] swap reparent
+] @: child
+
+
+[ "( T -> N -- F ): infix for `entry:fetch`."
+  ahead eject entry:fetch
+] @: ->
+
+
+[ "( T . N -- F ): same as `->`, but adds `open` ahead if the
+   entry is an open(er) entry."
+  ahead                $: caller
+  ahead eject          $: name
+  dup name entry:fetch $: form
+
+  name entry:isOpenEntry? =>
+    [ caller [ #open <| ] hydrate ]
+
+  form
+] @: .
+
+
+[ "( T N fetch: B -- ): looks up under Name in Table block,
+   and opens Block with that on ToS (on caller stack). If not
+   found (or T is not block), does nothing."
+  ahead eject @: block
+
+  [ over block? ] [ 2dup entry:exists? ] and
+    [ entry:fetch block ] "Has the entry, fetch and open block."
+    [ 2drop             ] "Doesnt have, drop T N."
+  br
+] @: fetch:
+
+
+[ """( Lb B -- Lb ): slides cursor in List block from left to right,
+   in steps of one, and THEN opens Block with List block as the stack
+   each step. Leaves List block. `break` and `continue` are available.
+
+  >>> [ 1 2 3 ] dup 1 |to [ + ] |slideRight
+
+  ! Sliding step is marked with '*', block iteration postfixed
+    by a '+'.
+
+   +------+-------+-------------+ 
+   | #    | form  |    list     |
+   +======+=======+=============+
+   | 0    |       | [ 1 2 3 | ] |
+   | 1    | 1 |to | [ 1 | 2 3 ] |
+   | *    |       | [ 1 2 | 3 ] |
+   | 3+   |    +  | [ 3 | 3 ]   |
+   | *    |       | [ 3 3 | ]   |
+   | 5+   |    +  | [ 6 | ]     |
+   +------+-------+-------------+
+
+  === [ 6 ]
+  """
+  newWithBreakAndContinue $: body $: list
+
+  until: [ list dup |at over count = ]
+  [
+    list dup |at 1 + |to
+    list body hydrate
+  ]
+
+  list
+] @: |slideRight
+
+
+[ "( Lb |-> B -- Lb ): infix version of `|slideRight`."
+  ahead eject |slideRight
+] @: |->
+
+
+[ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
+   from right to left. Consult `|slideRight`."
+  newWithBreakAndContinue $: body new $: list
+
+  until: [ list |at 0 = ]
+  [
+    list count $: tmp
+    list body hydrate
+    list count tmp >= => [
+      "If the amount of items in the list has not changed, or
+       increased, slide leftwards."
+       list dup |at 1 - |to
+    ]
+  ]
+
+  list
+] @: |slideLeft
+
+
+[ "( Lb <-| B -- Lb ): infix version of `|slideLeft`."
+  ahead eject |slideLeft
+] @: <-|
+
+
+[ """( Lb B -- ): opens Block with each item of List block on
+   top of a new stack. List block is unchanged. `break` and
+   `continue` are available.
+
+  >>> [ 1 2 3 ] [ echo ] each
+  STDOUT: 1
+  STDOUT: 2
+  STDOUT: 3
+  """
+  newWithBreakAndContinue $: block
+
+  new dup 0 |to
+    |-> [ dup enclose block hydrate ]
+  drop
+] @: each
+
+
+[ """( Lb each: B -- ): infix version of `each`.
+
+  >>> [ 1 2 3 ] each: [ echo ]
+  STDOUT: 1
+  STDOUT: 2
+  STDOUT: 3
+  """
+  ahead eject each
+] @: each:
+
+
+[ """( Lb B -- ): opens Block with pairs of items from List block
+   on top of an empty stack.
+
+  >>> [ ] [ + echo ] pairs
+  [Does nothing]
+
+  >>> [ 1 ] [ + echo ] pairs
+  >>> [ 1 2 3 ] [ + echo ] pairs
+  [Dies: odd count]
+
+  >>> [ 1 2 3 4 ] [ + echo ] pairs
+  STDOUT: 3 (i.e., 1 + 2)
+  STDOUT: 7 (i.e., 3 + 4)
+  """
+  $: block $: list
+
+  list empty? => [ ^ ]
+
+  list count odd? =>
+    [ 'for pairs to work, there should be an even count of items in block' die ]
+  
+  list new dup 0 |to
+    "Force cursor at 0. Also, we can safely drop below (and we do),
+     since the block copy is ours thanks to `new`."
+    |-> [ |> 2enclose block hydrate ]
+  drop
+] @: pairs
+
+
+[ """( Lb pairs: B -- ): infix version of `pairs`.
+
+  >>> [ 1 2 3 4 ] pairs: [ + echo ]
+  STDOUT: 3
+  STDOUT: 7
+  """
+  ahead eject pairs
+] @: pairs:
+
+
+[ """( Lb B -- ): opens Block with consequtive pairs of items
+   from List block on top of an empty stack.
+   
+  >>> [ ] [ + echo ] consPairs
+  >>> [ 1 ] [ + echo ] consPairs
+  [Does nothing]
+
+  >>> [ 1 2 ] [ + echo ] consPairs
+  STDOUT: 3 (i.e, 1 + 2)
+
+  >>> [ 1 2 3 ] [ + echo ] consPairs
+  STDOUT: 3 (i.e., 1 + 2)
+  STDOUT: 5 (i.e., 2 + 3)
+  """
+  $: block "( Lb )" dup empty? => [ drop ^ ]
+
+  new dup 1 |to
+    |-> [ 2dup 2enclose block hydrate ]
+  drop
+] @: consPairs
+
+
+[ """( Lb B -- ): infix version of `consPairs`.
+   
+  >>> [ 1 2 3 ] consPairs: [ + echo ]
+  STDOUT: 3
+  STDOUT: 5
+  """
+  ahead eject consPairs
+] @: consPairs:
+
+
+[ """( Lb B -- MLb ): opens Block with each item of List block
+   on top of an empty stack. Replaces item in List block with
+   Block's stack top after opening it. Leaves the resulting
+   Modified version of List block.
+
+  >>> [ 1 2 3 ] [ 1 + ] map
+  === [ 2 3 4 | ]
+
+  >>> [ 1 2 3 ] $: a
+  >>> a [ 1 + ] map
+  === [ 2 3 4 | ]
+
+  >>> a
+  === [ 1 2 3 | ]
+  """
+  $: block "( Lb )"
+
+  new dup 0 |to |-> [ enclose block there cherry ]
+] @: map
+
+
+[ """( Lb B -- MLb ): infix version of `map`.
+
+  >>> [ 1 2 3 ] map: [ 1 + ]
+  """
+  ahead eject map
+] @: map:
+
+
+[ """( Lb B -- MLb ): opens Block with each item of List block
+   on top of an empty stack. Removes that item in Modified List
+   block if Block's stack top is false after it was opened.
+   
+  >>> [ ] [ 100 > ] only
+  === [ | ] (a different block!)
+
+  >>> [ 1 2 3 ] [ ] only
+  === [ 1 2 3 | ] (a different block!)
+
+  >>> [ 1 100 2 300 4 600 10 ] [ 100 > ] only
+  === [ 300 600 | ]
+  """
+  $: block
+
+  new dup 0 |to |-> [ $: item
+    item enclose block there cherry
+      [ item ] "Truthy value on Block's ToS: leave item."
+      [      ] "Falsey value on Block's ToS: drop item."
+    br
+  ]
+] @: only
+
+
+[ """( Lb B -- MLb ): infix version of `only`.
+  
+  >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
+  === [ 300 600 | ]
+  """
+  ahead eject only
+] @: only:
+
+
+[ """( Lb B M -- M ): reduces (google it if you don't know) List
+   block using Block. Block is opened with Memo, current item on
+   top of an empty stack. Memo is updated to Block's value after
+   Block's opened.
+
+  >>> [ ] [ + ] 0 reduce
+  === 0
+
+  >>> [ 1 ] [ + ] 0 reduce
+  === 1 (i.e., 0 + 1)
+
+  >>> [ 1 2 3 ] [ + ] 0 reduce
+  === 6
+
+  >>> [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce
+  === 'Hellope, Europe! Huh?'
+  """
+  $: default @: block
+
+  new dup 0 |to
+    default << |-> [ block ]
+  cherry
+] @: reduce
+
+
+[ """( Lb B -- A ): leaves the Amount of items for which Block,
+   when opened with an item on top of an empty stack, returns
+   a truthy form.
+  
+  >>> [ 1 2 3 ] [ 2 > ] amount
+  === 1 (i.e., 3)
+
+  >>> [ 1 2 3 ] [ 100 > ] amount
+  === 0
+
+  >>> [ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount
+  === 4 (i.e., 1, 2, 1, 100)
+  """
+  @: block 0 $: amt
+
+  "Go thru each item and check if block opens to true there,
+   if it does, increment the count."
+  each: [ block => [ amt 1 + =: amt ] ]
+  
+  amt
+] @: amount
+
+
+[ """( Lb B -- A ): infix version of `amount`.
+
+  >>> [ 1 2 3 ] # [ 2 > ]
+  === 1
+  """
+  ahead eject amount
+] @: #
+
+
+[ """( Lb B -- true/false ): whether Block leaves true for all
+   items in List block, when opened with each item on top of
+   an empty stack.
+   
+  >>> [ ] [ 100 < ] all?
+  === true (BEWARE)
+
+  >>> [ 1 2 3 ] [ 100 < ] all?
+  === true
+
+  >>> [ 101 2 3 4 ] [ 100 < ] all?
+  === false (i.e., because of 101)
+  """
+  @: block true $: status
+
+  "Go thru each item and check if block opens to true there;
+   if it doesn't, quit the loop with status = false."
+  each: [ block not => [ false =: status break ] ] 
+
+  status
+] @: all?
+
+
+[ """( Lb B -- true/false ): whether Block leaves true for any
+   item in List block, when opened with each item on top of an
+   empty stack.
+  
+  >>> [ ] [ 100 < ] any?
+  === false (BEWARE)
+
+  >>> [ 1 2 3 ] [ 3 = ] any?
+  === true
+
+  === [ 101 3 2000 ] [ 100 < ] any?
+  === true (i.e., because of 3)
+
+  >>> [ 1002 350 2000 ] [ 100 < ] any?
+  === false
+  """
+  @: block false $: status
+
+  "Go thru each item and check if block opens to true there;
+   if it does, quit the loop with status = true."
+  each: [ block => [ true =: status break ] ]
+
+  status
+] @: any?

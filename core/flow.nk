@@ -1,0 +1,176 @@
+[ "( B -- B' ): opens Block in the active stack."
+  stack swap ahead #hydrate inject
+] @: open
+
+
+[ "( B -- T ): activates an empty stack for the duration of Block,
+   and leaves Top form in the stack. Dies if none."
+  [ ] swap there cherry
+] @: val
+
+
+[ "( B -- ): activates an empty stack for the duration of Block."
+  [ ] swap hydrate
+] @: do
+
+
+[ "( D T F -- ? ): opens True/False forms depending on Determiner
+   being true/false."
+  sel open
+] @: br
+
+
+[ "( D => T -- ? ): opens True form if Determiner is truthy."
+  ahead eject [ ] br
+] @: =>
+
+
+[ "( A B -- A/false ): leaves whether both A and B are truthy."
+  $: b @: a
+
+  a b false br
+] @: and
+
+
+[ "( A B -- true/A ): leaves whether A or B or both are truthy."
+  $: b @: a
+  
+  a true b br
+] @: or
+
+
+[ "( B -- ): makes detached continuations stack the stack for
+   the duration of Block. Attaches after Block."
+  conts detach
+    "Don't forget to drop the call to continues (as it will
+     obscure what the caller expects continuations block to be)"
+    [ drop ] there swap there
+  conts attach
+] @: continues
+
+
+[ "( -- ): executes caller again. Looping primitive. Too low-
+   level for users, prefer not to use (use `loop` instead).
+   Beware that it does not re-instantiate the block."
+  [
+    drop "the call to repeat"
+    dup -> block 0 |to
+  ] continues
+] @: repeat
+
+
+[ "( B -- ): drops all continuations before (and including)
+   those for which Block leaves truthy value when opened with
+   the continuation on top of an empty stack, coming from the
+   right-hand side."
+  $: needle?
+
+  [
+    enclose needle? there cherry
+      [ ]  "Hit the needle! Don't recurse."
+      rec  "Not the needle. Recurse."
+    br
+  ] dup $: rec continues
+] @: dropContinuationsUntil
+
+
+[ "( -- ): returns to the CC of the block above the caller."
+  ahead prototype parent $: above
+
+  [ -> block prototype above same? ] dropContinuationsUntil
+] @: ^
+
+
+[ "( B -- I ): injects `break` and `continue` into an Instance
+   of Block. `break` drops continuations until and including
+   the caller block, and `continue`, drops them up to and
+   including the Body block (and/or its instances)."
+    dup $: body
+    new $: instance
+  ahead $: caller
+
+  instance #break [ "( -- ): quits from the enclosing loop."
+    [ -> block caller same? ] dropContinuationsUntil
+  ] opens
+
+  instance #continue [ "( -- ): quits from current loop iteration."
+    [ -> block prototype body same? ] dropContinuationsUntil
+  ] opens
+
+  instance
+] @: newWithBreakAndContinue
+
+
+[ "( B -- ): basic infinite loop over Block. `break` and `continue`
+   are made available in Block. Block is opened in an empty stack."
+  newWithBreakAndContinue $: block
+
+  [ "The actual loop body (note the `repeat`)."
+    [ ] new block hydrate
+
+    repeat
+  ] open
+] @: loop
+
+
+[ "( loop: B -- ): prefix version of `loop`. Has no difference
+   in regards to functionality."
+  ahead eject loop
+] @: loop:
+
+
+[ "( C B -- ): opens Condition in an empty stack, Body in a
+   new stack with Condition's result on top, all while Condition
+   top is truthy after it's opened. Similar to `loop`, words `break`
+   and `continue` are made available in Body."
+  newWithBreakAndContinue $: body $: condition
+
+  loop: [
+    condition val dup
+      [ enclose body hydrate ] "Condition truthy: enclose & proceed with body!"
+      [ drop break ]           "Condition falsey: drop the false and get out."
+    br
+  ]
+] @: while
+
+
+[ "( while: C B -- ): prefix version of `while`. Has no difference
+   in regards to functionality."
+  ahead eject
+  ahead eject
+  while
+] @: while:
+
+
+[ "( C B -- ): inverse of `while` (opens Body while Condition
+   is **false**), for more info see `while`."
+  $: body @: condition
+
+  [ condition not ] body while
+] @: until
+
+
+[ "( until: C B -- ): prefix version of `until`. Has no difference
+   in regards to functionality."
+  ahead eject
+  ahead eject
+  until
+] @: until:
+
+
+[ "( N B -- ): opens Body N times. Body is opened in a new
+   stack with current N. `break` and `continue` available."
+  newWithBreakAndContinue $: body $: stop
+
+  0 $: start
+
+  while: [ start stop < ] [
+    start enclose body hydrate
+    start 1 + =: start
+  ]
+] @: times
+
+
+[ "( N times: B -- ): infix version of `times`."
+  ahead eject times
+] @: times:

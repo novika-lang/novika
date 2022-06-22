@@ -1,0 +1,59 @@
+
+[ "( A B -- true/false ): leaves whether two values are equal."
+  same?
+] @: =
+
+
+[ "( A B -- true/false ): leaves whether A <= B."
+  2dup < -rot = or
+] @: <=
+
+
+[ "( A B -- true/false ): leaves whether A > B."
+  <= not
+] @: >
+
+
+[ "( A B -- true/false ): leaves whether A >= B."
+  < not
+] @: >=
+
+
+[ "( A -- true/false ): leaves whether A = 0"
+  0 =
+] @: zero?
+
+
+[ "( A B -- true/false ): leaves whether A is divisible by B."
+  rem zero?
+] @: /?
+
+
+[ "( N -- true/false ): leaves whether A is even (divisible by two)."
+  2 /?
+] @: even?
+
+
+[ "( N -- true/false ): leaves whether A is odd."
+  even? not
+] @: odd?
+
+
+[ "( B -- true/false ): leaves whether Block is empty."
+  count zero?
+] @: empty?
+
+
+[ "( F -- true/false ): Leaves whether Form is `false`."
+  false same?
+] @: false?
+
+
+[ "( F --  true/false ): converts Form into boolean."
+  false? false?
+] @: true?
+
+
+[ "( F -- true/false ): leaves inverse boolean for Form.)"
+  false?
+] @: not

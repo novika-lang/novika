@@ -1,0 +1,69 @@
+[ ] $: block
+
+100 times: [ 1 + block gulp  ]
+
+block echo
+
+'How many elements are in the block?' echo
+block count echo
+
+'What is the sum of elements in the block?' echo
+block [ + ] 0 reduce echo
+
+'What is the product of elements in the block (100! =)' echo
+block [ * ] 1 reduce echo
+
+
+[
+  $: block
+
+  block empty? =>
+    [ 'No min for empty block' die ]
+
+  block 0 fromLeft $: min
+  block each: [
+    dup min < => [ =: min ]
+  ]
+
+  min
+] @: min
+
+[
+  $: block
+
+  block empty? =>
+    [ 'No max for empty block' die ]
+
+  block 0 fromLeft $: max
+  block each: [
+    dup max > => [ =: max ]
+  ]
+
+  max
+] @: max
+
+'What is the min, max elements in the block?' echo
+block min echo
+block max echo
+
+'How many even numbers?' echo
+block [ even? ] amount echo
+
+'How many odd numbers?' echo
+block [ odd? ] amount echo
+
+'Sums of pairs:' echo
+
+block [
+  'Sum of' echo
+  2dup swap echo echo "2echo TODO also maybe p and 2p for debug dup echos"
+  '... is:' echo
+  + echo
+] pairs
+
+1 $: consProduct
+
+'c = a * b * c where a, b are cons pairs in block (just a big number):' echo
+block [ * consProduct * =: consProduct ] consPairs
+
+consProduct echo

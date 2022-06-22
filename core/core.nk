@@ -1,0 +1,72 @@
+this #root this pushes
+
+root #<| [
+  "( -- ): moves stack cursor once to the left."
+  stack |at 1 - stack swap |to
+] opens
+
+
+root #|> [
+  "( -- ): moves stack cursor once to the right."
+  stack |at 1 + stack swap |to
+] opens
+
+
+root #ahead [
+  "( -- B ): leaves caller Block on the stack."
+  conts dup count 3 - fromLeft #block entry:fetch
+] opens
+
+
+root #inject [
+  "( B F -- ): inserts Form to Block: adds Form to Block,
+   and moves cursor back again."
+  <| dup |> shove dup |at 1 - |to
+] opens
+
+
+root #there [
+  "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
+   is transferred to block."
+  <| dup |> ahead #hydrate inject
+] opens
+
+
+root #eject [
+  "( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
+   leaves the Form after cursor in Block."
+  [ |> ] there cherry
+] opens
+
+
+root #@: [
+  "( F @: N ): makes an opener entry called Name for Form."
+  ahead swap ahead eject swap opens
+] opens
+
+
+[ "( F $: N -- ): makes a pusher entry called Name for Form."
+  ahead swap ahead eject swap pushes
+] @: $:
+
+
+[ "( V =: N -- ): submits Value to an already defined entry
+   under the specified Name."
+  ahead swap ahead eject swap submit
+] @: =:
+
+
+"TODO: implement echo in Crystal, because this way it is
+ recursive in some cases, and not suitable for debugging!"
+
+
+[ "( F -- ): prints Form in the console. If Form is a block
+   with *view word defined, opens *view in an empty stack
+   and prints ToS form after *view there."
+  dup #*view fetch: [
+    "If there's a *echo word defined on the block, print
+     whatever ToS it leaves."
+    val rawEcho drop ^
+  ]
+  rawEcho
+] @: echo

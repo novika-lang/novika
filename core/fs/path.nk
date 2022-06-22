@@ -1,0 +1,29 @@
+
+[ "( Pq -- P ): exchanges Path quote for a Path block with
+   path-related vocabulary."
+  $: pathQuote
+
+  [ "( -- true/false ): same as `fs:exists?`."
+    pathQuote fs:exists?
+  ] @: exists?
+
+  [ "( -- true/false ): same as `fs:readable?`"
+    exists? pathQuote fs:readable? and
+  ] @: available?
+
+  [ "( -- true/false ): same as `fs:dir?`."
+    pathQuote fs:dir?
+  ] @: dir?
+
+  [ "( -- true/false ): same as `fs:file?`."
+    pathQuote fs:file?
+  ] @: file?
+
+  [ "( -- true/false ): same as `fs:symlink?`."
+    pathQuote fs:symlink?
+  ] @: symlink?
+
+  [ '<Path: ' pathQuote stitch '>' stitch ] @: *view
+
+  this
+] @: path
