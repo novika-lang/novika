@@ -111,6 +111,10 @@ module Novika::Primitives
       Boolean[world.stack.drop.is_a?(Word)].push(world)
     end
 
+    target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word.") do |world|
+      Boolean[world.stack.drop.is_a?(QuotedWord)].push(world)
+    end
+
     target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |world|
       Boolean[world.stack.drop.is_a?(Decimal)].push(world)
     end

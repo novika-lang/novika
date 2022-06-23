@@ -5,6 +5,19 @@ require "file_utils"
 require "./tape"
 require "./primitives"
 
+class String
+  # Returns whether this string starts with *prefix* but also
+  # has other characters after it.
+  def prefixed_by?(prefix : String)
+    starts_with?(prefix) && size > prefix.size
+  end
+
+  # :ditto:
+  def prefixed_by?(prefix : Char)
+    starts_with?(prefix) && size > 1
+  end
+end
+
 module Novika
   # The regex that splits Novika source code into morphemes.
   MORPHEMES = /
@@ -121,7 +134,7 @@ module Novika
     def initialize(@id)
     end
 
-    delegate :starts_with?, to: id
+    delegate :prefixed_by?, to: id
 
     def desc
       "a word named #{id}"
@@ -165,9 +178,10 @@ module Novika
       "a quoted word named #{id}"
     end
 
-    # Converts this quoted word into a `Word`.
+    # Converts this quoted word into a `Word` or a `QuotedWord`
+    # if quoting is multi-layer.
     def unquote
-      Word.new(id)
+      id.prefixed_by?('#') ? QuotedWord.new(id.lchop) : Word.new(id)
     end
 
     def opened(world)
@@ -393,6 +407,10 @@ module Novika
     # Maximum amount of forms to display in block's string
     # representation.
     MAX_COUNT_TO_S = 128
+
+    # Maximum amount of forms to display in nested blocks
+    # in string representation of this block.
+    MAX_NESTED_COUNT_TO_S = 12
 
     protected getter tape = Tape(Form).new
     protected getter table = {} of Form => Entry
@@ -664,16 +682,16 @@ module Novika
       io << " ]".colorize.dark_gray.bold
     end
 
-    def to_s(io)
+    def to_s(io, nested = false)
       # junk todo
 
       io << "[ "
 
-      if count > MAX_COUNT_TO_S
+      if count > (nested ? MAX_NESTED_COUNT_TO_S : MAX_COUNT_TO_S)
         io << "… " << count << " forms here …"
       else
         tape.each
-          .map { |form| form.is_a?(Block) ? "[…]" : form.to_s }.to_a
+          .map { |form| form.is_a?(Block) ? String.build { |str| form.to_s(str, nested: true) } : form.to_s }.to_a
           .insert(cursor, "|")
           .join(io, ' ')
       end
@@ -913,7 +931,7 @@ end
 
 def import(recpt : Novika::Block, donor : Novika::Block)
   donor.ls.each do |name|
-    unless name.is_a?(Novika::Word) && name.starts_with?('_')
+    unless name.is_a?(Novika::Word) && name.prefixed_by?('_')
       recpt.at name, donor.at(name)
     end
   end

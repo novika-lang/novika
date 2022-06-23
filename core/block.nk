@@ -503,3 +503,42 @@
 
   status
 ] @: any?
+
+
+[ """( S D -- Di ): given a Source block and a Destination
+   block, leaves an instance of Destination block with all
+   words (see `word?`) replaced with entry values from Table
+   source (they are **not** opened), and all quoted words
+   unquoted (see `quotedWord?`). Recurses on sub-blocks.
+
+  >>> 1 $: x  2 $: y  #+ $: plus
+  >>> this [ x y plus #dup plus [ ##foo #echo ] #open ] conjure
+  === [ 1 2 + dup + [ #foo echo | ] #open | ]
+  >>> open
+  STDOUT: foo
+  === 6
+  """
+  swap $: source 
+
+  map: [ 
+    "If it's a word, replace it with word's value in caller,
+    if it's a quoted word, unquote it, if it's a block, then
+    recurse on it, else, leave it."
+    dup word?       => [ source swap entry:fetch ^ ]
+    dup block?      => [ source swap conjure     ^ ]
+    dup quotedWord? => [ open                    ^ ]
+  ]
+] @: conjure
+
+
+[ """( B -- Bi ): `conjure` with Source block set to caller.
+
+  >>> 1 $: x  2 $: y  #+ $: plus
+  >>> [ x y plus #dup plus [ ##foo #echo] #open ] here
+  === [ 1 2 + dup + [ #foo echo | ] #open | ]
+  >>> open
+  STDOUT: foo
+  === 6
+  """
+  ahead swap conjure
+] @: here
