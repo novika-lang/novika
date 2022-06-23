@@ -537,7 +537,6 @@
 [ """( A B D -- Z ): leaves Zipped A, B with holes filled by
    the given Default form.
 
-
   >>> [ ] [ ] #hole zipWithDefault
   === [ | ]
 
