@@ -43,4 +43,12 @@
 [ 101 3 2000 ] [ 100 < ] any? echo
 [ 1002 350 2000 ] [ 100 < ] any? echo
 
+[ ] [ ] zip echo
+[ 1 2 ] [ 3 4 ] zip echo
+
+[ ] [ ] #hole zipWithDefault echo
+[ 1 2 ] [ 3 4 ] #hole zipWithDefault echo
+[ 1 2 ] [ 3 ] #hole zipWithDefault echo
+[ 1 ] [ 3 4 ] #hole zipWithDefault echo
+
 stack echo

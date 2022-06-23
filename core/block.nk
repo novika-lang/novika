@@ -505,6 +505,76 @@
 ] @: any?
 
 
+[ """( A B -- Z ): leaves Zipped A, B.
+
+  >>> [ ] [ ] zip
+  === [ | ]
+
+  >>> [ 1 2 ] [ 3 4 ] zip
+  === [ [ 1 3 | ] [ 2 4 | ] | ]
+
+  >>> [ 1 2 ] [ 3 ] zip
+  [dies]
+  """
+  $: b $: a
+
+  a count dup
+  b count = not =>
+    [ 'counts must be equal with zip, otherwise see zipWithDefault' die ]
+
+  [ ] $: result
+
+  "a count" times: [ dup
+    a swap fromLeft swap
+    b swap fromLeft 2enclose
+    result gulp
+  ]
+
+  result
+] @: zip
+
+
+[ """( A B D -- Z ): leaves Zipped A, B with holes filled by
+   the given Default form.
+
+
+  >>> [ ] [ ] #hole zipWithDefault
+  === [ | ]
+
+  >>> [ 1 2 ] [ 3 4 ] #hole zipWithDefault
+  === [ [ 1 3 | ] [ 2 4 | ] | ]
+
+  >>> [ 1 2 ] [ 3 ] #hole zipWithDefault
+  === [ [ 1 3 | ] [ 2 hole | ] | ]
+
+  >>> [ 1 ] [ 3 4 ] #hole zipWithDefault
+  === [ [ 1 3 | ] [ hole 4 | ] | ]
+  """
+  $: default
+
+  #_    $: longer
+  #_    $: smaller
+  0     $: missing
+  false $: swapped
+
+  over count "A count"
+  over count "B count"
+  2dup < "A < B"
+    [ swap -  =: missing
+      "B"     =: longer
+      "A" new =: smaller
+      true    =: swapped ]
+    [ -       =: missing
+      "B" new =: smaller
+      "A"     =: longer ]
+  br
+
+  missing times: [ smaller default shove ]
+
+  longer smaller swapped => [ swap ] zip
+] @: zipWithDefault
+
+
 [ """( S D -- Di ): given a Source block and a Destination
    block, leaves an instance of Destination block with all
    words (see `word?`) replaced with entry values from Table
