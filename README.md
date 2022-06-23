@@ -3,19 +3,68 @@
 Novika is an interpreted programming language, somewhat related to
 Forth, Red/Rebol, Self, and Lisp.
 
-This branch is the most recent (10th) prototype implementation of Novika.
+* This branch is the most recent (10th) prototype implementation of Novika.
 
-This implementation is slow (very slow) and buggy. Currently, it can't
-even be used for experimentation, let alone production. Mainly due to
-core components being relatively undeveloped/unexplored.
+* The implementation is slow (very slow) and buggy.
 
-The repository is unorganized. Code is raw and naïve at times.
-Beware. Help if you can. Poke around. There is little docs on
-the language itself, so explore and infer :)
+* The repository is unorganized, but significant progress has been made
+  in organizing it.
 
-For an example of Novika code, see `basis.nk`, and observe how it
-gradually grows the language's vocabulary.
+* Code is raw and naïve at times. Beware. Also it's a monument to
+  my love for `protected getters`.
 
+* Help if you can. Poke around. There is little docs on the language
+  itself, so explore and infer :)
+
+## What does it look like?
+
+For an example of Novika code, see `hello.nk`, `playground.nk`,
+as well as Novika files found in `core`, etc. There is documentation
+there, but it uses some Novika terms which remain undocumented or
+require clarification (mainly because I'm also just exploring the
+language, so explaining it will require some time). Also, there is a
+lot of implicit expectations in code (this would be partially resolved
+later with a dynamic (runtime) type check system), and in docs too.
+
+## Syntax highlighting
+
+There's a `sublime-syntax` file in `syn/`, for Sublime Text (I used ST 3).
+
+## Pros/cons
+
+It so happens that I have been writing Novika code from time to
+time, so here's what I can say.
+
+### Pros
+
+It's too early to say. Brevity? Homoiconicity squared? I. e.,
+runtime homoiconicity too? WTF?
+
+### Cons
+
+* Novika is one of the purest expressions of dynamism (or, more
+ specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
+ Forth, but in Forth it's more dangerous because it can make
+ your computer explode (I'm joking, of course). Note that I only
+ learned a bit of Forth's philosophy, and haven't written even
+ a line of it for myself.
+* If you write bad code, it'll break somewhere else, and throw
+ you a hundred-line-long stack trace. At least it really shows
+ where the error happened HUH?
+* You'll have to train your intuition to find where an error occured
+  (you'd be able to do it in one-two months), because *Novika doesn't
+  show nor store line numbers and filenames*
+  :) Maybe this will change, I mean it must change!
+* Your brain will explode trying to keep track of the stack, them
+  Forth critics say. In Novika, you'd also have to keep track of
+  the so-called *cursor*, and, if that sounds easy, of the block
+  that's used as the stack. Two-three months for this.
+* Some words open your blocks with a new stack (e.g., `loop`),
+  and some do not (e.g., `br`). This is mostly documented (and
+  must be!), but sometimes may still cause a lot of confusion.
+
+**Remember these are the language's cons**, not its complete
+description.
 
 ## Language notes
 
@@ -111,17 +160,41 @@ Wut?
 `shards build --release --production --progress --no-debug` and
 every other switch you can come up with :)
 
-Then `./bin/novika basis.nk`. If you want to type in some code,
-type it at the end of basis.nk (UX/UI sucks huh?). I guess
-you'd also want to remove whatever example code there is already
-(currently the `1000 times:` thingy).
+Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
+is a way to go if you want to type some Novika code yourself,
+or try `./bin/novika core hello.nk` as the help message suggests, and
+see Novika in action. If you want to experience how slow Novika
+really is (except the filesystem part), run `./bin/novika core playground.nk`.
 
 ## Development
 
 Look at source. Explore `crystal docs novika.cr`.
 
-Then `crystal run novika.cr -- basis.nk`. Make it break. See
-where and why. Easy, huh? Maybe `flamegraph` it?
+Then `crystal run novika.cr -- core file.nk`. Make it break. See
+where and why. Easy, huh? Build in release. `flamegraph` it?
+
+No major (define?) changes will be accepted, because the language
+is undocumented & experimental. In such conditions, no common
+line can be maintained, and that's bad for any project, even
+more so for a programming language which shapes how people think.
+Having a sloppy shape is bad, I guess you'd agree.
+
+## What's a revision, for Novika?
+
+It's a major reconsideration of the language's core ideas and core
+code. Major is when you start with an empty directory.
+
+Current revision (rev10) is pretty stable, but unbearably slow. This
+is due to my naïve code, of course, but also due to Novika's design
+itself. I'm not going to make any more compromises on the design
+part though, so when the design crystalizes, there are going to be
+thorough language specs, you'd, too, be able to contribute and
+**embrace the design**. This could be Novika's motto, huh? Do
+programming languages have mottos?
+
+That is, further implementations (if they won't go nuclear) must
+work hard to make the most stupid and naive code run relatively
+fast. Everything else will follow.
 
 ## Contributing
 
