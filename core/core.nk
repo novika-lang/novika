@@ -54,3 +54,12 @@ root #@: [
    under the specified Name."
   ahead swap ahead eject swap submit
 ] @: =:
+
+
+[ "( help F -- ): echoes help for Form. If form is a word,
+   fetches it in caller first."
+  ahead $: caller ahead eject $: form
+
+  form word? => [ caller form entry:fetch =: form ]
+  form desc echo
+] @: help

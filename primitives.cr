@@ -4,168 +4,153 @@ module Novika::Primitives
     target.at(Word.new("true"), True.new)
     target.at(Word.new("false"), False.new)
 
-    # Leaves the Prototype of Block: ( B -- P ).
-    target.at("prototype") do |world|
+    target.at("prototype", "( B -- P ): leaves the Prototype of Block.") do |world|
       block = world.stack.drop.assert(Block)
       block.prototype.push(world)
     end
 
-    # Leaves the Parent of Block: ( B -- P ).
-    target.at("parent") do |world|
+    target.at("parent", "( B -- P ): leaves the Parent of Block.") do |world|
       block = world.stack.drop.assert(Block)
       block.parent.push(world)
     end
 
-    # Pushes the Continuations block: ( -- Cs ).
-    target.at("conts") do |world|
+    target.at("conts", "( -- Cs ): Pushes the Continuations block.") do |world|
       world.conts.push(world)
     end
 
-    # Creates a Continuation from a Stack and a Block: ( S B -- C ).
-    target.at("newContinuation") do |world|
+    target.at("newContinuation", "( S B -- C ): creates a Continuation from a Stack and a Block.") do |world|
       block = world.stack.drop.assert(Block)
       stack = world.stack.drop.assert(Block)
       Continuation.new(block, stack).push(world)
     end
 
-    # Pushes the current continuation Block: ( -- B ). Dirty!
-    target.at("this") do |world|
+    target.at("this", "( -- B ): pushes the current continuation Block.") do |world|
       world.block.push(world)
     end
 
-    # Pushes the active Stack (stack of the CC): ( -- S ).
-    target.at("stack") do |world|
+    target.at("stack", "( -- S ): pushes the active Stack (stack of the CC).") do |world|
       world.stack.push(world)
     end
 
-    # Leaves the Sum of two decimals: ( A B -- S ).
-    target.at("+") do |world|
+    target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       world.stack.add(a + b)
     end
 
-    # Leaves the Difference of two decimals: ( A B -- D ).
-    target.at("-") do |world|
+    target.at("-", "( A B -- D ): leaves the Difference of two decimals.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       world.stack.add(a - b)
     end
 
-    # Leaves the Product of two decimals: ( A B -- P ).
-    target.at("*") do |world|
+    target.at("*", "( A B -- P ): leaves the Product of two decimals.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       world.stack.add(a * b)
     end
 
-    # Leaves the Quotient of two decimals: ( A B -- Q ).
-    target.at("/") do |world|
+    target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       world.stack.add(a / b)
     end
 
-    # Leaves the Remainder of two decimals: ( A B -- R ).
-    target.at("rem") do |world|
+    target.at("rem", "( A B -- R ): leaves the Remainder of two decimals.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       world.stack.add(a % b)
     end
 
-    # Duplicates the Form before cursor: ( F -- F F ).
-    target.at("dup", &.stack.dupl)
-
-    # Drops the Form before cursor: ( F -- ).
-    target.at("drop", &.stack.drop)
-
-    # Swaps two Forms before cursor: ( A B -- B A ).
-    target.at("swap", &.stack.swap)
-
-    # Opens Form with Stack set as the active stack: ( S F -- ).
-    target.at("hydrate") do |world|
+    target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupl)
+    target.at("drop", "( F -- ): drops the Form before cursor.", &.stack.drop)
+    target.at("swap", "( A B -- B A ): swaps two Forms before cursor.", &.stack.swap)
+    target.at("hydrate", "( S F -- ): opens Form with Stack set as the active stack.") do |world|
       form = world.stack.drop
       stack = world.stack.drop.assert(Block)
       world.enable(form, stack)
     end
 
-    # Leaves an Instance of a Block: ( B -- I ).
-    target.at("new") do |world|
+    target.at("new", "( B -- I ): leaves an Instance of a Block.") do |world|
       block = world.stack.drop.assert(Block)
       block.instance.push(world)
     end
 
-    # Selects A (Determiner is truthy) or B (Determiner is
-    # falsey): ( D A B -- A/B ).
-    target.at("sel") do |world|
+    target.at("sel", <<-END
+    ( D A B -- A/B ): selects A (Determiner is truthy) or B
+     (Determiner is falsey)
+    END
+    ) do |world|
       b = world.stack.drop
       a = world.stack.drop
       det = world.stack.drop
       det.sel(a, b).push(world)
     end
 
-    # Leaves whether one decimal is smaller than other: ( A B -- S ).
-    target.at("<") do |world|
+    target.at("<", "( A B -- S ): leaves whether one decimal is smaller than other.") do |world|
       b = world.stack.drop.assert(Decimal)
       a = world.stack.drop.assert(Decimal)
       Boolean[a < b].push(world)
     end
 
-    # Leaves whether two Forms are the same (by reference for
-    # block, by value  for any other form): ( F1 F2 -- true/false ).
-    target.at("same?") do |world|
+    target.at("same?", <<-END
+    ( F1 F2 -- true/false ): leaves whether two Forms are the
+     same (by reference for block, by value  for any other form).
+    END
+    ) do |world|
       b = world.stack.drop
       a = world.stack.drop
       Boolean.same?(a, b).push(world)
     end
 
-    # Leaves whether Form is a block: ( F -- true/false )
-    target.at("block?") do |world|
+    target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |world|
       Boolean[world.stack.drop.is_a?(Block)].push(world)
     end
 
-    # Leaves whether Form is a word: ( F -- true/false )
-    target.at("word?") do |world|
+    target.at("word?", "( F -- true/false ): leaves whether Form is a word.") do |world|
       Boolean[world.stack.drop.is_a?(Word)].push(world)
     end
 
-    # Leaves whether Form is a decimal: ( F -- true/false )
-    target.at("decimal?") do |world|
+    target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |world|
       Boolean[world.stack.drop.is_a?(Decimal)].push(world)
     end
 
-    # Leaves whether Form is a quote: ( F -- true/false )
-    target.at("quote?") do |world|
+    target.at("quote?", "( F -- true/false ): leaves whether Form is a quote.") do |world|
       Boolean[world.stack.drop.is_a?(Quote)].push(world)
     end
 
-    # Leaves whether Form is a boolean: ( F -- true/false )
-    target.at("boolean?") do |world|
+    target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean.") do |world|
       Boolean[world.stack.drop.is_a?(Boolean)].push(world)
     end
 
-    # Creates a definition for Name in Block that pushes Form
-    # when resolved there: ( B N F -- ).
-    target.at("pushes") do |world|
+    target.at("pushes", <<-END
+    ( B N F -- ): creates a definition for Name in Block that
+     pushes Form when resolved there.
+    END
+    ) do |world|
       form = world.stack.drop
       name = world.stack.drop
       block = world.stack.drop.assert(Block)
       block.at name, Entry.new(form)
     end
 
-    # Creates a definition for Name in Block that opens Form
-    # when resolved there: ( B N F -- ).
-    target.at("opens") do |world|
+    target.at("opens", <<-END
+    ( B N F -- ): creates a definition for Name in Block that
+     opens Form when resolved there.
+    END
+    ) do |world|
       form = world.stack.drop
       name = world.stack.drop
       block = world.stack.drop.assert(Block)
       block.at name, OpenEntry.new(form)
     end
 
-    # Changes the value form of an existing definition of Name
-    # in Block to Form, but keeps its resolution action (open/
-    # push).
-    target.at("submit") do |world|
+    target.at("submit", <<-END
+    ( B N F -- ): changes the value form of an existing definition
+     of Name in Block to Form, but keeps its resolution action
+     (open/push).
+    END
+    ) do |world|
       form = world.stack.drop
       name = world.stack.drop
       block = world.stack.drop.assert(Block)
@@ -175,119 +160,113 @@ module Novika::Primitives
       entry.submit(form)
     end
 
-    # Leaves whether Table can fetch value for Name: ( T N -- true/false ).
-    target.at("entry:exists?") do |world|
+    target.at("entry:exists?", <<-END
+    ( T N -- true/false ): leaves whether Table can fetch
+     value for Name.
+    END
+    ) do |world|
       name = world.stack.drop
       block = world.stack.drop.assert(ReadableTable)
       Boolean[block.has?(name)].push(world)
     end
 
-    # Leaves the value Form under Name in Block's table: ( B N -- F )
-    target.at("entry:fetch") do |world|
+    target.at("entry:fetch", "( B N -- F ): leaves the value Form under Name in Block's table.") do |world|
       name = world.stack.drop
       block = world.stack.drop.assert(ReadableTable)
       block.at(name).push(world)
     end
 
-    # Leaves whether an entry called Name in Block is an open
-    # entry: ( B N -- true/false ).
-    target.at("entry:isOpenEntry?") do |world|
+    target.at("entry:isOpenEntry?", <<-END
+    ( B N -- true/false ): leaves whether an entry called Name
+     in Block is an open entry.
+    END
+    ) do |world|
       name = world.stack.drop
       block = world.stack.drop.assert(ReadableTable)
       Boolean[block.at(name).is_a?(OpenEntry)].push(world)
     end
 
-    # Makes a shallow copy of Block's tape, and leaves a Copy
-    # block with the tape copy set as Copy's tape: ( B -- C ).
-    target.at("detach") do |world|
+    target.at("detach", <<-END
+    ( B -- C ): makes a shallow copy of Block's tape, and
+     leaves a Copy block with the tape copy set as Copy's tape.
+    END
+    ) do |world|
       world.stack.drop.assert(Block).detach.push(world)
     end
 
-    # Replaces the tape of Block with Other's tape: ( O B -- ).
-    target.at("attach") do |world|
+    target.at("attach", "( O B -- ): replaces the tape of Block with Other's tape.") do |world|
       block = world.stack.drop.assert(Block)
       other = world.stack.drop.assert(Block)
       block.attach(other)
     end
 
-    # Leaves Index-th Element in Block from the left: ( B I -- E ).
-    target.at("fromLeft") do |world|
+    target.at("fromLeft", "( B I -- E ): leaves Index-th Element in Block from the left.") do |world|
       index = world.stack.drop.assert(Decimal)
       block = world.stack.drop.assert(Block)
       block.at(index.to_i).push(world)
     end
 
-    # Leaves N, the amount of elements in Block: ( B -- N ).
-    target.at("count") do |world|
+    target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |world|
       block = world.stack.drop.assert(Block)
       count = Decimal.new(block.count)
       count.push(world)
     end
 
-    # Leaves N, the position of the cursor in Block: ( B -- N ).
-    target.at("|at") do |world|
+    target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |world|
       block = world.stack.drop.assert(Block)
       cursor = Decimal.new(block.cursor)
       cursor.push(world)
     end
 
-    # Moves the cursor in Block to N: ( B N -- ).
-    target.at("|to") do |world|
+    target.at("|to", "( B N -- ): moves the cursor in Block to N.") do |world|
       cursor = world.stack.drop.assert(Decimal)
       block = world.stack.drop.assert(Block)
       block.to(cursor.to_i)
     end
 
-    # Drops Block and Element before cursor in Block (and moves
-    # cursor back once), leaves Element:
-    #
-    # ( [ ... E | ... ]B -- [ ... | ... ]B -- E ).
-    target.at("cherry") do |world|
+    target.at("cherry", <<-END
+    ( [ ... E | ... ]B -- [ ... | ... ]B -- E ): drops Block
+     and Element before cursor in Block (and moves cursor back
+     once), leaves Element.
+    END
+    ) do |world|
       world.stack.drop.assert(Block).drop.push(world)
     end
 
-    # Adds Element before cursor in Block (and moves cursor
-    # forward once), drops both:
-    #
-    # ( [ ... | ... ]B E -- [ ... E | ... ]B -- )
-    target.at("shove") do |world|
+    target.at("shove", <<-END
+    ( [ ... | ... ]B E -- [ ... E | ... ]B -- ): adds Element
+     before cursor in Block (and moves cursor forward once),
+     drops both.
+    END
+    ) do |world|
       world.stack.drop.push(world.stack.drop.assert(Block))
     end
 
-    # Leaves the top Form in Block.
-    #
-    # ( [ ... F | ... ]B -- F )
-    target.at("top") do |world|
+    target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |world|
       block = world.stack.drop.assert(Block)
       block.top.push(world)
     end
 
-    # Shows Form in the console: ( F -- ).
-    target.at("echo") do |world|
+    target.at("echo", "( F -- ): shows Form in the console.") do |world|
       quote = world.stack.drop.enquote(world)
       puts quote.string
     end
 
-    # Leaves Quote representation of Form: ( F -- Qr ).
-    target.at("enquote") do |world|
+    target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |world|
       world.stack.drop.enquote(world).push(world)
     end
 
-    # Dies with Details quote: ( D -- ).
-    target.at("die") do |world|
+    target.at("die", "( D -- ): dies with Details quote.") do |world|
       raise FormDied.new(world.stack.drop.assert(Quote).string)
     end
 
-    # Quote concatenation: ( Q1 Q2 -- Q3 ).
-    target.at("stitch") do |world|
+    target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |world|
       b = world.stack.drop.assert(Quote)
       a = world.stack.drop.assert(Quote)
       world.stack.add(a + b)
     end
 
-    # ( B -- Nb ): gathers all table entry names into
-    # Name block.
-    target.at("ls") do |world|
+    target.at("ls", "( B -- Nb ): gathers all table entry names into Name block.") do |world|
       block = world.stack.drop.assert(Block)
       result = Block.new
       block.ls.each do |form|
@@ -296,11 +275,12 @@ module Novika::Primitives
       result.push(world)
     end
 
-    # ( C P -- C ): changes the parent of Child to Parent.
-    #
-    # Checks for cycles which can hang the interpreter, therefore
-    # is an O(N) operation where N is the amount of Parent parents.
-    target.at("reparent") do |world|
+    target.at("reparent", <<-END
+    ( C P -- C ): changes the parent of Child to Parent. Checks
+     for cycles which can hang the interpreter, therefore is
+     O(N) where N is the amount of Parent's ancestors.
+    END
+    ) do |world|
       pb = world.stack.drop.assert(Block)
       cb = world.stack.top.assert(Block)
 
@@ -320,67 +300,75 @@ module Novika::Primitives
       cb.parent = pb
     end
 
-    # ( B Q -- B ): parses Quote and adds all forms from
-    # Quote to Block.
-    target.at("slurp") do |world|
+    target.at("slurp", <<-END
+    ( B Q -- B ): parses Quote and adds all forms from Quote
+     to Block.
+    END
+    ) do |world|
       source = world.stack.drop.assert(Quote)
       block = world.stack.top.assert(Block)
       block.slurp(source.string)
     end
 
-    # ( -- O ): Leaves an Orphan (a parent-less block)
-    target.at("orphan") do |world|
+    target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |world|
       Block.new.push(world)
+    end
+
+    target.at("desc", "( F -- Hq ): leaves the description of Form.") do |world|
+      quote = Quote.new(world.stack.drop.desc)
+      quote.push(world)
     end
 
     # File system ------------------------------------------
 
-    # Leaves whether Path quote exists: ( Pq -- true/false )
-    target.at("fs:exists?") do |world|
+    target.at("fs:exists?", "( Pq -- true/false ): leaves whether Path quote exists.") do |world|
       path = world.stack.drop.assert(Quote)
       status = File.exists?(path.string)
       Boolean[status].push(world)
     end
 
-    # Leaves whether Path quote is readable: ( Pq -- true/false )
-    target.at("fs:readable?") do |world|
+    target.at("fs:readable?", "( Pq -- true/false ): leaves whether Path quote is readable.") do |world|
       path = world.stack.drop.assert(Quote)
       status = File.readable?(path.string)
       Boolean[status].push(world)
     end
 
-    # Leaves whether Path quote exists and points to a directory:
-    # ( Pq -- true/false )
-    target.at("fs:dir?") do |world|
+    target.at("fs:dir?", <<-END
+    ( Pq -- true/false ): leaves whether Path quote exists and
+     points to a directory.
+    END
+    ) do |world|
       path = world.stack.drop.assert(Quote)
       status = Dir.exists?(path.string)
       Boolean[status].push(world)
     end
 
-    # Leaves whether Path quote exists and points to a file:
-    # ( Pq -- true/false )
-    target.at("fs:file?") do |world|
+    target.at("fs:file?", <<-END
+    ( Pq -- true/false ): leaves whether Path quote exists and
+     points to a file.
+    END
+    ) do |world|
       path = world.stack.drop.assert(Quote)
       status = File.file?(path.string)
       Boolean[status].push(world)
     end
 
-    # Leaves whether Path quote exists and points to a symlink:
-    # ( Pq -- true/false )
-    target.at("fs:symlink?") do |world|
+    target.at("fs:symlink?", <<-END
+    ( Pq -- true/false ): leaves whether Path quote exists and
+     points to a symlink.
+    END
+    ) do |world|
       path = world.stack.drop.assert(Quote)
       status = File.symlink?(path.string)
       Boolean[status].push(world)
     end
 
-    # Creates a file at Path: ( P -- ).
-    target.at("fs:touch") do |world|
+    target.at("fs:touch", "( P -- ): creates a file at Path.") do |world|
       path = world.stack.drop.assert(Quote)
       File.touch(path.string)
     end
 
-    # Reads and leaves Contents of File: ( F -- C )
-    target.at("fs:read") do |world|
+    target.at("fs:read", "( F -- C ): reads and leaves Contents of File") do |world|
       path = world.stack.drop.assert(Quote)
       contents = File.read(path.string)
       Quote.new(contents).push(world)

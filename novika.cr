@@ -37,6 +37,11 @@ module Novika
       raise FormDied.new(details)
     end
 
+    # Returns a string description of this form.
+    def desc
+      "a form"
+    end
+
     # Selects either *a* or *b*. Novika defines `False` to be the
     # only form selecting *b*. All other forms select *a*.
     def sel(a, b)
@@ -118,6 +123,10 @@ module Novika
 
     delegate :starts_with?, to: id
 
+    def desc
+      "a word named #{id}"
+    end
+
     # Converts this word into a `QuotedWord`.
     def to_quoted_word
       QuotedWord.new(id)
@@ -152,6 +161,10 @@ module Novika
     def initialize(@id)
     end
 
+    def desc
+      "a quoted word named #{id}"
+    end
+
     # Converts this quoted word into a `Word`.
     def unquote
       Word.new(id)
@@ -183,6 +196,10 @@ module Novika
 
     def to_i
       val.to_i
+    end
+
+    def desc
+      "decimal number #{val}"
     end
 
     # Returns the sum of this and *other* decimal numbers.
@@ -227,7 +244,9 @@ module Novika
 
     protected getter code : World ->
 
-    def initialize(@code)
+    getter desc : String
+
+    def initialize(@desc, @code)
     end
 
     def open(world)
@@ -261,6 +280,10 @@ module Novika
           .gsub("\\r", '\r')
           .gsub("\\v", '\v')
       end
+    end
+
+    def desc
+      "quote (aka string in other languages) with value: '#{string.dump_unquoted}'"
     end
 
     # Concatenates two quotes, and returns the resulting quote.
@@ -302,6 +325,10 @@ module Novika
 
   # Represents a truthy `Boolean`.
   struct True < Boolean
+    def desc
+      "a boolean representing truth"
+    end
+
     def to_s(io)
       io << "true"
     end
@@ -312,6 +339,10 @@ module Novika
   # Represents a falsey `Boolean`. `False` is the only falsey
   # form in Novika.
   struct False < Boolean
+    def desc
+      "a boolean representing falsehood"
+    end
+
     def sel(a, b)
       b
     end
@@ -371,6 +402,10 @@ module Novika
     # A block is a leaf when it has no blocks in its tape.
     protected property? leaf = true
 
+    # Returns the string comment of this block. It normally
+    # describes what this block does.
+    protected property comment : String? = nil
+
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
     property! parent : Block?
@@ -421,6 +456,18 @@ module Novika
     # See the same method in `Tape`.
     delegate :cursor, :each, :count, to: tape
 
+    def comment?
+      comment unless comment.try &.empty?
+    end
+
+    def desc
+      comment? || "a block"
+    end
+
+    def describe?(string)
+      self.comment = string unless comment?
+    end
+
     # Parses all forms from string *source*, and adds them to
     # this block. Returns self.
     def slurp(source)
@@ -436,7 +483,7 @@ module Novika
         elsif match = $~["quote"]?
           block.add Quote.new(match, peel: true)
         elsif match = $~["comment"]?
-          # block.describe(match) if block.empty?
+          block.describe?(match.strip) if block.empty?
         elsif $~["bb"]?
           block = Block.new(block)
         elsif $~["be"]?
@@ -500,13 +547,13 @@ module Novika
 
     # Makes an `OpenEntry` called *name* for *code* wrapped
     # in `Builtin`.
-    def at(name : Word, &code : World ->)
-      at name, OpenEntry.new Builtin.new(code)
+    def at(name : Word, desc = "a builtin", &code : World ->)
+      at name, OpenEntry.new Builtin.new(desc, code)
     end
 
     # :ditto:
-    def at(name : String, &code : World ->)
-      at Word.new(name), OpenEntry.new Builtin.new(code)
+    def at(name : String, desc = "a builtin", &code : World ->)
+      at Word.new(name), OpenEntry.new Builtin.new(desc, code)
     end
 
     # Returns whether this block's table has an entry called *name*.
