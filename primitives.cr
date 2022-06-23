@@ -297,9 +297,26 @@ module Novika::Primitives
     end
 
     # ( C P -- C ): changes the parent of Child to Parent.
+    #
+    # Checks for cycles which can hang the interpreter, therefore
+    # is an O(N) operation where N is the amount of Parent parents.
     target.at("reparent") do |world|
       pb = world.stack.drop.assert(Block)
       cb = world.stack.top.assert(Block)
+
+      # Check for cycles. I'm having a hard time thinking
+      # about this, so idk if this really works for them
+      # smart cases.
+      visited = [cb]
+      current = pb
+      while current
+        if current.in?(visited)
+          cb.die("this reparent introduces a cycle")
+        end
+        visited << current
+        current = current.parent?
+      end
+
       cb.parent = pb
     end
 
