@@ -7,8 +7,7 @@ Forth, Red/Rebol, Self, and Lisp.
 
 * The implementation is slow (very slow) and buggy.
 
-* The repository is unorganized, but significant progress has been made
-  in organizing it.
+* The repository is unorganized, but there's movement slowly countering that!
 
 * Code is raw and naïve at times. Beware. Also it's a monument to
   my love for `protected getters`.
