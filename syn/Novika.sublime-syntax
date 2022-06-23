@@ -1,0 +1,85 @@
+%YAML 1.2
+---
+
+file_extensions:
+  - nk
+
+scope: source.novika
+
+contexts:
+  # The prototype context is prepended to all contexts but those setting
+  # meta_include_prototype: false.
+  prototype:
+    - include: comments
+
+  main:
+    - include: numbers
+    - include: strings
+    - include: word_literals
+    - include: defs
+    - include: words
+
+  defs:
+    - meta_scope: keyword.operator.assignment.novika
+    - match: '(\s|^)([@$=]:)\s+([^''"\s]+)(?=\s|$)'
+      captures:
+        2: keyword.operator.assignment.novika
+        3: entity.name.function.novika
+
+  words:
+    - meta_scope: keyword.novika
+    - match: '(\s|^)(true|false)(?=\s|$)'
+      scope: constant.language.boolean.novika
+    - match: '(\s|^)(conts|self|stack|ahead|above)(?=\s|$)'
+      scope: variable.language.meta.novika
+    - match: '(\s|^)(there|br|sel|and|or|\=\>)(?=\s|$)'
+      scope: keyword.control.flow.novika
+    - match: '(\s|^)(drop|swap|dup|rot)(?=\s|$)'
+      scope: keyword.context.stack.novika
+    - match: '(\s|^)([-+*/]|rem)(?=\s|$)'
+      scope: keyword.operator.arithmetic.novika
+    - match: '(\s|^)(pushes|opens)(?=\s|$)'
+      scope: keyword.operator.assignment.novika
+    - match: '(\s|^)(\|at|\|to|shove|cherry|eject)(?=\s|$)'
+      scope: keyword.other.block.novika
+
+  word_literals:
+    - match: '(\s|^)\#[^''"\s]+(?=\s|$)'
+      scope: string.unquoted.wordlit.novika
+
+  numbers:
+    - match: '(\s|^)[0-9]+(?=\s|$)'
+      scope: constant.numeric.novika
+
+  strings:
+    - match: '''[^'']*'''
+      scope: string.quoted.single.novika
+
+  comments:
+    # Comments begin and end with quotes, and may have stack
+    # effects specs et al. inside them.
+    - match: '"'
+      scope: punctuation.definition.comment.novika
+      push: inside_comment
+
+  inside_comment:
+    - meta_include_prototype: false
+    - meta_scope: punctuation.definition.comment.novika
+    # Comments may have stack effects inside them.
+    - match: '\('
+      push: inside_effect
+      scope: punctuation.definition.annotation.begin.novika
+    # Comments end with another '"'
+    - match: '"'
+      pop: true
+      scope: punctuation.definition.comment.end.novika
+
+  inside_effect:
+    - meta_include_prototype: false
+    - match: '\-\-'
+      scope: punctuation.definition.annotation.novika
+    - match: '[A-Z]'
+      scope: variable.annotation.novika
+    - match: '\)'
+      scope: punctuation.definition.annotation.end.novika
+      pop: true
