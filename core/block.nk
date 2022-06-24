@@ -611,3 +611,182 @@
   """
   ahead swap conjure
 ] @: here
+
+
+[ """( Lb -- Min Max ): leaves decimal minimum, maximum in
+   List block. Use `minmaxBy` if List block doesn't (or doesn't
+   always) contain solely decimals. If an empty block is given,
+   dies, so make sure to handle that yourself.
+  
+  >>> [ 1 2 3 ] minmax
+  === 1 3
+  """
+  dup empty? => [ 'Cannot minmax an empty block' die ]
+
+  dup 0 fromLeft
+    dup $: min
+        $: max
+
+  each: [
+    dup min < => [ =: min ^ ]
+    dup max > => [ =: max ^  ]
+  ]
+
+  min max
+] @: minmax
+
+
+[ """( Lb -- Min ): leaves decimal minimum. See `minmax`.
+
+  >>> [ 1 2 3 ] min
+  === 1
+  """
+  minmax drop
+] @: min
+
+
+[ """( Lb -- Max ): leaves decimal maximum. See `minmax`.
+
+  >>> [ 1 2 3 ] max
+  === 3
+  """
+  minmax nip
+] @: max
+
+
+[ """( Lb -- Sum ): leaves decimal sum of List block elements.
+   For more control (or if not always decimal), use sumBy.
+  
+  >>> [ ] sum
+  === 0
+
+  >>> [ 1 ] sum
+  === 1
+
+  >>> [ 1 2 3 ] sum
+  === 6
+  """
+  [ + ] 0 reduce
+] @: sum
+
+
+[ """( Lb T -- Min Max ): leaves the minimum and maximum
+   values in List block. Numeric values are obtained via the
+   Transformation block, which is opened with each element
+   of List block on top of an empty stack. If List block is
+   empty, dies, so make sure to handle that yourself.
+
+  >>> [ 1 2 3 ] [ ] minmax
+  === 1 3
+
+  >>> [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ charCount ] minmax
+  === 'A short string' 'Veeeeeeeeeeery long string'
+  """
+  dup empty? => [ 'here' echo drop minmax ^ ] $: transformer
+  dup empty? => [ 'Cannot minmax an empty block' die ]
+
+  dup 0 fromLeft "Get the first item in the List block."
+    dup $: min "Original minimum."
+    dup $: max "Original maximum."
+    enclose transformer there cherry
+      dup $: dMin "Transformed minimum."
+          $: dMax "Transformed maximum."
+
+  each: [
+    dup enclose transformer there cherry
+    dup dMin < => [ =: dMin =: min ^ ]
+    dup dMax > => [ =: dMax =: max ^ ]
+  ]
+
+  min max
+] @: minmaxBy
+
+
+[ """( Lb T -- Min ): leaves the minimum value in List block. Each
+   element of List block is transformed using Transformation
+   block. See `minmax`.
+  
+  >>> [ 1 2 3 ] [ ] min
+  === 1
+  """
+  minmax drop
+] @: minBy
+
+
+[ """( Lb T -- Max ): leaves the maximum value in List block. Each
+   element of List block is transformed using Transformation
+   block. See `minmax`.
+  
+  >>> [ 1 2 3 ] [ ] max
+  === 3
+  """
+  minmax nip
+] @: maxBy
+
+
+[ """( Lb T -- Sum ): leaves Sum of List block elements transformed
+   into decimals by Transformation block. Similar to `minmax`.
+  
+  >>> [ 'a' 'aaa' 'aa' ] [ charCount ] sumBy
+  === 6
+  """
+  $: transformer
+
+  [ enclose transformer there cherry + ] 0 reduce
+] @: sumBy
+
+
+[ """( N B -- Lb ): leaves a List block with N results of opening
+   Block with the current N.
+
+  >>> 3 [ readLine [ ] [ drop 0 ] br ] collect
+  INPUT: 0 3
+  INPUT: 1 5
+  INPUT: 2 12
+  === [ 3 5 12 ]
+  """
+  @: block [ ] $: result
+  
+  times: [ block result gulp ]
+
+  result
+] @: collect
+
+
+[ "( N collect: B -- Lb ): infix version of `collect`."
+  ahead eject collect
+] @: collect:
+
+
+[ """( B E -- Rb ): leaves Range block containing decimals
+   between the given Begin, End decimal boundaries: [B; E],
+   [E; B] if  E < B.
+
+  >>> 1 100 range
+  === [ 1 2 3 ... 98 99 100 | ]
+
+  >>> -10 10 range
+  === [ -10 -9 -8 ... 8 9 10 | ]
+
+  >>> 10 0 range
+  === [ 10 9 8 ... 0 | ]
+  """
+  $: e $: b
+  
+  e b <
+    [ b e - 1 + collect: [ b swap - ] ]
+    [ e b - 1 + collect: [ b + ] ]
+  br
+] @: range
+
+
+[ """( B to: E -- Rb ): infix version of `between`.
+
+  >>> 1 to: 100
+  === [ 1 2 3 ... 98 99 100 | ]
+
+  >>> 10 to: 0
+  === [ 10 9 8 ... 0 | ]
+  """
+  ahead eject range
+] @: to:

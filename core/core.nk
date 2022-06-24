@@ -75,3 +75,18 @@ root #@: [
     [ nip         ]
   br desc echo
 ] @: help
+
+
+[ "( F1 F2 -- ): echoes a pair of Forms."
+  swap echo echo
+] @: 2echo
+
+
+[ "( F -- F ): echoes a Form but leaves it."
+  dup echo
+] @: p
+
+
+[ "( F1 F2 -- F1 F2 ): echoes a pair of Forms but leaves them."
+  2dup 2echo
+] @: 2p

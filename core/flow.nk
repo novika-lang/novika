@@ -167,6 +167,8 @@
 
 [ "( N B -- ): opens Body N times. Body is opened in a new
    stack with current N. `break` and `continue` available."
+  over negative? => [ 'times: cannot have negative N' die ]
+
   newWithBreakAndContinue $: body $: stop
 
   0 $: start

@@ -223,6 +223,11 @@ module Novika::Primitives
       block.at(index.to_i).push(world)
     end
 
+    target.at("charCount", "( Q -- N ): leaves N, the amount of characters in Quote") do |world|
+      quote = world.stack.drop.assert(Quote)
+      Decimal.new(quote.string.size).push(world)
+    end
+
     target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |world|
       block = world.stack.drop.assert(Block)
       count = Decimal.new(block.count)

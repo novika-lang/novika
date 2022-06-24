@@ -1,6 +1,8 @@
 module Novika
   # Represents a boolean (true/false) value.
   abstract struct Boolean
+    extend HasDesc
+
     include Form
 
     # Creates a `Boolean` subclass for the given *object*.
@@ -17,6 +19,10 @@ module Novika
     # :ditto:
     def self.same?(a, b)
       Boolean[a == b]
+    end
+
+    def self.desc(io)
+      io << "a boolean"
     end
   end
 

@@ -18,6 +18,16 @@
 ] @: zero?
 
 
+[ "( A -- true/false ): leaves whether A >= 0"
+  0 >=
+] @: positive?
+
+
+[ "( A -- true/false ): leaves whether A < 9"
+  0 <
+] @: negative?
+
+
 [ "( A B -- true/false ): leaves whether A is divisible by B."
   rem zero?
 ] @: /?
