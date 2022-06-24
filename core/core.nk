@@ -12,9 +12,21 @@ root #|> [
 ] opens
 
 
+root #continuationBlock [
+  "( C -- cB ): leaves the continuation Block of a Continuation."
+  0 fromLeft
+] opens
+
+
+root #continuationStack [
+  "( C -- cS ): leaves the continuation Stack of a Continuation."
+  1 fromLeft
+] opens
+
+
 root #ahead [
   "( -- B ): leaves caller Block on the stack."
-  conts dup count 3 - fromLeft #block entry:fetch
+  conts dup count 3 - fromLeft continuationBlock
 ] opens
 
 

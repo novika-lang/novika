@@ -34,7 +34,7 @@
 
 [ "( A B -- true/A ): leaves whether A or B or both are truthy."
   $: b @: a
-  
+
   a true b br
 ] @: or
 
@@ -54,7 +54,7 @@
    Beware that it does not re-instantiate the block."
   [
     drop "the call to repeat"
-    dup -> block 0 |to
+    dup continuationBlock 0 |to
   ] continues
 ] @: repeat
 
@@ -77,7 +77,7 @@
 [ "( -- ): returns to the CC of the block above the caller."
   ahead prototype parent $: above
 
-  [ -> block prototype above same? ] dropContinuationsUntil
+  [ continuationBlock prototype above same? ] dropContinuationsUntil
 ] @: ^
 
 
@@ -90,11 +90,11 @@
   ahead $: caller
 
   instance #break [ "( -- ): quits from the enclosing loop."
-    [ -> block caller same? ] dropContinuationsUntil
+    [ continuationBlock caller same? ] dropContinuationsUntil
   ] opens
 
   instance #continue [ "( -- ): quits from current loop iteration."
-    [ -> block prototype body same? ] dropContinuationsUntil
+    [ continuationBlock prototype body same? ] dropContinuationsUntil
   ] opens
 
   instance

@@ -744,6 +744,12 @@ module Novika
     # prevent very deep recursion in `World::ENQUOTE` et al.
     MAX_WORLD_NESTING = 1000
 
+    # Index of the block in a continuation block.
+    C_BLOCK_AT = 0
+
+    # Index of the stack block in a continuation block.
+    C_STACK_AT = 1
+
     # Returns the nesting number. Normally zero, for nested
     # worlds increases with each nest. Allows us to sort of
     # "track" Crystal's call stack and stop nesting when it's
@@ -760,11 +766,14 @@ module Novika
     protected def initialize(@nesting)
     end
 
-    # Creates a continuation block.
+    # Creates a conventional continuation `Block`.
+    #
+    # A conventional continuation block consists of two table
+    # fields: one for the block, and one for the stack.
     def self.cont(block, stack)
       Block.new
-        .at(Word.new("block"), block)
-        .at(Word.new("stack"), stack)
+        .add(block)
+        .add(stack)
     end
 
     # Returns the active continuation.
@@ -772,12 +781,14 @@ module Novika
       conts.top.assert(Block)
     end
 
+    # Returns the block of the active continuation.
     def block
-      cont.at(Word.new("block")).form.assert(Block)
+      cont.at(C_BLOCK_AT).assert(Block)
     end
 
+    # Returns the stack block of the active continuation.
     def stack
-      cont.at(Word.new("stack")).form.assert(Block)
+      cont.at(C_STACK_AT).assert(Block)
     end
 
     # Reports about an *error* into *io*.
@@ -793,11 +804,11 @@ module Novika
         cont_ = cont_.assert(Block)
         io << "  " << (index == count - 1 ? '└' : '├') << ' '
         io << "IN".colorize.bold << ' '
-        cont_.at(Word.new("block")).form.assert(Block).spotlight(io)
+        cont_.at(C_BLOCK_AT).assert(Block).spotlight(io)
         io.puts
 
         io << "  " << (index == count - 1 ? ' ' : '│') << ' '
-        io << "OVER".colorize.bold << ' ' << cont_.at(Word.new("stack")).form.assert(Block)
+        io << "OVER".colorize.bold << ' ' << cont_.at(C_STACK_AT).assert(Block)
         io.puts
       end
 
@@ -820,7 +831,7 @@ module Novika
     #
     # Returns self.
     def enable(form : Block, stack)
-      enable World.cont(form.instance.to(0), stack) # Continuation.new(form.instance.to(0), stack)
+      enable World.cont(form.instance.to(0), stack)
     end
 
     # Adds an empty continuation with *stack* as set as the
