@@ -6,7 +6,7 @@ authors:
 
 targets:
   novika:
-    main: novika.cr
+    main: src/novika.cr
 
 development_dependencies:
   ameba:

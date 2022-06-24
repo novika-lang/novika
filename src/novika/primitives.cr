@@ -261,7 +261,7 @@ module Novika::Primitives
     end
 
     target.at("die", "( D -- ): dies with Details quote.") do |world|
-      raise FormDied.new(world.stack.drop.assert(Quote).string)
+      raise Form::Died.new(world.stack.drop.assert(Quote).string)
     end
 
     target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |world|
