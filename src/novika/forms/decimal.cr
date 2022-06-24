@@ -1,6 +1,8 @@
 module Novika
   # A representation for decimal numbers inside Novika.
   struct Decimal
+    extend HasDesc
+
     include Form
 
     # Returns the underlying big decimal value.
@@ -57,6 +59,10 @@ module Novika
 
     def to_s(io)
       io << val
+    end
+
+    def self.desc(io)
+      io << "a decimal number"
     end
   end
 end

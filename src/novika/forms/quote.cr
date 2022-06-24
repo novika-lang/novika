@@ -2,6 +2,8 @@ module Novika
   # Represents Novika quotes, which are known as strings in most
   # other programming languages.
   struct Quote
+    extend HasDesc
+
     include Form
 
     # Returns the underlying string.
@@ -37,6 +39,10 @@ module Novika
 
     def to_s(io)
       io << "'"; string.dump_unquoted(io); io << "'"
+    end
+
+    def self.desc(io)
+      io << "a quote"
     end
 
     def_equals_and_hash string

@@ -12,6 +12,8 @@ module Novika
   /x
 
   class Block
+    extend HasDesc
+
     include Form
     include ReadableTable
 
@@ -34,7 +36,7 @@ module Novika
     # Returns the tape of this block.
     getter tape = Tape(Form).new
 
-    # Retunrs the table of this block.
+    # Returns the table of this block.
     getter table = Table.new
 
     # :nodoc:
@@ -56,7 +58,7 @@ module Novika
     protected def initialize(
       @parent : Block?,
       @tape : Tape(Form),
-      @table = {} of Form => Entry,
+      @table = Table.new,
       @prototype = self,
       @leaf = true
     )
@@ -108,7 +110,7 @@ module Novika
     # See the same method in `Tape`.
     delegate :cursor, :each, :count, to: tape
 
-    # Parses all forms from string *source*, and adds them to
+    # Parses all forms in string *source*, and adds them to
     # this block. Returns self.
     def slurp(source)
       start, block = 0, self
@@ -233,7 +235,8 @@ module Novika
       top.tap { self.tape = tape.drop? || raise "unreachable" }
     end
 
-    # Returns an array of words defined by this block.
+    # Returns an array of table keys (of `Form`) defined in
+    # this block.
     def ls
       table.keys
     end
@@ -324,6 +327,10 @@ module Novika
       end
 
       io << " ]"
+    end
+
+    def self.desc(io)
+      io << "a block"
     end
   end
 end

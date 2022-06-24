@@ -22,6 +22,8 @@ module Novika
 
   # Represents a truthy `Boolean`.
   struct True < Boolean
+    extend HasDesc
+
     def desc
       "boolean true"
     end
@@ -30,12 +32,18 @@ module Novika
       io << "true"
     end
 
+    def self.desc(io)
+      io << "boolean true"
+    end
+
     def_equals_and_hash
   end
 
   # Represents a falsey `Boolean`. `False` is the only falsey
   # form in Novika.
   struct False < Boolean
+    extend HasDesc
+
     def desc
       "boolean false"
     end
@@ -46,6 +54,10 @@ module Novika
 
     def to_s(io)
       io << "false"
+    end
+
+    def self.desc(io)
+      io << "boolean false"
     end
 
     def_equals_and_hash

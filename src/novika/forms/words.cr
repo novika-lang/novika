@@ -15,6 +15,8 @@ module Novika
   # Words open entries they're assigned to in the table of their
   # enclosing block.
   struct Word
+    extend HasDesc
+
     include Form
 
     # Standard death handler entry name.
@@ -51,12 +53,17 @@ module Novika
       io << id
     end
 
+    def self.desc(io)
+      io << "a word"
+    end
+
     def_equals_and_hash id
   end
 
   # Quoted words are words prefixed by '#': e.g., `#foo`. It lets
   # you keep automatic word opening one manual `open` away.
   struct QuotedWord
+    extend HasDesc
     include Form
 
     # Returns the underlying string id.
@@ -86,6 +93,10 @@ module Novika
 
     def to_s(io)
       io << '#' << id
+    end
+
+    def self.desc(io)
+      io << "a quoted word"
     end
 
     def_equals_and_hash id

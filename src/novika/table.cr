@@ -6,6 +6,8 @@ module Novika
   # Enables support for `entry:fetch`, `entry:exists?`,
   # `entry:isOpenEntry?`, and the derived words.
   module ReadableTable
+    extend HasDesc
+
     # Raises with *details*.
     abstract def die(details)
 
@@ -21,6 +23,10 @@ module Novika
     # Returns whether this table has *name* table entry.
     def has?(name)
       !!at?(name)
+    end
+
+    def self.desc(io)
+      io << "a readable table"
     end
   end
 
