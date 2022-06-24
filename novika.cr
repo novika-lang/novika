@@ -376,7 +376,8 @@ module Novika
 
   # Represents a table entry. Holds the value form.
   class Entry
-    private getter form : Form
+    # Returns the form held by this entry.
+    getter form : Form
 
     def initialize(@form)
     end
@@ -722,24 +723,6 @@ module Novika
     end
   end
 
-  # A block (instance) with a stack block. Novika interpreter's
-  # main goal is to exhaust continuations.
-  record Continuation, block : Block, stack : Block do
-    include Form
-    include ReadableTable
-
-    def at?(name : Word)
-      case name.id
-      when "block" then block
-      when "stack" then stack
-      end
-    end
-
-    def to_s(io)
-      io << "｢ B:#{block.object_id} S:#{stack.object_id} ｣"
-    end
-  end
-
   # Novika interpreter and context.
   struct World
     include Form
@@ -777,13 +760,25 @@ module Novika
     protected def initialize(@nesting)
     end
 
-    # Returns the active continuation.
-    def cont
-      conts.top.assert(Continuation)
+    # Creates a continuation block.
+    def self.cont(block, stack)
+      Block.new
+        .at(Word.new("block"), block)
+        .at(Word.new("stack"), stack)
     end
 
-    # See the corresponding method in `Continuation`.
-    delegate :block, :stack, to: cont
+    # Returns the active continuation.
+    def cont
+      conts.top.assert(Block)
+    end
+
+    def block
+      cont.at(Word.new("block")).form.assert(Block)
+    end
+
+    def stack
+      cont.at(Word.new("stack")).form.assert(Block)
+    end
 
     # Reports about an *error* into *io*.
     def report(e : FormDied, io = STDOUT)
@@ -795,15 +790,14 @@ module Novika
       count = conts.count - omitted
 
       conts.each.skip(omitted).with_index do |cont_, index|
-        cont_ = cont_.assert(Continuation)
-
+        cont_ = cont_.assert(Block)
         io << "  " << (index == count - 1 ? '└' : '├') << ' '
         io << "IN".colorize.bold << ' '
-        cont_.block.spotlight(io)
+        cont_.at(Word.new("block")).form.assert(Block).spotlight(io)
         io.puts
 
         io << "  " << (index == count - 1 ? ' ' : '│') << ' '
-        io << "OVER".colorize.bold << ' ' << cont_.stack
+        io << "OVER".colorize.bold << ' ' << cont_.at(Word.new("stack")).form.assert(Block)
         io.puts
       end
 
@@ -813,7 +807,7 @@ module Novika
     # Focal point for adding continuations. Returns self.
     #
     # The place where continuation stack's depth is tracked.
-    def enable(other : Continuation)
+    def enable(other : Block)
       if conts.count > MAX_CONTS
         raise FormDied.new("continuations stack dangerously deep (> #{MAX_CONTS})")
       end
@@ -826,7 +820,7 @@ module Novika
     #
     # Returns self.
     def enable(form : Block, stack)
-      enable Continuation.new(form.instance.to(0), stack)
+      enable World.cont(form.instance.to(0), stack) # Continuation.new(form.instance.to(0), stack)
     end
 
     # Adds an empty continuation with *stack* as set as the
@@ -835,12 +829,9 @@ module Novika
     #
     # Returns self.
     def enable(form, stack)
-      if conts.empty?
-        # In case we're running in an empty world.
-        conts.add Continuation.new(Block.new, stack)
-      end
-
-      enable Continuation.new(block, stack)
+      # In case we're running in an empty world, create an
+      # empty block for the form.
+      enable World.cont(conts.empty? ? Block.new : block, stack)
 
       tap { form.open(self) }
     end
@@ -962,7 +953,7 @@ def run(world, toplevel, path : Path)
   source = File.read(path)
   stack = Novika::Block.new
   block = Novika::Block.new(toplevel).slurp(source)
-  world.conts.add Novika::Continuation.new(block.to(0), stack)
+  world.conts.add Novika::World.cont(block.to(0), stack)
   world.exhaust
   import(toplevel, block)
 end

@@ -21,7 +21,7 @@ module Novika::Primitives
     target.at("newContinuation", "( S B -- C ): creates a Continuation from a Stack and a Block.") do |world|
       block = world.stack.drop.assert(Block)
       stack = world.stack.drop.assert(Block)
-      Continuation.new(block, stack).push(world)
+      World.cont(block, stack).push(world)
     end
 
     target.at("this", "( -- B ): pushes the current continuation Block.") do |world|
