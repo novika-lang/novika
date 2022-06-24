@@ -108,7 +108,7 @@ module Novika
     end
 
     # See the same method in `Tape`.
-    delegate :cursor, :each, :count, to: tape
+    delegate :cursor, :each, :count, :at?, to: tape
 
     # Parses all forms in string *source*, and adds them to
     # this block. Returns self.
@@ -202,6 +202,12 @@ module Novika
     # Returns whether this block's table has an entry called *name*.
     def has?(name)
       table.has_key?(name)
+    end
+
+    # Merges the tables of *other* block with this block's.
+    # Returns self.
+    def merge_table!(with other)
+      tap { table.merge!(other.table) }
     end
 
     # Adds *form* to the tape. See `Tape#add`.
@@ -310,16 +316,26 @@ module Novika
 
     def to_s(io, nested = false)
       # junk todo
+      executed = true
 
-      io << "[ "
+      contents = String.build do |conio|
+        executed = exec_recursive(:to_s) do
+          if count > (nested ? MAX_NESTED_COUNT_TO_S : MAX_COUNT_TO_S)
+            conio << "… " << count << " forms here …"
+          else
+            tape.each
+              .map { |form| form.is_a?(Block) ? String.build { |str| form.to_s(str, nested: true) } : form.to_s }.to_a
+              .insert(cursor, "|")
+              .join(conio, ' ')
+          end
+        end
+      end
 
-      if count > (nested ? MAX_NESTED_COUNT_TO_S : MAX_COUNT_TO_S)
-        io << "… " << count << " forms here …"
+      if executed
+        io << "[ " << contents
       else
-        tape.each
-          .map { |form| form.is_a?(Block) ? String.build { |str| form.to_s(str, nested: true) } : form.to_s }.to_a
-          .insert(cursor, "|")
-          .join(io, ' ')
+        io << "[a reflection]"
+        return
       end
 
       unless list?

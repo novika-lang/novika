@@ -1,0 +1,26 @@
+[ ]        $: pgStack
+root child $: pgRoot
+
+[ "( Q -- )"
+  false $: error
+
+  pgRoot new swap slurp $: pgCurrent
+  pgCurrent #*died [ =: error ] opens
+
+  pgStack pgCurrent hydrate!
+
+  error
+    [ error reportError ]
+    [ pgRoot pgCurrent mergeTables ]
+  br
+
+  pgStack echo
+] @: run
+
+
+loop: [
+  '>>> ' readLine
+    [ run ]
+    [ 'Bye.' echo break ]
+  br
+]

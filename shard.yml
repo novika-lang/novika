@@ -8,6 +8,10 @@ targets:
   novika:
     main: src/novika.cr
 
+dependencies:
+  readline:
+    github: crystal-lang/crystal-readline
+
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba

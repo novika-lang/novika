@@ -3,6 +3,13 @@
 ] @: open
 
 
+[ "( S B -- ): hydrates Block with Stack, but does not create
+   an instance of Block like the regular hydrate does. Essentially
+   an inplace hydrate, hence the bang."
+  dup 0 |to newContinuation conts gulp
+] @: hydrate!
+
+
 [ "( B -- T ): activates an empty stack for the duration of Block,
    and leaves Top form in the stack. Dies if none."
   [ ] swap there cherry

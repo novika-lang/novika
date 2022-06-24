@@ -19,10 +19,22 @@ module Novika
 
     # Raised when a form dies.
     class Died < Exception
+      extend HasDesc
+
+      include Form
+
       # Returns a string describing the reasons of this death.
       getter details : String
 
       def initialize(@details)
+      end
+
+      def to_s(io)
+        io << "[" << details << "]"
+      end
+
+      def self.desc(io)
+        io << "an error"
       end
     end
 

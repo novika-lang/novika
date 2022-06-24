@@ -66,14 +66,6 @@ def collect(mods, root : Path)
   end
 end
 
-def import(recpt : Novika::Block, donor : Novika::Block)
-  donor.ls.each do |name|
-    unless name.is_a?(Novika::Word) && name.id.prefixed_by?('_')
-      recpt.at name, donor.at(name)
-    end
-  end
-end
-
 def run(world, toplevel, path : Path)
   {% unless flag?(:release) %}
     puts path.colorize.dark_gray
@@ -83,7 +75,7 @@ def run(world, toplevel, path : Path)
   block = Novika::Block.new(toplevel).slurp(source)
   world.conts.add Novika::World.cont(block.to(0), stack)
   world.exhaust
-  import(toplevel, block)
+  toplevel.merge_table!(with: block)
 end
 
 help if ARGV.empty?

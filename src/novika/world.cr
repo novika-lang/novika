@@ -77,15 +77,19 @@ module Novika
       count = conts.count - omitted
 
       conts.each.skip(omitted).with_index do |cont_, index|
-        cont_ = cont_.assert(Block)
-        io << "  " << (index == count - 1 ? '└' : '├') << ' '
-        io << "IN".colorize.bold << ' '
-        cont_.at(C_BLOCK_AT).assert(Block).spotlight(io)
-        io.puts
+        if cont_.is_a?(Block)
+          io << "  " << (index == count - 1 ? '└' : '├') << ' '
+          io << "IN".colorize.bold << ' '
+          cblock = cont_.at?(C_BLOCK_AT)
+          cblock.is_a?(Block) ? cblock.spotlight(io) : io << (cblock || "[invalid continuation block]")
+          io.puts
 
-        io << "  " << (index == count - 1 ? ' ' : '│') << ' '
-        io << "OVER".colorize.bold << ' ' << cont_.at(C_STACK_AT).assert(Block)
-        io.puts
+          io << "  " << (index == count - 1 ? ' ' : '│') << ' '
+          io << "OVER".colorize.bold << ' ' << (cont_.at?(C_STACK_AT) || "[invalid continuation stack]")
+          io.puts
+        else
+          io << "INVALID CONTINUATION".colorize.red.bold
+        end
       end
 
       io.puts
@@ -127,24 +131,30 @@ module Novika
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
       until conts.empty?
-        while form = block.next?
-          begin
-            form.opened(self)
-          rescue e : Form::Died
-            if died = block.at?(Word::DIED)
-              stack.add(Quote.new(e.details))
-              begin
-                died.open(self)
-                next
-              rescue e : Form::Died
-                puts "DEATH HANDLER DIED".colorize.yellow.bold
+        begin
+          while form = block.next?
+            begin
+              form.opened(self)
+            rescue e : Form::Died
+              if died = block.at?(Word::DIED)
+                stack.add(e)
+                begin
+                  died.open(self)
+                  next
+                rescue e : Form::Died
+                  puts "DEATH HANDLER DIED".colorize.yellow.bold
+                end
               end
+              report(e)
+              abort("Sorry! Exiting because of this error.")
             end
-            report(e)
-            abort("Sorry! Exiting because of this error.")
           end
+          conts.drop
+        rescue e : Form::Died
+          puts "ERROR IN THE INTERPRETER LOOP".colorize.yellow.bold
+          report(e)
+          abort("Cannot continue!")
         end
-        conts.drop
       end
     end
 

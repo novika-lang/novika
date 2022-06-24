@@ -587,9 +587,9 @@
   STDOUT: foo
   === 6
   """
-  swap $: source 
+  swap $: source
 
-  map: [ 
+  map: [
     "If it's a word, replace it with word's value in caller,
     if it's a quoted word, unquote it, if it's a block, then
     recurse on it, else, leave it."

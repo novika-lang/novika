@@ -1,3 +1,5 @@
+require "readline"
+
 module Novika::Primitives
   # Populates *target* with Novika primitives.
   def self.inject(into target)
@@ -262,9 +264,31 @@ module Novika::Primitives
       block.top.push(world)
     end
 
+    target.at("mergeTables") do |world|
+      donor = world.stack.drop.assert(Block)
+      recpt = world.stack.drop.assert(Block)
+      recpt.merge_table!(with: donor)
+    end
+
+    target.at("reportError") do |world|
+      world.report(world.stack.drop.assert(Form::Died))
+    end
+
     target.at("echo", "( F -- ): shows Form in the console.") do |world|
       quote = world.stack.drop.enquote(world)
       puts quote.string
+    end
+
+    target.at("readLine", <<-END
+    ( Pf -- Aq true/false ): prompts the user with Prompt form.
+     Leaves Answer quote, and an accepted (true) / rejected (false)
+     bool. If rejected, Answer quote is empty.
+    END
+    ) do |world|
+      prompt = world.stack.drop.enquote(world)
+      answer = Readline.readline(prompt.string)
+      Quote.new(answer || "").push(world)
+      Boolean[!!answer].push(world)
     end
 
     target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |world|
