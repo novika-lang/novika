@@ -64,5 +64,7 @@ module Novika
     def self.desc(io)
       io << "a decimal number"
     end
+
+    def_equals_and_hash val
   end
 end

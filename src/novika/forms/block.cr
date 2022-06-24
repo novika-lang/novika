@@ -332,5 +332,9 @@ module Novika
     def self.desc(io)
       io << "a block"
     end
+
+    # For two blocks to be equal, both their tape and their
+    # table must be equal.
+    def_equals tape, table
   end
 end

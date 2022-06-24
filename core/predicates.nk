@@ -1,9 +1,3 @@
-
-[ "( A B -- true/false ): leaves whether two values are equal."
-  same?
-] @: =
-
-
 [ "( A B -- true/false ): leaves whether A <= B."
   2dup < -rot = or
 ] @: <=

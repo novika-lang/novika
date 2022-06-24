@@ -103,6 +103,17 @@ module Novika::Primitives
       Boolean.same?(a, b).push(world)
     end
 
+    target.at("=", <<-END
+    ( F1 F2 -- true/false ): leaves whether two Forms are equal
+     (they may or may not be same forms, i.e., those for which
+     `same?` would leave true).
+    END
+    ) do |world|
+      b = world.stack.drop
+      a = world.stack.drop
+      Boolean[a == b].push(world)
+    end
+
     target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |world|
       Boolean[world.stack.drop.is_a?(Block)].push(world)
     end
