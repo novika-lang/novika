@@ -98,7 +98,7 @@ module Novika
   # Enables support for `entry:fetch`, `entry:exists?`,
   # `entry:isOpenEntry?`, and the derived words.
   module ReadableTable
-    protected abstract def die(details)
+    abstract def die(details)
 
     # Returns the table entry for *name*, or nil.
     def at?(name : Form)
@@ -129,27 +129,21 @@ module Novika
     # Standard to-`Quote` conversion entry name.
     ENQUOTE = Word.new("*enquote")
 
-    protected getter id : String
+    # Returns the underlying string id.
+    getter id : String
 
     def initialize(@id)
     end
 
-    delegate :prefixed_by?, to: id
-
     def desc
       "a word named #{id}"
-    end
-
-    # Converts this word into a `QuotedWord`.
-    def to_quoted_word
-      QuotedWord.new(id)
     end
 
     def opened(world)
       if entry = world.block.at?(self)
         entry.open(world)
       elsif trap = world.block.at?(TRAP)
-        world.stack.add(to_quoted_word)
+        world.stack.add QuotedWord.new(id)
         trap.open(world)
       else
         die("definition for #{self} not found in the enclosing block(s)")
@@ -168,9 +162,9 @@ module Novika
   struct QuotedWord
     include Form
 
-    protected getter id : String
+    # Returns the underlying string id.
+    getter id : String
 
-    # Quotes the given *id*.
     def initialize(@id)
     end
 
@@ -178,14 +172,19 @@ module Novika
       "a quoted word named #{id}"
     end
 
-    # Converts this quoted word into a `Word` or a `QuotedWord`
-    # if quoting is multi-layer.
-    def unquote
+    # "Peels" off a layer of quoting.
+    #
+    # ```
+    # QuotedWord.new("#foo").unquote   # Word.new("foo")
+    # QuotedWord.new("##foo").unquote  # QuotedWord.new("#foo")
+    # QuotedWord.new("###foo").unquote # QuotedWord.new("##foo")
+    # ```
+    def peel
       id.prefixed_by?('#') ? QuotedWord.new(id.lchop) : Word.new(id)
     end
 
     def opened(world)
-      unquote.push(world)
+      peel.push(world)
     end
 
     def to_s(io)
@@ -199,7 +198,8 @@ module Novika
   struct Decimal
     include Form
 
-    protected getter val : BigDecimal
+    # Returns the underlying big decimal value.
+    getter val : BigDecimal
 
     def initialize(@val : BigDecimal)
     end
@@ -208,8 +208,12 @@ module Novika
       initialize(object.to_big_d)
     end
 
+    # Downgrades this decimal into an integer (`Int32`). Dies
+    # if this decimal is too large.
     def to_i
       val.to_i
+    rescue OverflowError
+      die("conversion overflow when downgrading a decimal")
     end
 
     def desc
@@ -256,9 +260,10 @@ module Novika
   struct Builtin
     include Form
 
-    protected getter code : World ->
-
     getter desc : String
+
+    # :nodoc:
+    getter code : World ->
 
     def initialize(@desc, @code)
     end
@@ -279,7 +284,8 @@ module Novika
   struct Quote
     include Form
 
-    protected getter string : String
+    # Returns the underlying string.
+    getter string : String
 
     # Initializes a quote from the given *string*.
     #
@@ -370,7 +376,7 @@ module Novika
 
   # Represents a table entry. Holds the value form.
   class Entry
-    protected getter form : Form
+    private getter form : Form
 
     def initialize(@form)
     end
@@ -412,17 +418,24 @@ module Novika
     # in string representation of this block.
     MAX_NESTED_COUNT_TO_S = 12
 
-    protected getter tape = Tape(Form).new
-    protected getter table = {} of Form => Entry
-    protected getter audience : Array(self ->) { [] of self -> }
-
     # Returns and allows to set whether this block is a leaf.
     # A block is a leaf when it has no blocks in its tape.
-    protected property? leaf = true
+    private property? leaf = true
 
     # Returns the string comment of this block. It normally
     # describes what this block does.
-    protected property comment : String? = nil
+    private property comment : String?
+
+    # Returns the tape of this block.
+    getter tape = Tape(Form).new
+
+    # Retunrs the table of this block.
+    getter table = {} of Form => Entry
+
+    # :nodoc:
+    #
+    # Returns the audience (listeners) for this block.
+    getter audience : Array(self ->) { [] of self -> }
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -471,10 +484,9 @@ module Novika
       track(listener)
     end
 
-    # See the same method in `Tape`.
-    delegate :cursor, :each, :count, to: tape
-
-    def comment?
+    # Returns this block's comment, or nil if the comment was
+    # not defined or is empty.
+    protected def comment?
       comment unless comment.try &.empty?
     end
 
@@ -482,9 +494,14 @@ module Novika
       comment? || "a block"
     end
 
+    # Sets the block comment of this block to *string* in case
+    # there is no block comment already. Otherwise, does nothing.
     def describe?(string)
       self.comment = string unless comment?
     end
+
+    # See the same method in `Tape`.
+    delegate :cursor, :each, :count, to: tape
 
     # Parses all forms from string *source*, and adds them to
     # this block. Returns self.
@@ -519,7 +536,8 @@ module Novika
       count.zero?
     end
 
-    # Returns whether the table is empty.
+    # Returns whether the table is empty, that is, whether
+    # this block is a list block.
     def list?
       table.empty?
     end
@@ -529,8 +547,8 @@ module Novika
       self.tape, _ = tape.next? || return
     end
 
-    # Moves tape cursor to *index* and returns self, or dies if
-    # *index* is out of bounds. See `Tape#to?`.
+    # Moves tape cursor to *index* and returns self, or dies
+    # if *index* is out of bounds. See `Tape#to?`.
     def to(index)
       tap &.tape = tape.to?(index) || die("cursor index out of bounds")
     end
@@ -591,13 +609,13 @@ module Novika
       tape.top? || die("no top for block")
     end
 
-    # Duplicates form before the cursor, dies if none.
+    # Duplicates the form before the cursor, dies if none.
     def dupl
       add(top)
     end
 
-    # Swaps two forms before the cursor, dies if they are
-    # not found.
+    # Swaps two forms before the cursor, dies if they're not
+    # found. Returns the new top form.
     def swap
       a = drop
       b = drop
@@ -605,7 +623,7 @@ module Novika
       add(b)
     end
 
-    # Removes and returns the top form. Dies if none.  See `Tape#drop?`.
+    # Removes and returns the top form. Dies if none. See `Tape#drop?`.
     def drop
       top.tap { self.tape = tape.drop? || raise "unreachable" }
     end
@@ -747,7 +765,7 @@ module Novika
     # worlds increases with each nest. Allows us to sort of
     # "track" Crystal's call stack and stop nesting when it's
     # becomes dangerously deep.
-    protected getter nesting : Int32
+    private getter nesting : Int32
 
     # Returns the continuations block (aka continuations stack).
     getter conts = Block.new
@@ -795,12 +813,12 @@ module Novika
     # Focal point for adding continuations. Returns self.
     #
     # The place where continuation stack's depth is tracked.
-    protected def enable(cont_ : Continuation)
+    def enable(other : Continuation)
       if conts.count > MAX_CONTS
         raise FormDied.new("continuations stack dangerously deep (> #{MAX_CONTS})")
       end
 
-      tap { conts.add(cont_) }
+      tap { conts.add(other) }
     end
 
     # Adds an instance of *form* block to the continuations
@@ -931,7 +949,7 @@ end
 
 def import(recpt : Novika::Block, donor : Novika::Block)
   donor.ls.each do |name|
-    unless name.is_a?(Novika::Word) && name.prefixed_by?('_')
+    unless name.is_a?(Novika::Word) && name.id.prefixed_by?('_')
       recpt.at name, donor.at(name)
     end
   end
