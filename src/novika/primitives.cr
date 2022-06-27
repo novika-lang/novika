@@ -279,6 +279,10 @@ module Novika::Primitives
       world.report(world.stack.drop.assert(Form::Died))
     end
 
+    target.at("monotonic", "( -- Mt ): leaves milliseconds time of monotonic clock") do |world|
+      Decimal.new(Time.monotonic.total_milliseconds).push(world)
+    end
+
     target.at("echo", "( F -- ): shows Form in the console.") do |world|
       quote = world.stack.drop.enquote(world)
       puts quote.string

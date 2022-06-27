@@ -1,5 +1,6 @@
 this #root this pushes
 
+
 root #<| [
   "( -- ): moves stack cursor once to the left."
   stack |at 1 - stack swap |to
@@ -90,3 +91,13 @@ root #@: [
 [ "( F1 F2 -- F1 F2 ): echoes a pair of Forms but leaves them."
   2dup 2echo
 ] @: 2p
+
+
+[ "( B -- Mt ): leaves Monotonic time difference in milliseconds
+   for Block (leaves the time Block took to execute, in ms)."
+  monotonic $: t1
+  do
+  monotonic $: t2
+
+  t2 t1 -
+] @: measure
