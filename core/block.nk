@@ -617,7 +617,7 @@
    List block. Use `minmaxBy` if List block doesn't (or doesn't
    always) contain solely decimals. If an empty block is given,
    dies, so make sure to handle that yourself.
-  
+
   >>> [ 1 2 3 ] minmax
   === 1 3
   """
@@ -656,7 +656,7 @@
 
 [ """( Lb -- Sum ): leaves decimal sum of List block elements.
    For more control (or if not always decimal), use sumBy.
-  
+
   >>> [ ] sum
   === 0
 
@@ -705,7 +705,7 @@
 [ """( Lb T -- Min ): leaves the minimum value in List block. Each
    element of List block is transformed using Transformation
    block. See `minmax`.
-  
+
   >>> [ 1 2 3 ] [ ] min
   === 1
   """
@@ -716,7 +716,7 @@
 [ """( Lb T -- Max ): leaves the maximum value in List block. Each
    element of List block is transformed using Transformation
    block. See `minmax`.
-  
+
   >>> [ 1 2 3 ] [ ] max
   === 3
   """
@@ -726,7 +726,7 @@
 
 [ """( Lb T -- Sum ): leaves Sum of List block elements transformed
    into decimals by Transformation block. Similar to `minmax`.
-  
+
   >>> [ 'a' 'aaa' 'aa' ] [ charCount ] sumBy
   === 6
   """
@@ -746,7 +746,7 @@
   === [ 3 5 12 ]
   """
   @: block [ ] $: result
-  
+
   times: [ block result gulp ]
 
   result
@@ -772,7 +772,7 @@
   === [ 10 9 8 ... 0 | ]
   """
   $: e $: b
-  
+
   e b <
     [ b e - 1 + collect: [ b swap - ] ]
     [ e b - 1 + collect: [ b + ] ]
@@ -790,3 +790,17 @@
   """
   ahead eject range
 ] @: to:
+
+
+[ """( Ql -- Q ): stitches quotes in Quote list into Quote.
+
+  >>> [ 'A' 'B' 'C' ] join
+  === 'ABC'
+
+  >>> 1 $: x
+  >>> 2 $: y
+  >>> [ x '; ' y ] here join
+  === '1; 2'
+  """
+  [ enquote stitch ] '' reduce
+] @: join
