@@ -73,10 +73,13 @@ module Novika
       io.puts
       io.puts
 
-      omitted = Math.max(0, conts.count - MAX_TRACE)
-      count = conts.count - omitted
+      # Conserved conts.
+      return unless cconts = e.conts
 
-      conts.each.skip(omitted).with_index do |cont_, index|
+      omitted = Math.max(0, cconts.count - MAX_TRACE)
+      count = cconts.count - omitted
+
+      cconts.each.skip(omitted).with_index do |cont_, index|
         if cont_.is_a?(Block)
           io << "  " << (index == count - 1 ? '└' : '├') << ' '
           io << "IN".colorize.bold << ' '
@@ -136,15 +139,27 @@ module Novika
             begin
               form.opened(self)
             rescue e : Form::Died
-              if died = block.at?(Word::DIED)
+              e.conts = conts.instance
+
+              # Try to find a block with a death handler by
+              # reverse-iterating through the continuations
+              # block.
+              handler = nil
+              until conts.empty?
+                break if handler = block.at?(Word::DIED)
+                conts.drop
+              end
+
+              if handler
                 stack.add(e)
                 begin
-                  died.open(self)
+                  handler.open(self)
                   next
                 rescue e : Form::Died
                   puts "DEATH HANDLER DIED".colorize.yellow.bold
                 end
               end
+
               report(e)
               abort("Sorry! Exiting because of this error.")
             end

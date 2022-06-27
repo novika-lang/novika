@@ -23,6 +23,10 @@ module Novika
 
       include Form
 
+      # Holds the continuations block (roughly) at the time
+      # of death.
+      property conts : Block?
+
       # Returns a string describing the reasons of this death.
       getter details : String
 
