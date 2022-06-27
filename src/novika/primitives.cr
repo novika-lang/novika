@@ -362,6 +362,10 @@ module Novika::Primitives
       Block.new.push(world)
     end
 
+    target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |world|
+      Boolean[!world.stack.drop.assert(Block).parent?].push(world)
+    end
+
     target.at("desc", "( F -- Hq ): leaves the description of Form.") do |world|
       quote = Quote.new(world.stack.drop.desc)
       quote.push(world)

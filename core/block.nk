@@ -75,7 +75,7 @@
 
 
 [ "( B -- Bc ): leaves an empty Block child."
-  [ ] swap reparent
+  orphan swap reparent
 ] @: child
 
 
@@ -589,14 +589,12 @@
   """
   swap $: source
 
-  map: [
-    "If it's a word, replace it with word's value in caller,
-    if it's a quoted word, unquote it, if it's a block, then
-    recurse on it, else, leave it."
-    dup word?       => [ source swap entry:fetch ^ ]
-    dup block?      => [ source swap conjure     ^ ]
-    dup quotedWord? => [ open                    ^ ]
-  ]
+  "If it's a word, replace it with word's value in source, if
+   it's a quoted word, unquote it, if it's a block, then recurse
+   on its elements, else, leave it."
+  dup word?       => [ source swap entry:fetch      ^ ]
+  dup block?      => [ map: [ source swap conjure ] ^ ]
+  dup quotedWord? => [ open ^ ]
 ] @: conjure
 
 
@@ -804,3 +802,45 @@
   """
   [ enquote stitch ] '' reduce
 ] @: join
+
+
+[ """( B1 B2 -- B1 ): adds elements from B2 into B1.
+
+  >>> [ 1 2 3 ] [ 4 5 6 ] concat!
+  === [ 1 2 3 4 5 6 ]
+  """
+  [ << ] rot reduce
+] @: concat!
+
+
+[ """( B1 B2 -- Br ): concatenates two Blocks.
+
+  >>> [ 1 2 3 ] [ 4 5 6 ]
+  === [ 1 2 3 4 5 6 ] (a new block!)
+  """
+  new concat!
+] @: concat
+
+
+[ """( -- Lw ): leaves a List of words which are defined in
+   caller. Recurses to caller's parents while there are any.
+
+  >>> 0 $: y [ 1 $: x ls* ] open
+  === [ ... y x ]
+
+  As opposed to `ls`, which leaves only block's own words:
+
+  >>> 0 $: y [ 1 $: x ls ] open
+  === [ x ]
+  """
+  [ ] $: result
+  [
+    result over ls concat! drop
+    dup orphan?
+      [ drop ]
+      [ parent rec ]
+    br
+  ] @: rec
+
+  ahead rec result
+] @: ls*

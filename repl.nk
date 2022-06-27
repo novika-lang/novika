@@ -19,6 +19,18 @@ root child $: pgRoot
   pgStack echo
 ] @: run
 
+' ┌ Welcome to Novika!
+ │
+ ├─* You can type `help <word>` to see info about a word whose
+ │   name you already know. Try `help help`.
+ │
+ ├─* To see what words are available, type `ls* each: [ echo ]`.
+ │   To see help for those words alongside, you can hack up a
+ │   tiny program: `ls* each: [ p here desc echo ]`.
+ │
+ ├─* To exit, hit Ctrl-D or Ctrl-C (force-quit).
+ ┘
+' echo
 
 loop: [
   '>>> ' readLine
