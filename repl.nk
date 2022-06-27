@@ -7,12 +7,14 @@ root child $: pgRoot
   pgRoot new swap slurp $: pgCurrent
   pgCurrent #*died [ =: error ] opens
 
-  pgStack pgCurrent hydrate!
+  [ pgStack pgCurrent hydrate! ] measure $: dt
 
   error
     [ error reportError ]
     [ pgRoot pgCurrent mergeTables ]
   br
+
+  [ 'In ' dt 'ms' ] here join echo
 
   pgStack echo
 ] @: run
