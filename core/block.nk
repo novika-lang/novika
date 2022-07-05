@@ -1,3 +1,29 @@
+[ """( B N -- B ): decrements block cursor position: moves
+   cursor back N times in Block.
+
+  >>> [ 1 2 3 ]
+  === [ 1 2 3 | ]
+  >>> 2 |-
+  === [ 1 | 2 3 ]
+  """
+  swap $: a a |at swap - a swap |to
+] @: |-
+
+
+[ """( B N -- B ): increments block cursor position: moves
+   cursor forward N times in Block.
+
+  >>> [ 1 2 3 ]
+  === [ 1 2 3 | ]
+  >>> 2 |-
+  === [ 1 | 2 3 ]
+  >>> 2 |+
+  === [ 1 2 3 | ]
+  """
+  swap $: a a |at swap + a swap |to
+] @: |+
+
+
 [ """( F [ ... | ... ]B -- [ ... F | ... ]B -- ): adds Form
    to Block, and drops both.
 
@@ -830,7 +856,7 @@
 
   As opposed to `ls`, which leaves only block's own words:
 
-  >>> 0 $: y [ 1 $: x ls ] open
+  >>> 0 $: y [ 1 $: x this ls ] open
   === [ x ]
   """
   [ ] $: result

@@ -67,5 +67,7 @@ module Novika
     def copy
       Tape.new(substrate.copy, cursor)
     end
+
+    def_equals_and_hash substrate, cursor
   end
 end

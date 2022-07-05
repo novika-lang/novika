@@ -51,6 +51,8 @@ module Novika
 
     # Returns a copy of this substrate.
     abstract def copy
+
+    def_equals_and_hash array
   end
 
   # Operates on an existing substrate array, not under its
