@@ -47,6 +47,16 @@ module Novika
       raise Died.new(details)
     end
 
+    # :nodoc:
+    #
+    # Dies of assertion failure with *other* type.
+    def afail(other)
+      l, r = self.class, other
+      ldesc = l.is_a?(HasDesc) ? l.desc : l.class
+      rdesc = r.is_a?(HasDesc) ? r.desc : r.class
+      die("bad type: #{ldesc}, expected: #{rdesc}")
+    end
+
     # Returns a string description of this form.
     def desc
       "a form"
@@ -80,13 +90,8 @@ module Novika
 
     # Asserts that this form is of the given *type*. Dies if
     # it's not.
-    def assert(type : T.class) forall T
-      return self if is_a?(T)
-
-      l, r = self.class, type
-      ldesc = l.is_a?(HasDesc) ? l.desc : l.class
-      rdesc = r.is_a?(HasDesc) ? r.desc : r.class
-      die("bad type: #{ldesc}, expected: #{rdesc}")
+    def assert(world, type : T.class) forall T
+      is_a?(T) ? self : afail(T)
     end
 
     # Returns this form's quote representation. May require

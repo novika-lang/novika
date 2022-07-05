@@ -25,9 +25,6 @@ module Novika
     # Standard word trap entry name.
     TRAP = Word.new("*trap")
 
-    # Standard to-`Quote` conversion entry name.
-    ENQUOTE = Word.new("*enquote")
-
     # Returns the underlying string id.
     getter id : String
 

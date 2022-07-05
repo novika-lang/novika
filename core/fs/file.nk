@@ -26,7 +26,7 @@
     available? => [ asQuote fs:read enclose block hydrate ]
   ] @: contents:
 
-  [ '<File at: ' asQuote stitch '>' stitch ] @: *enquote
+  [ '<File at: ' asQuote stitch '>' stitch ] @: *asQuote
 
   this
 ] @: file

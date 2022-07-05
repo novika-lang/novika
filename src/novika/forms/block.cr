@@ -25,6 +25,11 @@ module Novika
     # in string representation of this block.
     MAX_NESTED_COUNT_TO_S = 12
 
+    AS_BOOL    = Word.new("*asBool")
+    AS_WORD    = Word.new("*asWord")
+    AS_QUOTE   = Word.new("*asQuote")
+    AS_DECIMAL = Word.new("*asDecimal")
+
     # Returns and allows to set whether this block is a leaf.
     # A block is a leaf when it has no blocks in its tape.
     private property? leaf = true
@@ -283,15 +288,34 @@ module Novika
       end
     end
 
-    def enquote(world)
-      if enquote = at?(Word::ENQUOTE)
-        form = world[enquote, push(Block.new)].drop
-        unless form.is_a?(Block) && same?(form)
-          return form.enquote(world)
-        end
-      end
+    # :nodoc:
+    #
+    # Assert using the result of running *name*.
+    def assert?(world, name, type : T.class) : T? forall T
+      return unless form = at?(name)
 
-      super
+      # The following will either recurse or return because
+      # it had no progress.
+      result = world[form, push(Block.new)].drop
+      result.assert(world, T) unless result.is_a?(Block) && same?(result)
+    end
+
+    # Converts this block into the given *type*. Code execution
+    # may be required, hence the need for *world*. If failed,
+    # same as `Form#assert`.
+    def assert(world, type : T.class) forall T
+      return self if is_a?(T)
+
+      case T
+      when Decimal.class then assert?(world, AS_DECIMAL, type)
+      when Quote.class   then assert?(world, AS_QUOTE, type)
+      when Word.class    then assert?(world, AS_WORD, type)
+      when Boolean.class then assert?(world, AS_BOOL, type)
+      end || afail(T)
+    end
+
+    def enquote(world)
+      assert?(world, AS_QUOTE, Quote) || super
     end
 
     def spotlight(io)

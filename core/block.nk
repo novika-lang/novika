@@ -126,8 +126,21 @@
 ] @: ->
 
 
-[ """( T . N -- F ): same as `->`, but adds `open` ahead if
-   the entry is an open(er) entry.
+[ "( T C N -- F ): postfix version of `.`. See `.` for usage
+   examples. Caller block is assumed."
+  $: name $: caller
+
+  "( B )" dup name entry:fetch $: form
+
+  name entry:isOpenEntry? =>
+    [ caller [ #open <| ] hydrate ]
+
+  form
+] @: entry:open
+
+
+[ """( T . N -- F ): same as `entry:fetch`, but adds `open`
+   ahead if the entry is an open(er) entry.
 
   >>> [ 200 $: x
         100 $: y
@@ -165,15 +178,7 @@
   >>> . bar: 100
   ===
   """
-  ahead $: caller
-  ahead eject $: name
-
-  "( B )" dup name entry:fetch $: form
-
-  name entry:isOpenEntry? =>
-    [ caller [ #open <| ] hydrate ]
-
-  form
+  ahead dup eject entry:open
 ] @: .
 
 

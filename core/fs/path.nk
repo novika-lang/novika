@@ -23,7 +23,7 @@
     pathQuote fs:symlink?
   ] @: symlink?
 
-  [ '<Path: ' pathQuote stitch '>' stitch ] @: *enquote
+  [ '<Path: ' pathQuote stitch '>' stitch ] @: *asQuote
 
   this
 ] @: path

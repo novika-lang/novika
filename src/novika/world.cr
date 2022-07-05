@@ -54,17 +54,17 @@ module Novika
 
     # Returns the active continuation.
     def cont
-      conts.top.assert(Block)
+      conts.top.assert(self, Block)
     end
 
     # Returns the block of the active continuation.
     def block
-      cont.at(C_BLOCK_AT).assert(Block)
+      cont.at(C_BLOCK_AT).assert(self, Block)
     end
 
     # Returns the stack block of the active continuation.
     def stack
-      cont.at(C_STACK_AT).assert(Block)
+      cont.at(C_STACK_AT).assert(self, Block)
     end
 
     # Reports about an *error* into *io*.
@@ -183,7 +183,7 @@ module Novika
         raise Form::Died.new(
           "too many worlds (> #{MAX_WORLD_NESTING}) of the same " \
           "origin world:probably deep recursion in a word called " \
-          "from native code, such as #{Word::ENQUOTE}")
+          "from native code, such as *asDecimal")
       end
 
       world = World.new(nesting + 1)
