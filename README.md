@@ -15,15 +15,19 @@ Forth, Red/Rebol, Self, and Lisp.
 * Help if you can. Poke around. There is little docs on the language
   itself, so explore and infer :)
 
-## What does it look like?
+## Trying Novika out
 
-For an example of Novika code, see `hello.nk`, `playground.nk`,
-as well as Novika files found in `core`, etc. There is documentation
-there, but it uses some Novika terms which remain undocumented or
-require clarification (mainly because I'm also just exploring the
-language, so explaining it will require some time). Also, there is a
-lot of implicit expectations in code (this would be partially resolved
-later with a dynamic (runtime) type check system), and in docs too.
+For an example of Novika code, go into the `examples/` directory. The
+best example there is `snake.nk`. A lot of places are documented , but
+that documentation uses some Novika terms that require clarification
+(mainly because I'm also just exploring the language, so explaining it
+will require some time). Plus, there is a lot of implicit expectations
+in code (this would be partially resolved later with a dynamic (runtime)
+type check system), and in docs too.
+
+You can run REPL with
+
+    novika core repl.nk
 
 ## Syntax highlighting
 
@@ -38,6 +42,9 @@ time, so here's what I can say.
 
 It's too early to say. Brevity? Homoiconicity squared? I. e.,
 runtime homoiconicity too? WTF?
+
+> Of interest: Novika seems to be one of the best languages to
+> explain continations with. But I didn't try yet, so... :)
 
 ### Cons
 
@@ -67,43 +74,43 @@ description.
 
 ## Language notes
 
-- Novika has *words* and *blocks*. Together they are known as *forms*.
+* Novika has *words* and *blocks*. Together they are known as *forms*.
 Forms are *enclosed* in blocks by being surrounded with `[]`s:
 
   ```novika
   [ 1 2 + ]
   ```
 
-- Words are immutable. Block is the only mutable kind of form.
+* Words are immutable. Block is the only mutable kind of form.
 
-- Words are separated by whitespaces. In this sense, Novika is
+* Words are separated by whitespaces. In this sense, Novika is
   whitespace-sensitive. Word is an umbrella for:
-  - Word: `foo bar +baz 2dup a.Ny.Comb-ina+t\iOn`
-  - Quoted word: `#foo`
-  - Number: `123`
-  - Quote: `'hello world'`
+  * Word: `foo bar +baz 2dup a.Ny.Comb-ina+t\iOn`
+  * Quoted word: `#foo`
+  * Number: `123`
+  * Quote: `'hello world'`
 
-- Comments = double quotes: `1 "I'm a comment" 2 +`
+* Comments = double quotes: `1 "I'm a comment" 2 +`
 
-- Blocks consist of a *tape* and a *table*.
-  - Block tape is an ordered list plus an insertion point called *cursor*.
-  - Block table is an ordered hash map mapping form to form.
+* Blocks consist of a *tape* and a *table*.
+  * Block tape is an ordered list plus an insertion point called *cursor*.
+  * Block table is an ordered hash map mapping form to form.
 
-- `open` (opening) = evaluate (evaluating).
+* `open` (opening) = evaluate (evaluating).
 
-- Words have definitions. Definitions can be pushed onto the stack, or
+* Words have definitions. Definitions can be pushed onto the stack, or
   opened. Definitions are fetched from the block enclosing the word when
   that block is opened.
 
-- If definition is not found in the enclosing block, the parent block
+* If definition is not found in the enclosing block, the parent block
   (one that encloses the enclosing block) is checked, etc. When the
   parent block is reached and the definition is still not found, the
   `*fallback` word is opened in the original block, with quoted word
   on the stack.
 
-- The described process as a whole is called *resolution*.
+* The described process as a whole is called *resolution*.
 
-- All forms except words are pushed onto the stack. Stack holds
+* All forms except words are pushed onto the stack. Stack holds
   intermediate results. Stack is a block. With `there`, custom
   stack block may be specified.
 
@@ -111,7 +118,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
     [ ] [ 1 2 + ] there echo "[ 3 | ]"
     ```
 
-- Blocks need to be opened explicitly unless they are under a word/
+* Blocks need to be opened explicitly unless they are under a word/
   definition that does that:
 
     ```novika
@@ -122,7 +129,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
     1+2 "3"
     ```
 
-- Blocks are objects. Blocks are instantiated upon opening. `this`
+* Blocks are objects. Blocks are instantiated upon opening. `this`
   pushes the instance. `this prototype` pushes the prototype block,
   which is the block you see with your eyes in this example:
 
@@ -137,7 +144,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
   pt -> y echo "2"
   ```
 
-- `this` is also the current continuation, so it's dirty. Cursor
+* `this` is also the current continuation, so it's dirty. Cursor
   there is placed before the currently opened word.
 
 Working with the insertion point:
@@ -167,16 +174,12 @@ really is (except the filesystem part), run `./bin/novika core playground.nk`.
 
 ## Development
 
-Look at source. Explore `crystal docs novika.cr`.
+Look at the source. Explore `crystal docs`.
 
 Then `crystal run novika.cr -- core file.nk`. Make it break. See
 where and why. Easy, huh? Build in release. `flamegraph` it?
 
-No major (define?) changes will be accepted, because the language
-is undocumented & experimental. In such conditions, no common
-line can be maintained, and that's bad for any project, even
-more so for a programming language which shapes how people think.
-Having a sloppy shape is bad, I guess you'd agree.
+Seriously, this is a huge TODO.
 
 ## What's a revision, for Novika?
 
@@ -186,10 +189,11 @@ code. Major is when you start with an empty directory.
 Current revision (rev10) is pretty stable, but unbearably slow. This
 is due to my naïve code, of course, but also due to Novika's design
 itself. I'm not going to make any more compromises on the design
-part though, so when the design crystalizes, there are going to be
-thorough language specs, you'd, too, be able to contribute and
-**embrace the design**. This could be Novika's motto, huh? Do
-programming languages have mottos?
+part though, so when it crystalizes (and it more or less did), there
+are going to be thorough language specs.
+
+And then we all will **embrace the design**. This could be Novika's
+motto, huh? Do programming languages have mottos?
 
 That is, further implementations (if they won't go nuclear) must
 work hard to make the most stupid and naive code run relatively
@@ -205,4 +209,4 @@ fast. Everything else will follow.
 
 ## Contributors
 
-- [homonoidian](https://github.com/homonoidian) - creator and maintainer
+* [homonoidian](https://github.com/homonoidian) - creator and maintainer
