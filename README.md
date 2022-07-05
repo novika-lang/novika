@@ -35,8 +35,8 @@ There's a `sublime-syntax` file in `syn/`, for Sublime Text (I used ST 3).
 
 ## Pros/cons
 
-It so happens that I have been writing Novika code from time to
-time, so here's what I can say.
+It so happens that I am writing Novika code from time to time,
+so here's what I can say.
 
 ### Pros
 
