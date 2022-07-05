@@ -46,9 +46,9 @@
 ] @: or
 
 
-[ "( B -- ): makes detached continuations stack the stack for
-   the duration of Block. Attaches after Block."
-  conts detach
+[ "( B -- ): makes shallow copy of continuations stack the
+   stack for the duration of Block. Attaches after Block."
+  conts shallowCopy
     "Don't forget to drop the call to continues (as it will
      obscure what the caller expects continuations block to be)"
     [ drop ] there swap there

@@ -13,6 +13,7 @@ require "./novika/packages/*"
 
 def help : NoReturn
   cdir = "directory".colorize.blue
+  cpkg = "package".colorize.magenta
   cfile = "file".colorize.green
 
   abort <<-END
@@ -21,9 +22,9 @@ def help : NoReturn
   One or more arguments must be provided for Novika to properly
   pick up what you're trying to run. For instance:
 
-    $ novika     core             example.nk
-                 ----             ----------
-                 a #{cdir}        a #{cfile}
+    $ novika     core          console      example.nk
+                 ----          -------      ----------
+                 a #{cdir}   a #{cpkg}    a #{cfile}
 
   (1) When you provide a #{cdir}, Novika will run all *.nk
       files in that directory. First, *.nk files in the directory
@@ -31,15 +32,14 @@ def help : NoReturn
       sub-directories. For any given directory, the main file
       in that directory is dirname.nk. It is always run first.
 
-  (2) In other words, a #{cdir} provided in arguments has higher
-      priority than a #{cfile}. But then, files in those directories
-      have higher priority than sub-directories.
+  (2) Individual #{cfile}s are run after all directories are run.
 
-  You can try running the following command:
-
-    $ novika core hello.nk
-
+  (3) There are also a number of builtin #{cpkg}s:
+        - kernel (#{"on by default".colorize.bold})
+        - console (enables the console API)
   END
+
+  # TODO: autogenerate (3)
 end
 
 record Mod, entry : Path? = nil, files = [] of Path do

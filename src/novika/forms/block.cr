@@ -261,7 +261,7 @@ module Novika
 
     # Returns a new block with a shallow copy of this block's
     # *tape* set as its tape.
-    def detach
+    def shallow
       Block.new(parent?, tape.copy, table, prototype)
     end
 
@@ -271,7 +271,7 @@ module Novika
     end
 
     # Creates and returns an instance of this block, under
-    # the given *reparent*.
+    # the given *reparent*.)
     def instance(reparent = self)
       if leaf?
         # Leaf, just copy the tape. Leaf? is true by default,
@@ -282,7 +282,7 @@ module Novika
         Block.new(reparent, prototype).tap do |copy|
           tape.each do |form|
             form = form.instance(copy) if form.is_a?(Block)
-            form.push(copy)
+            copy.add(form)
           end
         end
       end

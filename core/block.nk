@@ -130,7 +130,7 @@
    examples. Caller block is assumed."
   $: name $: caller
 
-  "( B )" dup name entry:fetch $: form
+  "( T )" dup name entry:fetch $: form
 
   name entry:isOpenEntry? =>
     [ caller [ #open <| ] hydrate ]
@@ -280,7 +280,7 @@
   """
   newWithBreakAndContinue $: block
 
-  new dup 0 |to
+  shallowCopy dup 0 |to
     |-> [ dup enclose block hydrate ]
   drop
 ] @: each
@@ -318,9 +318,9 @@
   list count odd? =>
     [ 'for pairs to work, there should be an even count of items in block' die ]
 
-  list new dup 0 |to
+  list shallowCopy dup 0 |to
     "Force cursor at 0. Also, we can safely drop below (and we do),
-     since the block copy is ours thanks to `new`."
+     since the block copy is ours thanks to `shallowCopy`."
     |-> [ |> 2enclose block hydrate ]
   drop
 ] @: pairs
@@ -352,7 +352,7 @@
   """
   $: block "( Lb )" dup empty? => [ drop ^ ]
 
-  new dup 1 |to
+  shallowCopy dup 1 |to
     |-> [ 2dup 2enclose block hydrate ]
   drop
 ] @: consPairs
@@ -385,7 +385,7 @@
   """
   $: block "( Lb )"
 
-  new dup 0 |to |-> [ enclose block there cherry ]
+  shallowCopy dup 0 |to |-> [ enclose block there cherry ]
 ] @: map
 
 
@@ -412,7 +412,7 @@
   """
   $: block
 
-  new dup 0 |to |-> [ $: item
+  shallowCopy dup 0 |to |-> [ $: item
     item enclose block there cherry
       [ item ] "Truthy value on Block's ToS: leave item."
       [      ] "Falsey value on Block's ToS: drop item."
@@ -449,7 +449,7 @@
   """
   $: default @: block
 
-  new dup 0 |to
+  shallowCopy dup 0 |to
     default << |-> [ block ]
   cherry
 ] @: reduce
@@ -591,11 +591,11 @@
   over count "B count"
   2dup < "A < B"
     [ swap -  =: missing
+      true    =: swapped
       "B"     =: longer
-      "A" new =: smaller
-      true    =: swapped ]
+      "A" shallowCopy =: smaller ]
     [ -       =: missing
-      "B" new =: smaller
+      "B" shallowCopy =: smaller
       "A"     =: longer ]
   br
 
@@ -849,7 +849,7 @@
   >>> [ 1 2 3 ] [ 4 5 6 ]
   === [ 1 2 3 4 5 6 ] (a new block!)
   """
-  new concat!
+  shallowCopy concat!
 ] @: concat
 
 

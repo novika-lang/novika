@@ -1,0 +1,190 @@
+"""
+Hi! :)
+
+You probably won't understand much here (language is still in
+the exploratory phase), but this is ROUGHLY what most Novika
+code looks (or will look) like. Also, it's commented pretty
+well (the amount kind of well).
+
+Take a good look. Then close the tab :) Or maybe try actually
+running this. Once you've got the Novika executable, run:
+
+  $ novika core console examples/snake.nk
+
+Note that the `console` package is only available on Linux/
+UNIX/whatever.
+
+It's funny how the snake moves slower and slower the longer it
+gets. That's Novika chugging through hundreds if not thousands
+of nested block calls. Phew!
+"""
+
+
+[ "Terminal vector object. CONSOLE MUST BE ON before using this."
+  $: y $: x
+
+  [ "( V -- S ): leaves sum of this and other Vector"
+    x over . x + console:width rem
+    y rot  . y + console:height rem
+    tvec2
+  ] @: addWithScreenWrap
+
+  [ "( V -- Eb ): leaves whether this and other Vector are Equal."
+    x over . x =
+    y rot  . y =
+    and
+  ] @: equal?
+
+  [ "( Q -- ): prints Quote at the position of this vector."
+    x y console:print
+  ] @: put
+
+  [ "( V -- Ob ): leaves whether other Vector is Opposite to
+     this vector."
+    x over . x * 0 <
+    y rot  . y * 0 <
+    or
+  ] @: opp?
+
+  [ "( -- ): set X, Y to random values in screen bounds."
+    0 console:width  randFromTo =: x
+    0 console:height randFromTo =: y
+  ] @: random
+
+  [
+    [ x '@' y ] here join
+  ] @: *asQuote
+
+  this
+] @: tvec2
+
+
+[
+  #nil @: gameOver "Will store the block that breaks the main loop."
+
+  "Head direction vector:"
+  1 0 tvec2 $: dir
+
+  [ "( V -- ): sets the head direction vector to Vector."
+    dup dir . opp?
+      [ "Opposite direction. Ignore!" drop ]
+      [ "Not opposite direction. Set!" =: dir ]
+    br
+  ] @: setDir
+
+
+  "Position of the apple:"
+  0 0 tvec2 $: apple
+
+  [ "( -- P ): repositions the apple at random coordinates."
+    apple . random
+  ] @: randomizeApple
+
+
+  "Snake body tvec2s with head already:"
+  [ ] 0 0 tvec2 << $: body
+
+  [ "( -- P ): leaves tvec2 Position of the snake head."
+    body 0 fromLeft
+  ] @: head
+
+  [ "( B forSnake -- ): slides Block thru whole snake."
+    body dup 0 |to swap |slideRight drop
+  ] @: forSnake
+
+  [ "( B forTail -- ): slides Block thru tail (cdr) of snake."
+    body dup 1 |to swap |slideRight drop
+  ] @: forTail
+
+  [ "( -- D ): checks whether the snake is Dead."
+    body # [ head . equal? ] 1 >
+  ] @: dead?
+
+  [ "( -- ): grows the snake by one"
+    body [ dup ] there
+  ] @: grow
+
+
+  [ "Does one tick of the game. The caterpillar-like movement
+     happens here."
+    head dir . addWithScreenWrap $: head
+    [ head swap =: head ] forSnake
+  ] @: tick
+
+  [ "Renders the game:"
+    "|   Head:"   'O' head  . put
+    "|   Tail:" [ 'o' over  . put ] forTail
+    "|  Apple:"   '@' apple . put
+  ] @: render
+
+  [ "( K -- ): handles a Key press."
+    "It seems that this is becoming Novika's offical way of
+     writing a 'switch' statement:"
+    dup 'CTRL_C'      = => [ drop gameOver ]
+    dup 'ARROW_UP'    = => [ drop  0 -1 tvec2 setDir ^ ]
+    dup 'ARROW_DOWN'  = => [ drop  0  1 tvec2 setDir ^ ]
+    dup 'ARROW_LEFT'  = => [ drop -1  0 tvec2 setDir ^ ]
+    dup 'ARROW_RIGHT' = => [ drop  1  0 tvec2 setDir ^ ]
+    drop
+  ] @: handleKey
+
+  [ "( K -- ): dispatches a key press event."
+    dup console:isKeyChar not => [ handleKey ]
+  ] @: dispatchKeyPressed
+
+  [ "Game's main loop. Console is assumed to be initialized
+     prior to running this."
+
+    "Generate the first-ever apple position:"
+    randomizeApple
+
+    [ "This is an infinite loop."
+      "But we have a magical word, break, which can break out
+       of this loop *specifically* (and everything under it,
+       of course). Store it in an object-level gameOver entry,
+       so that others can call it and break this loop immediately."
+      #break here =: gameOver
+
+      console:peek "Store input data, if any."
+
+      "This must be checked before applying input, for reasons
+       very hard to explain :)"
+      dead? => [ break ]
+
+      apple head . equal? =>
+        "Head is over the apple! Grow and randomize apple
+         position again. Note that it will be the same apple,
+         the only thing that will change is its position."
+        [ grow randomizeApple ]
+
+      console:hadKeyPressed => [ console:getKeyPressed dispatchKeyPressed ]
+
+      tick "Do one tick of the game. Snake moves forward."
+
+      console:clear
+        render
+      console:present
+
+      33 nap
+    ] loop
+  ] @: mainloop
+
+  [ "Sets up death handlers, enables console API, and starts
+     the main loop. After main loop ends/errs, disables console."
+    console:on [ console:off reportError ] @: *died
+
+    "Do not wait for input if there's none:"
+    0 console:setTimeout
+
+    mainloop
+
+    console:off
+  ] @: play
+
+  this
+] @: game
+
+game . play
+
+'Bye!' echo
+

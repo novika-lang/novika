@@ -5,7 +5,7 @@ module Novika::Packages
     include Package
 
     def self.id
-      "primitives"
+      "kernel"
     end
 
     # Populates *target* with Novika primitives.
@@ -210,12 +210,12 @@ module Novika::Packages
         Boolean[block.at(name).is_a?(OpenEntry)].push(world)
       end
 
-      target.at("detach", <<-END
+      target.at("shallowCopy", <<-END
     ( B -- C ): makes a shallow copy of Block's tape, and
      leaves a Copy block with the tape copy set as Copy's tape.
     END
       ) do |world|
-        world.stack.drop.assert(world, Block).detach.push(world)
+        world.stack.drop.assert(world, Block).shallow.push(world)
       end
 
       target.at("attach", "( O B -- ): replaces the tape of Block with Other's tape.") do |world|
@@ -380,6 +380,17 @@ module Novika::Packages
 
       target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |world|
         sleep world.stack.drop.assert(world, Decimal).to_i.milliseconds
+      end
+
+      # Math -----------------------------------------------
+
+      target.at("trunc", "( D -- Dt ): leaves truncated Decimal") do |world|
+        decimal = world.stack.drop.assert(world, Decimal)
+        Decimal.new(decimal.val.trunc).push(world)
+      end
+
+      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |world|
+        Decimal.new(rand).push(world)
       end
 
       # File system ------------------------------------------

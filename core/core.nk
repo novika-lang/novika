@@ -101,3 +101,9 @@ root #@: [
 
   t2 t1 -
 ] @: measure
+
+
+[ "( Min Max -- N ): generates random Number between min/max."
+  "Formula: rand * (max - min) + min"
+  over - + rand * trunc
+] @: randFromTo
