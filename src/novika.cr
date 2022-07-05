@@ -8,7 +8,8 @@ require "./novika/tape"
 require "./novika/table"
 require "./novika/forms/*"
 require "./novika/world"
-require "./novika/primitives"
+require "./novika/package"
+require "./novika/packages/*"
 
 def help : NoReturn
   cdir = "directory".colorize.blue
@@ -84,13 +85,20 @@ cwd = Path[FileUtils.pwd]
 
 dirs = [] of Path
 files = [] of Path
+pkgs = [] of Novika::Package
+pkgs << Novika::Packages::Kernel.new
 
 ARGV.each do |arg|
+  if pkg = Novika::Package[arg]?
+    pkgs << pkg.new unless pkgs.any?(pkg)
+    next
+  end
+
   case File
   when .directory?(arg) then dirs << Path[arg]
   when .file?(arg)      then files << Path[arg]
   else
-    abort "#{arg.colorize.bold} is neither a file nor a directory avaliable in #{cwd.to_s}"
+    abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd.to_s}"
   end
 end
 
@@ -101,9 +109,12 @@ dirs.each do |path|
 end
 
 world = Novika::World.new
-prims = Novika::Block.new
-Novika::Primitives.inject(into: prims)
-toplevel = Novika::Block.new(prims)
+pkgblock = Novika::Block.new
+toplevel = Novika::Block.new(pkgblock)
+
+pkgs.each do |pkg|
+  pkg.inject(into: pkgblock)
+end
 
 # Evaluate module entries fisrt, if any.
 mods.each_value.select(&.entry).each do |mod|

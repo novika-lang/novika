@@ -1,0 +1,30 @@
+'' $: field
+
+
+console:on
+console:truecolor
+
+204 204 204 console:color
+51   51  51 console:color
+console:setPrimary
+
+console:clear
+'Hit "q" to quit. Type something...' 0 0 console:print
+console:present
+
+[
+  console:peek
+  console:hadKeyPressed
+    [ console:getKeyPressed $: key
+      key 'q' = => [ break ]
+      key console:isKeyChar => [ field key stitch =: field ^ ]
+    ]
+    [ ]
+    br
+  console:clear
+  'Hit "q" to quit. Type something...' 0 0 console:print
+  field 1 1 console:print
+  console:present
+] loop
+
+console:off
