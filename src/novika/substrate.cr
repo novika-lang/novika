@@ -36,15 +36,15 @@ module Novika
 
     # Overrides the element at *index* with *element*. Returns
     # nil if *index* is out of bounds (see `at?`).
-    abstract def set?(index, element)
+    abstract def set?(at index, element)
 
     # Adds *element* before *index*. Returns nil if *index* is
     # out of bounds (see  `at?`).
-    abstract def insert?(index, element)
+    abstract def insert?(at index, element)
 
     # Deletes the element at *index*. Returns nil if *index* is
     # out of bounds (see `at?`).
-    abstract def delete?(index)
+    abstract def delete?(at index)
 
     # Decrements the amount of references to this substrate.
     abstract def deref
