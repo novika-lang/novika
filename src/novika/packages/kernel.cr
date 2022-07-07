@@ -1,6 +1,13 @@
 require "readline"
 
 module Novika::Packages
+  # Provides basic vocabulary for Novika. Novika is wholly
+  # dependent on words for any actual work. Now, words found
+  # here are either:
+  #   a) so primitive they cannot be implemented in Novika;
+  #   b) need to be very fast.
+  #
+  # Kernel is (or at least should be) included by default.
   class Kernel
     include Package
 
@@ -8,7 +15,6 @@ module Novika::Packages
       "kernel"
     end
 
-    # Populates *target* with Novika primitives.
     def inject(into target)
       target.at(Word.new("true"), True.new)
       target.at(Word.new("false"), False.new)
@@ -39,36 +45,6 @@ module Novika::Packages
 
       target.at("stack", "( -- S ): pushes the active Stack (stack of the CC).") do |world|
         world.stack.push(world)
-      end
-
-      target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        world.stack.add(a + b)
-      end
-
-      target.at("-", "( A B -- D ): leaves the Difference of two decimals.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        world.stack.add(a - b)
-      end
-
-      target.at("*", "( A B -- P ): leaves the Product of two decimals.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        world.stack.add(a * b)
-      end
-
-      target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        world.stack.add(a / b)
-      end
-
-      target.at("rem", "( A B -- R ): leaves the Remainder of two decimals.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        world.stack.add(a % b)
       end
 
       target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupl)
@@ -380,17 +356,6 @@ module Novika::Packages
 
       target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |world|
         sleep world.stack.drop.assert(world, Decimal).to_i.milliseconds
-      end
-
-      # Math -----------------------------------------------
-
-      target.at("trunc", "( D -- Dt ): leaves truncated Decimal") do |world|
-        decimal = world.stack.drop.assert(world, Decimal)
-        Decimal.new(decimal.val.trunc).push(world)
-      end
-
-      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |world|
-        Decimal.new(rand).push(world)
       end
 
       # File system ------------------------------------------

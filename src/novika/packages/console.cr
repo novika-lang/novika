@@ -22,10 +22,6 @@ module Novika::Packages
         Termbox.enable
       end
 
-      # target.at("console:open", "( FDq -- ): enables Console API for fd") do
-      # TODO
-      # end
-
       target.at("console:off", "( -- ): disables Console API, switches to normal buffer") do
         Termbox.disable
       end

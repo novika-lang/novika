@@ -1,0 +1,26 @@
+[ "( A B -- Min Max ): sorts two decimals, A and B, in asceiding
+   (min to max) order. In case A = B, order is unchanged."
+  2dup > => [ swap ]
+] @: 2asc
+
+
+[ "( A B -- Max Min ): sorts two decimals, A and B, in descending
+   (max to min) order. In case A = B, order is unchanged."
+  2dup < => [ swap ]
+] @: 2desc
+
+
+[ "( A B -- Min ): leaves minimum of two decimals, A and B."
+  2asc drop
+] @: 2min
+
+
+[ "( A B -- Max ): leaves maximum of two decimals, A and B."
+  2desc drop
+] @: 2max
+
+
+[ "( Min Max -- N ): generates random Number between min/max."
+  "Formula: rand * (max - min) + min"
+  over - + rand * trunc
+] @: randFromTo

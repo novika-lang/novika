@@ -15,6 +15,7 @@ def help : NoReturn
   cdir = "directory".colorize.blue
   cpkg = "package".colorize.magenta
   cfile = "file".colorize.green
+  on = "on by default".colorize.bold
 
   abort <<-END
   Welcome to Novika, and thanks for trying it out!
@@ -35,7 +36,8 @@ def help : NoReturn
   (2) Individual #{cfile}s are run after all directories are run.
 
   (3) There are also a number of builtin #{cpkg}s:
-        - kernel (#{"on by default".colorize.bold})
+        - kernel (#{on})
+        - math (#{on})
         - console (enables the console API)
   END
 
@@ -87,6 +89,7 @@ dirs = [] of Path
 files = [] of Path
 pkgs = [] of Novika::Package
 pkgs << Novika::Packages::Kernel.new
+pkgs << Novika::Packages::Math.new
 
 ARGV.each do |arg|
   if pkg = Novika::Package[arg]?
