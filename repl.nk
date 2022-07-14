@@ -1,5 +1,5 @@
 [ ]        $: pgStack
-root child $: pgRoot
+this child $: pgRoot
 
 [ "( Q -- )"
   false $: error

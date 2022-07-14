@@ -1,58 +1,83 @@
-this #root this pushes
+"""This is the entry point of Novika core.
+
+We need to quickly go from low-level and playground-ish to
+high-level and serious. Novika core is all about that.
+"""
+
+"First, we take hold of the current block (the block associated
+with this file), and call it `_root`. With an underscore,
+because that's our root, not their root."
+
+conts dup
+  count 1 - fromLeft
+        0   fromLeft "continuationBlock"  
+        dup #_root swap pushes
 
 
-root #<| [
-  "( -- ): moves stack cursor once to the left."
-  stack |at 1 - stack swap |to
-] opens
-
-
-root #|> [
-  "( -- ): moves stack cursor once to the right."
-  stack |at 1 + stack swap |to
-] opens
-
-
-root #continuationBlock [
+_root #continuationBlock [
   "( C -- cB ): leaves the continuation Block of a Continuation."
   0 fromLeft
 ] opens
 
 
-root #continuationStack [
+_root #continuationStack [
   "( C -- cS ): leaves the continuation Stack of a Continuation."
   1 fromLeft
 ] opens
 
 
-root #ahead [
+_root #this [
+  "( -- B ): pushes the caller's continuation Block."
+  conts dup count 2 - fromLeft continuationBlock
+] opens
+
+
+_root #stack [
+  "( -- S ): pushes the Stack of the caller's continuation."
+  conts dup count 2 - fromLeft continuationStack
+] opens
+
+
+_root #ahead [
   "( -- B ): leaves caller Block on the stack."
   conts dup count 3 - fromLeft continuationBlock
 ] opens
 
 
-root #inject [
+_root #<| [
+  "( -- ): moves stack cursor once to the left."
+  stack |at 1 - stack swap |to
+] opens
+
+
+_root #|> [
+  "( -- ): moves stack cursor once to the right."
+  stack |at 1 + stack swap |to
+] opens
+
+
+_root #inject [
   "( B F -- ): inserts Form to Block: adds Form to Block,
    and moves cursor back again."
   <| dup |> shove dup |at 1 - |to
 ] opens
 
 
-root #there [
+_root #there [
   "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
    is transferred to block."
   <| dup |> ahead #hydrate inject
 ] opens
 
 
-root #eject [
+_root #eject [
   "( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
    leaves the Form after cursor in Block."
   [ |> ] there cherry
 ] opens
 
 
-root #@: [
+_root #@: [
   "( F @: N ): makes an opener entry called Name for Form."
   ahead swap ahead eject swap opens
 ] opens

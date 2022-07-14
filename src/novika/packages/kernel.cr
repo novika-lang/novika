@@ -39,14 +39,6 @@ module Novika::Packages
         World.cont(block, stack).push(world)
       end
 
-      target.at("this", "( -- B ): pushes the current continuation Block.") do |world|
-        world.block.push(world)
-      end
-
-      target.at("stack", "( -- S ): pushes the active Stack (stack of the CC).") do |world|
-        world.stack.push(world)
-      end
-
       target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupl)
       target.at("drop", "( F -- ): drops the Form before cursor.", &.stack.drop)
       target.at("swap", "( A B -- B A ): swaps two Forms before cursor.", &.stack.swap)
