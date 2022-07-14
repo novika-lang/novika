@@ -165,7 +165,7 @@ of nested block calls. Phew!
         render
       console:present
 
-      33 nap
+      10 nap
     ] loop
   ] @: mainloop
 
