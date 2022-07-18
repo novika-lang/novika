@@ -115,6 +115,44 @@ module Novika
     # See the same method in `Tape`.
     delegate :cursor, :each, :count, :at?, to: tape
 
+    # Removes common indentation from this string. Blank lines
+    # are replaced with a single newline character.
+    private def dedent(string)
+      return string if string.empty?
+
+      first = true
+      lines_ = string.lines(chomp: false)
+      indent = nil
+
+      lines_.each do |line|
+        # Skip blank lines.
+        next if line.blank?
+
+        # Get the indentation of the line.
+        level = line.each_char.take_while(&.whitespace?).size
+        if level.zero? && first
+          # Skip the line if it's first, and its indentation
+          # is zero.
+          next first = false
+        end
+
+        indent = level if indent.nil? || level < indent
+      end
+
+      String.build do |io|
+        lines_.each do |line|
+          if line.blank?
+            io << '\n'
+          elsif !first # a zero-indent line was skipped
+            io << line
+            first = true
+          else
+            io << line[indent..]
+          end
+        end
+      end
+    end
+
     # Parses all forms in string *source*, and adds them to
     # this block. Returns self.
     def slurp(source)
@@ -130,7 +168,7 @@ module Novika
         elsif match = $~["quote"]?
           block.add Quote.new(match, peel: true)
         elsif match = $~["comment"]?
-          block.describe?(match.strip) if block.empty?
+          block.describe?(dedent match) if block.empty?
         elsif $~["bb"]?
           block = Block.new(block)
         elsif $~["be"]?
