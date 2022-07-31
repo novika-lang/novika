@@ -58,8 +58,7 @@ class IOMod
     END
     ) do |world|
       prompt = world.stack.drop.enquote(world)
-      @player.println(prompt.string)
-      @player.request_user_input(@ichan)
+      @player.request_user_input(prompt.string, @ichan)
       answer = @ichan.receive
       Novika::Quote.new(answer || "").push(world)
       Novika::Boolean[!answer.nil?].push(world)
@@ -270,6 +269,14 @@ class ConsMod
 end
 
 class Player
+  enum Status
+    Done
+    Progress
+    Failed
+  end
+
+  getter status = Channel(Status).new(1)
+
   def initialize(@global : Novika::Block, @activity : FileActivity, @path : String)
     @world = Novika::Engine.new
     @toplevel = Novika::Block.new(@global)
@@ -281,32 +288,46 @@ class Player
 
   def play
     spawn do
+      status.send(Status::Progress)
       begin
         Novika.run(@world, @toplevel, Path[@path])
         @global.import!(from: @toplevel)
+        status.send(Status::Done)
       rescue e : Novika::EngineFailure
         e.report(STDOUT)
+        status.send(Status::Failed)
       end
     end
   end
 end
 
-class InputMgr
+class InputManager
+  getter ans = ""
+
   def initialize(@activity : FileActivity, @index : Int32, @prompt : String, @answer : Channel(String?))
-    @ans = ""
+    self.ans = ""
+  end
+
+  def ans=(@ans)
+    @activity.print(@index, @prompt + ans, blink: true)
+  end
+
+  def rchop
+    self.ans = ans.rchop
   end
 
   def accept
+    @activity.print(@index, @prompt + ans, blink: false)
     @answer.send(@ans)
   end
 
   def reject
+    @activity.print(@index, @prompt + ans, blink: false)
     @answer.send(nil)
   end
 
   def add(char)
-    @ans += char
-    @activity.print(@index, @prompt + @ans)
+    self.ans += char
   end
 end
 
@@ -421,17 +442,28 @@ end
 # Button to play a file activity.
 class PlayButton < Activity
   HOVER = SDL::Color[0xce, 0xce, 0xce]
+  PENDC = SDL::Color[0x75, 0x75, 0x75]
+  DONEC = SDL::Color[0x43, 0xA0, 0x47]
+  PROGC = SDL::Color[0x1E, 0x88, 0xE5]
+  FAILC = SDL::Color[0xE5, 0x39, 0x35]
 
   getter w : Int32, h : Int32
   property x : Int32, y : Int32
 
   @label : SDL::Surface
+  @status : Player::Status?
   @hover = false
+  @srwh : Int32
 
   def initialize(@activity : FileActivity, @x, @y)
     @label = FONT.render_blended("Play", FileActivity::FG)
-    @w = @label.width + 6
+    @srwh = FONT.height // 2
+    @w = @label.width + 6 + @srwh + 3
     @h = @label.height + 4
+    @status = nil
+    spawn do
+      loop { @status = @activity.player.status.receive }
+    end
   end
 
   def wants_at?(px, py)
@@ -448,7 +480,20 @@ class PlayButton < Activity
       renderer.draw_color = HOVER
       renderer.fill_rect(x, y, w, h)
     end
-    renderer.copy(@label, dstrect: SDL::Rect[x + 3, y + 2, @label.width, @label.height])
+    px = x + 3
+    py = y + 2
+    renderer.draw_color =
+      case s = @status
+      when .nil?      then PENDC
+      when .done?     then DONEC
+      when .progress? then PROGC
+      when .failed?   then FAILC
+      else
+        raise "unreachable"
+      end
+    renderer.fill_rect(px, py + h // 2 - @srwh // 2 - 1, @srwh, @srwh)
+    px += @srwh + 3
+    renderer.copy(@label, dstrect: SDL::Rect[px, py, @label.width, @label.height])
   end
 end
 
@@ -562,8 +607,13 @@ class ConsoleActivity < Activity
 
   # Clears the contents of this console with `fg`, `bg` colors.
   def clear
-    @buffer = nil
     @commands.clear
+    return unless @buffer
+    buffer.map_with_index! do |row|
+      row.map_with_index! do |cell|
+        cell.copy_with(fg: fg, bg: bg, char: ' ')
+      end
+    end
   end
 
   # Prints *string* starting at column *x*, row *y*.
@@ -593,14 +643,14 @@ class FileActivity < Activity
   property x : Int32, y : Int32
 
   @label : SDL::Surface
-  @strings = [] of {String, SDL::Surface}
-  @inpchan : InputMgr?
+  @strings = [] of {String, SDL::Surface, Bool}
+  @iman : InputManager?
 
   getter! button, player
 
   def initialize(@activities : Array(Activity), global : Novika::Block, @x : Int32, @y : Int32, filename : String)
     @label = FONT.render_blended(filename, FG)
-    @w = @label.width + 50
+    @w = @label.width + 60
     @h = @label.height + 20
     @player = Player.new(global, self, filename)
     @button = PlayButton.new(self, @x + @label.width + 10 + 5, @y + @h // 4)
@@ -611,20 +661,30 @@ class FileActivity < Activity
 
   def input(x, y, string)
     return if super
-    @inpchan.try &.add(string)
+    @iman.try &.add(string)
   end
 
   def keyboard(x, y, event)
     return if super
-    return unless chan = @inpchan
 
+    chan = @iman
+
+    if !chan && event.sym.s?
+      player.play
+    end
+
+    return unless chan
+
+    chan.rchop if event.pressed? && event.sym.backspace?
+
+    return unless event.released?
     case event.sym
     when .return?
       chan.accept
-      @inpchan = nil
+      @iman = nil
     when .escape?
       chan.reject
-      @inpchan = nil
+      @iman = nil
     end
   end
 
@@ -632,11 +692,11 @@ class FileActivity < Activity
     ConsoleActivity.new(@activities).tap { |it| @activities << it }
   end
 
-  def request_user_input(channel : Channel(String?))
-    if ifwd = @inpchan
+  def request_user_input(prompt, channel : Channel(String?))
+    if ifwd = @iman
       ifwd.accept
     else
-      @inpchan = InputMgr.new(self, @strings.size - 1, @strings.last[0], channel)
+      @iman = InputManager.new(self, @strings.size, prompt, channel)
     end
   end
 
@@ -656,20 +716,18 @@ class FileActivity < Activity
     println(prev + string)
   end
 
-  def print(index, string)
-    surf = FONT.render_blended(string, FG)
+  def print(row, string, blink = false)
+    @strings.delete_at(row) if deleted = row < @strings.size
+    @h += 10 if @strings.empty?
 
-    if @strings.empty?
-      @h += 10
+    string.each_line.with_index do |line, index|
+      surface = FONT.render_blended(line, FG)
+      if !deleted && row + index == @strings.size
+        @h += surface.height
+      end
+      @w = Math.max(surface.width + 20, @w)
+      @strings.insert(row + index, {line, surface, blink})
     end
-    if index < @strings.size
-      @strings.delete_at(index)
-    elsif index == @strings.size
-      @h += surf.height
-    end
-
-    @w = Math.max(surf.width + 20, @w)
-    @strings.insert(index, {string, surf})
   end
 
   def present(renderer)
@@ -683,8 +741,12 @@ class FileActivity < Activity
       y += 10
     end
     button.present(renderer)
-    @strings.each do |(_, surf)|
+    @strings.each do |(_, surf, blink)|
       renderer.copy(surf, dstrect: SDL::Rect[x, y, surf.width, surf.height])
+      if blink
+        renderer.draw_color = FG
+        renderer.fill_rect(x + surf.width, y, 1, surf.height)
+      end
       y += surf.height
     end
   end
@@ -700,10 +762,10 @@ math.inject(global)
 
 closed = false
 prev_drop_coords = nil
-clock = Time.utc
+clock = Time.monotonic
 
 until closed
-  current = Time.utc
+  current = Time.monotonic
   delta = current - clock
   clock = current
 
@@ -735,12 +797,15 @@ until closed
       else
         filenames = [filename.to_s]
       end
+      prev = nil
       filenames.each_with_index do |name, index|
-        if activity || index > 0
-          mouse_x += 20
-          mouse_y += 20
+        if activity
+          mouse_y += activity.h + 10
+        elsif prev
+          mouse_y += prev.h + 10
         end
-        activities << FileActivity.new(activities, global, mouse_x, mouse_y, name)
+        prev = FileActivity.new(activities, global, mouse_x, mouse_y, name)
+        activities << prev
       end
     when SDL::Event::TextInput
       activity.try &.input(mouse_x, mouse_y, event.text[0].chr.to_s)
@@ -754,5 +819,5 @@ until closed
 
   # Either give time to other fibers, or sleep a lot (the less
   # the more time it is required to render a frame).
-  sleep Math.max(1.millisecond, 60.milliseconds - delta)
+  sleep Math.max(1.millisecond, 13.milliseconds - delta)
 end
