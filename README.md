@@ -1,5 +1,7 @@
 # Novika
 
+<img src="img/logo.svg" align=right>
+
 Novika is a novel interpreted programming language, somewhat related
 to Forth, Red/Rebol, Self, and Lisp.
 
