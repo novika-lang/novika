@@ -43,8 +43,10 @@ module Novika
     delegate :push, to: form
 
     # :ditto:
-    def open(engine : Engine) : self
-      tap { push(engine) }
+    def open(engine : Engine) : Nil
+      push(engine)
+
+      nil
     end
 
     # Makes *form* the value form of this entry.
@@ -59,8 +61,10 @@ module Novika
   # value form.
   class OpenEntry < Entry
     # Opens this entry's value form in *engine*.
-    def open(engine : Engine) : self
-      tap { form.open(engine) }
+    def open(engine : Engine) : Nil
+      form.open(engine)
+
+      nil
     end
   end
 end
