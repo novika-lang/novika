@@ -115,7 +115,7 @@ module Novika
         # Exists and is a file.
         files << Path[arg]
       else
-        abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd.to_s}"
+        abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd}"
       end
     end
 

@@ -388,16 +388,19 @@ module Novika
       # junk todo
       io << "[ ".colorize.dark_gray.bold
 
-      fmt = tape.each
-        .map_with_index do |form, index|
-          form = form.is_a?(Block) ? "[…]" : form.to_s
-          form = form.colorize
-          delta = cursor - index
-          form.bold.toggle(delta == 1) if (cursor - index).abs.in?(0..10)
+      fmt = tape.each.map_with_index do |form, index|
+        form = form.is_a?(Block) ? "[…]" : form.to_s
+        form = form.colorize
+        delta = cursor - index
+        if (cursor - index).abs.in?(0..10)
+          form.bold.toggle(delta == 1)
         end
+      end
+
+      fmt
         .insert(0, "…".colorize.dark_gray)
         .insert(cursor, "|".colorize.red.bold)
-        .<<("…".colorize.dark_gray)
+        .push("…".colorize.dark_gray)
         .compact
         .join(io, ' ')
 

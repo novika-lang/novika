@@ -95,7 +95,7 @@ module Novika::Packages
         raise e
       end
 
-      target.at("console:peek", "( -- ): consumes input during timeout") do |engine|
+      target.at("console:peek", "( -- ): consumes input during timeout") do
         self.event = Termbox.peek?(timeout)
       rescue e
         Termbox.disable
@@ -135,14 +135,14 @@ module Novika::Packages
         raise e
       end
 
-      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine|
+      target.at("console:present", "( -- ): syncs internal buffer and console") do
         Termbox.present
       rescue e
         Termbox.disable
         raise e
       end
 
-      target.at("console:clear", "( -- ): clears console with primary colors") do |engine|
+      target.at("console:clear", "( -- ): clears console with primary colors") do
         Termbox.clear
       rescue e
         Termbox.disable
