@@ -764,6 +764,8 @@ closed = false
 prev_drop_coords = nil
 clock = Time.monotonic
 
+pan_grip = nil
+
 until closed
   current = Time.monotonic
   delta = current - clock
@@ -782,11 +784,25 @@ until closed
     case event
     when SDL::Event::Quit then closed = true
     when SDL::Event::MouseMotion
-      activity.try &.motion(mouse_x, mouse_y)
+      if pan_grip
+        activities.each do |a|
+          a.to(a.x + (mouse_x - pan_grip[0]), a.y + (mouse_y - pan_grip[1]))
+        end
+        pan_grip = {mouse_x, mouse_y}
+      else
+        activity.try &.motion(mouse_x, mouse_y)
+      end
     when SDL::Event::MouseButton
-      case event
-      when .pressed?  then activity.try &.press(mouse_x, mouse_y)
-      when .released? then activity.try &.release(mouse_x, mouse_y)
+      if !activity
+        case event
+        when .pressed?  then pan_grip = {mouse_x, mouse_y}
+        when .released? then pan_grip = nil
+        end
+      else
+        case event
+        when .pressed?  then activity.try &.press(mouse_x, mouse_y)
+        when .released? then activity.try &.release(mouse_x, mouse_y)
+        end
       end
     when SDL::Event::Keyboard
       activity.try &.keyboard(mouse_x, mouse_y, event)
