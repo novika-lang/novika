@@ -31,13 +31,12 @@ Currently, there is only one official way:
 2. Make sure your working directory is this repo.
 3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
   (that's smart huh?).
-4. Type the following command:
-    `shards install`.
+4. Type the following command: `shards install --without-development`.
 5. On Windows, type the following command:
-    `shards build --release --production --progress --no-debug -Dnovika_frontend`
+    `shards build --release --progress --no-debug -Dnovika_frontend`
 
    On Unix, type the following command:
-    `shards build --release --production --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
+    `shards build --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
 Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
 is a way to go if you want to type some Novika code yourself, or try `./bin/novika core hello.nk`
@@ -70,8 +69,12 @@ so here's what I can say.
 It's too early to say. Brevity? Homoiconicity squared? I. e.,
 runtime homoiconicity too? WTF?
 
+> Of interest: see the `world/` directory for a stub Novika
+> environment. In far future, Novika will look a bit like
+> what you'd see there.
+>
 > Of interest: Novika seems to be one of the best languages to
-> explain continations with. But I didn't try yet, so... :)
+> explain continations with. But I haven't tried yet, so... :)
 
 ### Cons
 
