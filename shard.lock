@@ -10,5 +10,5 @@ shards:
 
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
-    version: 0.1.0+git.commit.72ce74ae6fb02e3f4c48858dd129bdce42404880
+    version: 0.1.0+git.commit.a58fa765c5514fb6dfc2d47674a86fd5aafb7b94
 

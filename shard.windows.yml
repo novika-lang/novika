@@ -9,12 +9,6 @@ targets:
   novika:
     main: src/novika.cr
 
-dependencies:
-  readline:
-    github: crystal-lang/crystal-readline
-  termbox2:
-    github: homonoidian/termbox2.cr
-
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
