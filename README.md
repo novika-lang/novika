@@ -1,17 +1,16 @@
 # Novika
 
-Novika is an interpreted programming language, somewhat related to
-Forth, Red/Rebol, Self, and Lisp.
+Novika is a novel interpreted programming language, somewhat related
+to Forth, Red/Rebol, Self, and Lisp.
 
 * This branch is the most recent (10th) prototype implementation of Novika.
 
 * The implementation is slow (very slow) and buggy.
 
-* Code is raw and naïve at times. Beware. Also it's a monument to
-  my love for `protected getters`.
+* Code is raw and naïve at times. Beware.
 
 * Help if you can. Poke around. There is little docs on the language
-  itself, so explore and infer :)
+  itself, so explore and infer (but really, try `crystal docs`) :)
 
 For use as a library:
 
