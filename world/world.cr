@@ -643,7 +643,7 @@ class FileActivity < Activity
   property x : Int32, y : Int32
 
   @label : SDL::Surface
-  @strings = [] of {String, SDL::Surface, Bool}
+  @strings = [] of {String, SDL::Surface?, Bool}
   @iman : InputManager?
 
   getter! button, player
@@ -721,11 +721,15 @@ class FileActivity < Activity
     @h += 10 if @strings.empty?
 
     string.each_line.with_index do |line, index|
-      surface = FONT.render_blended(line, FG)
-      if !deleted && row + index == @strings.size
-        @h += surface.height
+      surface = FONT.render_blended(line, FG) unless line.empty?
+      if surface
+        if !deleted && row + index == @strings.size
+          @h += surface.height
+        end
+        @w = Math.max(surface.width + 20, @w)
+      elsif !deleted && row + index == @strings.size
+        @h += SPACE.height
       end
-      @w = Math.max(surface.width + 20, @w)
       @strings.insert(row + index, {line, surface, blink})
     end
   end
@@ -742,12 +746,16 @@ class FileActivity < Activity
     end
     button.present(renderer)
     @strings.each do |(_, surf, blink)|
-      renderer.copy(surf, dstrect: SDL::Rect[x, y, surf.width, surf.height])
-      if blink
-        renderer.draw_color = FG
-        renderer.fill_rect(x + surf.width, y, 1, surf.height)
+      if surf
+        renderer.copy(surf, dstrect: SDL::Rect[x, y, surf.width, surf.height])
+        if blink
+          renderer.draw_color = FG
+          renderer.fill_rect(x + surf.width, y, 1, surf.height)
+        end
+        y += surf.height
+      else
+        y += SPACE.height
       end
-      y += surf.height
     end
   end
 end
