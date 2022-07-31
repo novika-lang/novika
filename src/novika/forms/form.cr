@@ -1,11 +1,12 @@
 module Novika
-  # A form that has class description.
+  # A form with a user-friendly description. Extenders should
+  # also include `Form`.
   module HasDesc
-    # Appends the description of this form class to *io*.
-    abstract def desc(io)
+    # Appends a description of this form class to *io*.
+    abstract def desc(io : IO)
 
-    # Returns the description of this form class.
-    def desc
+    # Returns a description of this form class.
+    def desc : String
       String.build { |io| desc(io) }
     end
   end
@@ -17,33 +18,8 @@ module Novika
   module Form
     extend HasDesc
 
-    # Raised when a form dies.
-    class Died < Exception
-      extend HasDesc
-
-      include Form
-
-      # Holds the continuations block (roughly) at the time
-      # of death.
-      property conts : Block?
-
-      # Returns a string describing the reasons of this death.
-      getter details : String
-
-      def initialize(@details)
-      end
-
-      def to_s(io)
-        io << "[" << details << "]"
-      end
-
-      def self.desc(io)
-        io << "an error"
-      end
-    end
-
     # Raises `Died` providing *details*.
-    def die(details)
+    def die(details : String)
       raise Died.new(details)
     end
 
@@ -57,9 +33,18 @@ module Novika
       die("bad type: #{ldesc}, expected: #{rdesc}")
     end
 
+    # Appends a string description of this form to *io*.
+    def desc(io : IO)
+      io << "a form"
+    end
+
     # Returns a string description of this form.
-    def desc
-      "a form"
+    def desc : String
+      String.build { |io| desc(io) }
+    end
+
+    def self.desc(io : IO)
+      io << "a form"
     end
 
     # Selects either *a* or *b*. Novika defines `False` to be the
@@ -68,41 +53,36 @@ module Novika
       a
     end
 
-    # Reacts to this form being opened in *world*.
-    def open(world)
-      opened(world)
+    # Reacts to this form being opened in *engine*.
+    def open(engine : Engine) : self
+      opened(engine)
     end
 
-    # Reacts to this form's enclosing block being opened in *world*.
-    def opened(world)
-      push(world)
+    # Reacts to this form's enclosing block being opened in *engine*.
+    def opened(engine : Engine) : self
+      push(engine)
     end
 
     # Adds this form to *block*.
-    def push(block : Block)
-      block.add(self)
+    def push(block : Block) : self
+      tap { block.add(self) }
     end
 
-    # Pushes this form onto *world*'s active stack.
-    def push(world : World)
-      push(world.stack)
+    # Pushes this form onto *engine*'s active stack.
+    def push(engine : Engine) : self
+      push(engine.stack)
     end
 
     # Asserts that this form is of the given *type*. Dies if
     # it's not.
-    def assert(world, type : T.class) forall T
+    def assert(engine : Engine, type : T.class) : T forall T
       is_a?(T) ? self : afail(T)
     end
 
-    # Returns this form's quote representation. May require
-    # Novika code to be run. Hence *world* has to be provided,
-    # and the name is so strange.
-    def enquote(world)
+    # Returns this form's quote representation. May run Novika,
+    # hence the need for *engine*.
+    def enquote(engine : Engine) : Quote
       Quote.new(to_s)
-    end
-
-    def self.desc(io)
-      io << "a form"
     end
   end
 end

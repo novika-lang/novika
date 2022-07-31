@@ -1,27 +1,25 @@
 module Novika
   # Represents a boolean (true/false) value.
   abstract struct Boolean
+    include Form
     extend HasDesc
 
-    include Form
-
     # Creates a `Boolean` subclass for the given *object*.
-    def self.[](object)
+    def self.[](object) : Boolean
       object ? True.new : False.new
     end
 
-    # Returns a `Boolean` for whether two objects, *a* and
-    # *b*, are the same.
-    def self.same?(a : Reference, b : Reference)
+    # Returns a `Boolean` for whether *a* and *b* are the same.
+    def self.same?(a : Reference, b : Reference) : Boolean
       Boolean[a.same?(b)]
     end
 
     # :ditto:
-    def self.same?(a, b)
+    def self.same?(a, b) : Boolean
       Boolean[a == b]
     end
 
-    def self.desc(io)
+    def self.desc(io : IO)
       io << "a boolean"
     end
   end
@@ -30,16 +28,16 @@ module Novika
   struct True < Boolean
     extend HasDesc
 
-    def desc
-      "boolean true"
+    def desc(io : IO)
+      io << "boolean true"
+    end
+
+    def self.desc(io : IO)
+      io << "boolean true"
     end
 
     def to_s(io)
       io << "true"
-    end
-
-    def self.desc(io)
-      io << "boolean true"
     end
 
     def_equals_and_hash
@@ -50,8 +48,12 @@ module Novika
   struct False < Boolean
     extend HasDesc
 
-    def desc
-      "boolean false"
+    def desc(io : IO)
+      io << "boolean false"
+    end
+
+    def self.desc(io : IO)
+      io << "boolean false"
     end
 
     def sel(a, b)
@@ -60,10 +62,6 @@ module Novika
 
     def to_s(io)
       io << "false"
-    end
-
-    def self.desc(io)
-      io << "boolean false"
     end
 
     def_equals_and_hash

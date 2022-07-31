@@ -1,4 +1,4 @@
-require "readline"
+{% if flag?(:novika_readline) %} require "readline" {% end %}
 
 module Novika::Packages
   # Provides basic vocabulary for Novika. Novika is wholly
@@ -19,65 +19,65 @@ module Novika::Packages
       target.at(Word.new("true"), True.new)
       target.at(Word.new("false"), False.new)
 
-      target.at("prototype", "( B -- P ): leaves the Prototype of Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        block.prototype.push(world)
+      target.at("prototype", "( B -- P ): leaves the Prototype of Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        block.prototype.push(engine)
       end
 
-      target.at("parent", "( B -- P ): leaves the Parent of Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        block.parent.push(world)
+      target.at("parent", "( B -- P ): leaves the Parent of Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        block.parent.push(engine)
       end
 
-      target.at("conts", "( -- Cs ): Pushes the Continuations block.") do |world|
-        world.conts.push(world)
+      target.at("conts", "( -- Cs ): Pushes the Continuations block.") do |engine|
+        engine.conts.push(engine)
       end
 
-      target.at("newContinuation", "( S B -- C ): creates a Continuation from a Stack and a Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        stack = world.stack.drop.assert(world, Block)
-        World.cont(block, stack).push(world)
+      target.at("newContinuation", "( S B -- C ): creates a Continuation from a Stack and a Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        stack = engine.stack.drop.assert(engine, Block)
+        Engine.cont(block, stack).push(engine)
       end
 
-      target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupl)
+      target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupe)
       target.at("drop", "( F -- ): drops the Form before cursor.", &.stack.drop)
       target.at("swap", "( A B -- B A ): swaps two Forms before cursor.", &.stack.swap)
-      target.at("hydrate", "( S F -- ): opens Form with Stack set as the active stack.") do |world|
-        form = world.stack.drop
-        stack = world.stack.drop.assert(world, Block)
-        world.enable(form, stack)
+      target.at("hydrate", "( S F -- ): opens Form with Stack set as the active stack.") do |engine|
+        form = engine.stack.drop
+        stack = engine.stack.drop.assert(engine, Block)
+        engine.schedule(form, stack)
       end
 
-      target.at("new", "( B -- I ): leaves an Instance of a Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        block.instance.push(world)
+      target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        block.instance.push(engine)
       end
 
       target.at("sel", <<-END
     ( D A B -- A/B ): selects A (Determiner is truthy) or B
      (Determiner is falsey)
     END
-      ) do |world|
-        b = world.stack.drop
-        a = world.stack.drop
-        det = world.stack.drop
-        det.sel(a, b).push(world)
+      ) do |engine|
+        b = engine.stack.drop
+        a = engine.stack.drop
+        det = engine.stack.drop
+        det.sel(a, b).push(engine)
       end
 
-      target.at("<", "( A B -- S ): leaves whether one decimal is smaller than other.") do |world|
-        b = world.stack.drop.assert(world, Decimal)
-        a = world.stack.drop.assert(world, Decimal)
-        Boolean[a < b].push(world)
+      target.at("<", "( A B -- S ): leaves whether one decimal is smaller than other.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        Boolean[a < b].push(engine)
       end
 
       target.at("same?", <<-END
     ( F1 F2 -- true/false ): leaves whether two Forms are the
      same (by reference for block, by value  for any other form).
     END
-      ) do |world|
-        b = world.stack.drop
-        a = world.stack.drop
-        Boolean.same?(a, b).push(world)
+      ) do |engine|
+        b = engine.stack.drop
+        a = engine.stack.drop
+        Boolean.same?(a, b).push(engine)
       end
 
       target.at("=", <<-END
@@ -85,44 +85,44 @@ module Novika::Packages
      (they may or may not be same forms, i.e., those for which
      `same?` would leave true).
     END
-      ) do |world|
-        b = world.stack.drop
-        a = world.stack.drop
-        Boolean[a == b].push(world)
+      ) do |engine|
+        b = engine.stack.drop
+        a = engine.stack.drop
+        Boolean[a == b].push(engine)
       end
 
-      target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |world|
-        Boolean[world.stack.drop.is_a?(Block)].push(world)
+      target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Block)].push(engine)
       end
 
-      target.at("word?", "( F -- true/false ): leaves whether Form is a word.") do |world|
-        Boolean[world.stack.drop.is_a?(Word)].push(world)
+      target.at("word?", "( F -- true/false ): leaves whether Form is a word.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Word)].push(engine)
       end
 
-      target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word.") do |world|
-        Boolean[world.stack.drop.is_a?(QuotedWord)].push(world)
+      target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word.") do |engine|
+        Boolean[engine.stack.drop.is_a?(QuotedWord)].push(engine)
       end
 
-      target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |world|
-        Boolean[world.stack.drop.is_a?(Decimal)].push(world)
+      target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Decimal)].push(engine)
       end
 
-      target.at("quote?", "( F -- true/false ): leaves whether Form is a quote.") do |world|
-        Boolean[world.stack.drop.is_a?(Quote)].push(world)
+      target.at("quote?", "( F -- true/false ): leaves whether Form is a quote.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Quote)].push(engine)
       end
 
-      target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean.") do |world|
-        Boolean[world.stack.drop.is_a?(Boolean)].push(world)
+      target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Boolean)].push(engine)
       end
 
       target.at("pushes", <<-END
     ( B N F -- ): creates a definition for Name in Block that
      pushes Form when resolved there.
     END
-      ) do |world|
-        form = world.stack.drop
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, Block)
+      ) do |engine|
+        form = engine.stack.drop
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
         block.at name, Entry.new(form)
       end
 
@@ -130,10 +130,10 @@ module Novika::Packages
     ( B N F -- ): creates a definition for Name in Block that
      opens Form when resolved there.
     END
-      ) do |world|
-        form = world.stack.drop
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, Block)
+      ) do |engine|
+        form = engine.stack.drop
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
         block.at name, OpenEntry.new(form)
       end
 
@@ -142,10 +142,10 @@ module Novika::Packages
      of Name in Block to Form, but keeps its resolution action
      (open/push).
     END
-      ) do |world|
-        form = world.stack.drop
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, Block)
+      ) do |engine|
+        form = engine.stack.drop
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
         unless entry = block.at?(name)
           name.die("cannot #submit forms to an entry that does not exist")
         end
@@ -156,68 +156,68 @@ module Novika::Packages
     ( T N -- true/false ): leaves whether Table can fetch
      value for Name.
     END
-      ) do |world|
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, ReadableTable)
-        Boolean[block.has?(name)].push(world)
+      ) do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, ReadableTable)
+        Boolean[block.has?(name)].push(engine)
       end
 
-      target.at("entry:fetch", "( B N -- F ): leaves the value Form under Name in Block's table.") do |world|
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, ReadableTable)
-        block.at(name).push(world)
+      target.at("entry:fetch", "( B N -- F ): leaves the value Form under Name in Block's table.") do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, ReadableTable)
+        block.at(name).push(engine)
       end
 
       target.at("entry:isOpenEntry?", <<-END
     ( B N -- true/false ): leaves whether an entry called Name
      in Block is an open entry.
     END
-      ) do |world|
-        name = world.stack.drop
-        block = world.stack.drop.assert(world, ReadableTable)
-        Boolean[block.at(name).is_a?(OpenEntry)].push(world)
+      ) do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, ReadableTable)
+        Boolean[block.at(name).is_a?(OpenEntry)].push(engine)
       end
 
       target.at("shallowCopy", <<-END
     ( B -- C ): makes a shallow copy of Block's tape, and
      leaves a Copy block with the tape copy set as Copy's tape.
     END
-      ) do |world|
-        world.stack.drop.assert(world, Block).shallow.push(world)
+      ) do |engine|
+        engine.stack.drop.assert(engine, Block).shallow.push(engine)
       end
 
-      target.at("attach", "( O B -- ): replaces the tape of Block with Other's tape.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        other = world.stack.drop.assert(world, Block)
+      target.at("attach", "( O B -- ): replaces the tape of Block with Other's tape.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        other = engine.stack.drop.assert(engine, Block)
         block.attach(other)
       end
 
-      target.at("fromLeft", "( B I -- E ): leaves Index-th Element in Block from the left.") do |world|
-        index = world.stack.drop.assert(world, Decimal)
-        block = world.stack.drop.assert(world, Block)
-        block.at(index.to_i).push(world)
+      target.at("fromLeft", "( B I -- E ): leaves Index-th Element in Block from the left.") do |engine|
+        index = engine.stack.drop.assert(engine, Decimal)
+        block = engine.stack.drop.assert(engine, Block)
+        block.at(index.to_i).push(engine)
       end
 
-      target.at("charCount", "( Q -- N ): leaves N, the amount of characters in Quote") do |world|
-        quote = world.stack.drop.assert(world, Quote)
-        Decimal.new(quote.string.size).push(world)
+      target.at("charCount", "( Q -- N ): leaves N, the amount of characters in Quote") do |engine|
+        quote = engine.stack.drop.assert(engine, Quote)
+        Decimal.new(quote.string.size).push(engine)
       end
 
-      target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
+      target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
         count = Decimal.new(block.count)
-        count.push(world)
+        count.push(engine)
       end
 
-      target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
+      target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
         cursor = Decimal.new(block.cursor)
-        cursor.push(world)
+        cursor.push(engine)
       end
 
-      target.at("|to", "( B N -- ): moves the cursor in Block to N.") do |world|
-        cursor = world.stack.drop.assert(world, Decimal)
-        block = world.stack.drop.assert(world, Block)
+      target.at("|to", "( B N -- ): moves the cursor in Block to N.") do |engine|
+        cursor = engine.stack.drop.assert(engine, Decimal)
+        block = engine.stack.drop.assert(engine, Block)
         block.to(cursor.to_i)
       end
 
@@ -226,8 +226,8 @@ module Novika::Packages
      and Element before cursor in Block (and moves cursor back
      once), leaves Element.
     END
-      ) do |world|
-        world.stack.drop.assert(world, Block).drop.push(world)
+      ) do |engine|
+        engine.stack.drop.assert(engine, Block).drop.push(engine)
       end
 
       target.at("shove", <<-END
@@ -235,31 +235,32 @@ module Novika::Packages
      before cursor in Block (and moves cursor forward once),
      drops both.
     END
-      ) do |world|
-        world.stack.drop.push(world.stack.drop.assert(world, Block))
+      ) do |engine|
+        engine.stack.drop.push(engine.stack.drop.assert(engine, Block))
       end
 
-      target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |world|
-        block = world.stack.drop.assert(world, Block)
-        block.top.push(world)
+      target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        block.top.push(engine)
       end
 
-      target.at("mergeTables") do |world|
-        donor = world.stack.drop.assert(world, Block)
-        recpt = world.stack.drop.assert(world, Block)
-        recpt.merge_table!(with: donor)
+      target.at("mergeTables") do |engine|
+        donor = engine.stack.drop.assert(engine, Block)
+        recpt = engine.stack.drop.assert(engine, Block)
+        recpt.import!(from: donor)
       end
 
-      target.at("reportError") do |world|
-        world.report(world.stack.drop.assert(world, Form::Died))
+      target.at("reportError") do |engine|
+        died = engine.stack.drop.assert(engine, Died)
+        died.report(STDOUT)
       end
 
-      target.at("monotonic", "( -- Mt ): leaves milliseconds time of monotonic clock") do |world|
-        Decimal.new(Time.monotonic.total_milliseconds).push(world)
+      target.at("monotonic", "( -- Mt ): leaves milliseconds time of monotonic clock") do |engine|
+        Decimal.new(Time.monotonic.total_milliseconds).push(engine)
       end
 
-      target.at("echo", "( F -- ): shows Form in the console.") do |world|
-        quote = world.stack.drop.enquote(world)
+      target.at("echo", "( F -- ): shows Form in the console.") do |engine|
+        quote = engine.stack.drop.enquote(engine)
         puts quote.string
       end
 
@@ -268,34 +269,40 @@ module Novika::Packages
      Leaves Answer quote, and an accepted (true) / rejected (false)
      bool. If rejected, Answer quote is empty.
     END
-      ) do |world|
-        prompt = world.stack.drop.enquote(world)
-        answer = Readline.readline(prompt.string)
-        Quote.new(answer || "").push(world)
-        Boolean[!!answer].push(world)
+      ) do |engine|
+        prompt = engine.stack.drop.enquote(engine)
+        answer = nil
+        {% if flag?(:novika_readline) %}
+          answer = Readline.readline(prompt.string)
+        {% else %}
+          print prompt.string
+          answer = gets
+        {% end %}
+        Quote.new(answer || "").push(engine)
+        Boolean[!!answer].push(engine)
       end
 
-      target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |world|
-        world.stack.drop.enquote(world).push(world)
+      target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
+        engine.stack.drop.enquote(engine).push(engine)
       end
 
-      target.at("die", "( D -- ): dies with Details quote.") do |world|
-        raise Form::Died.new(world.stack.drop.assert(world, Quote).string)
+      target.at("die", "( D -- ): dies with Details quote.") do |engine|
+        raise Died.new(engine.stack.drop.assert(engine, Quote).string)
       end
 
-      target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |world|
-        b = world.stack.drop.assert(world, Quote)
-        a = world.stack.drop.assert(world, Quote)
-        world.stack.add(a + b)
+      target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |engine|
+        b = engine.stack.drop.assert(engine, Quote)
+        a = engine.stack.drop.assert(engine, Quote)
+        engine.stack.add(a + b)
       end
 
-      target.at("ls", "( B -- Nb ): gathers all table entry names into Name block.") do |world|
-        block = world.stack.drop.assert(world, Block)
+      target.at("ls", "( B -- Nb ): gathers all table entry names into Name block.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
         result = Block.new
         block.ls.each do |form|
           result.add(form)
         end
-        result.push(world)
+        result.push(engine)
       end
 
       target.at("reparent", <<-END
@@ -303,9 +310,9 @@ module Novika::Packages
      for cycles which can hang the interpreter, therefore is
      O(N) where N is the amount of Parent's ancestors.
     END
-      ) do |world|
-        pb = world.stack.drop.assert(world, Block)
-        cb = world.stack.top.assert(world, Block)
+      ) do |engine|
+        pb = engine.stack.drop.assert(engine, Block)
+        cb = engine.stack.top.assert(engine, Block)
 
         # Check for cycles. I'm having a hard time thinking
         # about this, so idk if this really works for them
@@ -327,82 +334,82 @@ module Novika::Packages
     ( B Q -- B ): parses Quote and adds all forms from Quote
      to Block.
     END
-      ) do |world|
-        source = world.stack.drop.assert(world, Quote)
-        block = world.stack.top.assert(world, Block)
+      ) do |engine|
+        source = engine.stack.drop.assert(engine, Quote)
+        block = engine.stack.top.assert(engine, Block)
         block.slurp(source.string)
       end
 
-      target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |world|
-        Block.new.push(world)
+      target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |engine|
+        Block.new.push(engine)
       end
 
-      target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |world|
-        Boolean[!world.stack.drop.assert(world, Block).parent?].push(world)
+      target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |engine|
+        Boolean[!engine.stack.drop.assert(engine, Block).parent?].push(engine)
       end
 
-      target.at("desc", "( F -- Hq ): leaves the description of Form.") do |world|
-        quote = Quote.new(world.stack.drop.desc)
-        quote.push(world)
+      target.at("desc", "( F -- Hq ): leaves the description of Form.") do |engine|
+        quote = Quote.new(engine.stack.drop.desc)
+        quote.push(engine)
       end
 
-      target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |world|
-        sleep world.stack.drop.assert(world, Decimal).to_i.milliseconds
+      target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |engine|
+        sleep engine.stack.drop.assert(engine, Decimal).to_i.milliseconds
       end
 
       # File system ------------------------------------------
 
-      target.at("fs:exists?", "( Pq -- true/false ): leaves whether Path quote exists.") do |world|
-        path = world.stack.drop.assert(world, Quote)
+      target.at("fs:exists?", "( Pq -- true/false ): leaves whether Path quote exists.") do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         status = File.exists?(path.string)
-        Boolean[status].push(world)
+        Boolean[status].push(engine)
       end
 
-      target.at("fs:readable?", "( Pq -- true/false ): leaves whether Path quote is readable.") do |world|
-        path = world.stack.drop.assert(world, Quote)
+      target.at("fs:readable?", "( Pq -- true/false ): leaves whether Path quote is readable.") do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         status = File.readable?(path.string)
-        Boolean[status].push(world)
+        Boolean[status].push(engine)
       end
 
       target.at("fs:dir?", <<-END
     ( Pq -- true/false ): leaves whether Path quote exists and
      points to a directory.
     END
-      ) do |world|
-        path = world.stack.drop.assert(world, Quote)
+      ) do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         status = Dir.exists?(path.string)
-        Boolean[status].push(world)
+        Boolean[status].push(engine)
       end
 
       target.at("fs:file?", <<-END
     ( Pq -- true/false ): leaves whether Path quote exists and
      points to a file.
     END
-      ) do |world|
-        path = world.stack.drop.assert(world, Quote)
+      ) do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         status = File.file?(path.string)
-        Boolean[status].push(world)
+        Boolean[status].push(engine)
       end
 
       target.at("fs:symlink?", <<-END
     ( Pq -- true/false ): leaves whether Path quote exists and
      points to a symlink.
     END
-      ) do |world|
-        path = world.stack.drop.assert(world, Quote)
+      ) do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         status = File.symlink?(path.string)
-        Boolean[status].push(world)
+        Boolean[status].push(engine)
       end
 
-      target.at("fs:touch", "( P -- ): creates a file at Path.") do |world|
-        path = world.stack.drop.assert(world, Quote)
+      target.at("fs:touch", "( P -- ): creates a file at Path.") do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         File.touch(path.string)
       end
 
-      target.at("fs:read", "( F -- C ): reads and leaves Contents of File") do |world|
-        path = world.stack.drop.assert(world, Quote)
+      target.at("fs:read", "( F -- C ): reads and leaves Contents of File") do |engine|
+        path = engine.stack.drop.assert(engine, Quote)
         contents = File.read(path.string)
-        Quote.new(contents).push(world)
+        Quote.new(contents).push(engine)
       end
     end
   end

@@ -9,30 +9,31 @@ module Novika
     extend HasDesc
 
     # Raises with *details*.
-    abstract def die(details)
+    abstract def die(details : String)
 
-    # Returns the table entry for *name*, or nil.
+    # Returns the table entry corresponding to *name*, or nil.
     def at?(name : Form) : Entry?
     end
 
-    # Returns the table entry for *name*, or dies.
+    # Returns the table entry corresponding to *name*, or dies.
     def at(name : Form) : Entry
       at?(name) || die("undefined table property: #{name}")
     end
 
-    # Returns whether this table has *name* table entry.
-    def has?(name)
+    # Returns whether this table has an entry corresponding
+    # to *name*.
+    def has?(name : Form)
       !!at?(name)
     end
 
-    def self.desc(io)
+    def self.desc(io : IO)
       io << "a readable table"
     end
   end
 
-  # Represents a table entry. Holds the value form.
+  # Represents a table entry. Table entries hold the value form.
   class Entry
-    # Returns the form held by this entry.
+    # Returns the form currently held by this entry.
     getter form : Form
 
     def initialize(@form)
@@ -42,12 +43,12 @@ module Novika
     delegate :push, to: form
 
     # :ditto:
-    def open(world)
-      push(world)
+    def open(engine : Engine) : self
+      tap { push(engine) }
     end
 
     # Makes *form* the value form of this entry.
-    def submit(@form)
+    def submit(@form) : self
       self
     end
 
@@ -57,9 +58,9 @@ module Novika
   # A kind of entry that, when opened, in turn opens its
   # value form.
   class OpenEntry < Entry
-    # Opens this entry's value form in *world*.
-    def open(world)
-      form.open(world)
+    # Opens this entry's value form in *engine*.
+    def open(engine : Engine) : self
+      tap { form.open(engine) }
     end
   end
 end

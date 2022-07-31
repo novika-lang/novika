@@ -4,20 +4,30 @@ require "file_utils"
 
 # Order is important!
 require "./novika/forms/form"
+require "./novika/errors"
 require "./novika/tape"
 require "./novika/table"
 require "./novika/forms/*"
-require "./novika/world"
+require "./novika/engine"
 require "./novika/package"
 require "./novika/packages/*"
 
-def help : NoReturn
-  cdir = "directory".colorize.blue
-  cpkg = "package".colorize.magenta
-  cfile = "file".colorize.green
-  on = "on by default".colorize.bold
+module Novika
+  extend self
 
-  abort <<-END
+  # Represents a folder with Novika files, containing an `entry`
+  # file path (if any; e.g., `core.nk` inside a folder named
+  # `core`), and paths for all other `files` (if any).
+  record Folder, entry : Path? = nil, files = [] of Path
+
+  # Appends help message to *io*.
+  def help(io)
+    cdir = "directory".colorize.blue
+    cpkg = "package".colorize.magenta
+    cfile = "file".colorize.green
+    on = "on by default".colorize.bold
+
+    io << <<-END
   Welcome to Novika, and thanks for trying it out!
 
   One or more arguments must be provided for Novika to properly
@@ -30,8 +40,8 @@ def help : NoReturn
   (1) When you provide a #{cdir}, Novika will run all *.nk
       files in that directory. First, *.nk files in the directory
       itself are run, and then that process is repeated in the
-      sub-directories. For any given directory, the main file
-      in that directory is dirname.nk. It is always run first.
+      sub-directories. For any given directory, its entry file,
+      <directory-name>.nk (if it exists) is run first.
 
   (2) Individual #{cfile}s are run after all directories are run.
 
@@ -39,99 +49,97 @@ def help : NoReturn
         - kernel (#{on})
         - math (#{on})
         - console (enables the console API)
+
   END
+  end
 
-  # TODO: autogenerate (3)
-end
+  # Recursively visits directories starting at, and including,
+  # *root*, and creates `Folder`s for their corresponding paths
+  # in *folders*.
+  def collect(folders : Hash(Path, Folder), root : Path)
+    if File.file?(entry = root / "#{root.stem}.nk")
+      folders[root] = folder = Folder.new(entry)
+    else
+      folders[root] = folder = Folder.new
+    end
 
-record Mod, entry : Path? = nil, files = [] of Path do
-  def add(file)
-    files << file
+    Dir.glob(root / "*.nk") do |path|
+      unless (path = Path[path]) == entry
+        folder.files << path
+      end
+    end
+
+    Dir.glob(root / "/*/") do |path|
+      collect(folders, Path[path])
+    end
+  end
+
+  # Runs the file at *path* using *engine*. A new block is
+  # created for *path*; this block inherits *toplevel*.
+  #
+  # Words from the new block are imported into *toplevel*
+  # after the engine is exhausted. Returns *toplevel*.
+  def run(engine : Engine, toplevel : Block, path : Path) : Block
+    source = File.read(path)
+    stack = Block.new
+    block = Block.new(toplevel).slurp(source)
+    engine.conts.add Engine.cont(block.to(0), stack)
+    engine.exhaust
+    toplevel.import!(from: block)
+  end
+
+  # Novika command-line frontend entry point.
+  def frontend(args : Array(String), cwd = Path[FileUtils.pwd])
+    if ARGV.empty?
+      help(STDERR)
+      exit(1)
+    end
+
+    pkgs = [Packages::Kernel.new, Packages::Math.new] of Package
+    files = [] of Path
+    folders = {} of Path => Folder
+
+    engine = Engine.new
+    pkgblock = Block.new
+    toplevel = Block.new(pkgblock)
+
+    args.each do |arg|
+      if pkg = Package[arg]?
+        # A package. Add it to our packages list, and continue.
+        # Do not duplicate.
+        pkgs << pkg.new unless pkgs.any?(pkg)
+      elsif File.directory?(arg)
+        # Exists and is a directory.
+        collect(folders, Path[arg])
+      elsif File.file?(arg)
+        # Exists and is a file.
+        files << Path[arg]
+      else
+        abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd.to_s}"
+      end
+    end
+
+    # Inject all our packages into the package block (just a
+    # super-duper toplevel block.).
+    pkgs.each &.inject(into: pkgblock)
+
+    # Evaluate each folder's entry (if any), then its *.nk files.
+    folders.each_value do |folder|
+      if entry = folder.entry
+        run(engine, toplevel, entry)
+      end
+      folder.files.each do |file|
+        run(engine, toplevel, file)
+      end
+    end
+
+    # Evaluate the user's files.
+    files.each { |file| run(engine, toplevel, file) }
+  rescue e : EngineFailure
+    e.report(STDERR)
   end
 end
 
-# Collects files and directories as stated in `help`, starting
-# at *root*, and saves them in *mods*.
-def collect(mods, root : Path)
-  if File.file?(entry = root / "#{root.stem}.nk")
-    mods[root] = mod = Mod.new(entry)
-  else
-    mods[root] = mod = Mod.new
-  end
-
-  Dir.glob(root / "*.nk") do |path|
-    path = Path[path]
-    mod.add(path) unless path == entry
-  end
-
-  Dir.glob(root / "/*/") do |path|
-    collect(mods, Path[path])
-  end
-end
-
-def run(world, toplevel, path : Path)
-  {% unless flag?(:release) %}
-    puts path.colorize.dark_gray
-  {% end %}
-  source = File.read(path)
-  stack = Novika::Block.new
-  block = Novika::Block.new(toplevel).slurp(source)
-  world.conts.add Novika::World.cont(block.to(0), stack)
-  world.exhaust
-  toplevel.merge_table!(with: block)
-end
-
-help if ARGV.empty?
-
-cwd = Path[FileUtils.pwd]
-
-dirs = [] of Path
-files = [] of Path
-pkgs = [] of Novika::Package
-pkgs << Novika::Packages::Kernel.new
-pkgs << Novika::Packages::Math.new
-
-ARGV.each do |arg|
-  if pkg = Novika::Package[arg]?
-    pkgs << pkg.new unless pkgs.any?(pkg)
-    next
-  end
-
-  case File
-  when .directory?(arg) then dirs << Path[arg]
-  when .file?(arg)      then files << Path[arg]
-  else
-    abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd.to_s}"
-  end
-end
-
-mods = {} of Path => Mod
-
-dirs.each do |path|
-  collect(mods, Path[path])
-end
-
-world = Novika::World.new
-pkgblock = Novika::Block.new
-toplevel = Novika::Block.new(pkgblock)
-
-pkgs.each do |pkg|
-  pkg.inject(into: pkgblock)
-end
-
-# Evaluate module entries fisrt, if any.
-mods.each_value.select(&.entry).each do |mod|
-  run(world, toplevel, mod.entry.not_nil!)
-end
-
-# Then evaluate all other files.
-mods.each_value do |mod|
-  mod.files.each do |file|
-    run(world, toplevel, file)
-  end
-end
-
-# Then evalute user's files.
-files.each do |file|
-  run(world, toplevel, file)
-end
+{% if flag?(:novika_frontend) %}
+  Novika.frontend(ARGV)
+{% end %}

@@ -1,29 +1,30 @@
 module Novika
   # Wraps a snippet of Crystal (native) code, namely a Crystal
-  # `Proc`, for usage in the Novika-world.
+  # `Proc`, for usage in the Novika-land.
   struct Builtin
+    include Form
     extend HasDesc
 
-    include Form
-
-    getter desc : String
-
     # :nodoc:
-    getter code : World ->
+    getter code : Engine ->
 
-    def initialize(@desc, @code)
+    def initialize(@desc : String, @code)
     end
 
-    def open(world)
-      code.call(world)
+    def desc(io : IO)
+      io << @desc
+    end
+
+    def self.desc(io : IO)
+      io << "a builtin"
+    end
+
+    def open(engine : Engine)
+      code.call(engine)
     end
 
     def to_s(io)
       io << "[native code]"
-    end
-
-    def self.desc(io)
-      io << "a builtin"
     end
 
     def_equals_and_hash code
