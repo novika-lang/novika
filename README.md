@@ -15,19 +15,46 @@ Forth, Red/Rebol, Self, and Lisp.
 * Help if you can. Poke around. There is little docs on the language
   itself, so explore and infer :)
 
-## Trying Novika out
+For use as a library:
 
-For an example of Novika code, go into the `examples/` directory. The
-best example there is `snake.nk`. A lot of places are documented , but
-that documentation uses some Novika terms that require clarification
-(mainly because I'm also just exploring the language, so explaining it
-will require some time). Plus, there is a lot of implicit expectations
-in code (this would be partially resolved later with a dynamic (runtime)
-type check system), and in docs too.
+```yml
+dependencies:
+  novika:
+    github: homonoidian/novika
+```
 
-You can run REPL with
+## How can I build and run Novika?
 
-    novika core repl.nk
+Currently, there is only one official way:
+
+1. Clone or download his repo: `git clone https://github.com/homonoidian/novika`.
+2. Make sure your working directory is this repo.
+3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
+  (that's smart huh?).
+4. Type the following command:
+    `shards install`.
+5. On Windows, type the following command:
+    `shards build --release --production --progress --no-debug -Dnovika_frontend`
+
+   On Unix, type the following command:
+    `shards build --release --production --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
+
+Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
+is a way to go if you want to type some Novika code yourself, or try `./bin/novika core hello.nk`
+as the help message suggests, and see Novika in action. If you want to experience how slow
+Novika really is (except the filesystem part), run `./bin/novika core playground.nk`.
+
+## How can I play with Novika?
+
+`examples/` directory is the best place to go. There, the best example
+is `snake.nk`. Much of the code is documented, but that documentation
+uses some Novika terms that require clarification (mainly because I'm
+also just exploring the language, so explaining it will require some time).
+Plus, there is a lot of implicit expectations in code (this would be
+partially resolved later with a dynamic (runtime) type check system),
+and in docs too.
+
+You can run REPL with: `novika core repl.nk`
 
 ## Syntax highlighting
 
@@ -156,21 +183,6 @@ Working with the insertion point:
   [ echo ] there "Prints 3 ;; [ | 3]"
   open "3"
 ```
-
-## Installation
-
-Wut?
-
-## Usage
-
-`shards build --release --production --progress --no-debug` and
-every other switch you can come up with :)
-
-Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
-is a way to go if you want to type some Novika code yourself,
-or try `./bin/novika core hello.nk` as the help message suggests, and
-see Novika in action. If you want to experience how slow Novika
-really is (except the filesystem part), run `./bin/novika core playground.nk`.
 
 ## Development
 
