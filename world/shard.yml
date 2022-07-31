@@ -1,0 +1,11 @@
+name: novika-world
+version: 0.0.0
+
+targets:
+  world:
+    main: world.cr
+
+dependencies:
+  sdl:
+    github: ysbaddaden/sdl.cr
+
