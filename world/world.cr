@@ -985,7 +985,16 @@ until closed
         winh = event.data2
       end
     when SDL::Event::TextInput
-      activity.try &.input(mouse_x, mouse_y, event.text[0].chr.to_s)
+      # Event text seems to contain relevant bytes then \0
+      # followed by junk. Count until seeing \0.
+      if activity
+        chars = event.text.to_slice
+        count = 0
+        until chars[count].zero?
+          count += 1
+        end
+        activity.input(mouse_x, mouse_y, String.new(chars[0, count]))
+      end
     end
   end
 
