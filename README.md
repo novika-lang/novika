@@ -30,12 +30,11 @@ Currently, there is only one official way:
 2. Make sure your working directory is this repo.
 3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
   (that's smart huh?).
-4. Type the following command: `shards install --without-development`.
-5. On Windows, type the following command:
-    `shards build --release --progress --no-debug -Dnovika_frontend`
+4. On Windows, type the following command:
+    `shards build --without-development --release --progress --no-debug -Dnovika_frontend`
 
    On Unix, type the following command:
-    `shards build --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
+    `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
 Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
 is a way to go if you want to type some Novika code yourself, or try `./bin/novika core hello.nk`
