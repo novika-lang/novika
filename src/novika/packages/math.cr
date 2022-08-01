@@ -29,6 +29,7 @@ module Novika::Packages
       target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |engine|
         b = engine.stack.drop.assert(engine, Decimal)
         a = engine.stack.drop.assert(engine, Decimal)
+        b.die("division by zero") if b.zero?
         engine.stack.add(a / b)
       end
 

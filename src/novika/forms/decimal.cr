@@ -22,6 +22,11 @@ module Novika
       io << "a decimal number"
     end
 
+    # Returns whether this decimal is zero.
+    def zero? : Bool
+      val.zero?
+    end
+
     # Downgrades this decimal into an integer (`Int32`). Dies
     # if too large.
     def to_i : Int32
