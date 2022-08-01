@@ -88,7 +88,7 @@ module Novika
     end
 
     def desc(io : IO)
-      io << (comment? || "a block")
+      io << (prototype.comment? || "a block")
     end
 
     def self.desc(io)
