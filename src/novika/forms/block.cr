@@ -436,6 +436,7 @@ module Novika
       end
 
       io << " ]"
+      io << "+" unless same?(prototype)
     end
   end
 end
