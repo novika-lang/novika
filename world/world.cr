@@ -487,7 +487,10 @@ class PlayButton < Activity
 
   def release(px, py)
     return if super
-    @activity.play
+    status = @status
+    if status.nil? || status.done? || status.failed?
+      @activity.play
+    end
   end
 
   def present(renderer)
