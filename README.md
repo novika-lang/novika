@@ -44,6 +44,8 @@ Novika really is (except the filesystem part), run `./bin/novika core playground
 
 ## How can I play with Novika?
 
+**Hint: look into the world directory**
+
 `examples/` directory is the best place to go. There, the best example
 is `snake.nk`. Much of the code is documented, but that documentation
 uses some Novika terms that require clarification (mainly because I'm
