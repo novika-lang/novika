@@ -541,14 +541,22 @@ abstract struct ConsCmd
 end
 
 struct CmdPrint < ConsCmd
-  def initialize(@x : Int32, @y : Int32, @string : String)
+  getter x, y, fg, bg
+
+  def initialize(@x : Int32, @y : Int32, @fg : ConsColor, @bg : ConsColor, @string : String)
+  end
+
+  def undo(console)
+    row = console.buffer[@y]
+    (@x...@x + @string.size).each do |index|
+      row[index] = row[index].copy_with(char: ' ')
+    end
   end
 
   def execute(console)
-    console.buffer[@y].map_with_index! do |cell, index|
-      next cell if index < @x
-      break cell if index >= @x + @string.size
-      cell.copy_with(fg: console.fg, bg: console.bg, char: @string[index - @x])
+    row = console.buffer[@y]
+    (@x...@x + @string.size).each do |index|
+      row[index] = row[index].copy_with(fg: @fg, bg: @bg, char: @string[index - @x])
     end
   end
 end
@@ -572,14 +580,7 @@ class ConsoleActivity < Activity
 
   # Holds the console buffer: consists of row arrays and cells
   # in those row arrays.
-  getter buffer : Array(Array(Cell)) do
-    Array(Array(Cell)).new(rows) do |row|
-      Array(Cell).new(cols) do |col|
-        # Fill with whitespace cells.
-        Cell.new(row, col, ' ', fg, bg)
-      end
-    end
-  end
+  getter buffer : Array(Array(Cell))
 
   # Command stack. Commands are executed from left to right
   # upon `present`.
@@ -608,6 +609,12 @@ class ConsoleActivity < Activity
   def initialize(@activities : Array(Activity))
     @w = SPACE.width * cols
     @h = SPACE.height * rows
+    @buffer = Array(Array(Cell)).new(rows) do |row|
+      Array(Cell).new(cols) do |col|
+        # Fill with whitespace cells.
+        Cell.new(row, col, ' ', fg, bg)
+      end
+    end
   end
 
   # Returns the amount of columns.
@@ -647,24 +654,30 @@ class ConsoleActivity < Activity
 
   # Clears the contents of this console with `fg`, `bg` colors.
   def clear
-    @commands.clear
-    return unless @buffer
-    buffer.map_with_index! do |row|
-      row.map_with_index! do |cell|
-        cell.copy_with(fg: fg, bg: bg, char: ' ')
+    # Check if all fgs and bgs are equal to current fg, bg.
+    # If they aren't, we need to clear all cells.
+    if @commands.all? { |cmd| cmd.fg == fg && cmd.bg == bg }
+      # If they are, we can only clear cells which printed.
+      @commands.each &.undo(self)
+      @commands.clear
+    else
+      @commands.clear
+      @buffer.map_with_index! do |row|
+        row.map_with_index! do |cell|
+          cell.copy_with(fg: fg, bg: bg, char: ' ')
+        end
       end
     end
   end
 
   # Prints *string* starting at column *x*, row *y*.
   def print(x, y, string)
-    @commands << CmdPrint.new(x, y, string)
+    @commands << CmdPrint.new(x, y, fg, bg, string)
   end
 
   # Sync model with view.
   def present
     @commands.each &.execute(self)
-    @commands.clear
   end
 
   def present(renderer)
@@ -907,7 +920,15 @@ until closed
 
   RENDERER.draw_color = SDL::Color[255, 255, 255]
   RENDERER.clear
-  activities.each &.present(RENDERER)
+  activities.each do |activity|
+    ox = activity.x
+    oy = activity.y
+    cx = ox + activity.w
+    cy = oy + activity.y
+    if (ox >= 0 || oy >= 0) && (cx <= WINDOW.width) || (cy <= WINDOW.height)
+      activity.present(RENDERER)
+    end
+  end
   RENDERER.present
 
   # Either give time to other fibers, or sleep a lot (the less
