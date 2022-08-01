@@ -5,12 +5,12 @@ module Novika
     extend HasDesc
 
     # Returns the underlying big decimal value.
-    getter val : BigDecimal
+    protected getter val : BigDecimal
 
     def initialize(@val : BigDecimal)
     end
 
-    def initialize(object)
+    def initialize(object : String | Number)
       initialize(object.to_big_d)
     end
 
@@ -58,6 +58,16 @@ module Novika
     # Returns whether this decimal is smaller than *other*.
     def <(other : Decimal) : Bool
       val < other.val
+    end
+
+    # Rounds this decimal.
+    def round : Decimal
+      Decimal.new(val.round)
+    end
+
+    # Truncates this decimal.
+    def trunc : Decimal
+      Decimal.new(val.trunc)
     end
 
     def to_s(io)

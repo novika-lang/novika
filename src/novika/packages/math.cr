@@ -40,12 +40,12 @@ module Novika::Packages
 
       target.at("round", "( D -- Dr ): leaves round Decimal.") do |engine|
         decimal = engine.stack.drop.assert(engine, Decimal)
-        Decimal.new(decimal.val.round).push(engine)
+        decimal.round.push(engine)
       end
 
       target.at("trunc", "( D -- Dt ): leaves truncated Decimal.") do |engine|
         decimal = engine.stack.drop.assert(engine, Decimal)
-        Decimal.new(decimal.val.trunc).push(engine)
+        decimal.trunc.push(engine)
       end
 
       target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |engine|
