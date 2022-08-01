@@ -311,23 +311,21 @@ module Novika::Packages
      O(N) where N is the amount of Parent's ancestors.
     END
       ) do |engine|
-        pb = engine.stack.drop.assert(engine, Block)
-        cb = engine.stack.top.assert(engine, Block)
+        parent = engine.stack.drop.assert(engine, Block)
+        child = engine.stack.top.assert(engine, Block)
 
-        # Check for cycles. I'm having a hard time thinking
-        # about this, so idk if this really works for them
-        # smart cases.
-        visited = [cb]
-        current = pb
+        # TODO: this seems to be too forgiving. Lookup cycles
+        # are pretty dangerous.
+        current = parent
         while current
-          if current.in?(visited)
-            cb.die("this reparent introduces a cycle")
+          if current.same?(child)
+            current.die("this reparent introduces a cycle")
+          else
+            current = current.parent?
           end
-          visited << current
-          current = current.parent?
         end
 
-        cb.parent = pb
+        child.parent = parent
       end
 
       target.at("slurp", <<-END

@@ -278,20 +278,35 @@ class Player
   getter status = Channel(Status).new(1)
 
   def initialize(@global : Novika::Block, @activity : FileActivity, @path : String)
-    @world = Novika::Engine.new
-    @toplevel = Novika::Block.new(@global)
-    IOMod.new(self).inject(@toplevel)
-    ConsMod.new(self).inject(@toplevel)
+    @engine = Novika::Engine.new
+    @proxy = Novika::Block.new
   end
 
   delegate :print, :println, :request_user_input, :request_console, to: @activity
 
   def play
+    # Populate proxy with instances (own copies) of table entries
+    # from global. The reasons for this are too cumberome to
+    # explain. For an example of why this is needed, try
+    # typing `100 p` in REPL in world *before* this change.
+    @global.table.each do |k, v|
+      form = v.form
+      form = form.instance(parent: @proxy) if form.is_a?(Novika::Block)
+      @proxy.at k, v.class.new(form)
+    end
+
+    IOMod.new(self).inject(@proxy)
+    ConsMod.new(self).inject(@proxy)
+
     spawn do
       status.send(Status::Progress)
       begin
-        Novika.run(@world, @toplevel, Path[@path])
-        @global.import!(from: @toplevel)
+        program = Novika::Block.new(@proxy)
+        Novika.run(@engine, program, Path[@path])
+        @global.import!(from: program)
+        # Reset the proxy block now, so on the next play we
+        # can re-populate it with updated contents of global.
+        @proxy = Novika::Block.new
         status.send(Status::Done)
       rescue e : Novika::EngineFailure
         e.report(STDOUT)
