@@ -318,31 +318,53 @@ end
 
 class InputManager
   getter ans = ""
+  getter cursor = 0
 
   def initialize(@activity : FileActivity, @index : Int32, @prompt : String, @answer : Channel(String?))
     self.ans = ""
   end
 
-  def ans=(@ans)
-    @activity.print(@index, @prompt + ans, blink: true)
+  private def publish(str = @prompt + ans, curs = @prompt.size + cursor)
+    @activity.print(@index, str, curs)
   end
 
-  def rchop
-    self.ans = ans.rchop
+  def ans=(@ans)
+    publish
+  end
+
+  def cursor=(@cursor)
+    self.ans = ans
+  end
+
+  def del
+    self.ans = ans.delete_at(cursor) unless cursor == ans.size
+  end
+
+  def mov?(delta) : Bool
+    jmp?(cursor + delta)
+  end
+
+  def jmp?(pos) : Bool
+    self.cursor = pos.clamp(0..ans.size)
+    cursor == pos
   end
 
   def accept
-    @activity.print(@index, @prompt + ans, blink: false)
+    @activity.print(@index, @prompt + ans)
     @answer.send(@ans)
   end
 
   def reject
-    @activity.print(@index, @prompt + ans, blink: false)
+    @activity.print(@index, @prompt + ans)
     @answer.send(nil)
   end
 
-  def add(char)
-    self.ans += char
+  def add(string)
+    # Do it this way to not cause double printing which could
+    # be too expensive at times:
+    @ans = ans.insert(cursor, string)
+    @cursor += string.size
+    publish
   end
 end
 
@@ -661,7 +683,7 @@ class FileActivity < Activity
   property x : Int32, y : Int32
 
   @label : SDL::Surface
-  @strings = [] of {String, SDL::Surface?, Bool}
+  @strings = [] of {String, SDL::Surface?, Int32?}
   @iman : InputManager?
 
   getter! button, player
@@ -685,24 +707,32 @@ class FileActivity < Activity
   def keyboard(x, y, event)
     return if super
 
-    chan = @iman
+    iman = @iman
 
-    if !chan && event.sym.s?
+    if !iman && event.sym.s?
       player.play
     end
 
-    return unless chan
+    return unless iman
 
-    chan.rchop if event.pressed? && event.sym.backspace?
-
-    return unless event.released?
-    case event.sym
-    when .return?
-      chan.accept
-      @iman = nil
-    when .escape?
-      chan.reject
-      @iman = nil
+    if event.pressed?
+      case event.sym
+      when .backspace? then iman.mov?(-1) && iman.del
+      when .delete?    then iman.del
+      when .left?      then iman.mov?(-1)
+      when .right?     then iman.mov?(+1)
+      when .home?      then iman.jmp?(0)
+      when .end?       then iman.jmp?(iman.ans.size)
+      end
+    elsif event.released?
+      case event.sym
+      when .return?
+        iman.accept
+        @iman = nil
+      when .escape?
+        iman.reject
+        @iman = nil
+      end
     end
   end
 
@@ -711,11 +741,8 @@ class FileActivity < Activity
   end
 
   def request_user_input(prompt, channel : Channel(String?))
-    if ifwd = @iman
-      ifwd.accept
-    else
-      @iman = InputManager.new(self, @strings.size, prompt, channel)
-    end
+    @iman.try &.accept
+    @iman = InputManager.new(self, @strings.size, prompt, channel)
   end
 
   # Prints *string* below file name in the file activity.
@@ -734,9 +761,12 @@ class FileActivity < Activity
     println(prev + string)
   end
 
-  def print(row, string, blink = false)
-    @strings.delete_at(row) if deleted = row < @strings.size
-    @h += 10 if @strings.empty?
+  def print(row, string, cursor_index = nil)
+    if deleted = row < @strings.size
+      @strings.delete_at(row)
+    elsif @strings.empty?
+      @h += 10
+    end
 
     string.each_line.with_index do |line, index|
       surface = FONT.render_blended(line, FG) unless line.empty?
@@ -748,30 +778,51 @@ class FileActivity < Activity
       elsif !deleted && row + index == @strings.size
         @h += SPACE.height
       end
-      @strings.insert(row + index, {line, surface, blink})
+      @strings.insert(row + index, {line, surface, cursor_index})
     end
   end
 
   def present(renderer)
+    # Draw borders:
     renderer.draw_color = BOR
     renderer.fill_rect(@x - 1, @y - 1, @w + 2, @h + 2)
+
+    # Draw background rectangle:
     renderer.draw_color = BG
     renderer.fill_rect(@x, @y, @w, @h)
+
+    # Draw label:
     renderer.copy(@label, dstrect: SDL::Rect[x = @x + 10, y = @y + 10, @label.width, @label.height])
     y += @label.height
-    unless @strings.empty?
-      y += 10
-    end
+    y += 10 unless @strings.empty?
+
+    # Draw play button:
     button.present(renderer)
-    @strings.each do |(_, surf, blink)|
-      if surf
-        renderer.copy(surf, dstrect: SDL::Rect[x, y, surf.width, surf.height])
-        if blink
+
+    # Draw IO:
+    @strings.each do |(string, surf, cursor_index)|
+      if surf           # There is a surface:
+        if cursor_index # There is a cursor:
+          pre_curs = FONT.width_of(string[...cursor_index])
+          aft_curs = FONT.width_of(string[cursor_index..])
+          # Copy part of string before cursor onto surface
+          # before cursor:
+          renderer.copy(surf,
+            srcrect: SDL::Rect[0, 0, pre_curs, surf.height],
+            dstrect: SDL::Rect[x, y, pre_curs, surf.height])
+          # Draw cursor between with padding x of 1px:
           renderer.draw_color = FG
-          renderer.fill_rect(x + surf.width, y, 1, surf.height)
+          renderer.fill_rect(x + pre_curs, y, 1, surf.height)
+          # Copy part of string after cursor onto surface
+          # after cursor:
+          renderer.copy(surf,
+            srcrect: SDL::Rect[pre_curs, 0, aft_curs, surf.height],
+            dstrect: SDL::Rect[x + pre_curs + 1, y, aft_curs, surf.height])
+        else # There is no cursor:
+          renderer.copy(surf, dstrect: SDL::Rect[x, y, surf.width, surf.height])
         end
         y += surf.height
-      else
+      else # There is no surface
         y += SPACE.height
       end
     end
