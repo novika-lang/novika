@@ -8,13 +8,14 @@ SDL::TTF.init
 at_exit { SDL.quit }
 at_exit { SDL::TTF.quit }
 
-WINDOW   = SDL::Window.new("SDL tutorial", 1280, 720)
+WINDOW   = SDL::Window.new("Novika Environment", 1024, 720, flags: SDL::Window::Flags::SHOWN | SDL::Window::Flags::RESIZABLE)
 RENDERER = SDL::Renderer.new(WINDOW, SDL::Renderer::Flags::ACCELERATED | SDL::Renderer::Flags::PRESENTVSYNC)
 
-FONT         = SDL::TTF::Font.new(File.join(__DIR__, "ttf", "OpenSans-VariableFont_wdth,wght.ttf"), 12)
-CONSOLE_FONT = SDL::TTF::Font.new(File.join(__DIR__, "ttf", "SpaceMono-Regular.ttf"), 10)
+FONT         = SDL::TTF::Font.new(File.join(__DIR__, "ttf", "sans.ttf"), 12)
+CONSOLE_FONT = SDL::TTF::Font.new(File.join(__DIR__, "ttf", "mono.ttf"), 12)
+SPACE        = CONSOLE_FONT.render_blended(" ", SDL::Color[0, 0, 0], ascii: true)
 
-SPACE = CONSOLE_FONT.render_blended(" ", SDL::Color[0, 0, 0], ascii: true)
+WINDOW.icon = SDL.load_bmp(File.join(__DIR__, "logo_sm.bmp"))
 
 # A naive representation of a console color, enough to emulate
 # Novika's requirements.
@@ -422,6 +423,23 @@ abstract class Activity
     end
   end
 
+  # Returns whether this activity is visible.
+  getter? visible = true
+
+  # Sets visibility flag to true for this activity and its children.
+  def visible!
+    return if visible?
+    @visible = true
+    children.each &.visible!
+  end
+
+  # Sets visibility flag to false for this activity and its children.
+  def hidden!
+    return unless visible?
+    @visible = false
+    children.each &.hidden!
+  end
+
   # Handles motion event at *px*, *y* coordinates.
   def motion(px, py)
     distrib(motion)
@@ -478,7 +496,7 @@ end
 
 # Button to play a file activity.
 class PlayButton < Activity
-  HOVER = SDL::Color[0xce, 0xce, 0xce]
+  HOVER = SDL::Color[0x61, 0x61, 0x61]
   PENDC = SDL::Color[0x75, 0x75, 0x75]
   DONEC = SDL::Color[0x43, 0xA0, 0x47]
   PROGC = SDL::Color[0x1E, 0x88, 0xE5]
@@ -491,6 +509,7 @@ class PlayButton < Activity
   @status : Player::Status?
   @hover = false
   @srwh : Int32
+  @cursor : LibSDL::Cursor*
 
   def initialize(@activity : FileActivity, @x, @y)
     @label = FONT.render_blended("Play", FileActivity::FG)
@@ -498,13 +517,47 @@ class PlayButton < Activity
     @w = @label.width + 6 + @srwh + 3
     @h = @label.height + 4
     @status = nil
+    sysc = LibSDL.create_system_cursor(LibSDL::SystemCursor::ARROW)
+    if sysc == Pointer(LibSDL::Cursor).null
+      raise "LibSDL failed to create cursor"
+    end
+    if LibSDL.set_cursor(sysc) == Pointer(LibSDL::Cursor).null
+      raise "LibSDL failed to set cursor"
+    end
+    @cursor = sysc
     spawn do
       loop { @status = @activity.player.status.receive }
     end
   end
 
+  @cursor_hand = false
+
   def wants_at?(px, py)
     @hover = inc?(px, py)
+    if @hover && !@cursor_hand
+      LibSDL.free_cursor(@cursor)
+      sysc = LibSDL.create_system_cursor(LibSDL::SystemCursor::HAND)
+      if sysc == Pointer(LibSDL::Cursor).null
+        raise "LibSDL failed to create cursor"
+      end
+      if LibSDL.set_cursor(sysc) == Pointer(LibSDL::Cursor).null
+        raise "LibSDL failed to set cursor"
+      end
+      @cursor = sysc
+      @cursor_hand = true
+    elsif !@hover && @cursor_hand
+      LibSDL.free_cursor(@cursor)
+      sysc = LibSDL.create_system_cursor(LibSDL::SystemCursor::ARROW)
+      if sysc == Pointer(LibSDL::Cursor).null
+        raise "LibSDL failed to create cursor"
+      end
+      if LibSDL.set_cursor(sysc) == Pointer(LibSDL::Cursor).null
+        raise "LibSDL failed to set cursor"
+      end
+      @cursor = sysc
+      @cursor_hand = false
+    end
+    @hover
   end
 
   def release(px, py)
@@ -654,9 +707,11 @@ class ConsoleActivity < Activity
 
   # Clears the contents of this console with `fg`, `bg` colors.
   def clear
+    return unless visible?
+
     # Check if all fgs and bgs are equal to current fg, bg.
     # If they aren't, we need to clear all cells.
-    if @commands.all? { |cmd| cmd.fg == fg && cmd.bg == bg }
+    if !@commands.empty? && @commands.all? { |cmd| cmd.fg == fg && cmd.bg == bg }
       # If they are, we can only clear cells which printed.
       @commands.each &.undo(self)
       @commands.clear
@@ -672,11 +727,15 @@ class ConsoleActivity < Activity
 
   # Prints *string* starting at column *x*, row *y*.
   def print(x, y, string)
+    return unless visible?
+
     @commands << CmdPrint.new(x, y, fg, bg, string)
   end
 
   # Sync model with view.
   def present
+    return unless visible?
+
     @commands.each &.execute(self)
   end
 
@@ -688,9 +747,9 @@ end
 class FileActivity < Activity
   include Draggable
 
-  BG  = SDL::Color[0xee, 0xee, 0xee]
-  FG  = SDL::Color[0x33, 0x33, 0x33]
-  BOR = SDL::Color[0xce, 0xce, 0xce]
+  BG  = SDL::Color[0x35, 0x35, 0x35]
+  FG  = SDL::Color[0xE0, 0xE0, 0xE0]
+  BOR = SDL::Color[0x22, 0x22, 0x22]
 
   getter w : Int32, h : Int32
   property x : Int32, y : Int32
@@ -782,7 +841,7 @@ class FileActivity < Activity
     end
 
     string.each_line.with_index do |line, index|
-      surface = FONT.render_blended(line, FG) unless line.empty?
+      surface = CONSOLE_FONT.render_blended(line, FG) unless line.empty?
       if surface
         if !deleted && row + index == @strings.size
           @h += surface.height
@@ -816,8 +875,8 @@ class FileActivity < Activity
     @strings.each do |(string, surf, cursor_index)|
       if surf           # There is a surface:
         if cursor_index # There is a cursor:
-          pre_curs = FONT.width_of(string[...cursor_index])
-          aft_curs = FONT.width_of(string[cursor_index..])
+          pre_curs = CONSOLE_FONT.width_of(string[...cursor_index])
+          aft_curs = CONSOLE_FONT.width_of(string[cursor_index..])
           # Copy part of string before cursor onto surface
           # before cursor:
           renderer.copy(surf,
@@ -855,6 +914,10 @@ prev_drop_coords = nil
 clock = Time.monotonic
 
 pan_grip = nil
+pan_offset = {0, 0}
+
+winw = WINDOW.width
+winh = WINDOW.height
 
 until closed
   current = Time.monotonic
@@ -876,7 +939,8 @@ until closed
     when SDL::Event::MouseMotion
       if pan_grip
         activities.each do |a|
-          a.to(a.x + (mouse_x - pan_grip[0]), a.y + (mouse_y - pan_grip[1]))
+          pan_offset = {mouse_x - pan_grip[0], mouse_y - pan_grip[1]}
+          a.to(a.x + pan_offset[0], a.y + pan_offset[1])
         end
         pan_grip = {mouse_x, mouse_y}
       else
@@ -913,22 +977,41 @@ until closed
         prev = FileActivity.new(activities, global, mouse_x, mouse_y, name)
         activities << prev
       end
+    when SDL::Event::Window
+      id = LibSDL::WindowEventID.new(event.event)
+      case id
+      when .size_changed?
+        winw = event.data1
+        winh = event.data2
+      end
     when SDL::Event::TextInput
       activity.try &.input(mouse_x, mouse_y, event.text[0].chr.to_s)
     end
   end
 
-  RENDERER.draw_color = SDL::Color[255, 255, 255]
+  RENDERER.draw_color = SDL::Color[0x21, 0x21, 0x21]
   RENDERER.clear
+
   activities.each do |activity|
     ox = activity.x
     oy = activity.y
+
     cx = ox + activity.w
-    cy = oy + activity.y
-    if (ox >= 0 || oy >= 0) && (cx <= WINDOW.width) || (cy <= WINDOW.height)
+    cy = oy + activity.h
+
+    winox = pan_offset[0]
+    winoy = pan_offset[1]
+    wincx = winox + winw
+    wincy = winoy + winh
+
+    if winox <= cx && winoy <= cy && wincx >= ox && wincy >= oy
+      activity.visible!
       activity.present(RENDERER)
+    else
+      activity.hidden!
     end
   end
+
   RENDERER.present
 
   # Either give time to other fibers, or sleep a lot (the less
