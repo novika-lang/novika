@@ -1,0 +1,26 @@
+console:on 0 console:setTimeout
+console:truecolor
+
+[ 1 + ] $: goForth
+[ 1 - ] $: goBack
+[ console:setPrimary console:clear console:present ] @: erase
+
+0 $: n
+goForth @: step
+
+[
+  console:peek
+  console:hadKeyPressed
+    [ break ]
+    [ 0 0 0 console:color n n n console:color erase ]
+  br
+
+  n 0 =   => [ goForth =: step ]
+  n 255 = => [ goBack =: step ]
+
+  n step =: n
+
+  33 nap
+] loop
+
+console:off
