@@ -19,7 +19,7 @@ file activities. There is also a console activity. Hit play to run the
 respective file.
 
 You can drag things around. (Input) focus moves with mouse. You can pan
-around by holding any mouse button over the white background & moving.
+around by holding any mouse button over the background & moving.
 
 ### Snake
 
