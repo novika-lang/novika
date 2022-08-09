@@ -19,14 +19,14 @@ For use as a library:
 ```yml
 dependencies:
   novika:
-    github: homonoidian/novika
+    github: novika-lang/novika
 ```
 
 ## How can I build and run Novika?
 
 Currently, there is only one official way:
 
-1. Clone or download his repo: `git clone https://github.com/homonoidian/novika`.
+1. Clone or download his repo: `git clone https://github.com/novika-lang/novika`.
 2. Make sure your working directory is this repo.
 3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
   (that's smart huh?).
@@ -216,7 +216,7 @@ fast. Everything else will follow.
 
 ## Contributing
 
-1. Fork it (<https://github.com/homonoidian/novika/fork>)
+1. Fork it (<https://github.com/novika-lang/novika/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
