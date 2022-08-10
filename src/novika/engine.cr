@@ -108,13 +108,13 @@ module Novika
             rescue e : Died
               e.conts = conts.instance
 
-              # Try to find a block with a death handler by
-              # reverse-iterating through the continuations
-              # block.
+              # Try to find a block with a death handler by reverse-
+              # iterating through the continuations block.
               handler = nil
               until conts.empty?
-                break if handler = block.at?(Word::DIED)
+                handler = block.at?(Word::DIED)
                 conts.drop
+                break if handler
               end
 
               if handler
