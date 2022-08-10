@@ -22,6 +22,33 @@ dependencies:
     github: novika-lang/novika
 ```
 
+## Is it serious?
+
+Yes and no. It's a project done with smart look on the face, but
+honestly, I see little or no ways Novika can actually be used in
+practice, mainly in money-making practice. So it's pure language
+research and experimentation thingy for now.
+
+After all, no language I know of can do this:
+
+```novika
+  #+ here @: __+
+  #- here @: __-
+  #* here @: __*
+  #/ here @: __/
+
+  [ val ahead eject val __+ ] @: +
+  [ val ahead eject val __- ] @: -
+  [ val ahead eject val __* ] @: *
+  [ val ahead eject val __/ ] @: /
+
+  "Going from 1 3 4 * + 10 / to:"
+  1 + [ [ 3 * 4 ] / 10 ] echo "==> 2.2"
+
+  "... and just a Pratt parser away from proper precedence, if you
+   manage to scope things right."
+```
+
 ## How can I build and run Novika?
 
 Currently, there is only one official way:
@@ -78,15 +105,19 @@ runtime homoiconicity too? WTF?
 
 ### Cons
 
+* Novika is just very weird.
+* A mish-mash of everything. Specialization and strict separation
+  of concern (= simplicity) helps thought, generalization does not.
+  It doesn't make programs run fast either.
 * Novika is one of the purest expressions of dynamism (or, more
- specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
- Forth, but in Forth it's more dangerous because it can make
- your computer explode (I'm joking, of course). Note that I only
- learned a bit of Forth's philosophy, and haven't written even
- a line of it for myself.
+  specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
+  Forth, but in Forth it's more dangerous because it can make
+  your computer explode (I'm joking, of course). Note that I only
+  learned a bit of Forth's philosophy, and haven't written even
+  a line of it for myself.
 * If you write bad code, it'll break somewhere else, and throw
- you a hundred-line-long stack trace. At least it really shows
- where the error happened HUH?
+  you a hundred-line-long stack trace. At least it really shows
+  where the error happened HUH?
 * You'll have to train your intuition to find where an error occured
   (you'd be able to do it in one-two months), because *Novika doesn't
   show nor store line numbers and filenames*
