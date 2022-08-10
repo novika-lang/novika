@@ -92,7 +92,7 @@ module Novika
     def schedule(form, stack)
       # In case we're running in an empty engine, create an
       # empty block for the form.
-      schedule Engine.cont(conts.empty? ? Block.new : block, stack)
+      schedule Engine.cont(Block.new, stack)
 
       tap { form.open(self) }
     end
