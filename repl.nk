@@ -1,23 +1,69 @@
-[ ]        $: pgStack
+"""
+This is a prototype of a Novika REPL. You can run it from
+the terminal or from a viewer such as one found in `world/`
+or the upcoming Novika Sketchbook.
+
+To start it up, run the following command from the Novika
+repo directory:
+
+  >>> ./bin/novika core repl.nk
+
+The REPL could be somewhat buggy because it uses some of the
+more obscure features of Novika, and interfaces with the guts
+of the language more intimately than most other Novika code.
+Considering the language is currently entirely untested (meaning
+no automatic tests, of course), to reiterate, bugs are expected.
+"""
+
+"Whether there was an error."
+false $: error
+
+"Global stack, persisted for the entire REPL session."
+[ ] $: pgStack
+
+"REPL root block, also persisted for the entire REPL session.
+ A child of the block this comment is part of, and so inherits
+ all imported packages/files (such as core) and kernel."
 this child $: pgRoot
 
-[ "( Q -- )"
-  false $: error
+[ "( Q -- ): runs a Quote of Novika source code in the context
+   of the current REPL session."
 
-  pgRoot new swap slurp $: pgCurrent
-  pgCurrent #*died [ =: error ] opens
+  "Create an instance of the REPL root block, and stuff it
+   with the forms from Quote (parsed by the word `slurp`,
+   which is found in the auto-imported kernel)."
+  pgRoot new swap slurp $: pgRootInstance
 
-  [ pgStack pgCurrent hydrate! ] measure $: dt
+  "... and of the stack block too, for if an error happens,
+   we'd like to restore back to the 'good' stack."
+  pgStack shallowCopy   $: pgStackCopy
 
-  error
-    [ error reportError ]
-    [ pgRoot pgCurrent mergeTables ]
-  br
+  [
+    "Create a death handler which will catch all errors that are
+     made in the REPL root block instance we've created above.
+     This handler will report the error once it happens."
+    pgRootInstance #*died [ reportError true =: error ^ ] opens
+    pgStackCopy pgRootInstance hydrate!
+  ] measure $: timeTakenMs
 
-  [ 'In ' dt 'ms' ] here join echo
+  error br:
+    [ "There was an error (or multiple errors). It was already
+       reported by the death handler above."
+      false =: error
+    ]
+    [ "There was no error. Merge tables of original and instance
+       of the REPL root block, making entries defined in the
+       instance visible to next REPL inputs. Also, substitute
+       the global stack with the updated stack, which proved
+       to have no errors."
+      pgRoot pgRootInstance mergeTables
+      pgStackCopy =: pgStack
+      [ 'In ' timeTakenMs 'ms' ] here join echo
+    ]
 
   pgStack echo
-] @: run
+] @: runLineInSession
+
 
 ' ┌ Welcome to Novika!
  │
@@ -33,8 +79,7 @@ this child $: pgRoot
 ' echo
 
 loop: [
-  '>>> ' readLine
-    [ run ]
-    [ 'Bye.' echo break ]
-  br
+  '>>> ' readLine br:
+    [ "Line was read successfully:" runLineInSession ]
+    [ "The user had pressed Ctrl-D:" 'Bye.' echo break ]
 ]
