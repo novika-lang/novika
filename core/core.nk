@@ -10,7 +10,7 @@ because that's our root, not their root."
 
 conts dup
   count 1 - fromLeft
-        0   fromLeft "continuationBlock"  
+        0   fromLeft "continuationBlock"
         dup #_root swap pushes
 
 
