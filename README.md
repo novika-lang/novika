@@ -42,7 +42,7 @@ After all, no language I know of can do this:
   [ val ahead eject val __* ] @: *
   [ val ahead eject val __/ ] @: /
 
-  "Going from 1 3 4 * + 10 / to:"
+  "Going from 3 4 * 10 / 1 + to:"
   1 + [ [ 3 * 4 ] / 10 ] echo "==> 2.2"
 
   "... and just a Pratt parser away from proper precedence, if you
