@@ -27,6 +27,13 @@
 ] @: br
 
 
+[ "( D br: T F -- ? ): infix version of `br`."
+  ahead eject "T"
+  ahead eject "F"
+  br
+] @: br:
+
+
 [ "( D => T -- ? ): opens True form if Determiner is truthy."
   ahead eject [ ] br
 ] @: =>
