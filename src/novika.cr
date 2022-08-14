@@ -48,6 +48,7 @@ module Novika
   (3) There are also a number of builtin #{cpkg}s:
         - kernel (#{on})
         - math (#{on})
+        - colors (#{on})
         - console (enables the console API)
 
   END
@@ -95,7 +96,11 @@ module Novika
       exit(1)
     end
 
-    pkgs = [Packages::Kernel.new, Packages::Math.new] of Package
+    pkgs = [
+      Packages::Kernel.new,
+      Packages::Math.new,
+      Packages::Colors.new,
+    ] of Package
     files = [] of Path
     folders = {} of Path => Folder
 
