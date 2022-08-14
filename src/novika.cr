@@ -15,6 +15,42 @@ require "./novika/packages/*"
 module Novika
   extend self
 
+  VERSION = {{`shards version`.chomp.stringify}}
+
+  module Packages
+    class Frontend
+      include Package
+
+      def self.id
+        "frontend"
+      end
+
+      property version : String = VERSION
+      property! packages : Array(Package)
+
+      def inject(into target)
+        target.at("novika:version", "( -- Vq ): leaves Novika Version quote.") do |engine|
+          Quote.new(version).push(engine)
+        end
+
+        target.at("novika:packages", <<-END
+        ( -- Pb ): leaves the user-included package ids (as quotes)
+         in Package block.
+        END
+        ) do |engine|
+          next Block.new.push(engine) unless packages?
+
+          block = Block.new
+          packages.each do |package|
+            block.add Quote.new(package.class.id)
+          end
+
+          block.push(engine)
+        end
+      end
+    end
+  end
+
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
   # `core`), and paths for all other `files` (if any).
@@ -49,6 +85,7 @@ module Novika
         - kernel (#{on})
         - math (#{on})
         - colors (#{on})
+        - frontend (#{on})
         - console (enables the console API)
 
   END
@@ -96,11 +133,18 @@ module Novika
       exit(1)
     end
 
+    fpkg = Packages::Frontend.new
+    fpkg.version = VERSION
+
     pkgs = [
       Packages::Kernel.new,
       Packages::Math.new,
       Packages::Colors.new,
+      fpkg
     ] of Package
+
+    fpkg.packages = pkgs
+
     files = [] of Path
     folders = {} of Path => Folder
 
