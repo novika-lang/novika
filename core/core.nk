@@ -126,3 +126,21 @@ _root #@: [
 
   t2 t1 -
 ] @: measure
+
+
+[ "( needs: Pq -- ): ensures that the user has enabled the package
+   with id specified by Package quote."
+  ahead eject enquote $: packageId
+
+  novika:packages [ packageId = ] any? not =>
+    [
+      244 67 54 withEchoFg
+        '! This program requires the `' packageId stitch '` package. Consult the frontend' stitch
+        '  you are using for information on how to do this.'
+        swap withColorEcho
+             withColorEcho
+      dropEchoFg
+
+      'missing package: ' packageId stitch die
+    ]
+] @: needsPackage:
