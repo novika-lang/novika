@@ -1,3 +1,5 @@
+needsPackage: console
+
 console:on 0 console:setTimeout
 console:truecolor
 

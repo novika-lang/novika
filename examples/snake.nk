@@ -19,6 +19,8 @@ gets. That's Novika chugging through hundreds if not thousands
 of nested block calls. Phew!
 """
 
+needsPackage: console
+
 
 [ "Terminal vector object. CONSOLE MUST BE ON before using this."
   $: y $: x
