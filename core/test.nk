@@ -1,0 +1,125 @@
+[ """( describe Sd B ): introduces a group of tests with common success,
+   failure, and death counters, with the given Section description, and
+   then runs an instance of Block with various testing words injected
+   (e.g., `itDies`, `itShould`)
+
+  >>> describe '+ word' [
+    itShould 'add numbers' [ 1 1 + 2 = ]
+    itDies 'when adding wrong types' [ 1 '2' + ]
+    itShould 'display failure on this' [ 1 1 + 3 = ]
+  ]
+  """
+
+  [ 76 175 80 ] @: SUCCESS-RGB
+  [ 244 67 54 ] @: FAILURE-RGB
+  [ 255 193 7 ] @: DEATH-RGB
+
+  ahead eject $: sectionName
+  ahead eject new $: sectionBlockInstance
+
+  0 $: successes
+  0 $: failures
+  0 $: deaths
+
+  [ "( Tcb Dhb Rb -- ): opened Runner block with Test case block on top
+     of a new stack. If Test case block dies, Death handler block with
+     error on top of a new stack is opened."
+    $: runner
+    $: deathHandler
+    $: testCaseBlock
+
+    orphan $: deathHandlerBlock
+
+    "Reparent death handler block to our test case's
+     original parent to preserve lookup whilst adding
+     our own death handler."
+    deathHandlerBlock testCaseBlock parent reparent
+    deathHandlerBlock #*died deathHandler opens
+
+    "Reparent test case block to our death handler block.
+     Now any death in test case block will be reported to
+     the death handler block."
+    testCaseBlock deathHandlerBlock reparent
+
+    testCaseBlock enclose runner hydrate
+  ] @: itImpl
+
+  [ "( D -- ): reports success outcome for Description."
+    SUCCESS-RGB withEchoFg
+      ' ✔ ' swap stitch withColorEcho
+    dropEchoFg
+
+    successes 1 + =: successes
+  ] @: reportSuccess
+
+  [ "( D -- ): reports failure outcome for Description."
+    FAILURE-RGB withEchoFg
+      ' × ' swap stitch withColorEcho
+    dropEchoFg
+
+    failures 1 + =: failures
+  ] @: reportFailure
+
+  [ "( E D -- ): reports death outcome for Description, and
+     prints the report for Error itself."
+    DEATH-RGB withEchoFg
+      ' ☨ ' swap stitch withColorEcho
+    dropEchoFg
+
+    reportError
+
+    deaths 1 + =: deaths
+  ] @: reportDeath
+
+  [
+    ahead eject $: description
+    ahead eject $: testCaseBlock
+
+    testCaseBlock
+      [ 'Does not ' description stitch reportDeath ^ ]
+      [ val [ 'Does ' description stitch reportSuccess ]
+            [ 'Does not ' description stitch reportFailure ] br ]
+    itImpl
+  ] $: itShouldImpl
+
+  [
+    ahead eject $: description
+    ahead eject $: testCaseBlock
+
+    description testCaseBlock
+      [ 'Dies ' description stitch reportSuccess ^ ]
+      [ do ]
+    itImpl
+  ] $: itDiesImpl
+
+  "Export blocks to a section block instance."
+  sectionBlockInstance #itDies itDiesImpl opens
+  sectionBlockInstance #itShould itShouldImpl opens
+
+  '--- Starting to test ' sectionName stitch echo
+  '' echo
+
+  sectionBlockInstance do
+
+  '' echo
+
+  '=== Summary for ' sectionName stitch echo
+
+  SUCCESS-RGB withEchoFg
+    ' ✔ Successful cases: ' successes enquote stitch withColorEcho
+  dropEchoFg
+
+  failures 0 > => [
+    FAILURE-RGB withEchoFg
+      ' × Failures: ' failures enquote stitch withColorEcho
+    dropEchoFg
+  ]
+
+  deaths 0 > => [
+    DEATH-RGB withEchoFg
+      ' ☨ Deaths: ' deaths enquote stitch withColorEcho
+    dropEchoFg
+  ]
+
+  '' echo
+] @: describe
