@@ -88,7 +88,7 @@
 
     description testCaseBlock
       [ 'Dies ' description stitch reportSuccess ^ ]
-      [ do ]
+      [ do 'Does not die ' description stitch reportFailure ]
     itImpl
   ] $: itDiesImpl
 
