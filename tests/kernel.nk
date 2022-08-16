@@ -1,14 +1,14 @@
 describe 'asWord' [
   itShould 'noop if already word' [
-    #hello asWord #hello = 
+    #hello asWord #hello assert=
   ]
 
   itShould 'convert quote to word' [
-    'hello' asWord #hello =
+    'hello' asWord #hello assert=
   ]
 
   itShould 'peel off all quoting' [
-    ########hello asWord #hello =
+    ########hello asWord #hello assert=
   ]
 
   itDies 'when quote is empty' [
@@ -33,33 +33,33 @@ describe 'asWord' [
 
 describe 'uppercase?' [
   itShould 'leave false for empty quote' [
-    '' uppercase? false =
+    '' uppercase? false assert=
   ]
 
   itShould 'leave false for whitespace quote' [
     [ ] [
-      ' ' uppercase? false =
-      '     ' uppercase? false =
+      ' ' uppercase? false assert=
+      '     ' uppercase? false assert=
       '
-      ' uppercase? false = 
+      ' uppercase? false assert= 
     ] there [ ] all?
   ]
 
   itShould 'work for single-letter quotes' [
     [ ] [
-      'H' uppercase?  true =
-      'Á' uppercase?  true =
-      'c' uppercase? false =
-      '.' uppercase? false =
+      'H' uppercase?  true assert=
+      'Á' uppercase?  true assert=
+      'c' uppercase? false assert=
+      '.' uppercase? false assert=
     ] there [ ] all?
   ]
 
   itShould 'work for multi-letter quotes' [
     [ ] [
-      'HELLO' uppercase?  true =
-        'HÁË' uppercase?  true =
-      'HeLLO' uppercase? false =
-      'HÁËå'  uppercase? false =
+      'HELLO' uppercase?  true assert=
+        'HÁË' uppercase?  true assert=
+      'HeLLO' uppercase? false assert=
+      'HÁËå'  uppercase? false assert=
     ] there [ ] all?
   ]
 ]
@@ -74,37 +74,37 @@ describe 'toUppercase' [
   ]
 
   itShould 'leave empty quote unchanged' [
-    '' toUppercase '' =
+    '' toUppercase '' assert=
   ]
 
   itShould 'leave whitespace/single-uppercase-character quote unchanged' [
     [ ] [
-      ' ' toUppercase ' ' =
-      'C' toUppercase 'C' =
-      'Ä' toUppercase 'Ä' =
-      '.' toUppercase '.' =
-      '0' toUppercase '0' =
-      '°' toUppercase '°' =
-      '€' toUppercase '€' =
+      ' ' toUppercase ' ' assert=
+      'C' toUppercase 'C' assert=
+      'Ä' toUppercase 'Ä' assert=
+      '.' toUppercase '.' assert=
+      '0' toUppercase '0' assert=
+      '°' toUppercase '°' assert=
+      '€' toUppercase '€' assert=
     ] there [ ] all?
   ]
 
 
   itShould 'uppercase single lowercase character' [
     [ ] [
-      'c' toUppercase 'C' =
-      'ä' toUppercase 'Ä' =
-      'ā' toUppercase 'Ā' =
+      'c' toUppercase 'C' assert=
+      'ä' toUppercase 'Ä' assert=
+      'ā' toUppercase 'Ā' assert=
     ] there [ ] all?
   ]
 
   itShould 'uppercase multi-character quotes' [
     [ ] [
-      'HI' toUppercase 'HI' =
-      'Hi' toUppercase 'HI' =
-      'hI' toUppercase 'HI' =
-      'Ḧï' toUppercase 'ḦÏ' =
-      'Ãuxi£åÅ' toUppercase 'ÃUXI£ÅÅ' =
+      'HI' toUppercase 'HI' assert=
+      'Hi' toUppercase 'HI' assert=
+      'hI' toUppercase 'HI' assert=
+      'Ḧï' toUppercase 'ḦÏ' assert=
+      'Ãuxi£åÅ' toUppercase 'ÃUXI£ÅÅ' assert=
     ] there [ ] all?
   ]
 ]

@@ -21,12 +21,15 @@
   0 $: failures
   0 $: deaths
 
-  [ "( Tcb Dhb Rb -- ): opened Runner block with Test case block on top
-     of a new stack. If Test case block dies, Death handler block with
-     error on top of a new stack is opened."
+  [ "( Cb Tcb Dhb Rb -- ): opens Runner block with Test case
+     block on top of a new stack. If Test case block dies,
+     Death handler block with error on top of a new stack
+     is opened. Comments from '=' checks (such as 'expected
+     x, got y') are inserted into Comments block."
     $: runner
     $: deathHandler
     $: testCaseBlock
+    $: comments
 
     orphan $: deathHandlerBlock
 
@@ -35,6 +38,20 @@
      our own death handler."
     deathHandlerBlock testCaseBlock parent reparent
     deathHandlerBlock #*died deathHandler opens
+
+    [ "( Fa Fb -- true/false ): adds an 'Fa is not Fb' message and 
+       leaves false when that is the case (determined using `=`); in
+       case 'Fa is Fb', leaves true and prints nothing."
+      $: b $: a
+      a b = [
+        'Expected: ' b enquote stitch ', got: ' stitch
+                     a enquote stitch
+                     comments gulp
+        false
+      ] or
+    ] $: assertEqImpl
+
+    deathHandlerBlock #assert= assertEqImpl opens
 
     "Reparent test case block to our death handler block.
      Now any death in test case block will be reported to
@@ -52,10 +69,15 @@
     successes 1 + =: successes
   ] @: reportSuccess
 
-  [ "( D -- ): reports failure outcome for Description."
+  [ "( D Cb -- ): reports failure outcome given Description
+     and Comments block."
+    $: comments
+    
     FAILURE-RGB withEchoFg
       ' × ' swap stitch withColorEcho
     dropEchoFg
+
+    comments each: [ '  ◦ ' swap stitch echo ]
 
     failures 1 + =: failures
   ] @: reportFailure
@@ -71,24 +93,31 @@
     deaths 1 + =: deaths
   ] @: reportDeath
 
-  [
+  [ "( D B -- ): reports Description as success/failure depending
+     on whether Block left true/false correspondingly on top of the
+     stack after being opened with a new empty stack."
     ahead eject $: description
     ahead eject $: testCaseBlock
 
-    testCaseBlock
+    [ ] $: comments
+
+    comments testCaseBlock
       [ 'Does not ' description stitch reportDeath ^ ]
       [ val [ 'Does ' description stitch reportSuccess ]
-            [ 'Does not ' description stitch reportFailure ] br ]
+            [ 'Does not ' description stitch comments reportFailure ] br ]
     itImpl
   ] $: itShouldImpl
 
-  [
+  [ "( D B -- ): reports Description as success/failure depending on
+     whether Block died while being opened with a new empty stack."
     ahead eject $: description
     ahead eject $: testCaseBlock
 
-    description testCaseBlock
+    [ ] $: comments
+
+    comments description testCaseBlock
       [ 'Dies ' description stitch reportSuccess ^ ]
-      [ do 'Does not die ' description stitch reportFailure ]
+      [ do 'Does not die ' description stitch comments reportFailure ]
     itImpl
   ] $: itDiesImpl
 
