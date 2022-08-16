@@ -30,3 +30,36 @@ describe 'asWord' [
     'hello world' asWord
   ]
 ]
+
+describe 'uppercase?' [
+  itShould 'return false for empty string' [
+    '' uppercase? false =
+  ]
+
+  itShould 'return false for whitespace string' [
+    [ ] [
+      ' ' uppercase? false =
+      '     ' uppercase? false =
+      '
+      ' uppercase? false = 
+    ] there [ ] all?
+  ]
+
+  itShould 'work for single-letter quotes' [
+    [ ] [
+      'H' uppercase?  true =
+      'Á' uppercase?  true =
+      'c' uppercase? false =
+      '.' uppercase? false =
+    ] there [ ] all?
+  ]
+
+  itShould 'work for multi-letter quotes' [
+    [ ] [
+      'HELLO' uppercase?  true =
+        'HÁË' uppercase?  true =
+      'HeLLO' uppercase? false =
+      'HÁËå'  uppercase? false =
+    ] there [ ] all?
+  ]
+]
