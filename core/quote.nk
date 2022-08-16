@@ -1,0 +1,18 @@
+[ "( Q -- Qc ): capitalizes Quote: transforms the first letter of
+   Quote to uppercase."
+  $: qq
+
+  qq quote? not => [
+    "We could have enquoted it of course, but that would be against
+     the language's shaky philosophy of having more-or-less type-
+     centric words."
+    'toCapitalized expected a quote, got: ' qq enquote stitch die
+  ] 
+
+  qq charCount 
+    dup 0 = => [ qq ^ ]
+    dup 1 = => [ drop qq toUppercase ^ ]
+    drop
+
+  qq 1 sliceQuoteAt swap toUppercase swap stitch
+] @: toCapitalized

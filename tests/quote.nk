@@ -1,0 +1,52 @@
+describe 'toCapitalized' [
+  itDies 'when given non-quote #1' [
+    1 toCapitalized
+  ]
+
+  itDies 'when given non-quote #2' [
+    #foo toCapitalized
+  ]
+
+  itDies 'when given non-quote #3' [
+    [ 'f' 'o' 'o' ] toCapitalized
+  ]
+
+  itShould 'not touch empty quote' [
+    '' toCapitalized '' assert=
+  ]
+
+  itShould 'not touch whitespace quote' [
+    [ ] [
+      ' ' toCapitalized ' ' assert=
+      '    ' toCapitalized '    ' assert=
+      '
+      ' toCapitalized '
+      ' assert=
+    ] there [ ] all?
+  ]
+
+  itShould 'not touch already capitalized quote' [
+    'Lorem ipsum dolor sit amet.' toCapitalized 'Lorem ipsum dolor sit amet.' assert=
+  ]
+
+  itShould 'work like toUppercase for single-character quote' [
+    [ ] [
+      'h' toCapitalized 'H' assert=
+      'H' toCapitalized 'H' assert=
+      'ḧ' toCapitalized 'Ḧ' assert=
+      '.' toCapitalized '.' assert=
+    ] there [ ] all?
+  ]
+
+  itShould 'properly capitalize non-capitalized quote' [
+    [ ] [
+      'john doe went to town in search of rats' toCapitalized
+      'John doe went to town in search of rats' assert=
+
+      'ïmanu!' toCapitalized
+      'Ïmanu!' assert=
+
+      "..."
+    ] there [ ] all?
+  ]
+]
