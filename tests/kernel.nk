@@ -32,11 +32,11 @@ describe 'asWord' [
 ]
 
 describe 'uppercase?' [
-  itShould 'return false for empty string' [
+  itShould 'leave false for empty quote' [
     '' uppercase? false =
   ]
 
-  itShould 'return false for whitespace string' [
+  itShould 'leave false for whitespace quote' [
     [ ] [
       ' ' uppercase? false =
       '     ' uppercase? false =
@@ -60,6 +60,51 @@ describe 'uppercase?' [
         'HÁË' uppercase?  true =
       'HeLLO' uppercase? false =
       'HÁËå'  uppercase? false =
+    ] there [ ] all?
+  ]
+]
+
+describe 'toUppercase' [
+  itDies 'when not given a quote #1' [
+    0 toUppercase
+  ]
+
+  itDies 'when not given a quote #2' [
+    #foo toUppercase
+  ]
+
+  itShould 'leave empty quote unchanged' [
+    '' toUppercase '' =
+  ]
+
+  itShould 'leave whitespace/single-uppercase-character quote unchanged' [
+    [ ] [
+      ' ' toUppercase ' ' =
+      'C' toUppercase 'C' =
+      'Ä' toUppercase 'Ä' =
+      '.' toUppercase '.' =
+      '0' toUppercase '0' =
+      '°' toUppercase '°' =
+      '€' toUppercase '€' =
+    ] there [ ] all?
+  ]
+
+
+  itShould 'uppercase single lowercase character' [
+    [ ] [
+      'c' toUppercase 'C' =
+      'ä' toUppercase 'Ä' =
+      'ā' toUppercase 'Ā' =
+    ] there [ ] all?
+  ]
+
+  itShould 'uppercase multi-character quotes' [
+    [ ] [
+      'HI' toUppercase 'HI' =
+      'Hi' toUppercase 'HI' =
+      'hI' toUppercase 'HI' =
+      'Ḧï' toUppercase 'ḦÏ' =
+      'Ãuxi£åÅ' toUppercase 'ÃUXI£ÅÅ' =
     ] there [ ] all?
   ]
 ]

@@ -92,7 +92,7 @@ module Novika::Packages
       end
 
       target.at("uppercase?", <<-END
-      ( Q -- true/false ), leaves whether Quote consists of only
+      ( Q -- true/false ): leaves whether Quote consists of only
        uppercase characters. If Quote is empty, leaves false.
       END
       ) do |engine|
@@ -100,6 +100,17 @@ module Novika::Packages
         s = quote.string
         Boolean[!s.empty? && ((s.size == 1 && s[0].uppercase?) || s.each_char.all?(&.uppercase?))].push(engine)
       end
+      
+      target.at("toUppercase", <<-END
+      (Q -- Uq): converts lowercase character(s) in Quote
+       to Uppercase. If Quote is empty, leaves empty quote.
+       Behaves a bit like `uppercase?`.
+      END
+      ) do |engine|
+        quote = engine.stack.drop.assert(engine, Quote)
+        Quote.new(quote.string.upcase).push(engine)
+      end
+
 
       target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |engine|
         Boolean[engine.stack.drop.is_a?(Block)].push(engine)
