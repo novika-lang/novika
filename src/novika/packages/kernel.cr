@@ -249,6 +249,38 @@ module Novika::Packages
         Decimal.new(quote.string.size).push(engine)
       end
 
+      target.at("sliceQuoteAt", <<-END
+      ( Q Spt -- Qpre Qpost ): given a Quote, slices it before (Qpre) and
+       after and including (Qpost) Slice point.
+      END
+      ) do |engine|
+        spt = engine.stack.drop.assert(engine, Decimal)
+        spti = spt.to_i
+
+        quote = engine.stack.drop.assert(engine, Quote)
+        s = quote.string
+
+        if s.size.zero?
+          spt.die("quote is empty, cannot sliceQuoteAt")
+        elsif spti.negative?
+          spt.die("cannot sliceQuoteAt negative slicepoint")
+        elsif spti > s.size
+          spt.die("cannot sliceQuoteAt slicepoint exceeding quote charCount")
+        end
+
+        # Handle a bunch of quickies.
+        if spti.zero?
+          Quote.new("").push(engine)
+          quote.push(engine)
+        elsif spti == s.size
+          quote.push(engine)
+          Quote.new("").push(engine)
+        else
+          Quote.new(quote.string[...spti]).push(engine)
+          Quote.new(quote.string[spti..]).push(engine)
+        end
+      end
+
       target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         count = Decimal.new(block.count)
