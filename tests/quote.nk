@@ -1,21 +1,21 @@
 describe 'toCapitalized' [
-  itDies 'when given non-quote #1' [
+  it dies 'when given non-quote #1' [
     1 toCapitalized
   ]
 
-  itDies 'when given non-quote #2' [
+  it dies 'when given non-quote #2' [
     #foo toCapitalized
   ]
 
-  itDies 'when given non-quote #3' [
+  it dies 'when given non-quote #3' [
     [ 'f' 'o' 'o' ] toCapitalized
   ]
 
-  itShould 'not touch empty quote' [
+  it should 'not touch empty quote' [
     '' toCapitalized '' assert=
   ]
 
-  itShould 'not touch whitespace quote' [
+  it should 'not touch whitespace quote' [
     [ ] [
       ' ' toCapitalized ' ' assert=
       '    ' toCapitalized '    ' assert=
@@ -25,11 +25,11 @@ describe 'toCapitalized' [
     ] there [ ] all?
   ]
 
-  itShould 'not touch already capitalized quote' [
+  it should 'not touch already capitalized quote' [
     'Lorem ipsum dolor sit amet.' toCapitalized 'Lorem ipsum dolor sit amet.' assert=
   ]
 
-  itShould 'work like toUppercase for single-character quote' [
+  it should 'work like toUppercase for single-character quote' [
     [ ] [
       'h' toCapitalized 'H' assert=
       'H' toCapitalized 'H' assert=
@@ -38,7 +38,7 @@ describe 'toCapitalized' [
     ] there [ ] all?
   ]
 
-  itShould 'properly capitalize non-capitalized quote' [
+  it should 'properly capitalize non-capitalized quote' [
     [ ] [
       'john doe went to town in search of rats' toCapitalized
       'John doe went to town in search of rats' assert=

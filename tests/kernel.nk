@@ -1,42 +1,42 @@
 describe 'asWord' [
-  itShould 'noop if already word' [
+  it should 'noop if already word' [
     #hello asWord #hello assert=
   ]
 
-  itShould 'convert quote to word' [
+  it should 'convert quote to word' [
     'hello' asWord #hello assert=
   ]
 
-  itShould 'peel off all quoting' [
+  it should 'peel off all quoting' [
     ########hello asWord #hello assert=
   ]
 
-  itDies 'when quote is empty' [
+  it dies 'when quote is empty' [
     '' asWord
   ]
 
-  itDies 'when quote is whitespace' [
+  it dies 'when quote is whitespace' [
     ' ' asWord
   ]
 
-  itDies 'when quote is newline + whitespace' [
+  it dies 'when quote is newline + whitespace' [
     '
 
 
     ' asWord
   ]
 
-  itDies 'when quote contains whitespace' [
+  it dies 'when quote contains whitespace' [
     'hello world' asWord
   ]
 ]
 
 describe 'uppercase?' [
-  itShould 'leave false for empty quote' [
+  it should 'leave false for empty quote' [
     '' uppercase? false assert=
   ]
 
-  itShould 'leave false for whitespace quote' [
+  it should 'leave false for whitespace quote' [
     [ ] [
       ' ' uppercase? false assert=
       '     ' uppercase? false assert=
@@ -45,7 +45,7 @@ describe 'uppercase?' [
     ] there [ ] all?
   ]
 
-  itShould 'work for single-letter quotes' [
+  it should 'work for single-letter quotes' [
     [ ] [
       'H' uppercase?  true assert=
       'Á' uppercase?  true assert=
@@ -54,7 +54,7 @@ describe 'uppercase?' [
     ] there [ ] all?
   ]
 
-  itShould 'work for multi-letter quotes' [
+  it should 'work for multi-letter quotes' [
     [ ] [
       'HELLO' uppercase?  true assert=
         'HÁË' uppercase?  true assert=
@@ -65,19 +65,19 @@ describe 'uppercase?' [
 ]
 
 describe 'toUppercase' [
-  itDies 'when not given a quote #1' [
+  it dies 'when not given a quote #1' [
     0 toUppercase
   ]
 
-  itDies 'when not given a quote #2' [
+  it dies 'when not given a quote #2' [
     #foo toUppercase
   ]
 
-  itShould 'leave empty quote unchanged' [
+  it should 'leave empty quote unchanged' [
     '' toUppercase '' assert=
   ]
 
-  itShould 'leave whitespace/single-uppercase-character quote unchanged' [
+  it should 'leave whitespace/single-uppercase-character quote unchanged' [
     [ ] [
       ' ' toUppercase ' ' assert=
       'C' toUppercase 'C' assert=
@@ -90,7 +90,7 @@ describe 'toUppercase' [
   ]
 
 
-  itShould 'uppercase single lowercase character' [
+  it should 'uppercase single lowercase character' [
     [ ] [
       'c' toUppercase 'C' assert=
       'ä' toUppercase 'Ä' assert=
@@ -98,7 +98,7 @@ describe 'toUppercase' [
     ] there [ ] all?
   ]
 
-  itShould 'uppercase multi-character quotes' [
+  it should 'uppercase multi-character quotes' [
     [ ] [
       'HI' toUppercase 'HI' assert=
       'Hi' toUppercase 'HI' assert=
@@ -110,43 +110,43 @@ describe 'toUppercase' [
 ]
 
 describe 'sliceQuoteAt' [
-  itDies 'when given non-quote #1' [
+  it dies 'when given non-quote #1' [
     0 1 sliceQuoteAt
   ]
 
-  itDies 'when given non-quote #2' [
+  it dies 'when given non-quote #2' [
     #foobar 1 sliceQuoteAt
   ]
 
-  itDies 'when given non-quote #3' [
+  it dies 'when given non-quote #3' [
     ##foobar 1 sliceQuoteAt
   ]
 
-  itDies 'when given non-quote #4' [
+  it dies 'when given non-quote #4' [
     [ 1 2 3 ] 1 sliceQuoteAt
   ]
 
-  itDies 'when given empty quote' [
+  it dies 'when given empty quote' [
     '' 0 sliceQuoteAt
   ]
 
-  itDies 'when slicepoint is negative' [
+  it dies 'when slicepoint is negative' [
     'foobar' -1 sliceQuoteAt
   ]
 
-  itDies 'when slicepoint > quote charCount' [
+  it dies 'when slicepoint > quote charCount' [
     'foobar' 7 sliceQuoteAt
   ]
 
-  itShould 'handle slicepoint 0 = case' [
+  it should 'handle slicepoint 0 = case' [
     [ ] [ 'foobar' 0 sliceQuoteAt ] there [ '' 'foobar' ] assert=
   ]
 
-  itShould 'handle slicepoint quote charCount = case' [
+  it should 'handle slicepoint quote charCount = case' [
     [ ] [ 'foobar' 6 sliceQuoteAt ] there [ 'foobar' '' ] assert=
   ]
 
-  itShould 'properly slice in bounds' [
+  it should 'properly slice in bounds' [
     [ ] [ 'foo|bar' 3 sliceQuoteAt ] there [ 'foo' '|bar' ] assert=
   ]
 ]

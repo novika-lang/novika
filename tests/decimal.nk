@@ -2,29 +2,29 @@
  because I really lack imagination for writing this kind of stuff."
 
 describe 'Decimal parsing' [
-  itShould 'parse simple decimals' [
+  it should 'parse simple decimals' [
     1 12 123 1234567812345678
   ]
 
-  itShould 'parse negative decimals' [
+  it should 'parse negative decimals' [
     -123 -1 -0 -1234567812345678
   ]
 
-  itShould 'parse explicit positive decimals' [
+  it should 'parse explicit positive decimals' [
     +123 +1 +0 +1234567812345678
   ]
 
-  itShould 'parse floats' [
+  it should 'parse floats' [
     "TODO"
     false
   ]
 
-  itShould 'parse negative floats' [
+  it should 'parse negative floats' [
     "TODO"
     false
   ]
 
-  itShould 'parse explicit positive floats' [
+  it should 'parse explicit positive floats' [
     "TODO"
     false
   ]
@@ -33,17 +33,17 @@ describe 'Decimal parsing' [
 describe 'Package math: inter-domain decimal math' [
   "--- Addition: primitive word + ------------------------"
 
-  itShould 'add two small decimals' [
+  it should 'add two small decimals' [
     1 2 + 3 assert=
   ]
 
-  itShould 'subtract when either addend is negative' [
+  it should 'subtract when either addend is negative' [
     100 -3 + 100 3 - assert=
     -100 3 + 3 100 - assert=
     and
   ]
 
-  itShould 'add when both addends are negative' [
+  it should 'add when both addends are negative' [
     -100 -300 + -400 assert=
   ]
 
@@ -51,38 +51,38 @@ describe 'Package math: inter-domain decimal math' [
     1 '2' +
   ]
 
-  itShould 'try to convert type block arguments to decimals via *asDecimal' [
+  it should 'try to convert type block arguments to decimals via *asDecimal' [
     [ $: *asDecimal this ] @: foos
     100 foos 200 foos + 300 assert=
   ]
 
   "--- Subtraction: primitive word - ---------------------"
 
-  itShould 'subtract two small decimals' [
+  it should 'subtract two small decimals' [
     1 2 - -1 assert=
   ]
 
-  itShould 'add when subtrahend is negative' [
+  it should 'add when subtrahend is negative' [
     1 -2 - 1 2 + assert=
   ]
 
-  itShould 'subtract when minuend is negative' [
+  it should 'subtract when minuend is negative' [
     -1 3 - -4 assert=
   ]
 
-  itShould 'subtract when both terms are negative' [
+  it should 'subtract when both terms are negative' [
     -100 -400 - 400 100 - assert=
   ]
 
   "--- Multiplication: primitive word * ------------------"
 
-  itShould 'multiply two small decimals' [
+  it should 'multiply two small decimals' [
     100 2 * 200 assert=
   ]
 
   "--- Division: primitive word / ------------------------"
 
-  itShould 'divide when divident is negative' [
+  it should 'divide when divident is negative' [
     -100 2 / -50 assert=
   ]
 
@@ -92,15 +92,15 @@ describe 'Package math: inter-domain decimal math' [
 
   "--- Modulo: primitive word % --------------------------"
 
-  itShould 'compute modulo for two small decimals' [
+  it should 'compute modulo for two small decimals' [
     13 3 rem 1 assert=
   ]
 
-  itShould 'compute modulo with negative divident' [
+  it should 'compute modulo with negative divident' [
     -13 4 rem 3 assert=
   ]
 
-  itShould 'compute modulo with negative divisor' [
+  it should 'compute modulo with negative divisor' [
     13 -4 rem -3 assert=
     -13 -4 rem -1 assert=
     and
@@ -116,16 +116,16 @@ describe 'Package math: cross-domain decimal math' [
 ]
 
 describe 'Package math: floating point (precise) math' [
-  itShould 'pass 0.1 + 0.2 assert= 0.3 test' [
+  it should 'pass 0.1 + 0.2 assert= 0.3 test' [
     1 10 / 2 10 / +
     3 10 / assert=
   ]
 
-  itShould 'compute modulo with fp divisor' [
+  it should 'compute modulo with fp divisor' [
     5 25 10 / rem 0 assert=
   ]
 
-  itShould 'compute modulo with fp divident' [
+  it should 'compute modulo with fp divident' [
     25 10 / 5 rem 1 2 / assert=
   ]
 ]
@@ -135,12 +135,12 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
     1 [ ] +
   ]
 
-  itShould 'support blocks which implement *asDecimal literally' [
+  it should 'support blocks which implement *asDecimal literally' [
     [ $: *asDecimal this ] @: wrap
     1 2 wrap + 3 assert=
   ]
 
-  itShould 'support blocks which implement *asDecimal computationally' [
+  it should 'support blocks which implement *asDecimal computationally' [
     [ $: value [ value dup * ] @: *asDecimal this ] @: squareWrap
     1 2 squareWrap + 5 assert=
   ]
@@ -150,19 +150,19 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
     1 2 wrap +
   ]
 
-  itShould 'support blocks whose *asDecimal leaves block which implements *asDecimal' [
+  it should 'support blocks whose *asDecimal leaves block which implements *asDecimal' [
     [ $: n [ n ] @: *asDecimal this ] @: foos
     [ $: *asDecimal this ] @: wrap
     100 foos wrap 0 + 100 assert=
   ]
 
-  itShould 'support blocks whose *asDecimal computes & leaves block which implements *asDecimal' [
+  it should 'support blocks whose *asDecimal computes & leaves block which implements *asDecimal' [
     [ $: n [ n ] @: *asDecimal this ] @: foos
     [ $: n [ n foos ] @: *asDecimal this ] @: wrap
     100 foos 0 + 100 assert=
   ]
 
-  itShould 'die when same type left in *asDecimal' [
+  it should 'die when same type left in *asDecimal' [
     "TODO: change this to itDiesWith (TODO) later. It does die here, but for
      a different reason."
 

@@ -8,6 +8,16 @@
     itDies 'when adding wrong types' [ 1 '2' + ]
     itShould 'display failure on this' [ 1 1 + 3 = ]
   ]
+
+  There is also a natural language-like word, `is`, which doesn't do much
+  other than `ahead eject`ing the action. The following works exactly
+  the same as the code above:
+  
+  >>> describe '+ word' [
+    it should 'add numbers' [ 1 1 + 2 = ]
+    it dies 'when adding wrong types' [ 1 '2' + ]
+    it should 'display failure on this' [ 1 1 + 3 = ]
+  ]
   """
 
   [ 76 175 80 ] @: SUCCESS-RGB
@@ -131,6 +141,26 @@
   ] $: itDiesImpl
 
   "Export blocks to a section block instance."
+
+  sectionBlockInstance #it [
+    """( it _ ... -- ): helps with natural-language-like test phrasing,
+     for instance `it should 'do stuff'`, `it dies 'when stuff'`, etc.
+
+    Has no effect in terms of functionality.
+    """
+    ahead eject $: name
+
+    """
+    'it' basically ejects itself (by being evaluated) and
+    the next word from ahead, then joins them, and shits
+    them right in front of the call to it:
+      CALLER:   it | should          ...
+      AFTER IT: <nothing> | itShould ...
+    """
+
+    ahead 'it' name enquote toCapitalized stitch asWord inject
+  ] opens
+
   sectionBlockInstance #itDies itDiesImpl opens
   sectionBlockInstance #itShould itShouldImpl opens
 
