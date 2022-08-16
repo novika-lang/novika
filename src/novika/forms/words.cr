@@ -94,6 +94,11 @@ module Novika
       id.prefixed_by?('#') ? QuotedWord.new(id.lchop) : Word.new(id)
     end
 
+    # Converts this quoted word to `Word`.
+    def to_word : Word
+      Word.new(id.lstrip('#'))
+    end
+
     def opened(engine) : self
       tap { peel.push(engine) }
     end

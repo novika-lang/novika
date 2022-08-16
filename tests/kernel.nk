@@ -1,0 +1,32 @@
+describe 'asWord' [
+  itShould 'noop if already word' [
+    #hello asWord #hello = 
+  ]
+
+  itShould 'convert quote to word' [
+    'hello' asWord #hello =
+  ]
+
+  itShould 'peel off all quoting' [
+    ########hello asWord #hello =
+  ]
+
+  itDies 'when quote is empty' [
+    '' asWord
+  ]
+
+  itDies 'when quote is whitespace' [
+    ' ' asWord
+  ]
+
+  itDies 'when quote is newline + whitespace' [
+    '
+
+
+    ' asWord
+  ]
+
+  itDies 'when quote contains whitespace' [
+    'hello world' asWord
+  ]
+]
