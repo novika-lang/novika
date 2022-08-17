@@ -10,6 +10,17 @@ environment GUI (as in Pharo, Cuis, Self, etc.)
 This thing is throwaway, I won't refactor nor maintain it. That is, I
 will, but only if it doesn't run at all. Anything else is fine.
 
+## Read me
+
+World is proven to support Novika 0.0.1. There is no and will not be
+support for any later versions. If you want to try world, please
+download Novika 0.0.1 release which includes world code that is
+proven to work.
+
+There were some big bugs which were fixed *after* Novika 0.0.1. Beware. When
+Novika Sketchbook works good enough (currently it's not a thing, really; the
+repo that exists is too bloaty for doing nothing), `world` will be deleted.
+
 ## Usage
 
 Drag and drop Novika files or folders with Novika files into the window.
