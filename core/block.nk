@@ -247,7 +247,7 @@
 
 [ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
    from right to left. Consult `|slideRight`."
-  newWithBreakAndContinue $: body new $: list
+  newWithBreakAndContinue $: body $: list
 
   until: [ list |at 0 = ]
   [
