@@ -28,7 +28,7 @@ end
 
 We are interested in the implementation of `block.next?`, `Block#next?`:
 
-```crystal=
+```crystal
 def next? : Form?
   self.tape, _ = tape.next? || return
 end
@@ -41,7 +41,7 @@ the setter `tape=`).
 We don't need to go deeper than `Tape#next?` though; its code shows us all we'd want
 to know about `next?` that is not an implementation detail:
 
-```crystal=
+```crystal
 def next?
   {Tape.new(substrate, cursor + 1), substrate.at!(cursor)} if cursor < count
 end
