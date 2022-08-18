@@ -199,10 +199,10 @@
 
   0 $: current
 
-  block
-  [ current max < ]
-  [ current swap open current 1 + =: current ]
-  createDetachedLoop open
+  block [ current max < ]
+  [
+    current swap open current 1 + =: current
+  ] createDetachedLoop open
 ] @: times
 
 
