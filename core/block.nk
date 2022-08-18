@@ -218,7 +218,7 @@
 
 [ """( Lb B -- Lb ): slides cursor in List block from left to right,
    in steps of one. Opens Block with List block as the stack *after*
-   each step. Leaves List block. `break` and `continue` are available.
+   each step. Leaves List block. `break` and `next` are available.
 
   >>> [ 1 2 3 ] dup 1 |to [ + ] |slideRight
 
@@ -238,13 +238,13 @@
 
   === [ 6 ]
   """
-  newWithBreakAndContinue $: body $: list
+  $: body $: list
 
-  until: [ list dup |at over count = ]
-  [
-    list dup |at 1 + |to
-    list body hydrate
-  ]
+  body
+  [ list dup |at over count < ]
+  [ list dup |at 1 + |to
+    list swap hydrate ]
+  createDetachedLoop open
 
   list
 ] @: |slideRight
@@ -256,19 +256,23 @@
 
 
 [ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
-   from right to left. Consult `|slideRight`."
-  newWithBreakAndContinue $: body $: list
+   from right to left. Consult `|slideRight`. `break` and
+   `next` are available."
+  $: body $: list
 
-  until: [ list |at 0 = ]
-  [
-    list count $: tmp
-    list body hydrate
+  body
+  [ list |at 0 > ]
+  [ list count $: tmp
+    list swap hydrate
     list count tmp >= => [
-      "If the amount of items in the list has not changed, or
-       increased, slide leftwards."
-       list dup |at 1 - |to
+      "If the amount of items in the list has not changed,
+       or increased, slide leftwards by delta + 1, meaning
+       by the amount of items added, plus once leftwards to
+       maintain the movement left."
+      list count tmp - 1 + $: delta
+      list dup |at delta - |to
     ]
-  ]
+  ] createDetachedLoop open
 
   list
 ] @: |slideLeft
@@ -281,18 +285,19 @@
 
 [ """( Lb B -- ): opens Block with each item of List block on
    top of a new stack. List block is unchanged. `break` and
-   `continue` are available.
+   `next` are available.
 
   >>> [ 1 2 3 ] [ echo ] each
   STDOUT: 1
   STDOUT: 2
   STDOUT: 3
   """
-  newWithBreakAndContinue $: block
+  $: body $: list 0 $: index
 
-  shallowCopy dup 0 |to
-    |-> [ dup enclose block hydrate ]
-  drop
+  body [ index list count < ] [
+    list index fromLeft enclose swap hydrate
+    index 1 + =: index
+  ] createDetachedLoop open
 ] @: each
 
 
@@ -308,7 +313,7 @@
 
 
 [ """( Lb B -- ): opens Block with pairs of items from List block
-   on top of an empty stack.
+   on top of an empty stack. `break` and `next` are available.
 
   >>> [ ] [ + echo ] pairs
   [Does nothing]
@@ -321,18 +326,20 @@
   STDOUT: 3 (i.e., 1 + 2)
   STDOUT: 7 (i.e., 3 + 4)
   """
-  $: block $: list
+  $: block
 
-  list empty? => [ ^ ]
+  dup empty? => [ drop ^ ]
+  dup count odd? => [ 'for pairs to work, there should be an even count of items in block' die ]
 
-  list count odd? =>
-    [ 'for pairs to work, there should be an even count of items in block' die ]
+  $: list 0 $: index
 
-  list shallowCopy dup 0 |to
-    "Force cursor at 0. Also, we can safely drop below (and we do),
-     since the block copy is ours thanks to `shallowCopy`."
-    |-> [ |> 2enclose block hydrate ]
-  drop
+  block [ index list count < ]
+  [
+    list index     fromLeft
+    list index 1 + fromLeft
+    2enclose swap hydrate
+    index 2 + =: index
+  ] createDetachedLoop open
 ] @: pairs
 
 
@@ -347,7 +354,8 @@
 
 
 [ """( Lb B -- ): opens Block with consequtive pairs of items
-   from List block on top of an empty stack.
+   from List block on top of an empty stack. `break` and `next`
+   are available.
 
   >>> [ ] [ + echo ] consPairs
   >>> [ 1 ] [ + echo ] consPairs
@@ -360,11 +368,19 @@
   STDOUT: 3 (i.e., 1 + 2)
   STDOUT: 5 (i.e., 2 + 3)
   """
-  $: block "( Lb )" dup empty? => [ drop ^ ]
+  $: block
 
-  shallowCopy dup 1 |to
-    |-> [ 2dup 2enclose block hydrate ]
-  drop
+  dup empty? => [ drop ^ ]
+
+  $: list 0 $: index
+
+  block [ index list count 1 - < ]
+  [
+    list index     fromLeft
+    list index 1 + fromLeft
+    2enclose swap hydrate
+    index 1 + =: index
+  ] createDetachedLoop open
 ] @: consPairs
 
 
@@ -378,24 +394,34 @@
 ] @: consPairs:
 
 
-[ """( Lb B -- MLb ): opens Block with each item of List block
+[ """( Lb B -- Mlb ): opens Block with each item of List block
    on top of an empty stack. Replaces item in List block with
    Block's stack top after opening it. Leaves the resulting
-   Modified version of List block.
+   Modified version of List block. `break` and `next` are available.
 
   >>> [ 1 2 3 ] [ 1 + ] map
-  === [ 2 3 4 | ]
+  === [ 2 3 4 | ] (a different block!)
 
   >>> [ 1 2 3 ] $: a
   >>> a [ 1 + ] map
-  === [ 2 3 4 | ]
+  === [ 2 3 4 | ] (a different block!)
 
   >>> a
   === [ 1 2 3 | ]
   """
-  $: block "( Lb )"
+  $: block $: list [ ] $: result
 
-  shallowCopy dup 0 |to |-> [ enclose block there cherry ]
+  list empty? => [ result ^ ]
+
+  0 $: index
+
+  block [ index list count < ]
+  [
+    list index fromLeft enclose swap there cherry result gulp
+    index 1 + =: index
+  ] createDetachedLoop open
+
+  result
 ] @: map
 
 
@@ -410,6 +436,7 @@
 [ """( Lb B -- MLb ): opens Block with each item of List block
    on top of an empty stack. Removes that item in Modified List
    block if Block's stack top is false after it was opened.
+   `break` and `next` are available.
 
   >>> [ ] [ 100 > ] only
   === [ | ] (a different block!)
@@ -420,14 +447,19 @@
   >>> [ 1 100 2 300 4 600 10 ] [ 100 > ] only
   === [ 300 600 | ]
   """
-  $: block
+  $: block $: list [ ] $: result
 
-  shallowCopy dup 0 |to |-> [ $: item
-    item enclose block there cherry
-      [ item ] "Truthy value on Block's ToS: leave item."
-      [      ] "Falsey value on Block's ToS: drop item."
-    br
-  ]
+  list empty? => [ result ^ ]
+
+  0 $: index
+
+  block [ index list count < ]
+  [
+    list index fromLeft dup enclose rot there cherry => [ result gulp ]
+    index 1 + =: index
+  ] createDetachedLoop open
+
+  result
 ] @: only
 
 
@@ -440,10 +472,10 @@
 ] @: only:
 
 
-[ """( Lb B M -- M ): reduces (google it if you don't know) List
-   block using Block. Block is opened with Memo, current item on
-   top of an empty stack. Memo is updated to Block's value after
-   Block's opened.
+[ """( Lb B M -- M ): reduces List block using Block. Block
+   is opened with Memo, current item on top of an empty stack.
+   Memo is updated to Block's value after Block is opened.
+   `break` and `next` are available.
 
   >>> [ ] [ + ] 0 reduce
   === 0
@@ -457,17 +489,25 @@
   >>> [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce
   === 'Hellope, Europe! Huh?'
   """
-  $: default @: block
+  $: memo $: block $: list
 
-  shallowCopy dup 0 |to
-    default << |-> [ block ]
-  cherry
+  list empty? => [ memo ^ ]
+
+  0 $: index
+
+  block [ index list count < ]
+  [
+    memo list index fromLeft 2enclose swap there cherry =: memo
+    index 1 + =: index
+  ] createDetachedLoop open
+
+  memo
 ] @: reduce
 
 
 [ """( Lb B -- A ): leaves the Amount of items for which Block,
    when opened with an item on top of an empty stack, returns
-   a truthy form.
+   a truthy form. `break` and `next` are available.
 
   >>> [ 1 2 3 ] [ 2 > ] amount
   === 1 (i.e., 3)
@@ -478,11 +518,20 @@
   >>> [ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount
   === 4 (i.e., 1, 2, 1, 100)
   """
-  @: block 0 $: amt
+  $: block $: list
+
+  list empty? => [ 0 ^ ]
+
+  0 $: amt
+  0 $: index
 
   "Go thru each item and check if block opens to true there,
    if it does, increment the count."
-  each: [ block => [ amt 1 + =: amt ] ]
+  block [ index list count < ]
+  [
+    list index fromLeft enclose swap there cherry => [ amt 1 + =: amt ]
+    index 1 + =: index
+  ] createDetachedLoop open
 
   amt
 ] @: amount
@@ -560,8 +609,7 @@
   $: b $: a
 
   a count dup
-  b count = not =>
-    [ 'counts must be equal with zip, otherwise see zipWithDefault' die ]
+  b count = not => [ 'counts must be equal with zip, otherwise use zipWithDefault' die ]
 
   [ ] $: result
 
@@ -617,8 +665,8 @@
 
 [ """( S D -- Di ): given a Source block and a Destination
    block, leaves an instance of Destination block with all
-   words (see `word?`) replaced with entry values from Table
-   source (they are **not** opened), and all quoted words
+   words (see `word?`) replaced with entry values from table
+   Source (they are **not** opened), and all quoted words
    unquoted (see `quotedWord?`). Recurses on sub-blocks.
 
   >>> 1 $: x  2 $: y  #+ $: plus
@@ -642,7 +690,7 @@
 [ """( B -- Bi ): `conjure` with Source block set to caller.
 
   >>> 1 $: x  2 $: y  #+ $: plus
-  >>> [ x y plus #dup plus [ ##foo #echo] #open ] here
+  >>> [ x y plus #dup plus [ ##foo #echo ] #open ] here
   === [ 1 2 + dup + [ #foo echo | ] #open | ]
   >>> open
   STDOUT: foo
@@ -776,17 +824,25 @@
 
 
 [ """( N B -- Lb ): leaves a List block with N results of opening
-   Block with the current N.
+   Block with the current N. `break` and `next` are available.
 
-  >>> 3 [ readLine [ ] [ drop 0 ] br ] collect
+  >>> 3 [ readLine [ stack swap slurp ] [ drop 0 ] br ] collect
   INPUT: 0 3
   INPUT: 1 5
   INPUT: 2 12
   === [ 3 5 12 ]
   """
-  @: block [ ] $: result
+  $: block $: max [ ] $: result
 
-  times: [ block result gulp ]
+  max negative? => [ 'collect: cannot have negative amount' die ]
+
+  0 $: current
+
+  block  [ current max < ]
+  [
+    current swap open result gulp
+    current 1 + =: current
+  ] createDetachedLoop open
 
   result
 ] @: collect

@@ -106,91 +106,103 @@
 ] @: ^
 
 
-[ "( B -- I ): injects `break` and `continue` into an Instance
-   of Block. `break` drops continuations until and including
-   the caller block, and `continue`, drops them up to and
-   including the Body block (and/or its instances)."
-    dup $: body
-    new $: instance
-  ahead $: caller
+[ "( Ib -- Sh Bh Ch ): takes an Iteration body block and leaves
+    three handles: one to Start the loop, one to Break the loop,
+    and one to next the loop."
+  $: iterBody
 
-  instance #break [ "( -- ): quits from the enclosing loop."
-    [ continuationBlock caller same? ] dropContinuationsUntil
-  ] opens
+  #nil $: breakTo
 
-  instance #continue [ "( -- ): quits from current loop iteration."
-    [ continuationBlock prototype body same? ] dropContinuationsUntil
-  ] opens
+  [ orphan iterBody hydrate repeat ] $: loopBody
 
-  instance
-] @: newWithBreakAndContinue
+  [ this =: breakTo orphan loopBody hydrate! ]
+  [  breakTo resume ]
+  [ loopBody resume ]
+] @: createLoop
 
 
-[ "( B -- ): basic infinite loop over Block. `break` and `continue`
-   are made available in Block. Block is opened in an empty stack."
-  newWithBreakAndContinue $: block
+[ "( Bb Ctb Cdb -- Sh ): defines `break` and `next` for a Body
+   block that is being evaluated indirectly by a Control block,
+   and only if the Condition block leaves a truthy value on top
+   of the stack it hydrated. `next` resumes the Control block."
+ $: ctrl $: cond new $: bodyInstance
 
-  [ orphan block hydrate repeat ] open
+  #nil $: ctrlNow
+
+  [ cond val
+      [ ctrl new =: ctrlNow bodyInstance enclose ctrlNow hydrate! ]
+      breakLoop
+    br
+  ] createLoop drop $: breakLoop @: startLoop
+
+  [ bodyInstance #break breakLoop opens
+    bodyInstance #next [ ctrlNow resume ] opens
+    startLoop ]
+] @: createDetachedLoop
+
+
+[ "( Ib -- ): basic infinite loop over an Iteration body block.
+   `break` and `next` are available in the block. A new
+   stack created for each iteration."
+  new $: iterBody
+
+  iterBody createLoop
+    $: nextLoop
+    $: breakLoop
+    @: startLoop
+
+  iterBody #break breakLoop opens
+  iterBody #next nextLoop opens
+
+  startLoop
 ] @: loop
 
 
-[ "( loop: B -- ): prefix version of `loop`. Has no difference
-   in regards to functionality."
+[ "( loop: Ib -- ): prefix version of `loop`."
   ahead eject loop
 ] @: loop:
 
 
-[ "( C B -- ): opens Condition in an empty stack, Body in a
-   new stack with Condition's result on top, all while Condition
-   top is truthy after it's opened. Similar to `loop`, words `break`
-   and `continue` are made available in Body."
-  newWithBreakAndContinue $: body $: condition
-
-  loop: [
-    condition val dup
-      [ enclose body hydrate ] "Condition truthy: enclose & proceed with body!"
-      [ drop break ]           "Condition falsey: drop the false and get out."
-    br
-  ]
+[ "( C B -- ): hydrates an empty stack with Condition; if ToS
+   is truthy afterwards, Block is opened over an empty stack.
+   Repeats until ToS is false. Similar to `loop`, words `break`
+   and `next` are available in Block."
+  swap [ open ] createDetachedLoop open
 ] @: while
 
 
-[ "( while: C B -- ): prefix version of `while`. Has no difference
-   in regards to functionality."
+[ "( while: C B -- ): prefix version of `while`."
   ahead eject
   ahead eject
   while
 ] @: while:
 
 
-[ "( C B -- ): inverse of `while` (opens Body while Condition
+[ "( C B -- ): inverse of `while` (opens Block while Condition
    is **false**), for more info see `while`."
-  $: body @: condition
-
-  [ condition not ] body while
+  <| shallowCopy #not << |> while
 ] @: until
 
 
-[ "( until: C B -- ): prefix version of `until`. Has no difference
-   in regards to functionality."
+[ "( until: C B -- ): prefix version of `until`."
   ahead eject
   ahead eject
   until
 ] @: until:
 
 
-[ "( N B -- ): opens Body N times. Body is opened in a new
-   stack with current N. `break` and `continue` available."
-  over negative? => [ 'times: cannot have negative N' die ]
+[ "( N B -- ): opens Block N times. Block is opened in a new
+   stack with current N. `break` and `next` available."
+  $: block $: max
 
-  newWithBreakAndContinue $: body $: stop
+  max negative? => [ 'times: cannot have negative bound' die ]
 
-  0 $: start
+  0 $: current
 
-  while: [ start stop < ] [
-    start enclose body hydrate
-    start 1 + =: start
-  ]
+  block
+  [ current max < ]
+  [ current swap open current 1 + =: current ]
+  createDetachedLoop open
 ] @: times
 
 
