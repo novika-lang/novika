@@ -66,10 +66,7 @@
 [ "( -- ): executes caller again. Looping primitive. Too low-
    level for users, prefer not to use (use `loop` instead).
    Beware that it does not re-instantiate the block."
-  [
-    drop "the call to repeat"
-    dup continuationBlock 0 |to
-  ] continues
+  ahead 0 |to
 ] @: repeat
 
 
@@ -88,7 +85,21 @@
 ] @: dropContinuationsUntil
 
 
-[ "( -- ): returns to the CC of the block above the caller."
+[ "( B -- ): closes blocks all the way up to, but not
+   including, Block."
+  $: block
+
+  [
+    dup continuationBlock block same?
+      [ ]
+      [ drop rec ]
+    br
+  ] dup @: rec continues
+] @: resume
+
+
+[ "( -- ): closes blocks all the way up to, and including,
+   its *opener's parent*."
   ahead prototype parent $: above
 
   [ continuationBlock prototype above same? ] dropContinuationsUntil
@@ -119,11 +130,7 @@
    are made available in Block. Block is opened in an empty stack."
   newWithBreakAndContinue $: block
 
-  [ "The actual loop body (note the `repeat`)."
-    [ ] new block hydrate
-
-    repeat
-  ] open
+  [ orphan block hydrate repeat ] open
 ] @: loop
 
 
