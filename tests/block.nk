@@ -1,0 +1,271 @@
+describe '|-' [
+  it dies 'when cursor is at 0' [
+    [ 1 2 3 ] dup 0 |to 1 |-
+  ]
+
+  it should 'not die when cursor at 0, but moving 0 times' [
+    [ 1 2 3 ] dup 0 |to dup 0 |- |at 0 assert=
+  ]
+
+  it should 'not move cursor when 0 times' [
+    [ 1 2 3 ] dup 0 |- |at 3 assert=
+  ]
+
+  it should 'move cursor' [
+    [ 1 2 3 ] dup 2 |- |at 1 assert=
+  ]
+
+  it should 'move cursor for stack' [
+    1 2 stack 1 |- 1 assert=
+  ]
+]
+
+describe '|+' [
+  it dies 'when cursor is at end' [
+    [ 1 2 3 ] 1 |+
+  ]
+
+  it should 'not die when cursor at end, but moving 0 times' [
+    [ 1 2 3 ] dup 0 |+ |at 3 assert=
+  ]
+
+  it should 'not move cursor when 0 times' [
+    [ 1 2 3 ] dup 0 |+ |at 3 assert=
+  ]
+
+  it should 'move cursor' [
+    [ 1 2 3 ] dup 1 |to dup 1 |+ |at 2 assert=
+  ]
+
+  it should 'move cursor for stack' [
+    1 2 <| stack 1 |+ 2 assert=
+  ]
+]
+
+describe 'gulp' [
+  it should 'add at start' [
+    [ ] $: block
+
+    #foo block gulp
+
+    "Novika makes moves cursor to the end automatically, and
+     block cursor is taken into account when `=`ing."
+    block [ foo ] assert=
+  ]
+
+  it should 'add at cursor' [
+    [ 1 2 3 ] $: block
+    
+    block 2 |to
+
+    #foo block gulp block [ 1 2 foo 3 ] dup 3 |to assert=
+  ]
+
+  it should 'add at end' [
+    [ 1 2 3 ] $: block
+
+    #foo block gulp block [ 1 2 3 foo ] assert=
+  ]
+]
+
+describe 'spit' [
+  it dies 'at start' [
+    [ 1 2 3 ] dup 0 |to spit
+  ]
+
+  it should 'drop at cursor' [
+    [ 1 2 3 ] $: block
+    
+    block 2 |to
+    block spit 2enclose 2 [ 1 3 ] dup 1 |to 2enclose assert=
+  ]
+
+  it should 'add at end' [
+    [ 1 2 3 ] $: block
+    
+    block spit 2enclose [ 3 [ 1 2 ] ] assert=
+  ]
+]
+
+describe '<<' [
+  it should 'add at start' [
+    [ ] 1 << [ 1 ] assert=
+  ]
+
+  it should 'add at cursor' [
+    [ 1 2 3 ] dup 1 |to #foo << [ 1 foo 2 3 ] dup 2 |to assert=
+  ]
+
+  it should 'add at end' [
+    [ 1 2 3 ] 4 << [ 1 2 3 4 ] assert=
+  ]
+]
+
+describe '>>' [
+  it dies 'at start' [
+    [ ] >>
+  ]
+
+  it should 'drop at cursor' [
+    [ 1 2 3 ] dup 1 |to >> 1 assert= swap [ 2 3 ] dup 0 |to assert=
+  ]
+
+  it should 'drop at end' [
+    [ 1 2 3 ] >> 3 assert= swap [ 1 2 ] assert=
+  ]
+]
+
+describe 'enclose' [
+  it should 'wrap a form in block' [
+    1 enclose [ 1 ] assert=
+  ]
+]
+
+describe '2enclose' [
+  it should 'wrap a pair of forms in block' [
+    1 2 2enclose [ 1 2 ] assert=
+  ]
+]
+
+describe 'fromRight' [
+  it should 'return nth from right' [
+    [ ] [
+      [ 1 2 3 ] 0 fromRight 3 assert=
+      [ 1 2 3 ] 1 fromRight 2 assert=
+      [ 1 2 3 ] 2 fromRight 1 assert=
+    ] there [ ] all?
+  ]
+
+  it dies 'when index is out of bounds' [
+    [ 1 2 3 ] 3 fromRight
+  ]
+
+  it dies 'when index is negative' [
+    [ 1 2 3 ] -1 fromRight
+  ]
+]
+
+describe 'child' [
+  it should 'create empty child block' [
+    [ 1 2 ] $: a a child $: b
+
+    b empty? true assert=
+    b parent a same? true assert=
+  ]
+]
+
+describe '->' [
+  it should 'fetch the entry' [
+    [ 200 $: x
+      100 $: y
+
+      [ x y + ] @: sum
+
+      this
+    ] open $: block
+
+    block -> x 200 assert=
+    block -> y 100 assert=
+    block -> sum [ x y + ] assert=
+    block -> sum open 300 assert=
+  ]
+
+  it should 'preserve lookup hierarchy' [
+    100 $: x
+    200 $: y
+
+    [ 300 $: x [ x y + ] @: sum this ] open $: block
+
+    block -> x 300 assert=
+    block -> y 200 assert=
+    block -> sum open 500 assert=
+  ]
+
+  it dies 'when entry does not exist' [
+    [ ] -> foo
+  ]
+]
+
+describe 'entry:open' [
+  it should 'fetch /& open entry' [
+    [ 200 $: x 100 $: y [ x y + ] @: sum this ] open $: block
+
+    block this #x entry:open 200 assert=
+    block this #y entry:open 100 assert=
+    block this #sum entry:open 300 assert=
+  ]
+
+  it should 'preserve ahead' [
+    [ $: bool [ ahead eject bool => [ 1 + ] ] @: bar: this ] @: block
+
+    true block this #bar: entry:open 100 101 assert=
+    false block this #bar: entry:open 100 100 assert=
+  ]
+
+  it dies 'when entry does not exist' [
+    [ ] this #foo entry:open
+  ]
+]
+
+describe '.' [
+  "These are pretty much the same as 'entry:open' but without
+   the `this`es:"
+
+  it should 'fetch /& open entry' [
+    [ 200 $: x 100 $: y [ x y + ] @: sum this ] open $: block
+
+    block . x 200 assert=
+    block . y 100 assert=
+    block . sum 300 assert=
+  ]
+
+  it should 'preserve ahead' [
+    [ $: bool [ ahead eject bool => [ 1 + ] ] @: bar: this ] @: block
+
+    true block . bar: 100 101 assert=
+    false block . bar: 100 100 assert=
+  ]
+
+  it dies 'when entry does not exist' [
+    [ ] . foo
+  ]
+]
+
+describe 'fetch:' [
+  it should 'ignore non-block forms' [
+    'This is not a block!' #x fetch: [ 1 + ]
+
+    stack empty? true assert=
+  ]
+
+  it should 'do nothing when entry does not exist' [
+    [ ] #x fetch: [ 1 + ]
+
+    stack empty? true assert=
+  ]
+
+  it should 'fetch when entry exists' [
+    [ 100 $: x 200 $: y this ] open $: block
+
+    #nil $: xVal
+    #nil $: yVal
+
+    block #x fetch: [ =: xVal ]
+    block #y fetch: [ =: yVal ]
+
+    xVal 100 assert=
+    yVal 200 assert=    
+  ]
+
+  it should 'not evaluate openers' [
+    [ 100 $: x 200 $: y [ x y + ] @: sum this ] open $: block
+
+    #nil $: sumVal
+
+    block #sum fetch: [ =: sumVal ]
+
+    sumVal [ x y + ] assert=
+    sumVal open 300 assert=
+    and
+  ]
+]

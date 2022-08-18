@@ -6,7 +6,17 @@
   >>> 2 |-
   === [ 1 | 2 3 ]
   """
-  swap $: a a |at swap - a swap |to
+
+  "Hydrating here may seem redundant at first, but remember
+   cases like:
+
+    >>> stack 1 |-
+
+   Thanks to the custom stack created by `2enclose`, we avoid
+   the problems of changing the stack at right times, since
+   words `stack` and `1` affect the cursor too."
+
+  2enclose [ over |at swap - |to ] hydrate
 ] @: |-
 
 
@@ -20,7 +30,7 @@
   >>> 2 |+
   === [ 1 2 3 | ]
   """
-  swap $: a a |at swap + a swap |to
+  2enclose [ over |at + |to ] hydrate
 ] @: |+
 
 
@@ -207,7 +217,7 @@
 
 
 [ """( Lb B -- Lb ): slides cursor in List block from left to right,
-   in steps of one, and THEN opens Block with List block as the stack
+   in steps of one. Opens Block with List block as the stack *after*
    each step. Leaves List block. `break` and `continue` are available.
 
   >>> [ 1 2 3 ] dup 1 |to [ + ] |slideRight
