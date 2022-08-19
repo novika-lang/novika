@@ -112,8 +112,7 @@ The instantiation problem is solved by `loop`. Loop is the word you should use t
 really, forget about `repeat`.
 
 ```novika
-[ newWithBreakAndContinue $: block
-
+[ $: block
   [ orphan block hydrate repeat ] open
 ] @: loop
 ```
