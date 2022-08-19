@@ -136,11 +136,14 @@ module Novika
     fpkg = Packages::Frontend.new
     fpkg.version = VERSION
 
+    # Copied from `Colorize.on_tty_only!`
+    enable_colors = STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
+
     pkgs = [
       Packages::Kernel.new,
       Packages::Math.new,
-      Packages::Colors.new,
-      fpkg
+      Packages::Colors.new(enabled: enable_colors),
+      fpkg,
     ] of Package
 
     fpkg.packages = pkgs

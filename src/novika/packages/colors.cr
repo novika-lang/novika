@@ -17,6 +17,9 @@ module Novika::Packages
     property fg = [] of {UInt8, UInt8, UInt8}
     property bg = [] of {UInt8, UInt8, UInt8}
 
+    def initialize(@enabled = false)
+    end
+
     private def color_u8(r : Decimal, g : Decimal, b : Decimal)
       ru = r.to_i
       gu = g.to_i
@@ -65,12 +68,15 @@ module Novika::Packages
       END
       ) do |engine|
         form = engine.stack.drop
-        colorized = form.enquote(engine).string.colorize
+        string = form.enquote(engine).string
 
-        colorized = colorized.fore(*fg.last) unless fg.empty?
-        colorized = colorized.back(*bg.last) unless bg.empty?
+        if @enabled
+          string = string.colorize
+          string = string.fore(*fg.last) unless fg.empty?
+          string = string.back(*bg.last) unless bg.empty?
+        end
 
-        puts colorized
+        puts string
       end
     end
   end
