@@ -284,6 +284,24 @@
 
 
 [ """( Lb B -- ): opens Block with each item of List block on
+   top of a new stack, and its index below. List block is unchanged.
+   `break` and `next` are available.
+
+  >>> [ 1 2 3 ] [ 2echo ] eachWithIndex
+  STDOUT: 0 1
+  STDOUT: 1 2
+  STDOUT: 2 3
+  """
+  $: body $: list 0 $: index
+
+  body [ index list count < ] [
+    index list index fromLeft 2enclose swap hydrate
+    index 1 + =: index
+  ] createDetachedLoop open
+] @: eachWithIndex
+
+
+[ """( Lb B -- ): opens Block with each item of List block on
    top of a new stack. List block is unchanged. `break` and
    `next` are available.
 
@@ -310,6 +328,17 @@
   """
   ahead eject each
 ] @: each:
+
+
+[ """( Lb each: B -- ): infix version of `eachWithIndex`.
+
+  >>> [ 1 2 3 ] eachWithIndex: [ 2echo ]
+  STDOUT: 0 1
+  STDOUT: 1 2
+  STDOUT: 2 3
+  """
+  ahead eject eachWithIndex
+] @: eachWithIndex:
 
 
 [ """( Lb B -- ): opens Block with pairs of items from List block
