@@ -235,13 +235,13 @@ describe 'fetch:' [
   it should 'ignore non-block forms' [
     'This is not a block!' #x fetch: [ 1 + ]
 
-    stack empty? true assert=
+    stack empty?
   ]
 
   it should 'do nothing when entry does not exist' [
     [ ] #x fetch: [ 1 + ]
 
-    stack empty? true assert=
+    stack empty?
   ]
 
   it should 'fetch when entry exists' [
@@ -272,7 +272,7 @@ describe 'fetch:' [
 
 describe '|slideRight' [
   it should 'do nothing if empty list block' [
-    [ ] [ 1 + ] |slideRight
+    [ ] [ 1 + ] |slideRight [ ] assert=
   ]
 
   it should 'modify the original block' [
@@ -352,7 +352,7 @@ describe '|slideRight' [
 
 describe '|slideLeft' [
   it should 'do nothing if empty list block' [
-    [ ] [ 1 + ] |slideLeft
+    [ ] [ 1 + ] |slideLeft [ ] assert=
   ]
 
   it should 'modify the original block' [
@@ -411,7 +411,7 @@ describe 'eachWithIndex' [
   it should 'do nothing if empty list block' [
     [ ] eachWithIndex: [ 1 + ]
 
-    true
+    stack empty?
   ]
 
   it should 'iterate over whole block with cursor at end' [
@@ -471,7 +471,7 @@ describe 'each' [
   it should 'do nothing if empty list block' [
     [ ] each: [ 1 + ]
 
-    true
+    stack empty?
   ]
 
   it should 'iterate over whole block with cursor at end' [
@@ -525,19 +525,31 @@ describe 'pairs' [
   it should 'do nothing if list block is empty' [
     [ ] pairs: [ + ]
 
-    true
+    stack empty?
   ]
 
   it dies 'when count is odd' [
     [ 1 2 3 ] pairs: [ + ]
   ]
 
-
   it should 'call action block with each pair as stack' [
     [ ] $: stacks
 
     [ 1 2 3 4 ] pairs: [ stacks stack shove ]
 
+    stacks [
+      [ 1 2 ]
+      [ 3 4 ]
+    ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ ] $: stacks
+
+    [ 1 2 3 4 ] $: a
+    a 2 |to
+    a pairs: [ stacks stack shove ]
+    a |at 2 assert=
     stacks [
       [ 1 2 ]
       [ 3 4 ]
@@ -562,5 +574,128 @@ describe 'pairs' [
     ]
 
     visited [ [ 1 2 ] 0 0 ] assert=
+  ]
+]
+
+describe 'consPairs' [
+  it should 'do nothing if list block is empty' [
+    [ ] consPairs: [ + ]
+
+    stack empty?
+  ]
+
+  it should 'do nothing if one item in list block' [
+    [ 1 ] consPairs: [ + ]
+
+    stack empty?
+  ]
+
+  it should 'leave cursor intact' [
+    [ ] $: stacks
+    [ 1 2 3 4 ] $: a
+    a 2 |to
+    a consPairs: [ stacks stack shove ]
+    a |at 2 assert=
+    stacks [
+      [ 1 2 ]
+      [ 2 3 ]
+      [ 3 4 ]
+    ] assert=
+  ]
+
+  it should 'support even number of items' [
+    [ ] $: items
+    [ 1 2 3 4 ] consPairs: [ + items gulp ]
+    items [ 3 5 7 ] assert=
+  ]
+
+  it should 'support odd number of items' [
+    [ ] $: items
+    [ 1 2 3 ] consPairs: [ + items gulp ]
+    items [ 3 5 ] assert=
+  ]
+
+  it should 'support next and break' [
+      [ ] $: items
+    false $: went
+
+    [ 1 2 3 4 5 6 ] consPairs: [
+      2dup * 10 > => [ break ]
+      + items gulp
+      next
+      true =: went
+    ]
+
+    items [ 3 5 ] assert=
+    went false assert=
+  ]
+]
+
+describe 'map' [
+  it should 'do nothing if list block is empty' [
+    [ ] map: [ 1 + ] [ ] assert=
+  ]
+
+  it should 'not change original block' [
+    [ 1 2 3 ] $: a
+    a map: [ 1 + ] [ 2 3 4 ] assert=
+    a [ 1 2 3 ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 1 2 3 ] $: a
+    a 1 |to
+    a map: [ 1 + ] [ 2 3 4 ] assert=
+    a |at 1 assert=
+  ]
+
+  it should 'support break and next where next means don`t keep if stack empty' [
+    [ 1 101 2 3 200 4 1000 5 1001 2 3 ] $: a
+    a map: [ $: n
+      n 1000 > => [ break ]
+      n 100 > => [ next ]
+      n 1 +
+    ] [ 2 3 4 5 6 ] assert=
+  ]
+]
+
+describe 'only' [
+  it should 'do nothing if list block is empty' [
+    [ ] [ 100 > ] only [ ] assert=
+  ]
+
+  it should 'keep if action block is empty' [
+    [ 1 2 3 ] [ ] only [ 1 2 3 ] assert=
+  ]
+
+  it should 'select values for which action block leaves truthy' [
+    [ 1 100 2 300 4 600 10 ] only: [ 100 > ] [ 300 600 ] assert=
+  ]
+
+  it should 'reject values for which action block leaves false' [
+    [ 1 100 2 300 4 600 10 ] only: [ false ] [ ] assert=
+  ]
+
+  it should 'not modify original block' [
+    [ 1 2 3 ] $: a
+    a only: [ 1 > ] $: b
+    b [ 2 3 ] assert=
+    a [ 1 2 3 ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 1 2 3 ] $: a
+    a 1 |to
+    a only: [ 1 > ] [ 2 3 ] assert=
+    a |at 1 assert=
+  ]
+
+  it should 'support next & break where next means don`t keep if stack empty' [
+    [ 1 101 2 3 200 4 1000 5 1001 2 3 ] $: a
+    a only: [ $: n
+      n 1000 > => [ break ]
+      n 100 > => [ next ]
+      n 1 + 4 <=
+    ] [ 1 2 3 ] assert=
   ]
 ]
