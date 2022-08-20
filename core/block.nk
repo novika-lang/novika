@@ -446,7 +446,10 @@
 
   block [ index list count < ]
   [
-    list index fromLeft enclose swap there cherry result gulp
+    list index fromLeft enclose swap there dup empty?
+      [ "No result: probably the user wants it out." drop ]
+      [ cherry result gulp ]
+    br
     index 1 + =: index
   ] createDetachedLoop open
 
@@ -484,7 +487,10 @@
 
   block [ index list count < ]
   [
-    list index fromLeft dup enclose rot there cherry => [ result gulp ]
+    list index fromLeft dup enclose rot there dup empty?
+      [ "No result: probably the user wants it out." drop ]
+      [ cherry => [ result gulp ] ]
+    br
     index 1 + =: index
   ] createDetachedLoop open
 
