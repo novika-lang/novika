@@ -330,7 +330,7 @@
 ] @: each:
 
 
-[ """( Lb each: B -- ): infix version of `eachWithIndex`.
+[ """( Lb eachWithIndex: B -- ): infix version of `eachWithIndex`.
 
   >>> [ 1 2 3 ] eachWithIndex: [ 2echo ]
   STDOUT: 0 1
