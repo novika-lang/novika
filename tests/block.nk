@@ -407,3 +407,116 @@ describe '|slideLeft' [
   ]
 ]
 
+describe 'eachWithIndex' [
+  it should 'do nothing if empty list block' [
+    [ ] eachWithIndex: [ 1 + ]
+
+    true
+  ]
+
+  it should 'iterate over whole block with cursor at end' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'iterate over whole block with cursor at start' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] dup 0 |to eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'iterate over whole block with cursor anywhere else' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] dup 1 |to eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 2 3 4 ] $: a
+    a 1 |to
+    a eachWithIndex: [ ]
+    a |at 1 assert=
+  ]
+
+  it should 'not modify block &/ with leftovers' [
+    [ 2 3 4 ] $: a
+    a eachWithIndex: [ 1 + 100 ]
+    a [ 2 3 4 ] assert=
+  ]
+
+  it should 'support next and break' [
+    [ ] $: items
+
+    [ 2 7 8 7 1 9 3 4 5 6 ] eachWithIndex: [ $: item $: index
+      item even? => [ next ]
+      item 3 /?  => [ break ]
+      items index item 2enclose shove
+    ]
+
+    items [ [ 1 7 ] [ 3 7 ] [ 4 1 ] ] assert=
+  ]
+]
+
+describe 'each' [
+  it should 'do nothing if empty list block' [
+    [ ] each: [ 1 + ]
+
+    true
+  ]
+
+  it should 'iterate over whole block with cursor at end' [
+    [ ] $: items
+
+    [ 2 3 4 ] each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'iterate over whole block with cursor at start' [
+    [ ] $: items
+
+    [ 2 3 4 ] dup 0 |to each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'iterate over whole block with cursor anywhere else' [
+    [ ] $: items
+
+    [ 2 3 4 ] dup 1 |to each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 2 3 4 ] $: a
+    a 1 |to
+    a each: [ ]
+    a |at 1 assert=
+  ]
+
+  it should 'not modify block &/ with leftovers' [
+    [ 2 3 4 ] $: a
+    a each: [ 1 + 100 ]
+    a [ 2 3 4 ] assert=
+  ]
+
+  it should 'support next and break' [
+    [ ] $: items
+
+    [ 2 7 8 7 1 9 3 4 5 6 ] each: [ $: item
+      item even? => [ next ]
+      item 3 /?  => [ break ]
+      items item shove
+    ]
+
+    items [ 7 7 1 ] assert=
+  ]
+]
