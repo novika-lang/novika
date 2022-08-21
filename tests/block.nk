@@ -699,3 +699,250 @@ describe 'only' [
     ] [ 1 2 3 ] assert=
   ]
 ]
+
+describe 'reduce' [
+  it should 'leave memo if list block is empty' [
+    [ ] [ + ] 0 reduce 0 assert=
+  ]
+
+  it should 'call block for one value' [
+    false $: status
+    [ 1 ] [ true =: status + ] 0 reduce 1 assert=
+    status
+  ]
+
+  it should 'call block and reduce multiple values' [
+    [ 1 2 3 4 5 ] [ * ] 1 reduce 120 assert=
+    [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce 'Hellope, Europe! Huh?' assert=
+  ]
+
+  it should 'support next' [
+    [ 1 2 3 4 5 ] [ dup odd? => [ drop "memo left here" next ] + ] 0 reduce 6 assert=
+  ]
+
+  it should 'support break' [
+    [ 1 1 7 3 2 3 4 5 ] [ dup even? => [ break ] + ] 0 reduce 12 assert=
+  ]
+]
+
+describe 'amount' [
+  it should 'leave zero for empty block' [
+    [ ] # [ even? ] 0 assert=
+  ]
+
+  it should 'provide proper stack to action block' [
+    [ ] $: stacks
+    [ 1 2 3 4 ] # [ stack shallowCopy stacks gulp ] 4 assert=
+    stacks [ [ 1 ] [ 2 ] [ 3 ] [ 4 ] ] assert=
+  ]
+
+  it should 'count all with empty action block' [
+    [ 1 2 3 ] # [ ] 3 assert=
+  ]
+
+  it should 'support single item list' [
+    [ 1 ] # [ even? ] 0 assert=
+    [ 4 ] # [ even? ] 1 assert=
+  ]
+
+  it should 'support multi item list' [
+    [ 1 2 3 4 ] # [ even? ] 2 assert=
+  ]
+
+  it should 'support break and next' [
+    [ 1 2 3 4 5 3 foo 5 6 7 8 ] # [ $: n
+      n #foo = => [ break ]
+      n even?  => [ false next ]
+      n 1 + 3 >
+    ] 3 assert=
+  ]
+]
+
+describe 'all?' [
+  it should 'leave true for empty list' [
+    [ ] [ ] all?
+  ]
+
+  it should 'leave true for empty action block' [
+    [ 1 2 3 ] [ ] all?
+  ]
+
+  it should 'leave proper result' [
+    [ 1 2 3 4 ] [ even? ] all? false assert=
+    [ 2 4 6 8 ] [ even? ] all? true assert=
+    [ 101 2 3 4 ] [ 100 < ] all? false assert=
+  ]
+
+  it dies 'when using next' [
+    [ 1 2 3 4 ] [ next ] all?
+  ]
+
+  it dies 'when using break' [
+    [ 1 2 3 4 ] [ break ] all?
+  ]
+]
+
+describe 'any?' [
+  it should 'leave false for empty list' [
+    [ ] [ ] any? not
+  ]
+
+  it should 'leave true for empty action block' [
+    [ 1 2 3 ] [ ] any?
+  ]
+
+  it should 'leave proper result' [
+    [ 1 2 3 4 ] [ even? ] any? true assert=
+    [ 2 4 6 8 ] [ odd? ] any? false assert=
+    [ 101 2 3 4 ] [ 100 < ] any? true assert=
+  ]
+
+  it dies 'when using next' [
+    [ 1 2 3 4 ] [ next ] any?
+  ]
+
+  it dies 'when using break' [
+    [ 1 2 3 4 ] [ break ] any?
+  ]
+]
+
+describe 'zip' [
+  it should 'zip two empty blocks into an empty block' [
+    [ ] [ ] zip [ ] assert=
+  ]
+
+  it should 'zip with equal amount of items' [
+    [ 1 ] [ 2 ] zip [ [ 1 2 ] ] assert=
+    [ 1 2 ] [ 3 4 ]  zip [ [ 1 3 ] [ 2 4 ] ] assert=
+    [ 1 2 3 ] [ 3 4 5 ] zip  [ [ 1 3 ] [ 2 4 ] [ 3 5 ] ] assert=
+  ]
+
+
+  it dies 'when zipping with unequal amount of items (holes)' [
+    [ 1 2 ] [ 3 ] zip
+  ]
+]
+
+describe 'zipWithDefault' [
+  it should 'work for empty blocks' [
+    [ ] [ ] #hole zipWithDefault [ ] assert=
+  ]
+
+  it should 'work when there are no holes' [
+    [ 1 2 ] [ 3 4 ] #hole zipWithDefault [ [ 1 3 ] [ 2 4 ] ] assert=
+  ]
+
+  it should 'work when there are holes on the right' [
+    [ 1 2 ] [ 3 ] #hole zipWithDefault [ [ 1 3 ] [ 2 hole ] ] assert=
+  ]
+
+  it should 'work when there are holes on the right' [
+    [ 1 ] [ 3 4 ] #hole zipWithDefault [ [ 1 3 ] [ hole 4 ] ] assert=
+  ]
+
+  it should 'work with either list empty' [
+    [ ] [ 1 2 ] #hole zipWithDefault [ [ hole 1 ] [ hole 2 ] ] assert=
+    [ 1 2 ] [ ] #hole zipWithDefault [ [ 1 hole ] [ 2 hole ] ] assert=
+  ]
+]
+
+describe 'conjure/here' [
+  it should 'accept decimal, bool, etc.' [
+    0 here 0 assert=
+    true here true assert=
+    'hello' here 'hello' assert=
+  ]
+
+  it should 'leave definitions of words' [
+    [ 1 2 3 4 ] $: a
+    a $: b
+    #b here a same?
+  ]
+
+  it should 'peel off a # from quoted words' [
+    ###foo here ##foo assert=
+    ##foo here #foo assert=
+  ]
+
+  it should 'recurse into blocks' [
+    0 $: a
+    1 $: b
+    2 $: c
+    3 $: d
+
+    [ [ [ [ a 'foo' ] b 1 ] c 'bar' d ] #baz ] here
+    [ [ [ [ 0 'foo' ] 1 1 ] 2 'bar' 3 ]  baz ]
+    assert=
+  ]
+
+  it dies 'on undefined words' [
+    foo here
+  ]
+
+  it should 'trigger word trap when word is undefined' [
+    [ enquote 2 sliceQuoteAt nip ] @: *trap
+    foobar here 'oobar' assert=
+  ]
+]
+
+describe 'minmax' [
+  it dies 'when block is empty' [
+    [ ] minmax
+  ]
+
+  it dies 'when items are not decimals' [
+    [ foo ] minmax
+  ]
+
+  it should 'leave same result when block is count 1' [
+    [ 100 ] minmax stack shallowCopy [ 100 100 ] assert=
+  ]
+
+  it should 'leave proper result for > 1 items in block' [
+    [ 100 200 5 300 405 ] minmax stack shallowCopy [ 5 405 ] assert=
+  ]
+
+  it should 'handle blocks which implement *asDecimal' [
+    [ -101 $: *asDecimal this ] open $: a
+    [ 500 $: *asDecimal this ] open $: b
+
+    "There is no good way to do this right now unfortunately..."
+    [ -100 100 ] [ <| a |> b ] there
+
+    minmax
+
+    "Note how minmax still returns a, b, not their numeric values.
+     I don't know whether this is what's expected."
+    stack shallowCopy a b 2enclose assert=
+  ]
+]
+
+"Min, max are (or could be, if certain behavior is desired) implemented
+ via `minmax` and don't require testing here."
+
+describe 'sum' [
+  it should 'leave 0 when block is empty' [
+    [ ] sum 0 assert=
+  ]
+
+  it should 'leave number when block has one number' [
+    [ 100 ] sum 100 assert=
+  ]
+
+  it should 'leave sum otherwise' [
+    [ 100 200 300 ] sum 600 assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal' [
+    [ $: n [ n 1 + ] @: *asDecimal this ] @: foos
+
+    100 foos "101"
+    200 foos "201"
+    2enclose
+
+    300 foos "301"
+    <<
+
+    sum 603 assert=
+  ]
+]
