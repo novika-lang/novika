@@ -641,14 +641,13 @@
   >>> [ 1 2 ] [ 3 ] zip
   [dies]
   """
-  $: b $: a
+  $: b $: a a count $: aCount
 
-  a count dup
-  b count = not => [ 'counts must be equal with zip, otherwise use zipWithDefault' die ]
+  aCount b count = not => [ 'counts must be equal with zip, otherwise use zipWithDefault' die ]
 
   [ ] $: result
 
-  "a count" times: [ dup
+  aCount times: [ dup
     a swap fromLeft swap
     b swap fromLeft 2enclose
     result gulp
