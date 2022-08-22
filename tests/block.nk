@@ -917,8 +917,17 @@ describe 'minmax' [
   ]
 ]
 
-"Min, max are (or could be, if certain behavior is desired) implemented
- via `minmax` and don't require testing here."
+describe 'min' [
+  it should 'leave min part of minmax' [
+    [ 100 5 -100 2 3 -29 4 500 ] min -100 assert=
+  ]
+]
+
+describe 'max' [
+  it should 'leave max part of minmax' [
+    [ 100 5 -100 2 3 -29 4 500 ] max 500 assert=
+  ]
+]
 
 describe 'sum' [
   it should 'leave 0 when block is empty' [
@@ -945,4 +954,237 @@ describe 'sum' [
 
     sum 603 assert=
   ]
+]
+
+describe 'minmaxBy' [
+  it dies 'when list block is empty' [
+    [ ] [ ] minmaxBy
+  ]
+
+  it should 'leave integer minmax when transform is empty' [
+    [ 1 2 3 ] [ ] minmaxBy stack shallowCopy [ 1 3 ] assert=
+  ]
+
+  it dies 'when transform is empty but values are non-numeric' [
+    [ 'foo' 'barb' 'baz' ] [ ]  minmaxBy
+  ]
+
+  it should 'convert to numeric but leave original types' [
+    [ 'AA' 'A' 'AAAAB' 'BAAAAAAB' 'Y' ] [ charCount ] minmaxBy
+
+    stack shallowCopy [ 'A' 'BAAAAAAB' ] assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal as Transform results' [
+    [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+
+    [ 'AA' 'A' 'AAAB' 'foo' 'barbeee' ] [ toAwesomeBlock ] minmaxBy
+
+    stack shallowCopy [ 'A' 'barbeee' ] assert=
+  ]
+
+  it dies 'on next' [
+    [ 1 2 3 ] [ break ] minmaxBy
+  ]
+
+  it dies 'on break' [
+    [ 1 2 3 ] [ next ] minmaxBy
+  ]
+]
+
+describe 'minBy' [
+  it should 'leave min from minmaxBy' [
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] minBy 'x' assert=
+  ]
+]
+
+describe 'maxBy' [
+  it should 'leave max from minmaxBy' [
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] maxBy 100 assert=
+  ]
+]
+
+describe 'sumBy' [
+  [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+
+  it should 'leave zero when list block is empty' [
+    [ ] [ ] sumBy 0 assert=
+  ]
+
+  it should 'leave one numeric if one numeric in list block' [
+    [ 1 ] [ ] sumBy 1 assert=
+    'foo' toAwesomeBlock enclose [ ] sumBy 3 assert=
+  ]
+
+  it should 'sum numerically if transform block is empty' [
+    [ 1 2 3 ] [ ] sumBy 6 assert=
+  ]
+
+  it dies 'when transform block is empty but list block is non-numeric' [
+    [ 1 'foo' #barbee 3 ] [ ] sumBy
+  ]
+
+  it should 'convert to numeric and leave numeric sum & have proper stack signature' [
+    [ ] $: stacks
+
+    [ 'foo' 'bar' 3 4 'x' ] [ stack shallowCopy stacks gulp dup quote? => [ charCount ] ] sumBy
+
+    14 assert=
+
+    stacks [
+      [ 'foo' ]
+      [ 'bar' ]
+      [ 3 ]
+      [ 4 ]
+      [ 'x' ]
+    ] assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal as results/summands' [
+    'foobee' toAwesomeBlock $: myBestBlock
+
+    [ 'foo' 3 myBestBlock 4 'bar' 5 ] here [ dup quote? => [ toAwesomeBlock ] ] sumBy
+
+    24 assert=
+  ]
+
+  it dies 'on next' [
+    [ 1 2 3 ] [ break ] sumBy
+  ]
+
+  it dies 'on break' [
+    [ 1 2 3 ] [ next ] sumBy
+  ]
+]
+
+describe 'collect' [
+  it dies 'when amount is negative' [
+    -1 collect: [ ]
+  ]
+
+  it should 'not call block & leave empty block when N = 0' [
+    false $: called
+    0 collect: [ true =: called ]
+    called not
+  ]
+
+  it should 'collect results of running block N items & have correct stack signature' [
+    [ ] $: stacks
+
+    4 collect: [ stack shallowCopy stacks gulp ] [ 0 1 2 3 ] assert=
+
+    stacks [
+      [ 0 ]
+      [ 1 ]
+      [ 2 ]
+      [ 3 ]
+    ] assert=
+  ]
+
+  it should 'execute block and leave block results' [
+    100 $: n
+    4 collect: [ n + dup =: n ] [ 100 101 103 106 ] assert=
+  ]
+
+  it should 'support next & break' [
+    10 collect: [ $: n
+      n even? => [ next ]
+      n 5 > n odd? and => [ break ]
+      n
+    ] [ 1 3 5 ] assert=
+  ]
+]
+
+describe 'range' [
+  it should 'leave 1-number range when B = E' [
+    0 to: 0 [ 0 ] assert=
+  ]
+
+  it should 'leave 1-number range when B < 0 = E < 0' [
+    -100 to: -100 [ -100 ] assert=
+  ]
+
+  it should 'support [+B; +E]' [
+    1 to: 10 [ 1 2 3 4 5 6 7 8 9 10 ] assert=
+    10 to: 1 [ 10 9 8 7 6 5 4 3 2 1 ] assert=
+  ]
+
+  it should 'support [-B; +E]' [
+    -5 to: 1 [ -5 -4 -3 -2 -1 0 1 ] assert=
+  ]
+
+  it should 'support [+B; -E]' [
+    1 to: -5 [ 1 0 -1 -2 -3 -4 -5 ] assert=
+  ]
+
+  it should 'support [-B; -E]' [
+    -5 to: -10 [ -5 -6 -7 -8 -9 -10 ] assert=
+    -10 to: -5 [ -10 -9 -8 -7 -6 -5 ] assert=
+  ]
+]
+
+describe 'join' [
+  it should 'leave empty quote on empty block' [
+    [ ] join '' assert=
+  ]
+
+  it should 'join one quote' [
+    [ 'foo' ] join 'foo' assert=
+  ]
+
+  it should 'join multiple quotes' [
+    [ 'A' 'B' 'C' ] join 'ABC' assert=
+  ]
+
+  it should 'enquote non-quotes' [
+    [ [ 1 2 3 ] 'foo' 100 bar #baz ##boo ] join '[ 1 2 3 | ]+foo100bar#baz##boo' assert=
+  ]
+]
+
+describe 'concat!' [
+  it should 'concat two empty blocks' [
+    [ ] $: a
+    [ ] $: b
+    a b concat! dup a same? swap [ ] assert= and
+  ]
+
+  it should 'concat with empty A block' [
+    [ ] [ 1 2 3 ] concat! [ 1 2 3 ] assert=
+  ]
+
+  it should 'concat with empty B block' [
+    [ 1 2 3 ] [ ] concat! [ 1 2 3 ] assert=
+  ]
+
+  it should 'concat if both non-empty' [
+    [ 1 2 3 ] $: a
+      a [ 4 5 6 ] concat! a same?
+      a [ 1 2 3 4 5 6 ] assert=
+    and
+  ]
+
+  it should 'move the cursor in A block, but not B block' [
+    [ 1 2 3 ] $: a
+    [ 4 5 6 ] $: b
+    a 1 |to
+    b 2 |to
+    a b concat!
+      a |at 4 assert=
+      b |at 2 assert=
+    and
+  ]
+]
+
+describe 'concat' [
+  it should 'not modify A nor B block' [
+    [ 1 2 3 ] $: a
+    [ 4 5 6 ] $: b
+    a b concat [ 1 2 3 4 5 6 ] assert=
+    a [ 1 2 3 ] assert=
+    b [ 4 5 6 ] assert=
+  ]
+
+  "TODO? Otherwise this is the same as concat! at least in core. Don't know
+   if it's good or bad or worth it to copy tests like that, considering the
+   language may change any minute."
 ]

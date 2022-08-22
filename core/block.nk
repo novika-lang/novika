@@ -742,6 +742,10 @@
   >>> [ 1 2 3 ] minmax
   === 1 3
   """
+
+  "NOTE: this is separate from minmaxBy for performance reasons only;
+   otherwise, having `[ ] minmaxBy` would be sufficient here."
+
   dup empty? => [ 'Cannot minmax an empty block' die ]
 
   dup 0 fromLeft
@@ -791,19 +795,22 @@
 ] @: sum
 
 
-[ """( Lb T -- Min Max ): leaves the minimum and maximum
-   values in List block. Numeric values are obtained via the
-   Transformation block, which is opened with each element
-   of List block on top of an empty stack. If List block is
-   empty, dies, so make sure to handle that yourself.
+[ """( Lb T -- Min Max ): leaves the minimum and maximum values
+   in List block. Decimal values are obtained via the Transformation
+   block, which is opened with each element of List block on top
+   of an empty stack. If List block is empty, dies, so make sure
+   to handle that yourself.
 
-  >>> [ 1 2 3 ] [ ] minmax
+  >>> [ ] [ ] minmaxBy
+  === [dies]
+
+  >>> [ 1 2 3 ] [ ] minmaxBy
   === 1 3
 
   >>> [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ charCount ] minmax
   === 'A short string' 'Veeeeeeeeeeery long string'
   """
-  dup empty? => [ 'here' echo drop minmax ^ ] $: transformer
+  dup empty? => [ drop minmax ^ ] $: transformer
   dup empty? => [ 'Cannot minmax an empty block' die ]
 
   dup 0 fromLeft "Get the first item in the List block."
@@ -825,28 +832,28 @@
 
 [ """( Lb T -- Min ): leaves the minimum value in List block. Each
    element of List block is transformed using Transformation
-   block. See `minmax`.
+   block. See `minmaxBy`.
 
-  >>> [ 1 2 3 ] [ ] min
+  >>> [ 1 2 3 ] [ ] minBy
   === 1
   """
-  minmax drop
+  minmaxBy drop
 ] @: minBy
 
 
 [ """( Lb T -- Max ): leaves the maximum value in List block. Each
    element of List block is transformed using Transformation
-   block. See `minmax`.
+   block. See `minmaxBy`.
 
-  >>> [ 1 2 3 ] [ ] max
+  >>> [ 1 2 3 ] [ ] maxBy
   === 3
   """
-  minmax nip
+  minmaxBy nip
 ] @: maxBy
 
 
 [ """( Lb T -- Sum ): leaves Sum of List block elements transformed
-   into decimals by Transformation block. Similar to `minmax`.
+   into decimals by Transformation block. Similar to `minmaxBy`.
 
   >>> [ 'a' 'aaa' 'aa' ] [ charCount ] sumBy
   === 6
@@ -858,7 +865,9 @@
 
 
 [ """( N B -- Lb ): leaves a List block with N results of opening
-   Block with the current N. `break` and `next` are available.
+   Block with the current N. Basically a combo of `times` and `map`.
+   `break` and `next` are available. The current result is skipped
+   if stack is empty after opening Block.
 
   >>> 3 [ readLine [ stack swap slurp ] [ drop 0 ] br ] collect
   INPUT: 0 3
@@ -874,7 +883,8 @@
 
   block  [ current max < ]
   [
-    current swap open result gulp
+    current enclose swap there dup empty? not =>
+      [ cherry result gulp ]
     current 1 + =: current
   ] createDetachedLoop open
 
@@ -909,7 +919,7 @@
 ] @: range
 
 
-[ """( B to: E -- Rb ): infix version of `between`.
+[ """( B to: E -- Rb ): infix version of `range`.
 
   >>> 1 to: 100
   === [ 1 2 3 ... 98 99 100 | ]
@@ -949,7 +959,7 @@
   >>> [ 1 2 3 ] [ 4 5 6 ]
   === [ 1 2 3 4 5 6 ] (a new block!)
   """
-  shallowCopy concat!
+  <| shallowCopy |> concat!
 ] @: concat
 
 
