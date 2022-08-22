@@ -100,7 +100,7 @@ module Novika::Packages
         s = quote.string
         Boolean[!s.empty? && ((s.size == 1 && s[0].uppercase?) || s.each_char.all?(&.uppercase?))].push(engine)
       end
-      
+
       target.at("toUppercase", <<-END
       (Q -- Uq): converts lowercase character(s) in Quote
        to Uppercase. If Quote is empty, leaves empty quote.
@@ -110,7 +110,6 @@ module Novika::Packages
         quote = engine.stack.drop.assert(engine, Quote)
         Quote.new(quote.string.upcase).push(engine)
       end
-
 
       target.at("block?", "( F -- true/false ): leaves whether Form is a block.") do |engine|
         Boolean[engine.stack.drop.is_a?(Block)].push(engine)
@@ -204,13 +203,13 @@ module Novika::Packages
     END
       ) do |engine|
         name = engine.stack.drop
-        block = engine.stack.drop.assert(engine, ReadableTable)
+        block = engine.stack.drop.assert(engine, Block)
         Boolean[block.has?(name)].push(engine)
       end
 
       target.at("entry:fetch", "( B N -- F ): leaves the value Form under Name in Block's table.") do |engine|
         name = engine.stack.drop
-        block = engine.stack.drop.assert(engine, ReadableTable)
+        block = engine.stack.drop.assert(engine, Block)
         block.at(name).push(engine)
       end
 
@@ -220,7 +219,7 @@ module Novika::Packages
     END
       ) do |engine|
         name = engine.stack.drop
-        block = engine.stack.drop.assert(engine, ReadableTable)
+        block = engine.stack.drop.assert(engine, Block)
         Boolean[block.at(name).is_a?(OpenEntry)].push(engine)
       end
 
