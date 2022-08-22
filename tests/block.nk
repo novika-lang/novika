@@ -55,7 +55,7 @@ describe 'gulp' [
 
   it should 'add at cursor' [
     [ 1 2 3 ] $: block
-    
+
     block 2 |to
 
     #foo block gulp block [ 1 2 foo 3 ] dup 3 |to assert=
@@ -75,14 +75,14 @@ describe 'spit' [
 
   it should 'drop at cursor' [
     [ 1 2 3 ] $: block
-    
+
     block 2 |to
     block spit 2enclose 2 [ 1 3 ] dup 1 |to 2enclose assert=
   ]
 
   it should 'add at end' [
     [ 1 2 3 ] $: block
-    
+
     block spit 2enclose [ 3 [ 1 2 ] ] assert=
   ]
 ]
@@ -235,13 +235,13 @@ describe 'fetch:' [
   it should 'ignore non-block forms' [
     'This is not a block!' #x fetch: [ 1 + ]
 
-    stack empty? true assert=
+    stack empty?
   ]
 
   it should 'do nothing when entry does not exist' [
     [ ] #x fetch: [ 1 + ]
 
-    stack empty? true assert=
+    stack empty?
   ]
 
   it should 'fetch when entry exists' [
@@ -254,7 +254,7 @@ describe 'fetch:' [
     block #y fetch: [ =: yVal ]
 
     xVal 100 assert=
-    yVal 200 assert=    
+    yVal 200 assert=
   ]
 
   it should 'not evaluate openers' [
@@ -268,4 +268,923 @@ describe 'fetch:' [
     sumVal open 300 assert=
     and
   ]
+]
+
+describe '|slideRight' [
+  it should 'do nothing if empty list block' [
+    [ ] [ 1 + ] |slideRight [ ] assert=
+  ]
+
+  it should 'modify the original block' [
+    [ 1 2 3 ] dup 0 |to $: a
+    a [ 1 + ] |slideRight a same? true assert=
+    a [ 2 3 4 ] assert=
+  ]
+
+  it should 'start at cursor' [
+    [ 1 2 3 ] dup 1 |to [ 1 + ] |slideRight [ 1 3 4 ] assert=
+  ]
+
+  it should 'handle insertion before' [
+    [ 1 2 3 ] dup 1 |to [ #boo swap 1 + ] |slideRight
+    [ 1 boo 3 boo 4 ] assert=
+  ]
+
+  it should 'handle insertion after' [
+    [ 1 2 3 ] dup 1 |to [ 1 + #boo ] |slideRight
+    [ 1 3 boo 4 boo ] assert=
+  ]
+
+  it should 'handle deletion' [
+    [ 1 2 3 ] dup 0 |to [ drop ] |slideRight [ ] assert=
+  ]
+
+  it should 'work with multiple items' [
+    [ 1 2 3 ] dup 1 |to [ + ] |slideRight [ 6 ] assert=
+  ]
+
+  it should 'support cursor movement' [
+    [ 1 2 3 ] dup 0 |to [ <| 'Hi!' |> ] |slideRight
+    [ 'Hi!' 1 'Hi!' 2 'Hi!' 3 ] assert=
+  ]
+
+  it should 'support reusing results from old iterations' [
+    "Add sum of previous elements to the current element."
+    [ 3 4 5 6 ] dup 1 |to [ over + ] |slideRight [ 3 7 12 18 ] assert=
+  ]
+
+  it should 'support next' [
+    [ 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 ] $: numbers
+
+    numbers 0 |to
+    numbers |-> [
+      dup 15 /?  => [ drop 'FizzBuzz' next ]
+      dup  5 /?  => [ drop 'Buzz' next ]
+      dup  3 /?  => [ drop 'Fizz' next ]
+      enquote
+    ]
+
+    [ '1' '2' 'Fizz' '4' 'Buzz' 'Fizz' '7' '8' 'Fizz' 'Buzz' '11' 'Fizz'
+      '13' '14' 'FizzBuzz' '16' '17' 'Fizz' '19' 'Buzz' 'Fizz' '22' '23'
+      'Fizz'  'Buzz' ]
+
+    assert=
+  ]
+
+  it should 'support break' [
+    [ 1 2 3 4 5 6 7 8 ] $: numbers
+
+    numbers 0 |to
+    numbers |-> [
+      dup 5 > => [ break ]
+      100 +
+    ]
+
+    "As you can see, break leaves the cursor AFTER the item
+     that failed to match."
+    [ 101 102 103 104 105 6 "|" 7 8 ] dup 6 |to assert=
+  ]
+
+  it dies 'upon underflow' [
+    [ 1 2 3 ] dup 0 |to [ swap ] |slideRight
+  ]
+]
+
+describe '|slideLeft' [
+  it should 'do nothing if empty list block' [
+    [ ] [ 1 + ] |slideLeft [ ] assert=
+  ]
+
+  it should 'modify the original block' [
+    [ 1 2 3 ] $: a
+    a [ 1 + ] |slideLeft a same? true assert=
+    a [ 2 3 4 ] dup 0 |to assert=
+  ]
+
+  it should 'start at cursor' [
+    [ 1 2 3 ] dup 2 |to [ 1 + ] |slideLeft [ 2 3 3 ] dup 0 |to assert=
+  ]
+
+  it should 'handle insertion before' [
+    [ 1 2 3 ] dup 2 |to [ #boo #foo rot 1 + ] |slideLeft
+    [ boo foo 2 boo foo 3 3 ] dup 0 |to assert=
+  ]
+
+  it should 'handle insertion after' [
+    [ 1 2 3 ] dup 2 |to [ 1 + #boo ] |slideLeft
+    [ 2 boo 3 boo 3 ] dup 0 |to assert=
+  ]
+
+  it should 'handle deletion' [
+    [ 1 2 3 ] [ drop ] |slideLeft [ ] assert=
+  ]
+
+  it should 'work with multiple items & support break' [
+    [ 1 2 3 ] [ stack |at 1 = => [ break ] + ] |slideLeft [ 6 ] assert=
+  ]
+
+  it should 'support cursor movement' [
+    [ 1 2 3 ] [ <| 'Hi!' |> ] |slideLeft
+    [ 'Hi!' 1 'Hi!' 2 'Hi!' 3 ] dup 0 |to assert=
+  ]
+
+  it should 'support next' [
+    [ 1 2 3 4 5 ] <-| [
+      dup 3 > => [ next ]
+      1 +
+    ] [ 2 3 4 4 5 ] dup 0 |to assert=
+  ]
+
+  it should 'support break' [
+    [ 1 2 3 4 5 ] <-| [
+      dup 3 < => [ break ]
+      1 +
+    ] [ 1 2 "|" 4 5 6 ] dup 2 |to assert=
+  ]
+
+  it dies 'upon underflow' [
+    [ 1 2 3 ] [ swap ] |slideLeft
+  ]
+]
+
+describe 'eachWithIndex' [
+  it should 'do nothing if empty list block' [
+    [ ] eachWithIndex: [ 1 + ]
+
+    stack empty?
+  ]
+
+  it should 'iterate over whole block with cursor at end' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'iterate over whole block with cursor at start' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] dup 0 |to eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'iterate over whole block with cursor anywhere else' [
+    [ ] $: items [ ] $: indices
+
+    [ 2 3 4 ] dup 1 |to eachWithIndex: [ items gulp indices gulp ]
+
+    [ 2 3 4 ] items   assert=
+    [ 0 1 2 ] indices assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 2 3 4 ] $: a
+    a 1 |to
+    a eachWithIndex: [ ]
+    a |at 1 assert=
+  ]
+
+  it should 'not modify block &/ with leftovers' [
+    [ 2 3 4 ] $: a
+    a eachWithIndex: [ 1 + 100 ]
+    a [ 2 3 4 ] assert=
+  ]
+
+  it should 'support next and break' [
+    [ ] $: items
+
+    [ 2 7 8 7 1 9 3 4 5 6 ] eachWithIndex: [ $: item $: index
+      item even? => [ next ]
+      item 3 /?  => [ break ]
+      items index item 2enclose shove
+    ]
+
+    items [ [ 1 7 ] [ 3 7 ] [ 4 1 ] ] assert=
+  ]
+]
+
+describe 'each' [
+  it should 'do nothing if empty list block' [
+    [ ] each: [ 1 + ]
+
+    stack empty?
+  ]
+
+  it should 'iterate over whole block with cursor at end' [
+    [ ] $: items
+
+    [ 2 3 4 ] each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'iterate over whole block with cursor at start' [
+    [ ] $: items
+
+    [ 2 3 4 ] dup 0 |to each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'iterate over whole block with cursor anywhere else' [
+    [ ] $: items
+
+    [ 2 3 4 ] dup 1 |to each: [ items gulp ]
+    [ 2 3 4 ] items assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 2 3 4 ] $: a
+    a 1 |to
+    a each: [ ]
+    a |at 1 assert=
+  ]
+
+  it should 'not modify block &/ with leftovers' [
+    [ 2 3 4 ] $: a
+    a each: [ 1 + 100 ]
+    a [ 2 3 4 ] assert=
+  ]
+
+  it should 'support next and break' [
+    [ ] $: items
+
+    [ 2 7 8 7 1 9 3 4 5 6 ] each: [ $: item
+      item even? => [ next ]
+      item 3 /?  => [ break ]
+      items item shove
+    ]
+
+    items [ 7 7 1 ] assert=
+  ]
+]
+
+describe 'pairs' [
+  it should 'do nothing if list block is empty' [
+    [ ] pairs: [ + ]
+
+    stack empty?
+  ]
+
+  it dies 'when count is odd' [
+    [ 1 2 3 ] pairs: [ + ]
+  ]
+
+  it should 'call action block with each pair as stack' [
+    [ ] $: stacks
+
+    [ 1 2 3 4 ] pairs: [ stack shallowCopy stacks gulp ]
+
+    stacks [
+      [ 1 2 ]
+      [ 3 4 ]
+    ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ ] $: stacks
+
+    [ 1 2 3 4 ] $: a
+    a 2 |to
+    a pairs: [ stack shallowCopy stacks gulp ]
+    a |at 2 assert=
+    stacks [
+      [ 1 2 ]
+      [ 3 4 ]
+    ] assert=
+  ]
+
+  it should 'not modify block when pair populated stack is modified' [
+    [ 1 2 3 4 ] $: a
+    a pairs: [ 1 + ]
+    a [ 1 2 3 4 ] assert=
+  ]
+
+  it should 'support next and break' [
+    [ 1 2 3 4 5 6 7 7 3 4 ] $: a
+
+    [ ] $: visited
+
+    a pairs: [ $: 2i $: 1i
+      1i 2i * odd? => [ break ]
+      1i 2i + 4 >  => [ visited 0 shove next ]
+      visited 1i 2i 2enclose shove
+    ]
+
+    visited [ [ 1 2 ] 0 0 ] assert=
+  ]
+]
+
+describe 'consPairs' [
+  it should 'do nothing if list block is empty' [
+    [ ] consPairs: [ + ]
+
+    stack empty?
+  ]
+
+  it should 'do nothing if one item in list block' [
+    [ 1 ] consPairs: [ + ]
+
+    stack empty?
+  ]
+
+  it should 'leave cursor intact' [
+    [ ] $: stacks
+    [ 1 2 3 4 ] $: a
+    a 2 |to
+    a consPairs: [ stack shallowCopy stacks gulp ]
+    a |at 2 assert=
+    stacks [
+      [ 1 2 ]
+      [ 2 3 ]
+      [ 3 4 ]
+    ] assert=
+  ]
+
+  it should 'support even number of items' [
+    [ ] $: items
+    [ 1 2 3 4 ] consPairs: [ + items gulp ]
+    items [ 3 5 7 ] assert=
+  ]
+
+  it should 'support odd number of items' [
+    [ ] $: items
+    [ 1 2 3 ] consPairs: [ + items gulp ]
+    items [ 3 5 ] assert=
+  ]
+
+  it should 'support next and break' [
+      [ ] $: items
+    false $: went
+
+    [ 1 2 3 4 5 6 ] consPairs: [
+      2dup * 10 > => [ break ]
+      + items gulp
+      next
+      true =: went
+    ]
+
+    items [ 3 5 ] assert=
+    went false assert=
+  ]
+]
+
+describe 'map' [
+  it should 'do nothing if list block is empty' [
+    [ ] map: [ 1 + ] [ ] assert=
+  ]
+
+  it should 'not change original block' [
+    [ 1 2 3 ] $: a
+    a map: [ 1 + ] [ 2 3 4 ] assert=
+    a [ 1 2 3 ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 1 2 3 ] $: a
+    a 1 |to
+    a map: [ 1 + ] [ 2 3 4 ] assert=
+    a |at 1 assert=
+  ]
+
+  it should 'support break and next where next means don`t keep if stack empty' [
+    [ 1 101 2 3 200 4 1000 5 1001 2 3 ] $: a
+    a map: [ $: n
+      n 1000 > => [ break ]
+      n 100 > => [ next ]
+      n 1 +
+    ] [ 2 3 4 5 6 ] assert=
+  ]
+]
+
+describe 'only' [
+  it should 'do nothing if list block is empty' [
+    [ ] [ 100 > ] only [ ] assert=
+  ]
+
+  it should 'keep if action block is empty' [
+    [ 1 2 3 ] [ ] only [ 1 2 3 ] assert=
+  ]
+
+  it should 'select values for which action block leaves truthy' [
+    [ 1 100 2 300 4 600 10 ] only: [ 100 > ] [ 300 600 ] assert=
+  ]
+
+  it should 'reject values for which action block leaves false' [
+    [ 1 100 2 300 4 600 10 ] only: [ false ] [ ] assert=
+  ]
+
+  it should 'not modify original block' [
+    [ 1 2 3 ] $: a
+    a only: [ 1 > ] $: b
+    b [ 2 3 ] assert=
+    a [ 1 2 3 ] assert=
+  ]
+
+  it should 'leave cursor intact' [
+    [ 1 2 3 ] $: a
+    a 1 |to
+    a only: [ 1 > ] [ 2 3 ] assert=
+    a |at 1 assert=
+  ]
+
+  it should 'support next & break where next means don`t keep if stack empty' [
+    [ 1 101 2 3 200 4 1000 5 1001 2 3 ] $: a
+    a only: [ $: n
+      n 1000 > => [ break ]
+      n 100 > => [ next ]
+      n 1 + 4 <=
+    ] [ 1 2 3 ] assert=
+  ]
+]
+
+describe 'reduce' [
+  it should 'leave memo if list block is empty' [
+    [ ] [ + ] 0 reduce 0 assert=
+  ]
+
+  it should 'call block for one value' [
+    false $: status
+    [ 1 ] [ true =: status + ] 0 reduce 1 assert=
+    status
+  ]
+
+  it should 'call block and reduce multiple values' [
+    [ 1 2 3 4 5 ] [ * ] 1 reduce 120 assert=
+    [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce 'Hellope, Europe! Huh?' assert=
+  ]
+
+  it should 'support next' [
+    [ 1 2 3 4 5 ] [ dup odd? => [ drop "memo left here" next ] + ] 0 reduce 6 assert=
+  ]
+
+  it should 'support break' [
+    [ 1 1 7 3 2 3 4 5 ] [ dup even? => [ break ] + ] 0 reduce 12 assert=
+  ]
+]
+
+describe 'amount' [
+  it should 'leave zero for empty block' [
+    [ ] # [ even? ] 0 assert=
+  ]
+
+  it should 'provide proper stack to action block' [
+    [ ] $: stacks
+    [ 1 2 3 4 ] # [ stack shallowCopy stacks gulp ] 4 assert=
+    stacks [ [ 1 ] [ 2 ] [ 3 ] [ 4 ] ] assert=
+  ]
+
+  it should 'count all with empty action block' [
+    [ 1 2 3 ] # [ ] 3 assert=
+  ]
+
+  it should 'support single item list' [
+    [ 1 ] # [ even? ] 0 assert=
+    [ 4 ] # [ even? ] 1 assert=
+  ]
+
+  it should 'support multi item list' [
+    [ 1 2 3 4 ] # [ even? ] 2 assert=
+  ]
+
+  it should 'support break and next' [
+    [ 1 2 3 4 5 3 foo 5 6 7 8 ] # [ $: n
+      n #foo = => [ break ]
+      n even?  => [ false next ]
+      n 1 + 3 >
+    ] 3 assert=
+  ]
+]
+
+describe 'all?' [
+  it should 'leave true for empty list' [
+    [ ] [ ] all?
+  ]
+
+  it should 'leave true for empty action block' [
+    [ 1 2 3 ] [ ] all?
+  ]
+
+  it should 'leave proper result' [
+    [ 1 2 3 4 ] [ even? ] all? false assert=
+    [ 2 4 6 8 ] [ even? ] all? true assert=
+    [ 101 2 3 4 ] [ 100 < ] all? false assert=
+  ]
+
+  it dies 'when using next' [
+    [ 1 2 3 4 ] [ next ] all?
+  ]
+
+  it dies 'when using break' [
+    [ 1 2 3 4 ] [ break ] all?
+  ]
+]
+
+describe 'any?' [
+  it should 'leave false for empty list' [
+    [ ] [ ] any? not
+  ]
+
+  it should 'leave true for empty action block' [
+    [ 1 2 3 ] [ ] any?
+  ]
+
+  it should 'leave proper result' [
+    [ 1 2 3 4 ] [ even? ] any? true assert=
+    [ 2 4 6 8 ] [ odd? ] any? false assert=
+    [ 101 2 3 4 ] [ 100 < ] any? true assert=
+  ]
+
+  it dies 'when using next' [
+    [ 1 2 3 4 ] [ next ] any?
+  ]
+
+  it dies 'when using break' [
+    [ 1 2 3 4 ] [ break ] any?
+  ]
+]
+
+describe 'zip' [
+  it should 'zip two empty blocks into an empty block' [
+    [ ] [ ] zip [ ] assert=
+  ]
+
+  it should 'zip with equal amount of items' [
+    [ 1 ] [ 2 ] zip [ [ 1 2 ] ] assert=
+    [ 1 2 ] [ 3 4 ]  zip [ [ 1 3 ] [ 2 4 ] ] assert=
+    [ 1 2 3 ] [ 3 4 5 ] zip  [ [ 1 3 ] [ 2 4 ] [ 3 5 ] ] assert=
+  ]
+
+
+  it dies 'when zipping with unequal amount of items (holes)' [
+    [ 1 2 ] [ 3 ] zip
+  ]
+]
+
+describe 'zipWithDefault' [
+  it should 'work for empty blocks' [
+    [ ] [ ] #hole zipWithDefault [ ] assert=
+  ]
+
+  it should 'work when there are no holes' [
+    [ 1 2 ] [ 3 4 ] #hole zipWithDefault [ [ 1 3 ] [ 2 4 ] ] assert=
+  ]
+
+  it should 'work when there are holes on the right' [
+    [ 1 2 ] [ 3 ] #hole zipWithDefault [ [ 1 3 ] [ 2 hole ] ] assert=
+  ]
+
+  it should 'work when there are holes on the right' [
+    [ 1 ] [ 3 4 ] #hole zipWithDefault [ [ 1 3 ] [ hole 4 ] ] assert=
+  ]
+
+  it should 'work with either list empty' [
+    [ ] [ 1 2 ] #hole zipWithDefault [ [ hole 1 ] [ hole 2 ] ] assert=
+    [ 1 2 ] [ ] #hole zipWithDefault [ [ 1 hole ] [ 2 hole ] ] assert=
+  ]
+]
+
+describe 'conjure/here' [
+  it should 'accept decimal, bool, etc.' [
+    0 here 0 assert=
+    true here true assert=
+    'hello' here 'hello' assert=
+  ]
+
+  it should 'leave definitions of words' [
+    [ 1 2 3 4 ] $: a
+    a $: b
+    #b here a same?
+  ]
+
+  it should 'peel off a # from quoted words' [
+    ###foo here ##foo assert=
+    ##foo here #foo assert=
+  ]
+
+  it should 'recurse into blocks' [
+    0 $: a
+    1 $: b
+    2 $: c
+    3 $: d
+
+    [ [ [ [ a 'foo' ] b 1 ] c 'bar' d ] #baz ] here
+    [ [ [ [ 0 'foo' ] 1 1 ] 2 'bar' 3 ]  baz ]
+    assert=
+  ]
+
+  it dies 'on undefined words' [
+    foo here
+  ]
+
+  it should 'trigger word trap when word is undefined' [
+    [ enquote 2 sliceQuoteAt nip ] @: *trap
+    foobar here 'oobar' assert=
+  ]
+]
+
+describe 'minmax' [
+  it dies 'when block is empty' [
+    [ ] minmax
+  ]
+
+  it dies 'when items are not decimals' [
+    [ foo ] minmax
+  ]
+
+  it should 'leave same result when block is count 1' [
+    [ 100 ] minmax stack shallowCopy [ 100 100 ] assert=
+  ]
+
+  it should 'leave proper result for > 1 items in block' [
+    [ 100 200 5 300 405 ] minmax stack shallowCopy [ 5 405 ] assert=
+  ]
+
+  it should 'handle blocks which implement *asDecimal' [
+    [ -101 $: *asDecimal this ] open $: a
+    [ 500 $: *asDecimal this ] open $: b
+
+    "There is no good way to do this right now unfortunately..."
+    [ -100 100 ] [ <| a |> b ] there
+
+    minmax
+
+    "Note how minmax still returns a, b, not their numeric values.
+     I don't know whether this is what's expected."
+    stack shallowCopy a b 2enclose assert=
+  ]
+]
+
+describe 'min' [
+  it should 'leave min part of minmax' [
+    [ 100 5 -100 2 3 -29 4 500 ] min -100 assert=
+  ]
+]
+
+describe 'max' [
+  it should 'leave max part of minmax' [
+    [ 100 5 -100 2 3 -29 4 500 ] max 500 assert=
+  ]
+]
+
+describe 'sum' [
+  it should 'leave 0 when block is empty' [
+    [ ] sum 0 assert=
+  ]
+
+  it should 'leave number when block has one number' [
+    [ 100 ] sum 100 assert=
+  ]
+
+  it should 'leave sum otherwise' [
+    [ 100 200 300 ] sum 600 assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal' [
+    [ $: n [ n 1 + ] @: *asDecimal this ] @: foos
+
+    100 foos "101"
+    200 foos "201"
+    2enclose
+
+    300 foos "301"
+    <<
+
+    sum 603 assert=
+  ]
+]
+
+describe 'minmaxBy' [
+  it dies 'when list block is empty' [
+    [ ] [ ] minmaxBy
+  ]
+
+  it should 'leave integer minmax when transform is empty' [
+    [ 1 2 3 ] [ ] minmaxBy stack shallowCopy [ 1 3 ] assert=
+  ]
+
+  it dies 'when transform is empty but values are non-numeric' [
+    [ 'foo' 'barb' 'baz' ] [ ]  minmaxBy
+  ]
+
+  it should 'convert to numeric but leave original types' [
+    [ 'AA' 'A' 'AAAAB' 'BAAAAAAB' 'Y' ] [ charCount ] minmaxBy
+
+    stack shallowCopy [ 'A' 'BAAAAAAB' ] assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal as Transform results' [
+    [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+
+    [ 'AA' 'A' 'AAAB' 'foo' 'barbeee' ] [ toAwesomeBlock ] minmaxBy
+
+    stack shallowCopy [ 'A' 'barbeee' ] assert=
+  ]
+
+  it dies 'on next' [
+    [ 1 2 3 ] [ break ] minmaxBy
+  ]
+
+  it dies 'on break' [
+    [ 1 2 3 ] [ next ] minmaxBy
+  ]
+]
+
+describe 'minBy' [
+  it should 'leave min from minmaxBy' [
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] minBy 'x' assert=
+  ]
+]
+
+describe 'maxBy' [
+  it should 'leave max from minmaxBy' [
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] maxBy 100 assert=
+  ]
+]
+
+describe 'sumBy' [
+  [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+
+  it should 'leave zero when list block is empty' [
+    [ ] [ ] sumBy 0 assert=
+  ]
+
+  it should 'leave one numeric if one numeric in list block' [
+    [ 1 ] [ ] sumBy 1 assert=
+    'foo' toAwesomeBlock enclose [ ] sumBy 3 assert=
+  ]
+
+  it should 'sum numerically if transform block is empty' [
+    [ 1 2 3 ] [ ] sumBy 6 assert=
+  ]
+
+  it dies 'when transform block is empty but list block is non-numeric' [
+    [ 1 'foo' #barbee 3 ] [ ] sumBy
+  ]
+
+  it should 'convert to numeric and leave numeric sum & have proper stack signature' [
+    [ ] $: stacks
+
+    [ 'foo' 'bar' 3 4 'x' ] [ stack shallowCopy stacks gulp dup quote? => [ charCount ] ] sumBy
+
+    14 assert=
+
+    stacks [
+      [ 'foo' ]
+      [ 'bar' ]
+      [ 3 ]
+      [ 4 ]
+      [ 'x' ]
+    ] assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal as results/summands' [
+    'foobee' toAwesomeBlock $: myBestBlock
+
+    [ 'foo' 3 myBestBlock 4 'bar' 5 ] here [ dup quote? => [ toAwesomeBlock ] ] sumBy
+
+    24 assert=
+  ]
+
+  it dies 'on next' [
+    [ 1 2 3 ] [ break ] sumBy
+  ]
+
+  it dies 'on break' [
+    [ 1 2 3 ] [ next ] sumBy
+  ]
+]
+
+describe 'collect' [
+  it dies 'when amount is negative' [
+    -1 collect: [ ]
+  ]
+
+  it should 'not call block & leave empty block when N = 0' [
+    false $: called
+    0 collect: [ true =: called ]
+    called not
+  ]
+
+  it should 'collect results of running block N items & have correct stack signature' [
+    [ ] $: stacks
+
+    4 collect: [ stack shallowCopy stacks gulp ] [ 0 1 2 3 ] assert=
+
+    stacks [
+      [ 0 ]
+      [ 1 ]
+      [ 2 ]
+      [ 3 ]
+    ] assert=
+  ]
+
+  it should 'execute block and leave block results' [
+    100 $: n
+    4 collect: [ n + dup =: n ] [ 100 101 103 106 ] assert=
+  ]
+
+  it should 'support next & break' [
+    10 collect: [ $: n
+      n even? => [ next ]
+      n 5 > n odd? and => [ break ]
+      n
+    ] [ 1 3 5 ] assert=
+  ]
+]
+
+describe 'range' [
+  it should 'leave 1-number range when B = E' [
+    0 to: 0 [ 0 ] assert=
+  ]
+
+  it should 'leave 1-number range when B < 0 = E < 0' [
+    -100 to: -100 [ -100 ] assert=
+  ]
+
+  it should 'support [+B; +E]' [
+    1 to: 10 [ 1 2 3 4 5 6 7 8 9 10 ] assert=
+    10 to: 1 [ 10 9 8 7 6 5 4 3 2 1 ] assert=
+  ]
+
+  it should 'support [-B; +E]' [
+    -5 to: 1 [ -5 -4 -3 -2 -1 0 1 ] assert=
+  ]
+
+  it should 'support [+B; -E]' [
+    1 to: -5 [ 1 0 -1 -2 -3 -4 -5 ] assert=
+  ]
+
+  it should 'support [-B; -E]' [
+    -5 to: -10 [ -5 -6 -7 -8 -9 -10 ] assert=
+    -10 to: -5 [ -10 -9 -8 -7 -6 -5 ] assert=
+  ]
+]
+
+describe 'join' [
+  it should 'leave empty quote on empty block' [
+    [ ] join '' assert=
+  ]
+
+  it should 'join one quote' [
+    [ 'foo' ] join 'foo' assert=
+  ]
+
+  it should 'join multiple quotes' [
+    [ 'A' 'B' 'C' ] join 'ABC' assert=
+  ]
+
+  it should 'enquote non-quotes' [
+    [ [ 1 2 3 ] 'foo' 100 bar #baz ##boo ] join '[ 1 2 3 | ]+foo100bar#baz##boo' assert=
+  ]
+]
+
+describe 'concat!' [
+  it should 'concat two empty blocks' [
+    [ ] $: a
+    [ ] $: b
+    a b concat! dup a same? swap [ ] assert= and
+  ]
+
+  it should 'concat with empty A block' [
+    [ ] [ 1 2 3 ] concat! [ 1 2 3 ] assert=
+  ]
+
+  it should 'concat with empty B block' [
+    [ 1 2 3 ] [ ] concat! [ 1 2 3 ] assert=
+  ]
+
+  it should 'concat if both non-empty' [
+    [ 1 2 3 ] $: a
+      a [ 4 5 6 ] concat! a same?
+      a [ 1 2 3 4 5 6 ] assert=
+    and
+  ]
+
+  it should 'move the cursor in A block, but not B block' [
+    [ 1 2 3 ] $: a
+    [ 4 5 6 ] $: b
+    a 1 |to
+    b 2 |to
+    a b concat!
+      a |at 4 assert=
+      b |at 2 assert=
+    and
+  ]
+]
+
+describe 'concat' [
+  it should 'not modify A nor B block' [
+    [ 1 2 3 ] $: a
+    [ 4 5 6 ] $: b
+    a b concat [ 1 2 3 4 5 6 ] assert=
+    a [ 1 2 3 ] assert=
+    b [ 4 5 6 ] assert=
+  ]
+
+  "TODO? Otherwise this is the same as concat! at least in core. Don't know
+   if it's good or bad or worth it to copy tests like that, considering the
+   language may change any minute."
 ]
