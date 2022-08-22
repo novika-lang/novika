@@ -46,7 +46,7 @@ TODO: a code example here? Won't it scare y'all off? :)
 ## Using Novika as a library
 
 I don't know why you would need that, but there is some API and if you don't inject the
-packages, you'd get bare-bones Novika. But then you'd be better off with spliting a
+packages, you'd get bare-bones Novika. But then you'd be better off with splitting a
 string on whitespaces and fetching each word from a hashmap.
 
 ```yml
@@ -121,7 +121,7 @@ quite quickly, but there is a slight chance.
 
 ## Syntax highlighting
 
-There's a `sublime-syntax` file in `syn/`, for Sublime Text (I used ST 3).
+There's a `sublime-syntax` file in `syn/`, for Sublime Text (I used ST 4).
 
 ## Pros/cons
 
@@ -143,8 +143,9 @@ runtime homoiconicity too? WTF?
 ### Cons
 
 * A mish-mash of everything. Specialization and strict separation
-  of concern (= simplicity) helps thought, generalization does not.
-  It doesn't make programs run fast either.
+  of concerns helps thought, generalization doesn't. It doesn't
+  make programs run fast either. The latter is a huge problem in
+  Novika. It's very slow. Very.
 
 * Novika is one of the purest expressions of dynamism (or, more
   specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
