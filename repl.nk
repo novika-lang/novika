@@ -30,23 +30,33 @@ this child $: pgRoot
 
   [ "( Q -- ): runs a Quote of Novika source code in the context
      of the current REPL session."
+    $: line
+
+    this $: self
+
+    0 $: timeTakenMs
   
-    "Create an instance of the REPL root block, and stuff it
-     with the forms from Quote (parsed by the word `slurp`,
-     which is found in the auto-imported kernel)."
-    pgRoot new swap slurp $: pgRootInstance
+    "Create an instance of the root block so that the line of code
+     we will execute has access to all words the frontend provided."
+    pgRoot new $: pgRootInstance
   
-    "... and of the stack block too, for if an error happens,
+    "Create an instance of the stack block, for if an error happens,
      we'd like to restore back to the 'good' stack."
-    pgStack shallowCopy   $: pgStackCopy
-  
+    pgStack shallowCopy $: pgStackCopy
+
     [
-      "Create a death handler which will catch all errors that are
-       made in the REPL root block instance we've created above.
-       This handler will report the error once it happens."
-      pgRootInstance #*died [ reportError true =: error ^ ] opens
-      pgStackCopy pgRootInstance hydrate!
-    ] measure $: timeTakenMs
+      "This block is required to isolate deaths inside the REPL line
+       session from deaths inside the REPL code itself."
+
+      [ "This death handler will catch all errors that are made in
+         the REPL root block instance we've created above. This handler
+         will report the error when it happens."
+        reportError true =: error
+        self resume
+      ] @: *died
+
+      [ pgStackCopy pgRootInstance line slurp hydrate! ] measure =: timeTakenMs
+    ] do
   
     error br:
       [ "There was an error (or multiple errors). It was already
