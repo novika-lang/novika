@@ -5,16 +5,49 @@
 Novika is a novel interpreted programming language, somewhat related
 to Forth, Red/Rebol, Self, and Lisp.
 
-* This branch is the most recent (10th) prototype implementation of Novika.
+This branch is the most recent (10th) prototype implementation of Novika.
 
-* The implementation is slow (very slow) and buggy.
+Most notable features of Novika include:
 
-* Code is raw and naïve at times. Beware.
+* It's weird, one of the weirdest languages you'd find. Brainfuck was a joke,
+  but Novika isn't. Novika seems simple to explain (speaking from personal
+  experience here), but in reality, it damn isn't. At the extremes, simplicity
+  comes at a cost.
 
-* Help if you can. Poke around. There is little docs on the language
-  itself, so explore and infer (but really, try `crystal docs`) :)
+* Almost no syntax: Novika is tokenized, but there is not much syntax to talk
+  about. There is only one kind of syntax error, missing closing bracket.
 
-For use as a library:
+* Small amount of core *forms*: blocks, decimals (aka numbers), quotes (aka strings), booleans, and
+  a few more. *Block* is something you are going to see a lot in Novika.
+
+* Code is data, and data is code. Homoiconicity is a polluted term, but you knew
+  this would be coming in such kind of language didn't you? :)
+
+* As data, blocks can be arrays, or stacks with an insertion point, or tables
+  (ordered hash maps mapping form to form), or anything in-between. Blocks also
+  hold continuations. Individual continuations are blocks as well. Each consists
+  of two sub-blocks: the stack block (a block used as a stack), and a code block
+  (the block whose contents is executed). See, blocks are everywhere.
+
+* Blocks are also objects in Self sense of the word, if you manage to capture them.
+  And at runtime, they may act as symbol tables for code in them. If seen as symbol
+  tables, blocks are lexical in terms of hierarchy, but dynamic in terms of scope
+  contents. In other words, the content of scopes does not get captured; instead,
+  their hierarchy does and is exactly the *block hierarchy*.
+
+* Runtime macros: you can access your caller and (literally) modify it so that it
+  executes what you want next. Or do something to its stack. After all, everything
+  is a block.
+
+Yup. It's damn hard to even introduce.
+
+TODO: a code example here? Won't it scare y'all off? :)
+
+## Using Novika as a library
+
+I don't know why you would need that, but there is some API and if you don't inject the
+packages, you'd get bare-bones Novika. But then you'd be better off with spliting a
+string on whitespaces and fetching each word from a hashmap.
 
 ```yml
 dependencies:
@@ -63,17 +96,12 @@ Currently, there is only one official way:
    On Unix, type the following command:
     `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
-Then `./bin/novika` to see the help message. `./bin/novika core YOUR-TEST-FILE.nk`
-is a way to go if you want to type some Novika code yourself, or try `./bin/novika core hello.nk`
-as the help message suggests, and see Novika in action. If you want to experience how slow
-Novika really is (except the filesystem part), run `./bin/novika core playground.nk`.
-
 ## How can I play with Novika?
 
-**Hint: look into the world directory**
+Hint: look into the world directory. It works only with outdated Novika though, beware.
 
 `examples/` directory is the best place to go. There, the best example
-is `snake.nk`. Much of the code is documented, but that documentation
+is `snake.nk`. Most of the code is documented, but that documentation
 uses some Novika terms that require clarification (mainly because I'm
 also just exploring the language, so explaining it will require some time).
 Plus, there is a lot of implicit expectations in code (this would be
@@ -81,6 +109,15 @@ partially resolved later with a dynamic (runtime) type check system),
 and in docs too.
 
 You can run REPL with: `novika core repl.nk`
+
+## How can I learn Novika?
+
+> Docs are in progress, but not really.
+
+I don't know if you should, but you can contact me at `homonoidian@yandex.ru`
+and maybe, just maybe, we'll take a look. I won't be able to handle a lot of
+people because I'm a hardcore text message introvert whose "battery" discharges
+quite quickly, but there is a slight chance.
 
 ## Syntax highlighting
 
@@ -105,35 +142,47 @@ runtime homoiconicity too? WTF?
 
 ### Cons
 
-* Novika is just very weird.
 * A mish-mash of everything. Specialization and strict separation
   of concern (= simplicity) helps thought, generalization does not.
   It doesn't make programs run fast either.
+
 * Novika is one of the purest expressions of dynamism (or, more
   specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
   Forth, but in Forth it's more dangerous because it can make
   your computer explode (I'm joking, of course). Note that I only
   learned a bit of Forth's philosophy, and haven't written even
   a line of it for myself.
+
 * If you write bad code, it'll break somewhere else, and throw
   you a hundred-line-long stack trace. At least it really shows
   where the error happened HUH?
+
 * You'll have to train your intuition to find where an error occured
   (you'd be able to do it in one-two months), because *Novika doesn't
   show nor store line numbers and filenames*
   :) Maybe this will change, I mean it must change!
+
 * Your brain will explode trying to keep track of the stack, them
   Forth critics say. In Novika, you'd also have to keep track of
   the so-called *cursor*, and, if that sounds easy, of the block
   that's used as the stack. Two-three months for this.
+
 * Some words open your blocks with a new stack (e.g., `loop`),
   and some do not (e.g., `br`). This is mostly documented (and
   must be!), but sometimes may still cause a lot of confusion.
 
-**Remember these are the language's cons**, not its complete
-description.
+* Mutation: Novika's take on mutation is very unsafe one. It's not
+  one of those languages that surround you with a safety bubble
+  from mutations, side effects, etc. Forget about that.
+
+**Remember these are the language's cons**. If you want an objective
+critique of the language, you'd need to take these into account. But
+don't be toxic taking criticism as specification.
 
 ## Language notes
+
+These are a bit outdated. Look into the Wiki, perhaps it would be updated,
+perhaps it would not.
 
 * Novika has *words* and *blocks*. Together they are known as *forms*.
 Forms are *enclosed* in blocks by being surrounded with `[]`s:
@@ -222,10 +271,22 @@ Working with the insertion point:
 
 Look at the source. Explore `crystal docs`.
 
-Then `crystal run novika.cr -- core file.nk`. Make it break. See
+Then `crystal run novika.cr -Dnovika_frontend -Dnovika_console -Dnovika_readline -- core file.nk`. Make it break. See
 where and why. Easy, huh? Build in release. `flamegraph` it?
 
 Seriously, this is a huge TODO.
+
+Wondering about the `-D`s?
+
+* `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
+  speaking to you, and it's the same frontend that's going to collect and feed the right files to
+  a Novika engine it created.
+
+* `-Dnovika_readline`: use [readline](https://github.com/crystal-lang/crystal-readline) instead of
+  `gets`. Since readline (at least this particular one) doesn't (seem to) work on Windows, you'd
+  have to get rid of this flag when building under Windows.
+
+* `-Dnovika_console`: enables the default console package implementation which uses [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so you'd also have to drop it.
 
 ## What's a revision, for Novika?
 
