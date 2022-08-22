@@ -27,8 +27,6 @@ module Novika
     include Form
     extend HasDesc
 
-    include ReadableTable
-
     # Maximum amount of forms to display in block string representation.
     MAX_COUNT_TO_S = 128
 
@@ -246,9 +244,20 @@ module Novika
       self
     end
 
+    # Returns the table entry corresponding to *name*, or dies.
+    def at(name : Form) : Entry
+      at?(name) || die("undefined table property: #{name}")
+    end
+
     # Returns the table entry corresponding to *name*.
     def at?(name : Form) : Entry?
       table.fetch(name) { parent?.try &.at?(name) }
+    end
+
+    # Returns whether this table has an entry corresponding
+    # to *name*.
+    def has?(name : Form)
+      !!at?(name)
     end
 
     # Returns the form at *index* in the tape. Dies if *index*
