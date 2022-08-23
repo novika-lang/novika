@@ -395,27 +395,36 @@ module Novika
       assert?(engine, AS_QUOTE, Quote) || super
     end
 
-    def spotlight(io)
-      # junk todo
-      io << "[ ".colorize.dark_gray.bold
+    # Appends a string representation of this block to *io* in
+    # which only forms in the negative and positive *vicinity*
+    # of this block's cursor are present, and the word before
+    # the cursor is emphasized.
+    #
+    # Does not respect `MAX_COUNT_TO_S`. Does not display quotes.
+    # Does not display nested blocks.
+    def spotlight(io, vicinity = 10)
+      io << "["
 
-      fmt = tape.each.map_with_index do |form, index|
-        form = form.is_a?(Block) ? "[…]" : form.to_s
-        form = form.colorize
-        delta = cursor - index
-        if (cursor - index).abs.in?(0..10)
-          form.bold.toggle(delta == 1)
+      b = (cursor - vicinity).clamp(0..count - 1)
+      e = (cursor + vicinity).clamp(0..count - 1)
+
+      (b..e).each do |index|
+        form = at(index)
+        focus = index == cursor - 1
+
+        Colorize.with.bold.toggle(focus).surround(io) do
+          case form
+          when Block then io << " […]"
+          when Quote then io << " '…'"
+          else
+            io << " " << form
+          end
         end
+
+        io << " |".colorize.red if focus
       end
 
-      fmt
-        .insert(0, "…".colorize.dark_gray)
-        .insert(cursor, "|".colorize.red.bold)
-        .push("…".colorize.dark_gray)
-        .compact
-        .join(io, ' ')
-
-      io << " ]".colorize.dark_gray.bold
+      io << " ]"
     end
 
     def to_s(io, nested = false)
