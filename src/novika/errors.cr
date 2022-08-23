@@ -43,31 +43,48 @@ module Novika
       io << "an error"
     end
 
-    # Generates an error report, and appends it to *io*.
+    # Appends a report about this error to *io*.
     def report(io : IO)
       io << "Sorry: ".colorize.red.bold << details << "."
       io.puts
-      io.puts
 
-      # Conserved conts.
-      return unless cconts = conts
+      return unless conts = self.conts
 
-      omitted = Math.max(0, cconts.count - MAX_TRACE)
-      count = cconts.count - omitted
+      b = Math.max(0, conts.count - MAX_TRACE)
+      e = conts.count
 
-      cconts.each.skip(omitted).with_index do |cont_, index|
-        if cont_.is_a?(Block)
-          io << "  " << (index == count - 1 ? '└' : '├') << ' '
-          io << "IN".colorize.bold << ' '
-          cblock = cont_.at?(Engine::C_BLOCK_AT)
-          cblock.is_a?(Block) ? cblock.spotlight(io) : io << (cblock || "[invalid continuation block]")
-          io.puts
+      unless b.zero?
+        io.puts "  │"
+        io << "  │ … " << b << " continuation(s) omitted …"
+        io.puts
+      end
 
-          io << "  " << (index == count - 1 ? ' ' : '│') << ' '
-          io << "OVER".colorize.bold << ' ' << (cont_.at?(Engine::C_STACK_AT) || "[invalid continuation stack]")
+      io.puts "  │"
+
+      (b...e).each do |index|
+        io << "  ├ due to "
+
+        cont = conts.at(index).as?(Block)
+        code = cont.try &.at?(Engine::C_BLOCK_AT).as?(Block)
+        unless cont && code
+          io.puts "[malformed continuation]"
+          next
+        end
+
+        io << "'" << code.top.colorize.bold << "', which was opened here:"
+        io.puts
+        io.puts "  │  "
+
+        io << "  "
+        if index == e - 1
+          io << "╰  "
+          code.spotlight(io)
           io.puts
         else
-          io << "INVALID CONTINUATION".colorize.red.bold
+          io << "│  "
+          code.spotlight(io)
+          io.puts
+          io.puts "  │"
         end
       end
 
