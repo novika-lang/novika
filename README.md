@@ -96,6 +96,20 @@ Currently, there is only one official way:
    On Unix, type the following command:
     `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
+Wondering about the `-D`s?
+
+* `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
+  speaking to you, and it's the same frontend that's going to collect and feed the right files to
+  a Novika engine it created.
+
+* `-Dnovika_readline`: use [readline](https://github.com/crystal-lang/crystal-readline) instead of
+  `gets`. Since readline (at least this particular one) doesn't (seem to) work on Windows, you'd
+  have to get rid of this flag when building under Windows.
+
+* `-Dnovika_console`: enables the default console package implementation which uses
+  [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so
+  you'd also have to drop it.
+
 ## How can I play with Novika?
 
 Hint: look into the world directory. It works only with outdated Novika though, beware.
@@ -270,24 +284,19 @@ Working with the insertion point:
 
 ## Development
 
-Look at the source. Explore `crystal docs`.
+Theory:
 
-Then `crystal run novika.cr -Dnovika_frontend -Dnovika_console -Dnovika_readline -- core file.nk`. Make it break. See
-where and why. Easy, huh? Build in release. `flamegraph` it?
+* Look at the source. Explore `crystal docs`.
+
+* Read [Novika's Approach To Loops](https://github.com/novika-lang/novika/blob/rev10/doc/novikas-approach-to-loops.md)
+  and suggest fixes for my spelling and grammar mistakes!
+
+Practice:
+
+* `crystal run novika.cr -Dnovika_frontend -Dnovika_console -Dnovika_readline -- core file.nk`.
+   Make it break. See where and why. Easy, huh? Build in release. `flamegraph` it?
 
 Seriously, this is a huge TODO.
-
-Wondering about the `-D`s?
-
-* `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
-  speaking to you, and it's the same frontend that's going to collect and feed the right files to
-  a Novika engine it created.
-
-* `-Dnovika_readline`: use [readline](https://github.com/crystal-lang/crystal-readline) instead of
-  `gets`. Since readline (at least this particular one) doesn't (seem to) work on Windows, you'd
-  have to get rid of this flag when building under Windows.
-
-* `-Dnovika_console`: enables the default console package implementation which uses [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so you'd also have to drop it.
 
 ## What's a revision, for Novika?
 
