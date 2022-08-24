@@ -29,16 +29,29 @@ module Novika
     end
   end
 
-  # Returns an array of all package classes.
+  # Returns an array of all registered package classes.
   #
-  # For your package to be a registered package class, it must
-  # include `Package`.
-  def self.packages
-    {{ Package.includers }}
-  end
+  # For your package to be registered, it should be the last
+  # subclass of a `Package` includer (subclass depth is irrelevant),
+  # or have no subclasses and be a direct `Package` includer.
+  def self.packages : Hash(String, IPackageClass)
+    # The type of IPackageClass is valid and not at the same
+    # time. It really should be Package.class but Crystal
+    # refuses to take that.
+    #
+    # Whether this will shoot back I don't know.
+    hash = {} of String => IPackageClass
 
-  # Returns the package class with the given *id*.
-  def self.package?(id : String)
-    packages.find(&.id.== id)
+    {% for package in Package.includers %}
+      {% subclasses = package.all_subclasses %}
+
+      {% if !package.abstract? && subclasses.empty? %}
+        hash[{{package}}.id] = {{package}}
+      {% else %}
+        hash[{{package}}.id] = {{subclasses.reject(&.abstract?).last}}
+      {% end %}
+    {% end %}
+
+    hash
   end
 end

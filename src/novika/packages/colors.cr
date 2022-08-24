@@ -7,7 +7,16 @@ require "colorize"
 # adds is the ability to choose an arbitrary position to move to.
 
 module Novika::Packages
-  class Colors
+  # Enables colorful output using `withColorEcho` and friends.
+  #
+  # Exposed vocabulary:
+  #
+  #   * `withEchoFg`, implemented by `with_echo_fg`
+  #   * `withEchoBg`, implemented by `with_echo_bg`
+  #   * `dropEchoFg`, implemented by `drop_echo_fg`
+  #   * `dropEchoBg`, implemented by `drop_echo_bg`
+  #   * `withColorEcho`, implemented by `with_color_echo`
+  abstract class IColors
     include Package
 
     def self.id : String
@@ -22,71 +31,77 @@ module Novika::Packages
       true
     end
 
-    property fg = [] of {UInt8, UInt8, UInt8}
-    property bg = [] of {UInt8, UInt8, UInt8}
-
+    # Holds whether printing with colors is enabled (and desired).
     property? enabled : Bool do
-      # Copied from `Colorize#on_tty_only!`.
       STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
     end
 
-    private def color_u8(r : Decimal, g : Decimal, b : Decimal)
-      ru = r.to_i
-      gu = g.to_i
-      bu = b.to_i
+    # Pushes 0-255 *r*ed, *g*reen, *b*lue foreground color
+    # onto the echo foreground color stack.
+    abstract def with_echo_fg(engine, r : Decimal, g : Decimal, b : Decimal)
 
-      r.die("R channel must be 0-255, got: #{ru}") unless ru.in?(0..255)
-      g.die("G channel must be 0-255, got: #{gu}") unless gu.in?(0..255)
-      b.die("B channel must be 0-255, got: #{bu}") unless bu.in?(0..255)
+    # Pushes 0-255 *r*ed, *g*reen, *b*lue background color
+    # onto the echo background color stack.
+    abstract def with_echo_bg(engine, r : Decimal, g : Decimal, b : Decimal)
 
-      {ru.to_u8, gu.to_u8, bu.to_u8}
-    end
+    # Drops a color from the echo foreground color stack.
+    abstract def drop_echo_fg(engine)
 
+    # Drops a color from the echo background color stack.
+    abstract def drop_echo_bg(engine)
+
+    # Echoes *form* with last color from the echo foreground color
+    # stack set as foreground color, and the last as color from
+    # the echo background stack set as background color.
+    abstract def with_color_echo(engine, form : Form)
+
+    # Fallback for echoing *form* when color is disabled
+    # (or not desired).
+    abstract def without_color_echo(engine, form : Form)
+
+    # Injects the colors vocabulary into *target*.
     def inject(into target)
       target.at("withEchoFg", <<-END
       ( R G B -- ): pushes 0-255 Red, Green, Blue foreground color
-       to echo color stack.
+       onto the echo foreground color stack.
       END
       ) do |engine|
         b = engine.stack.drop.assert(engine, Decimal)
         g = engine.stack.drop.assert(engine, Decimal)
         r = engine.stack.drop.assert(engine, Decimal)
-        fg << color_u8(r, g, b)
+        with_echo_fg(engine, r, g, b)
       end
 
       target.at("withEchoBg", <<-END
       ( R G B -- ): pushes 0-255 Red, Green, Blue background color
-       to echo color stack.
+       onto the echo background color stack.
       END
       ) do |engine|
         b = engine.stack.drop.assert(engine, Decimal)
         g = engine.stack.drop.assert(engine, Decimal)
         r = engine.stack.drop.assert(engine, Decimal)
-        bg << color_u8(r, g, b)
+        with_echo_bg(engine, r, g, b)
       end
 
-      target.at("dropEchoFg", "( -- ): drops an echo foreground color") do
-        fg.pop?
-      end
+      target.at("dropEchoFg", <<-END
+      ( -- ): drops a color from the echo foreground color stack.
+      END
+      ) { |engine| drop_echo_fg(engine) }
 
-      target.at("dropEchoBg", "( -- ): drops an echo background color") do
-        bg.pop?
-      end
+      target.at("dropEchoFg", <<-END
+      ( -- ): drops a color from the echo background color stack.
+      END
+      ) { |engine| drop_echo_bg(engine) }
 
       target.at("withColorEcho", <<-END
-      ( F -- ): echoes Form with last color from the echo color stack.
+      ( F -- ): echoes Form with last color from the echo foreground
+       color stack set as foreground color, and the last as color from
+       the echo background stack set as background color.
       END
       ) do |engine|
+        # TODO reach IKernel#echo smhw
         form = engine.stack.drop
-        string = form.enquote(engine).string
-
-        if enabled?
-          string = string.colorize
-          string = string.fore(*fg.last) unless fg.empty?
-          string = string.back(*bg.last) unless bg.empty?
-        end
-
-        puts string
+        enabled? ? with_color_echo(engine, form) : without_color_echo(engine, form)
       end
     end
   end

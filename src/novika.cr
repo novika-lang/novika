@@ -92,7 +92,7 @@ module Novika
   (3) There are also a number of builtin #{cpkg}s:
   END
 
-    packages = Novika.packages
+    packages = Novika.packages.values
 
     packages.select(&.on_by_default?).each do |pkg|
       io.puts
@@ -149,9 +149,7 @@ module Novika
       exit(1)
     end
 
-    pkgs = Novika.packages
-      .select(&.on_by_default?)
-      .map(&.new.as(Package))
+    pkgs = Novika.packages.values.select(&.on_by_default?).map(&.new.as(Package))
 
     # The frontend package (implementation) is supposed to know
     # about the packages we've created, so let's find it and send
@@ -169,7 +167,7 @@ module Novika
     toplevel = Block.new(pkgblock)
 
     args.each do |arg|
-      if pkg = Novika.package?(arg)
+      if pkg = Novika.packages[arg]?
         # A package. Add it to our packages list, and continue.
         # Do not duplicate.
         pkgs << pkg.new unless pkgs.any?(pkg)
