@@ -11,8 +11,16 @@ module Novika::Packages
   class Kernel
     include Package
 
-    def self.id
+    def self.id : String
       "kernel"
+    end
+
+    def self.purpose : String
+      "exposes the native code primitives, such as 'hydrate' and 'new'"
+    end
+
+    def self.on_by_default? : Bool
+      true
     end
 
     def inject(into target)

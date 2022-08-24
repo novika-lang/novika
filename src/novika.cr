@@ -21,8 +21,16 @@ module Novika
     class Frontend
       include Package
 
-      def self.id
+      def self.id : String
         "frontend"
+      end
+
+      def self.purpose : String
+        "exposes information about the language frontend"
+      end
+
+      def self.on_by_default? : Bool
+        true
       end
 
       property version : String = VERSION
@@ -82,13 +90,21 @@ module Novika
   (2) Individual #{cfile}s are run after all directories are run.
 
   (3) There are also a number of builtin #{cpkg}s:
-        - kernel (#{on})
-        - math (#{on})
-        - colors (#{on})
-        - frontend (#{on})
-        - console (enables the console API)
-
   END
+
+    packages = Novika.packages
+
+    packages.select(&.on_by_default?).each do |pkg|
+      io.puts
+      io << "    - " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
+    end
+
+    packages.reject(&.on_by_default?).each do |pkg|
+      io.puts
+      io << "    - " << pkg.id << " (" << pkg.purpose << ")"
+    end
+
+    io.puts
   end
 
   # Recursively visits directories starting at, and including,
@@ -133,20 +149,17 @@ module Novika
       exit(1)
     end
 
-    fpkg = Packages::Frontend.new
-    fpkg.version = VERSION
+    pkgs = Novika.packages
+      .select(&.on_by_default?)
+      .map(&.new.as(Package))
 
-    # Copied from `Colorize.on_tty_only!`
-    enable_colors = STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
-
-    pkgs = [
-      Packages::Kernel.new,
-      Packages::Math.new,
-      Packages::Colors.new(enabled: enable_colors),
-      fpkg,
-    ] of Package
-
-    fpkg.packages = pkgs
+    # The frontend package (implementation) is supposed to know
+    # about the packages we've created, so let's find it and send
+    # the array to it.
+    pkgs.each do |pkg|
+      next unless pkg.is_a?(Packages::Frontend)
+      break pkg.packages = pkgs
+    end
 
     files = [] of Path
     folders = {} of Path => Folder
@@ -156,7 +169,7 @@ module Novika
     toplevel = Block.new(pkgblock)
 
     args.each do |arg|
-      if pkg = Package[arg]?
+      if pkg = Novika.package?(arg)
         # A package. Add it to our packages list, and continue.
         # Do not duplicate.
         pkgs << pkg.new unless pkgs.any?(pkg)

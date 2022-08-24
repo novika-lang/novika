@@ -3,8 +3,16 @@ module Novika::Packages
   class Math
     include Package
 
-    def self.id
+    def self.id : String
       "math"
+    end
+
+    def self.purpose : String
+      "exposes various mathematical words, such as '+' and 'rand'"
+    end
+
+    def self.on_by_default? : Bool
+      true
     end
 
     def inject(into target)

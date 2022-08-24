@@ -10,14 +10,24 @@ module Novika::Packages
   class Colors
     include Package
 
-    def self.id
+    def self.id : String
       "colors"
+    end
+
+    def self.purpose : String
+      "enables colorful output using 'withColorEcho' and friends"
+    end
+
+    def self.on_by_default? : Bool
+      true
     end
 
     property fg = [] of {UInt8, UInt8, UInt8}
     property bg = [] of {UInt8, UInt8, UInt8}
 
-    def initialize(@enabled = false)
+    property? enabled : Bool do
+      # Copied from `Colorize#on_tty_only!`.
+      STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
     end
 
     private def color_u8(r : Decimal, g : Decimal, b : Decimal)
@@ -70,7 +80,7 @@ module Novika::Packages
         form = engine.stack.drop
         string = form.enquote(engine).string
 
-        if @enabled
+        if enabled?
           string = string.colorize
           string = string.fore(*fg.last) unless fg.empty?
           string = string.back(*bg.last) unless bg.empty?

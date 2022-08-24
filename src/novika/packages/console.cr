@@ -10,8 +10,16 @@ module Novika::Packages
   class Console
     include Package
 
-    def self.id
+    def self.id : String
       "console"
+    end
+
+    def self.purpose : String
+      "enables the console API"
+    end
+
+    def self.on_by_default? : Bool
+      false
     end
 
     property pfg : Termbox::Color = Termbox::Color::White
