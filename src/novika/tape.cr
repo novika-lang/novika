@@ -63,6 +63,11 @@ module Novika
       Tape.new(other.substrate.copy, Math.min(cursor, other.count))
     end
 
+    # See `Substrate#map!`.
+    def map!
+      Tape.new(substrate.map! { |form| yield form }, cursor)
+    end
+
     # Returns a shallow copy of this tape.
     def copy
       Tape.new(substrate.copy, cursor)

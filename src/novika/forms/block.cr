@@ -48,7 +48,7 @@ module Novika
 
     # Returns and allows to set whether this block is a leaf.
     # A block is a leaf when it has no blocks in its tape.
-    private property? leaf = true
+    protected property? leaf = true
 
     # Returns the string comment of this block. It normally
     # describes what this block does.
@@ -353,18 +353,16 @@ module Novika
     # given *parent*.)
     def instance(parent reparent : Block = self) : Block
       if leaf?
-        # Leaf, just copy the tape. Leaf? is true by default,
-        # no need to pass that down.
-        self.class.new(reparent, tape.copy, prototype: prototype)
-      else
-        # Has sub-blocks, must instantiate them as well.
-        self.class.new(reparent, prototype).tap do |copy|
-          tape.each do |form|
-            form = form.instance(copy) if form.is_a?(Block)
-            copy.add(form)
-          end
-        end
+        return self.class.new(reparent, tape.copy, prototype: prototype)
       end
+
+      # If this block isn't a leaf, we need to copy its sub-blocks as
+      # well. Note that `map!` allows to skip quickly (i.e., is actual
+      # noop) when the block returns nil.
+      copy = self.class.new(reparent, tape.copy, prototype: prototype)
+      copy.tape = copy.tape.map! { |form| form.instance(copy) if form.is_a?(Block) }
+      copy.leaf = false
+      copy
     end
 
     # Assert through the result of running *name*'s value in

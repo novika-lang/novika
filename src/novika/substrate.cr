@@ -34,10 +34,6 @@ module Novika
     # Returns the actual array.
     protected abstract def array
 
-    # Overrides the element at *index* with *element*. Returns
-    # nil if *index* is out of bounds (see `at?`).
-    abstract def set?(at index, element)
-
     # Adds *element* before *index*. Returns nil if *index* is
     # out of bounds (see  `at?`).
     abstract def insert?(at index, element)
@@ -51,6 +47,10 @@ module Novika
 
     # Returns a copy of this substrate.
     abstract def copy
+
+    # Replaces elements of this substrate with the result of the
+    # block. If the result is nil, leaves the original element.
+    abstract def map!(& : T -> T?)
 
     def ==(other)
       other.is_a?(Substrate) && array == other.array
@@ -73,7 +73,7 @@ module Novika
 
     # Makes a copy of the referenced substrate, and calls this
     # method on it.
-    delegate :set?, :insert?, :delete?, to: begin
+    delegate :set?, :insert?, :delete?, :map!, to: begin
       res.refs -= 1
 
       RealSubstrate.new(array.dup)
@@ -112,16 +112,23 @@ module Novika
       object.tap { yield object }
     end
 
-    def set?(at index, element)
-      mutate &.array.unsafe_set(index, element) if index.in?(0...count)
-    end
-
     def insert?(at index, element)
       mutate &.array.insert(index, element) if index.in?(0..count)
     end
 
     def delete?(at index)
       mutate &.array.delete_at(index) if index.in?(0..count)
+    end
+
+    def map!(& : T -> T?)
+      mutate do |mutee|
+        mutee.count.times do |index|
+          element = mutee.array.unsafe_fetch(index)
+          if element = yield element
+            mutee.array.unsafe_put(index, element)
+          end
+        end
+      end
     end
 
     def deref
