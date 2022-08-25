@@ -1,13 +1,6 @@
 {% if flag?(:novika_readline) %} require "readline" {% end %}
 
 module Novika::Packages
-  # Provides basic vocabulary for Novika. Novika is wholly
-  # dependent on words for any actual work. Now, words found
-  # here are either:
-  #   a) so primitive they cannot be implemented in Novika;
-  #   b) need to be very fast.
-  #
-  # Kernel is (or at least should be) included by default.
   class Kernel
     include Package
 
@@ -381,38 +374,6 @@ module Novika::Packages
         recpt.import!(from: donor)
       end
 
-      target.at("reportError") do |engine|
-        died = engine.stack.drop.assert(engine, Died)
-        died.report(STDOUT)
-      end
-
-      target.at("monotonic", "( -- Mt ): leaves milliseconds time of monotonic clock") do |engine|
-        Decimal.new(Time.monotonic.total_milliseconds).push(engine)
-      end
-
-      target.at("echo", "( F -- ): shows Form in the console.") do |engine|
-        quote = engine.stack.drop.enquote(engine)
-        puts quote.string
-      end
-
-      target.at("readLine", <<-END
-    ( Pf -- Aq true/false ): prompts the user with Prompt form.
-     Leaves Answer quote, and an accepted (true) / rejected (false)
-     bool. If rejected, Answer quote is empty.
-    END
-      ) do |engine|
-        prompt = engine.stack.drop.enquote(engine)
-        answer = nil
-        {% if flag?(:novika_readline) %}
-          answer = Readline.readline(prompt.string)
-        {% else %}
-          print prompt.string
-          answer = gets
-        {% end %}
-        Quote.new(answer || "").push(engine)
-        Boolean[!!answer].push(engine)
-      end
-
       target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
         engine.stack.drop.enquote(engine).push(engine)
       end
@@ -480,10 +441,6 @@ module Novika::Packages
       target.at("desc", "( F -- Hq ): leaves the description of Form.") do |engine|
         quote = Quote.new(engine.stack.drop.desc)
         quote.push(engine)
-      end
-
-      target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |engine|
-        sleep engine.stack.drop.assert(engine, Decimal).to_i.milliseconds
       end
 
       # File system ------------------------------------------
