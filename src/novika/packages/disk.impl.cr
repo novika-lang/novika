@@ -1,4 +1,4 @@
-module Novika::Packages
+module Novika::Packages::Impl
   class Disk < IDisk
     def readable?(engine, path : Quote) : Boolean
       Boolean[File.readable?(path.string)]
