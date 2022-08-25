@@ -17,44 +17,6 @@ module Novika
 
   VERSION = {{`shards version`.chomp.stringify}}
 
-  module Packages
-    class Frontend
-      include Package
-
-      def self.id : String
-        "frontend"
-      end
-
-      def self.purpose : String
-        "exposes information about the language frontend"
-      end
-
-      def self.on_by_default? : Bool
-        true
-      end
-
-      def inject(into target)
-        target.at("novika:version", "( -- Vq ): leaves Novika Version quote.") do |engine|
-          Quote.new(Novika::VERSION).push(engine)
-        end
-
-        target.at("novika:packages", <<-END
-        ( -- Pb ): leaves the user-included package ids (as quotes)
-         in Package block.
-        END
-        ) do |engine|
-          block = Block.new
-
-          @bundle.enabled.each do |package|
-            block.add Quote.new(package.id)
-          end
-
-          block.push(engine)
-        end
-      end
-    end
-  end
-
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
   # `core`), and paths for all other `files` (if any).
