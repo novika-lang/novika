@@ -442,61 +442,6 @@ module Novika::Packages
         quote = Quote.new(engine.stack.drop.desc)
         quote.push(engine)
       end
-
-      # File system ------------------------------------------
-
-      target.at("fs:exists?", "( Pq -- true/false ): leaves whether Path quote exists.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.exists?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:readable?", "( Pq -- true/false ): leaves whether Path quote is readable.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.readable?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:dir?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a directory.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = Dir.exists?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:file?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a file.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.file?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:symlink?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a symlink.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.symlink?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:touch", "( P -- ): creates a file at Path.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        File.touch(path.string)
-      end
-
-      target.at("fs:read", "( F -- C ): reads and leaves Contents of File") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        contents = File.read(path.string)
-        Quote.new(contents).push(engine)
-      end
     end
   end
 end
