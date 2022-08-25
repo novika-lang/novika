@@ -11,11 +11,11 @@ module Novika::Packages
   #
   # Exposed vocabulary:
   #
-  #   * `withEchoFg`, implemented by `with_echo_fg`
-  #   * `withEchoBg`, implemented by `with_echo_bg`
-  #   * `dropEchoFg`, implemented by `drop_echo_fg`
-  #   * `dropEchoBg`, implemented by `drop_echo_bg`
-  #   * `withColorEcho`, implemented by `with_color_echo`
+  # * `withEchoFg`, implemented by `with_echo_fg`
+  # * `withEchoBg`, implemented by `with_echo_bg`
+  # * `dropEchoFg`, implemented by `drop_echo_fg`
+  # * `dropEchoBg`, implemented by `drop_echo_bg`
+  # * `withColorEcho`, implemented by `with_color_echo`
   abstract class IColors
     include Package
 
