@@ -1,5 +1,7 @@
 {% skip_file unless flag?(:novika_console) %}
 
+# require "termbox2" # TODO: uncomment when common Color object exists
+
 module Novika::Packages::Impl
   class Console < IConsole
     private property event : Termbox::BaseEvent?

@@ -1,3 +1,5 @@
+require "colorize"
+
 module Novika::Packages::Impl
   class Colors < IColors
     # Ensures decimals *r*, *g*, *b* are in 0-255 range, and

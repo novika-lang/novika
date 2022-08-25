@@ -1,5 +1,3 @@
-require "colorize"
-
 # Note: this should use the same color object as console, with
 # same color space reduction as console does already. The only
 # interface with Novika should be `r g b color` and `fg bg print`
@@ -31,7 +29,7 @@ module Novika::Packages
       true
     end
 
-    # TODO: this should be its own object
+    # TODO: remove when common color object exists
     alias Color = {Decimal, Decimal, Decimal}
 
     # Echo foreground color stack.

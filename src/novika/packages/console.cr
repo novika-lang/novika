@@ -1,8 +1,11 @@
 {% skip_file unless flag?(:novika_console) %}
 
-require "termbox2"
+# TODO: ^^^^ Maybe tell the user their platform isn't supported,
+# or have an alternative windows implementation.
 
-struct Termbox::Color
+require "termbox2" # TODO: remove when common color object exists
+
+struct Termbox::Color # TODO: remove when common color object exists
   include Novika::Form
 end
 
@@ -61,7 +64,7 @@ module Novika::Packages
       false
     end
 
-    # TODO: this should be its own object probably somewhere in forms/
+    # TODO: remove when common color object exists
     alias Color = Termbox::Color
 
     # Enables the Console API.
