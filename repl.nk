@@ -17,13 +17,13 @@ no automatic tests, of course), to reiterate, bugs are expected.
 
 "REPL root block, also persisted for the entire REPL session.
  A child of the block this comment is part of, and so inherits
- all imported packages/files (such as core) and kernel."
+ all imported packages/files (such as core) and essential."
 this child $: pgRoot
 
 [
   "Whether there was an error."
   false $: error
-  
+
   "Global stack, persisted for the entire REPL session."
   [ ] $: pgStack
 
@@ -35,11 +35,11 @@ this child $: pgRoot
     this $: self
 
     0 $: timeTakenMs
-  
+
     "Create an instance of the root block so that the line of code
      we will execute has access to all words the frontend provided."
     pgRoot new $: pgRootInstance
-  
+
     "Create an instance of the stack block, for if an error happens,
      we'd like to restore back to the 'good' stack."
     pgStack shallowCopy $: pgStackCopy
@@ -57,7 +57,7 @@ this child $: pgRoot
 
       [ pgStackCopy pgRootInstance line slurp hydrate! ] measure =: timeTakenMs
     ] do
-  
+
     error br:
       [ "There was an error (or multiple errors). It was already
          reported by the death handler above."
@@ -72,16 +72,16 @@ this child $: pgRoot
         pgStackCopy =: pgStack
         [ 'In ' timeTakenMs 'ms' ] here join echo
       ]
-  
+
     pgStack echo
   ] @: runLine
 
- 
+
   loop: [
     '>>> ' readLine br:
       [ "Line was read successfully:" runLine ]
       [ "The user had pressed Ctrl-D:" 'Bye.' echo break ]
-  ] 
+  ]
 ] @: startSession
 
 

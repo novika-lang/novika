@@ -31,7 +31,7 @@ module Novika::Packages
        frontend in Package block.
 
       >>> novika:packages
-      === [ 'kernel' 'colors' 'console' | ] (yours may differ)
+      === [ 'essential' 'colors' 'console' | ] (yours may differ)
       END
       ) { |engine| packages(engine).push(engine) }
     end

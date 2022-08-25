@@ -94,7 +94,7 @@ module Novika::Packages
           # or background is set, use the color output method.
           with_color_echo(engine, fg.last?, bg.last?, form)
         else
-          # Otherwise, TODO: invoke IKernel#echo.
+          # Otherwise, TODO: invoke Essential#echo.
           puts form.enquote(engine).string
         end
       end

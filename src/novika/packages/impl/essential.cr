@@ -1,15 +1,15 @@
 {% if flag?(:novika_readline) %} require "readline" {% end %}
 
 module Novika::Packages::Impl
-  class Kernel
+  class Essential
     include Package
 
     def self.id : String
-      "kernel"
+      "essential"
     end
 
     def self.purpose : String
-      "exposes the native code primitives, such as 'hydrate' and 'new'"
+      "exposes essential native code vocabulary, such as 'hydrate' and 'new'"
     end
 
     def self.on_by_default? : Bool

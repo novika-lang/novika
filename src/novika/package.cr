@@ -47,14 +47,14 @@ module Novika
   # bundle = Bundle.new
   #
   # # Add package classes (package implementations):
-  # bundle << Packages::Kernel
+  # bundle << Packages::Essential
   # bundle << Packages::Impl::System
   # bundle << Packages::Impl::Console
   #
   # # Enable packages. At this point you kinda don't know which
   # # implementation are used under the hood, so you need to refer
   # # to the packages by their ids.
-  # bundle.enable("kernel")
+  # bundle.enable("essential")
   # bundle.enable("system")
   # bundle.enable("console")
   #

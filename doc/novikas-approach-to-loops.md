@@ -8,10 +8,10 @@ This document is a brief, technical overview of how Novika approaches loops.
 
 ## Crystal
 
-Novika is written in Crystal. Even though you won't find a "looping primitive" in kernel
-or anywhere else, there still is a loop at the core of the interpreter which is accessible
-from Novika-land: the *interpreter loop* itself. In rev10, the interpreter loop has its
-own object -- a struct called `Engine`. You may see the interpreter loop being referred
+Novika is written in Crystal. Even though you won't find a "looping primitive" in package
+essential or anywhere else, there still is a loop at the core of the interpreter which is
+accessible from Novika-land: the *interpreter loop* itself. In rev10, the interpreter loop
+has its own object -- a struct called `Engine`. You may see the interpreter loop being referred
 to as the *engine loop* or the *exhaust loop*. These all stand for the same thing.
 
 Here is what `Engine#exhaust` looks like, with error handling code omitted for it is in
