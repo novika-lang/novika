@@ -34,6 +34,14 @@ module Novika
   # For your package to be registered, it should be the last
   # subclass of a `Package` includer (subclass depth is irrelevant),
   # or have no subclasses and be a direct `Package` includer.
+  #
+  # NOTE: it is not necessary for your package to be found
+  # and/or registered by this method, unless it's shipping
+  # inside this implementation of Novika and you want it to
+  # be auto-included and listed by the CLI frontend.
+  #
+  # You can simply `IPackage#inject` or `Block#at` on the
+  # block of interest.
   def self.packages : Hash(String, IPackageClass)
     # The type of IPackageClass is valid and not at the same
     # time. It really should be Package.class but Crystal
