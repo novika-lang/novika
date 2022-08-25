@@ -31,33 +31,24 @@ module Novika::Packages
       true
     end
 
+    # TODO: this should be its own object
+    alias Color = {Decimal, Decimal, Decimal}
+
+    # Echo foreground color stack.
+    property fg = [] of Color
+
+    # Echo background color stack.
+    property bg = [] of Color
+
     # Holds whether printing with colors is enabled (and desired).
     property? enabled : Bool do
       STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
     end
 
-    # Pushes 0-255 *r*ed, *g*reen, *b*lue foreground color
-    # onto the echo foreground color stack.
-    abstract def with_echo_fg(engine, r : Decimal, g : Decimal, b : Decimal)
-
-    # Pushes 0-255 *r*ed, *g*reen, *b*lue background color
-    # onto the echo background color stack.
-    abstract def with_echo_bg(engine, r : Decimal, g : Decimal, b : Decimal)
-
-    # Drops a color from the echo foreground color stack.
-    abstract def drop_echo_fg(engine)
-
-    # Drops a color from the echo background color stack.
-    abstract def drop_echo_bg(engine)
-
-    # Echoes *form* with last color from the echo foreground color
-    # stack set as foreground color, and the last as color from
-    # the echo background stack set as background color.
-    abstract def with_color_echo(engine, form : Form)
-
-    # Fallback for echoing *form* when color is disabled
-    # (or not desired).
-    abstract def without_color_echo(engine, form : Form)
+    # Echoes *form* with *fg* foreground color (if any) and
+    # *bg* background color (if any). One of them is guaranteed
+    # to be non-nil.
+    abstract def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
 
     # Injects the colors vocabulary into *target*.
     def inject(into target)
@@ -69,7 +60,7 @@ module Novika::Packages
         b = engine.stack.drop.assert(engine, Decimal)
         g = engine.stack.drop.assert(engine, Decimal)
         r = engine.stack.drop.assert(engine, Decimal)
-        with_echo_fg(engine, r, g, b)
+        fg << {r, g, b}
       end
 
       target.at("withEchoBg", <<-END
@@ -80,18 +71,18 @@ module Novika::Packages
         b = engine.stack.drop.assert(engine, Decimal)
         g = engine.stack.drop.assert(engine, Decimal)
         r = engine.stack.drop.assert(engine, Decimal)
-        with_echo_bg(engine, r, g, b)
+        bg << {r, g, b}
       end
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo foreground color stack.
       END
-      ) { |engine| drop_echo_fg(engine) }
+      ) { |engine| fg.pop? }
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo background color stack.
       END
-      ) { |engine| drop_echo_bg(engine) }
+      ) { |engine| bg.pop? }
 
       target.at("withColorEcho", <<-END
       ( F -- ): echoes Form with last color from the echo foreground
@@ -99,9 +90,15 @@ module Novika::Packages
        the echo background stack set as background color.
       END
       ) do |engine|
-        # TODO reach IKernel#echo smhw
         form = engine.stack.drop
-        enabled? ? with_color_echo(engine, form) : without_color_echo(engine, form)
+        if enabled? && (fg.last? || bg.last?)
+          # If color output is enabled and either foreground
+          # or background is set, use the color output method.
+          with_color_echo(engine, fg.last?, bg.last?, form)
+        else
+          # Otherwise, TODO: invoke IKernel#echo.
+          puts form.enquote(engine).string
+        end
       end
     end
   end

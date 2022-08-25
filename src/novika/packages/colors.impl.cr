@@ -1,10 +1,5 @@
 module Novika::Packages::Impl
   class Colors < IColors
-    # Echo foreground color stack.
-    property fg = [] of {UInt8, UInt8, UInt8}
-    # Echo background color stack.
-    property bg = [] of {UInt8, UInt8, UInt8}
-
     # Ensures decimals *r*, *g*, *b* are in 0-255 range, and
     # returns the three corresponding UInt8-s.
     private def color_u8(r : Decimal, g : Decimal, b : Decimal) : {UInt8, UInt8, UInt8}
@@ -19,36 +14,14 @@ module Novika::Packages::Impl
       {ri.to_u8, gi.to_u8, bi.to_u8}
     end
 
-    def with_echo_fg(engine, r : Decimal, g : Decimal, b : Decimal)
-      fg << color_u8(r, g, b)
-    end
-
-    def with_echo_bg(engine, r : Decimal, g : Decimal, b : Decimal)
-      bg << color_u8(r, g, b)
-    end
-
-    def drop_echo_fg(engine)
-      fg.pop?
-    end
-
-    def drop_echo_bg(engine)
-      bg.pop?
-    end
-
-    def with_color_echo(engine, form : Form)
+    def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
       string = form.enquote(engine).string
 
       colorful = string.colorize
-      colorful = colorful.fore(*fg.last) unless fg.empty?
-      colorful = colorful.back(*bg.last) unless bg.empty?
+      colorful = colorful.fore(*color_u8(*fg)) if fg
+      colorful = colorful.back(*color_u8(*bg)) if bg
 
       puts colorful
-    end
-
-    def without_color_echo(engine, form : Form)
-      string = form.enquote(engine).string
-
-      puts string
     end
   end
 end
