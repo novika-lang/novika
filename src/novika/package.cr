@@ -119,6 +119,12 @@ module Novika
       @classes.each { |k, v| enable(k) if v.on_by_default? }
     end
 
+    # Returns the package instance of the given *package* class,
+    # if one can be found in this bundle. Otherwise, returns nil.
+    def []?(package : T.class) : T? forall T
+      @objects[package.id]?.try &.as(T)
+    end
+
     # Adds a package class to this bundle.
     def <<(package : IPackageClass)
       @classes[package.id] = package

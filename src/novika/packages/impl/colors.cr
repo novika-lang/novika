@@ -16,14 +16,14 @@ module Novika::Packages::Impl
       {ri.to_u8, gi.to_u8, bi.to_u8}
     end
 
-    def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
+    def with_color_echo(engine, sys : ISystem, fg : Color?, bg : Color?, form : Form)
       string = form.enquote(engine).string
 
       colorful = string.colorize
       colorful = colorful.fore(*color_u8(*fg)) if fg
       colorful = colorful.back(*color_u8(*bg)) if bg
 
-      puts colorful
+      sys.echo(engine, Quote.new(colorful.to_s))
     end
   end
 end
