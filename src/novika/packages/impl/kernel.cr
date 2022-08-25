@@ -1,6 +1,6 @@
 {% if flag?(:novika_readline) %} require "readline" {% end %}
 
-module Novika::Packages
+module Novika::Packages::Impl
   class Kernel
     include Package
 

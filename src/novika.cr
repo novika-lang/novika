@@ -11,6 +11,7 @@ require "./novika/forms/*"
 require "./novika/engine"
 require "./novika/package"
 require "./novika/packages/*"
+require "./novika/packages/impl/*"
 
 module Novika
   extend self
