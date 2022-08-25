@@ -33,12 +33,9 @@ module Novika
         true
       end
 
-      property version : String = VERSION
-      property! packages : Array(Package)
-
       def inject(into target)
         target.at("novika:version", "( -- Vq ): leaves Novika Version quote.") do |engine|
-          Quote.new(version).push(engine)
+          Quote.new(Novika::VERSION).push(engine)
         end
 
         target.at("novika:packages", <<-END
@@ -46,11 +43,10 @@ module Novika
          in Package block.
         END
         ) do |engine|
-          next Block.new.push(engine) unless packages?
-
           block = Block.new
-          packages.each do |package|
-            block.add Quote.new(package.class.id)
+
+          @bundle.enabled.each do |package|
+            block.add Quote.new(package.id)
           end
 
           block.push(engine)
@@ -92,7 +88,7 @@ module Novika
   (3) There are also a number of builtin #{cpkg}s:
   END
 
-    packages = Novika.packages.values
+    packages = Bundle.available
 
     packages.select(&.on_by_default?).each do |pkg|
       io.puts
@@ -149,28 +145,21 @@ module Novika
       exit(1)
     end
 
-    pkgs = Novika.packages.values.select(&.on_by_default?).map(&.new.as(Package))
+    bundle = Bundle.new
 
-    # The frontend package (implementation) is supposed to know
-    # about the packages we've created, so let's find it and send
-    # the array to it.
-    pkgs.each do |pkg|
-      next unless pkg.is_a?(Packages::Frontend)
-      break pkg.packages = pkgs
-    end
+    Bundle.available.each { |pkg| bundle << pkg }
+
+    bundle.enable
 
     files = [] of Path
     folders = {} of Path => Folder
 
     engine = Engine.new
-    pkgblock = Block.new
-    toplevel = Block.new(pkgblock)
+    toplevel = Block.new(bundle.bb)
 
     args.each do |arg|
-      if pkg = Novika.packages[arg]?
-        # A package. Add it to our packages list, and continue.
-        # Do not duplicate.
-        pkgs << pkg.new unless pkgs.any?(pkg)
+      if bundle.includes?(arg)
+        bundle.enable(arg)
       elsif File.directory?(arg)
         # Exists and is a directory.
         collect(folders, Path[arg])
@@ -181,10 +170,6 @@ module Novika
         abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd}"
       end
     end
-
-    # Inject all our packages into the package block (just a
-    # super-duper toplevel block.).
-    pkgs.each &.inject(into: pkgblock)
 
     # Evaluate each folder's entry (if any), then its *.nk files.
     folders.each_value do |folder|
