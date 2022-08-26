@@ -11,45 +11,12 @@ require "./novika/forms/*"
 require "./novika/engine"
 require "./novika/package"
 require "./novika/packages/*"
+require "./novika/packages/impl/*"
 
 module Novika
   extend self
 
   VERSION = {{`shards version`.chomp.stringify}}
-
-  module Packages
-    class Frontend
-      include Package
-
-      def self.id
-        "frontend"
-      end
-
-      property version : String = VERSION
-      property! packages : Array(Package)
-
-      def inject(into target)
-        target.at("novika:version", "( -- Vq ): leaves Novika Version quote.") do |engine|
-          Quote.new(version).push(engine)
-        end
-
-        target.at("novika:packages", <<-END
-        ( -- Pb ): leaves the user-included package ids (as quotes)
-         in Package block.
-        END
-        ) do |engine|
-          next Block.new.push(engine) unless packages?
-
-          block = Block.new
-          packages.each do |package|
-            block.add Quote.new(package.class.id)
-          end
-
-          block.push(engine)
-        end
-      end
-    end
-  end
 
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
@@ -82,13 +49,21 @@ module Novika
   (2) Individual #{cfile}s are run after all directories are run.
 
   (3) There are also a number of builtin #{cpkg}s:
-        - kernel (#{on})
-        - math (#{on})
-        - colors (#{on})
-        - frontend (#{on})
-        - console (enables the console API)
-
   END
+
+    packages = Bundle.available
+
+    packages.select(&.on_by_default?).each do |pkg|
+      io.puts
+      io << "    - " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
+    end
+
+    packages.reject(&.on_by_default?).each do |pkg|
+      io.puts
+      io << "    - " << pkg.id << " (" << pkg.purpose << ")"
+    end
+
+    io.puts
   end
 
   # Recursively visits directories starting at, and including,
@@ -133,33 +108,21 @@ module Novika
       exit(1)
     end
 
-    fpkg = Packages::Frontend.new
-    fpkg.version = VERSION
+    bundle = Bundle.new
 
-    # Copied from `Colorize.on_tty_only!`
-    enable_colors = STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
+    Bundle.available.each { |pkg| bundle << pkg }
 
-    pkgs = [
-      Packages::Kernel.new,
-      Packages::Math.new,
-      Packages::Colors.new(enabled: enable_colors),
-      fpkg,
-    ] of Package
-
-    fpkg.packages = pkgs
+    bundle.enable_default
 
     files = [] of Path
     folders = {} of Path => Folder
 
     engine = Engine.new
-    pkgblock = Block.new
-    toplevel = Block.new(pkgblock)
+    toplevel = Block.new(bundle.bb)
 
     args.each do |arg|
-      if pkg = Package[arg]?
-        # A package. Add it to our packages list, and continue.
-        # Do not duplicate.
-        pkgs << pkg.new unless pkgs.any?(pkg)
+      if bundle.includes?(arg)
+        bundle.enable(arg)
       elsif File.directory?(arg)
         # Exists and is a directory.
         collect(folders, Path[arg])
@@ -170,10 +133,6 @@ module Novika
         abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd}"
       end
     end
-
-    # Inject all our packages into the package block (just a
-    # super-duper toplevel block.).
-    pkgs.each &.inject(into: pkgblock)
 
     # Evaluate each folder's entry (if any), then its *.nk files.
     folders.each_value do |folder|

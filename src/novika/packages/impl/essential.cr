@@ -1,18 +1,19 @@
 {% if flag?(:novika_readline) %} require "readline" {% end %}
 
-module Novika::Packages
-  # Provides basic vocabulary for Novika. Novika is wholly
-  # dependent on words for any actual work. Now, words found
-  # here are either:
-  #   a) so primitive they cannot be implemented in Novika;
-  #   b) need to be very fast.
-  #
-  # Kernel is (or at least should be) included by default.
-  class Kernel
+module Novika::Packages::Impl
+  class Essential
     include Package
 
-    def self.id
-      "kernel"
+    def self.id : String
+      "essential"
+    end
+
+    def self.purpose : String
+      "exposes essential native code vocabulary, such as 'hydrate' and 'new'"
+    end
+
+    def self.on_by_default? : Bool
+      true
     end
 
     def inject(into target)
@@ -243,6 +244,52 @@ module Novika::Packages
         block.at(index.to_i).push(engine)
       end
 
+      target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        engine.stack.add(a + b)
+      end
+
+      target.at("-", "( A B -- D ): leaves the Difference of two decimals.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        engine.stack.add(a - b)
+      end
+
+      target.at("*", "( A B -- P ): leaves the Product of two decimals.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        engine.stack.add(a * b)
+      end
+
+      target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        b.die("division by zero") if b.zero?
+        engine.stack.add(a / b)
+      end
+
+      target.at("rem", "( A B -- R ): leaves the Remainder of two decimals.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        b.die("division by zero") if b.zero?
+        engine.stack.add(a % b)
+      end
+
+      target.at("round", "( D -- Dr ): leaves round Decimal.") do |engine|
+        decimal = engine.stack.drop.assert(engine, Decimal)
+        decimal.round.push(engine)
+      end
+
+      target.at("trunc", "( D -- Dt ): leaves truncated Decimal.") do |engine|
+        decimal = engine.stack.drop.assert(engine, Decimal)
+        decimal.trunc.push(engine)
+      end
+
+      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |engine|
+        Decimal.new(rand).push(engine)
+      end
+
       target.at("charCount", "( Q -- N ): leaves N, the amount of characters in Quote") do |engine|
         quote = engine.stack.drop.assert(engine, Quote)
         Decimal.new(quote.string.size).push(engine)
@@ -327,38 +374,6 @@ module Novika::Packages
         recpt.import!(from: donor)
       end
 
-      target.at("reportError") do |engine|
-        died = engine.stack.drop.assert(engine, Died)
-        died.report(STDOUT)
-      end
-
-      target.at("monotonic", "( -- Mt ): leaves milliseconds time of monotonic clock") do |engine|
-        Decimal.new(Time.monotonic.total_milliseconds).push(engine)
-      end
-
-      target.at("echo", "( F -- ): shows Form in the console.") do |engine|
-        quote = engine.stack.drop.enquote(engine)
-        puts quote.string
-      end
-
-      target.at("readLine", <<-END
-    ( Pf -- Aq true/false ): prompts the user with Prompt form.
-     Leaves Answer quote, and an accepted (true) / rejected (false)
-     bool. If rejected, Answer quote is empty.
-    END
-      ) do |engine|
-        prompt = engine.stack.drop.enquote(engine)
-        answer = nil
-        {% if flag?(:novika_readline) %}
-          answer = Readline.readline(prompt.string)
-        {% else %}
-          print prompt.string
-          answer = gets
-        {% end %}
-        Quote.new(answer || "").push(engine)
-        Boolean[!!answer].push(engine)
-      end
-
       target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
         engine.stack.drop.enquote(engine).push(engine)
       end
@@ -426,65 +441,6 @@ module Novika::Packages
       target.at("desc", "( F -- Hq ): leaves the description of Form.") do |engine|
         quote = Quote.new(engine.stack.drop.desc)
         quote.push(engine)
-      end
-
-      target.at("nap", "( Nms -- ): sleeps for N decimal milliseconds.") do |engine|
-        sleep engine.stack.drop.assert(engine, Decimal).to_i.milliseconds
-      end
-
-      # File system ------------------------------------------
-
-      target.at("fs:exists?", "( Pq -- true/false ): leaves whether Path quote exists.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.exists?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:readable?", "( Pq -- true/false ): leaves whether Path quote is readable.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.readable?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:dir?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a directory.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = Dir.exists?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:file?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a file.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.file?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:symlink?", <<-END
-    ( Pq -- true/false ): leaves whether Path quote exists and
-     points to a symlink.
-    END
-      ) do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        status = File.symlink?(path.string)
-        Boolean[status].push(engine)
-      end
-
-      target.at("fs:touch", "( P -- ): creates a file at Path.") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        File.touch(path.string)
-      end
-
-      target.at("fs:read", "( F -- C ): reads and leaves Contents of File") do |engine|
-        path = engine.stack.drop.assert(engine, Quote)
-        contents = File.read(path.string)
-        Quote.new(contents).push(engine)
       end
     end
   end
