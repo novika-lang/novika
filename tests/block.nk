@@ -912,7 +912,7 @@ describe 'conjure/here' [
   ]
 
   it should 'trigger word trap when word is undefined' [
-    [ enquote 2 sliceQuoteAt nip ] @: *trap
+    [ enquote 1 sliceQuoteAt nip ] @: *trap
     foobar here 'oobar' assert=
   ]
 ]

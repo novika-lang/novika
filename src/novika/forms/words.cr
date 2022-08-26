@@ -45,7 +45,7 @@ module Novika
       elsif trap = engine.block.at?(TRAP)
         # An undefined word trap exists in the CC block. Quote
         # this word open it.
-        engine.stack.add QuotedWord.new(id)
+        engine.stack.add Word.new(id)
         trap.open(engine)
       else
         # No entry and no trap: err out.

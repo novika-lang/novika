@@ -73,6 +73,6 @@ block new orphan reparent [
   [ ] @: *trap
 ] extend
 
-[ ] swap there echo "should be: [ #x #y #+ #Algebraic #stuff #test #huh? ]"
+[ ] swap there echo "should be: [ x y + Algebraic stuff test huh? ]"
 
 stack echo "should be [ | ]"
