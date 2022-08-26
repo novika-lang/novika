@@ -39,6 +39,7 @@ module Novika::Packages
   # * `console:256`, implemented by `colors_256`
   # * `console:compat`, implemented by `colors_compat`
   # * `console:truecolor`, implemented by `colors_truecolor`
+  # * `console:color`, generic implementation
   # * `console:width`, implemented by `width`
   # * `console:height`, implemented by `height`
   # * `console:peek`, implemented by `peek`
@@ -89,6 +90,16 @@ module Novika::Packages
     abstract def height(engine) : Decimal
 
     # Peeks or waits for input. Refreshes the input state.
+    #
+    # * Negative *timeout* must wait indefinitely for input,
+    #   and after receiving input refresh the state.
+    #
+    # * Zero *timeout* must refresh the input state without
+    #   waiting for input.
+    #
+    # * Positive *timeout* must wait for input in a window
+    #   *timeout* milliseconds long, and refresh the input
+    #   state after receiving input.
     abstract def peek(engine, timeout : Decimal)
 
     # Returns a boolean for whether there was a key press
@@ -197,14 +208,14 @@ module Novika::Packages
       target.at("console:setTimeout", <<-END
       ( Tms -- ): sets input Timeout to the given amount of milliseconds.
 
-       * If Timeout is negative, `console:peek` will wait for input
-         indefinitely (i.e., until there is input).
+       * If Timeout is negative, `console:peek` will wait for
+         input indefinitely (i.e., until there is input).
 
        * If Timeout is zero, `console:peek` won't wait for input
-         at all, but make note if there is any.
+         at all, but make note if there is any at the moment.
 
-       * If Timeout is positive, `console:peek` will peek during
-         the timeout window.
+       * If Timeout is positive, `console:peek` will peek
+         during the timeout window.
       END
       ) do |engine|
         @timeout = engine.stack.drop.assert(engine, Decimal)
