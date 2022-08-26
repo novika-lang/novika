@@ -112,10 +112,12 @@ module Novika
       true
     end
 
-    # Enables all packages that respond to `IPackageClass#on_by_default?`
-    # with true. For packages that do not, you'll need to do
-    # a manual call to `enable(id)`.
-    def enable
+    # Enables all packages that respond with true when sent
+    # `IPackageClass#on_by_default?`.
+    #
+    # For packages that respond with false, you'll need to
+    # explicitly `enable(id)` them.
+    def enable_default
       @classes.each { |k, v| enable(k) if v.on_by_default? }
     end
 

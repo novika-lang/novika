@@ -112,7 +112,7 @@ module Novika
 
     Bundle.available.each { |pkg| bundle << pkg }
 
-    bundle.enable
+    bundle.enable_default
 
     files = [] of Path
     folders = {} of Path => Folder
