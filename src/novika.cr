@@ -23,14 +23,31 @@ module Novika
   # `core`), and paths for all other `files` (if any).
   record Folder, entry : Path? = nil, files = [] of Path
 
+  # Returns whether the output of Novika should be colorful.
+  #
+  # Whether this will be respected by general Novika code cannot
+  # be guaranteed, but it is guaranteed to be respected by the
+  # CLI frontend.
+  def colorful? : Bool
+    STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
+  end
+
   # Appends help message to *io*.
   def help(io)
-    cdir = "directory".colorize.blue
-    cpkg = "package".colorize.magenta
-    cfile = "file".colorize.green
-    on = "on by default".colorize.bold
+    Colorize.enabled = Colorize.enabled?.tap do
+      # Contextually enable/disable colors depending on whether
+      # the user wants them.
+      #
+      # Contextually because we don't want to affect `colors`
+      # et al.
+      Colorize.enabled = colorful?
 
-    io << <<-END
+      cdir = "directory".colorize.blue
+      cpkg = "package".colorize.magenta
+      cfile = "file".colorize.green
+      on = "on by default".colorize.bold
+
+      io << <<-END
   Welcome to Novika, and thanks for trying it out!
 
   Try reading this, or else you may find yourself slightly confused.
@@ -76,21 +93,23 @@ module Novika
     $ novika core path/to/the/file/you/want/to/run.nk
 
   Here is a list of #{cpkg}s that were pre-compiled into this binary:
+
   END
 
-    packages = Bundle.available
+      packages = Bundle.available
 
-    packages.select(&.on_by_default?).each do |pkg|
+      packages.select(&.on_by_default?).each do |pkg|
+        io.puts
+        io << "- " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
+      end
+
+      packages.reject(&.on_by_default?).each do |pkg|
+        io.puts
+        io << "- " << pkg.id << " (" << pkg.purpose << ")"
+      end
+
       io.puts
-      io << "    - " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
     end
-
-    packages.reject(&.on_by_default?).each do |pkg|
-      io.puts
-      io << "    - " << pkg.id << " (" << pkg.purpose << ")"
-    end
-
-    io.puts
   end
 
   # Recursively visits directories starting at, and including,

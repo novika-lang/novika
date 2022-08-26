@@ -42,9 +42,9 @@ module Novika::Packages
     property bg = [] of Color
 
     # Holds whether printing with colors is enabled (and desired).
-    property? enabled : Bool do
-      STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
-    end
+    #
+    # Defaults to `Novika.colorful?`.
+    property? enabled : Bool { Novika.colorful? }
 
     # Echoes *form* with *fg* foreground color (if any) and
     # *bg* background color (if any). One of *fg*, *bg* is
