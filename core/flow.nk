@@ -53,6 +53,12 @@
 ] @: or
 
 
+[ "( A B -- true/A ): same as `or not`, leaves whether neither
+   A nor B is truthy."
+  or not
+] @: neither?
+
+
 [ "( B -- ): makes shallow copy of continuations stack the
    stack for the duration of Block. Attaches after Block."
   conts shallowCopy
