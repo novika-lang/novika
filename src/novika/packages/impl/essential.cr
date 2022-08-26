@@ -345,6 +345,13 @@ module Novika::Packages::Impl
         block.to(cursor.to_i)
       end
 
+      target.at("|slice", "( B -- Lh Rh ): slices Block at cursor, leaves Left, Right halves.") do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        lhs, rhs = block.slice
+        lhs.push(engine)
+        rhs.push(engine)
+      end
+
       target.at("cherry", <<-END
     ( [ ... E | ... ]B -- [ ... | ... ]B -- E ): drops Block
      and Element before cursor in Block (and moves cursor back

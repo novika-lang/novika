@@ -31,6 +31,18 @@ module Novika
       at!(index) if index.in?(0...count)
     end
 
+    # Splits this substrate in two at *index*. Returns the two
+    # resulting substrates.
+    #
+    # This method is unsafe: it Does not check whether *index*
+    # is in bounds.
+    def slice_at!(index)
+      lhs = Array(T).new(index) { |i| at!(i) }
+      rhs = Array(T).new(count - index) { |j| at!(index + j) }
+
+      {RealSubstrate.new(lhs), RealSubstrate.new(rhs)}
+    end
+
     # Returns the actual array.
     protected abstract def array
 

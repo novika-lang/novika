@@ -41,7 +41,7 @@ describe 'uppercase?' [
       ' ' uppercase? false assert=
       '     ' uppercase? false assert=
       '
-      ' uppercase? false assert= 
+      ' uppercase? false assert=
     ] there [ ] all?
   ]
 
@@ -148,5 +148,40 @@ describe 'sliceQuoteAt' [
 
   it should 'properly slice in bounds' [
     [ ] [ 'foo|bar' 3 sliceQuoteAt ] there [ 'foo' '|bar' ] assert=
+  ]
+]
+
+describe '|slice' [
+  it dies 'when given non-block #1' [
+    #foobar |slice
+  ]
+
+  it dies 'when given non-block #2' [
+    true |slice
+  ]
+
+  it dies 'when given non-block #4' [
+    'foobar' |slice
+  ]
+
+  it dies 'when given non-block #5' [
+    100 |slice
+  ]
+
+  it should 'slice when |at 0' [
+    [ ] [ [ ] |slice ] there [ [ ] [ ] ] assert=
+    [ ] [ [ 1 2 3 ] dup 0 |to |slice ] there [ [ ] [ 1 2 3 ] ] assert=
+  ]
+
+  it should 'slice when |at count' [
+    [ ] [ [ 1 2 3 ] |slice ] there [ [ 1 2 3 ] [ ] ] assert=
+  ]
+
+  it should 'slice when |at in first half' [
+    [ ] [ [ 1 2 3 4 ] dup 1 |to |slice ] there [ [ 1 ] [ 2 3 4 ] ]
+  ]
+
+  it should 'slice when |at in second half' [
+    [ ] [ [ 1 2 3 4 ] dup 3 |to |slice ] there [ [ 1 2 3 ] [ 4 ] ]
   ]
 ]

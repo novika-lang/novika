@@ -68,6 +68,14 @@ module Novika
       Tape.new(substrate.map! { |form| yield form }, cursor)
     end
 
+    # Slices this tape's substrate at cursor, returns the
+    # two resulting tape halves.
+    def slice : {Tape, Tape}
+      lhs, rhs = substrate.slice_at!(cursor)
+
+      {Tape.new(lhs), Tape.new(rhs)}
+    end
+
     # Returns a shallow copy of this tape.
     def copy
       Tape.new(substrate.copy, cursor)

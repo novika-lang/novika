@@ -309,6 +309,15 @@ module Novika
       add(b)
     end
 
+    # Slices this block at cursor. This results in two halves,
+    # which are consequently returned.
+    def slice : {Block, Block}
+      lhs, rhs = tape.slice
+
+      {Block.new(parent: nil, tape: lhs),
+       Block.new(parent: nil, tape: rhs)}
+    end
+
     # Removes and returns the top form. Dies if none.
     def drop : Form
       top.tap { self.tape = tape.drop? || raise "unreachable" }

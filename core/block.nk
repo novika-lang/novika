@@ -523,10 +523,37 @@
 
   >>> [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce
   === 'Hellope, Europe! Huh?'
+
+  Supports stack reduction:
+
+  >>> '1' '2' '3'
+  === '1' '2' '3'
+  >>> stack [ stitch ] '' reduce
+  === '123'
   """
   $: memo $: block $: list
 
-  list empty? => [ memo ^ ]
+  "List is empty: just leave the memo."
+  list empty?    => [ memo ^ ]
+
+  "List is the stack. This is a special-case, for we must drop
+   instead of peeking."
+  list stack same? =>
+    [
+      [ "For extra safety, we're running under 'do', which will
+          protect us from modifying our own stack (which `stack`
+          is) and causing all sorts of weirdness."
+        list |slice
+          $: afterCursor
+          $: beforeCursor
+
+        beforeCursor block memo reduce enclose afterCursor concat!
+          $: result
+
+        result list attach list 1 |to
+     ] do
+     ^
+    ]
 
   0 $: index
 

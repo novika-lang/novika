@@ -716,12 +716,44 @@ describe 'reduce' [
     [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce 'Hellope, Europe! Huh?' assert=
   ]
 
+  it should 'reduce stack' [
+    [ 1 2 3 4 5 ] $: stackBlock
+
+    stackBlock [ stack [ * ] 1 reduce ] hydrate
+    stackBlock [ 120 ] assert=
+  ]
+
+  it should 'reduce stack with cursor at some other position' [
+    [ 1 2 3 4 5 ] $: stackBlock
+
+    stackBlock 4 |to
+    stackBlock [ stack [ * ] 1 reduce ] hydrate
+    stackBlock [ 24 5 ] dup 1 |to assert=
+  ]
+
   it should 'support next' [
     [ 1 2 3 4 5 ] [ dup odd? => [ drop "memo left here" next ] + ] 0 reduce 6 assert=
   ]
 
   it should 'support break' [
     [ 1 1 7 3 2 3 4 5 ] [ dup even? => [ break ] + ] 0 reduce 12 assert=
+  ]
+
+  it should 'support next on stack with cursor at some other position' [
+    [ 1 2 3 4 5 6 7 8 9 ] $: stackBlock
+
+    stackBlock 5 |to
+    stackBlock [ stack [ dup odd? => [ drop "memo left here" next ] + ] 0 reduce ] hydrate
+    stackBlock [ 6 6 7 8 9 ] dup 1 |to assert=
+  ]
+
+
+  it should 'support break on stack with cursor at some other position' [
+    [ 1 1 7 3 2 3 4 5 734 92 6 2 764 ] $: stackBlock
+
+    stackBlock 8 |to
+    stackBlock [ stack [ dup even? => [ break ] + ] 0 reduce ] there
+    [ 12 734 92 6 2 764 ] dup 1 |to assert=
   ]
 ]
 
@@ -1134,6 +1166,20 @@ describe 'join' [
 
   it should 'join multiple quotes' [
     [ 'A' 'B' 'C' ] join 'ABC' assert=
+  ]
+
+  it should 'join stack' [
+    [ 'A' 'B' 'C' ] $: stackBlock
+
+    stackBlock [ stack join ] hydrate
+    stackBlock [ 'ABC' ] assert=
+  ]
+
+  it should 'join stack at some other position' [
+    [ 'A' 'B' 'C' 'D' 'E' 'F' ] $: stackBlock
+    stackBlock 3 |to
+    stackBlock [ stack join  ] hydrate
+    stackBlock [ 'ABC' 'D' 'E' 'F' ] dup 1 |to assert=
   ]
 
   it should 'enquote non-quotes' [
