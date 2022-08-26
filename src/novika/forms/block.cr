@@ -58,7 +58,7 @@ module Novika
     getter tape = Tape(Form).new
 
     # Returns the table of this block.
-    getter table = Table.new
+    getter table : ITable = Table.new
 
     # :nodoc:
     #
@@ -73,16 +73,15 @@ module Novika
     # their prototype (AST) blocks, AST blocks return themselves.
     getter! prototype : Block
 
-    def initialize(@parent : Block? = nil, @prototype = self)
+    def initialize(@parent : Block? = nil, @prototype = self, @table = Table.new)
     end
 
-    protected def initialize(
-      @parent : Block?,
-      @tape : Tape(Form),
-      @table = Table.new,
-      @prototype = self,
-      @leaf = true
-    )
+    protected def initialize(*,
+                             @parent : Block?,
+                             @tape : Tape(Form),
+                             @table = Table.new,
+                             @prototype = self,
+                             @leaf = true)
     end
 
     def desc(io : IO)
@@ -197,7 +196,7 @@ module Novika
         elsif match = $~["quote"]?
           block.add Quote.new(match, peel: true)
         elsif match = $~["comment"]?
-          block.describe_with?(dedent match) if block.empty?
+          block.describe_with?(dedent match) if block.count.zero?
         elsif $~["bb"]?
           block = self.class.new(block)
         elsif $~["be"]?
@@ -212,26 +211,15 @@ module Novika
       self
     end
 
-    # Returns whether the *tape* is empty.
-    def empty? : Bool
-      count.zero?
-    end
-
-    # Returns whether the *table* is empty.
-    def list? : Bool
-      table.empty?
-    end
-
-    # Returns whether this block's table has an entry whose
-    # name is *name*.
-    def has?(name : Form) : Bool
-      table.has_key?(name)
+    # Lists all name forms in this block's table.
+    def ls : Array(Form)
+      table.names
     end
 
     # Imports entries from *donor* to this block's table by
     # mutating this block's table.
     def import!(from donor : Block) : self
-      notify { table.merge!(donor.table) }
+      notify { table.import!(donor.table) }
     end
 
     # See `Tape#next?`.
@@ -253,7 +241,7 @@ module Novika
 
     # Returns the table entry corresponding to *name*.
     def at?(name : Form) : Entry?
-      table.fetch(name) { parent?.try &.at?(name) }
+      table.get(name) { parent?.try &.at?(name) }
     end
 
     # Returns whether this table has an entry corresponding
@@ -270,14 +258,14 @@ module Novika
 
     # Binds *name* to *entry* in this block's table.
     def at(name : Form, entry : Entry) : self
-      notify { table[name] = entry }
+      notify { table.set(name, entry) }
     end
 
     # Tracks *name* for rehashing, binds *name* to *entry*.
     def at(name : Block, entry) : self
       name.track { table.rehash }
 
-      notify { table[name] = entry }
+      notify { table.set(name, entry) }
     end
 
     # Binds *name* to *form* in this block's table.
@@ -326,11 +314,6 @@ module Novika
       top.tap { self.tape = tape.drop? || raise "unreachable" }
     end
 
-    # Returns an array of names found in this block's table.
-    def ls : Array(Form)
-      table.keys
-    end
-
     # Adds a continuation for an instance of this block to
     # *engine*. *stack* may be provided to be the stack the
     # instance will operate on.
@@ -340,7 +323,7 @@ module Novika
 
     # Returns a shallow copy of this block.
     def shallow : Block
-      self.class.new(parent?, tape.copy, table, prototype)
+      self.class.new(parent: parent?, tape: tape.copy, table: table, prototype: prototype)
     end
 
     # Replaces this block's tape with *other*'s.
@@ -353,13 +336,13 @@ module Novika
     # given *parent*.)
     def instance(parent reparent : Block = self) : Block
       if leaf?
-        return self.class.new(reparent, tape.copy, prototype: prototype)
+        return self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
       end
 
       # If this block isn't a leaf, we need to copy its sub-blocks as
       # well. Note that `map!` allows to skip quickly (i.e., is actual
       # noop) when the block returns nil.
-      copy = self.class.new(reparent, tape.copy, prototype: prototype)
+      copy = self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
       copy.tape = copy.tape.map! { |form| form.instance(copy) if form.is_a?(Block) }
       copy.leaf = false
       copy
@@ -449,7 +432,7 @@ module Novika
         return
       end
 
-      unless list?
+      unless table.empty?
         io << " . "; ls.join(io, ' ')
       end
 

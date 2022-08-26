@@ -100,7 +100,7 @@ module Novika
     # Exhausts all enabled continuations, starting from the
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
-      until conts.empty?
+      until conts.count.zero?
         begin
           while form = block.next?
             begin
@@ -111,7 +111,7 @@ module Novika
               # Try to find a block with a death handler by reverse-
               # iterating through the continuations block.
               handler = nil
-              until conts.empty?
+              until conts.count.zero?
                 handler = block.at?(Word::DIED)
                 conts.drop
                 break if handler
