@@ -17,6 +17,9 @@ module Novika::Packages
   abstract class IColors
     include Package
 
+    NO_SYSTEM_ECHO_ERROR = "withColorEcho requires 'echo' from package system, " \
+                           "but no instance of package system was found"
+
     def self.id : String
       "colors"
     end
@@ -44,13 +47,9 @@ module Novika::Packages
     end
 
     # Echoes *form* with *fg* foreground color (if any) and
-    # *bg* background color (if any), using *sys*tem's echo
-    # word. One of *fg*, *bg* is guaranteed to be non-nil.
-    abstract def with_color_echo(engine,
-                                 sys : ISystem,
-                                 fg : Color?,
-                                 bg : Color?,
-                                 form : Form)
+    # *bg* background color (if any). One of *fg*, *bg* is
+    # guaranteed to be non-nil.
+    abstract def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
 
     # Injects the colors vocabulary into *target*.
     def inject(into target)
@@ -97,18 +96,18 @@ module Novika::Packages
       ) do |engine|
         form = engine.stack.drop
 
-        unless sys = bundle[Impl::System]?
-          # At least let the user know we tried... At this point
-          # there really isn't anything to do other than die.
-          form.die("nowhere to echo: system package instance not found")
-        end
-
         if enabled? && (fg.last? || bg.last?)
           # If color output is enabled and either foreground
           # or background is set, output with color.
-          with_color_echo(engine, sys, fg.last?, bg.last?, form)
+          with_color_echo(engine, fg.last?, bg.last?, form)
+        elsif system = bundle[ISystem]?
+          # Use system echo as a fallback (colorless) echo.
+          system.echo(engine, form)
         else
-          sys.echo(engine, form)
+          # At least let the user know we tried. At this point
+          # there really isn't anything to do other than die or
+          # silently ignore.
+          form.die(NO_SYSTEM_ECHO_ERROR)
         end
       end
     end
