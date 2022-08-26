@@ -70,7 +70,7 @@ module Novika
 
     # Slices this tape's substrate at cursor, returns the
     # two resulting tape halves.
-    def slice : {Tape, Tape}
+    def slice : {Tape(T), Tape(T)}
       lhs, rhs = substrate.slice_at!(cursor)
 
       {Tape.new(lhs), Tape.new(rhs)}
