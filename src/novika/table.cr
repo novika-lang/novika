@@ -1,7 +1,52 @@
 module Novika
-  # Represents Novika tables, which are form to form (or form
-  # to entry) mappings.
-  alias Table = Hash(Form, Entry)
+  # Novika table protocol. Objects or values that want to be
+  # `Block#table`s can implement this protocol to make that
+  # possible.
+  module ITable
+    # Assigns *name* form to *entry* in this table.
+    abstract def set(name : Form, entry : Entry) : Entry
+
+    # Returns the entry corresponding to *name* form in this
+    # table, or yields with *name* and returns the block result.
+    abstract def get(name : Form, & : Form -> Entry?) : Entry?
+
+    # Imports entries from *donor* table into this table.
+    abstract def import!(donor : Table)
+
+    # Returns whether this table currently stores no entries.
+    abstract def empty? : Bool
+
+    # Lists all name forms stored in this table.
+    abstract def names : Array(Form)
+  end
+
+  # Default table protocol implementation: default block table
+  # implementation. Uses a hash map for storage.
+  struct Table
+    include ITable
+
+    @store = {} of Form => Entry
+
+    def set(name : Form, entry : Entry) : Entry
+      @store[name] = entry
+    end
+
+    def get(name : Form) : Entry?
+      @store.fetch(name) { yield name }
+    end
+
+    def import!(donor : Table)
+      @store.merge!(donor.@store)
+    end
+
+    def empty? : Bool
+      @store.empty?
+    end
+
+    def names : Array(Form)
+      @store.keys
+    end
+  end
 
   # Represents a table entry. Table entries hold the value form.
   class Entry
