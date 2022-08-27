@@ -834,7 +834,7 @@
   >>> [ 1 2 3 ] [ ] minmaxBy
   === 1 3
 
-  >>> [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ charCount ] minmax
+  >>> [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ count ] minmax
   === 'A short string' 'Veeeeeeeeeeery long string'
   """
   dup empty? => [ drop minmax ^ ] $: transformer
@@ -882,7 +882,7 @@
 [ """( Lb T -- Sum ): leaves Sum of List block elements transformed
    into decimals by Transformation block. Similar to `minmaxBy`.
 
-  >>> [ 'a' 'aaa' 'aa' ] [ charCount ] sumBy
+  >>> [ 'a' 'aaa' 'aa' ] [ count ] sumBy
   === 6
   """
   $: transformer

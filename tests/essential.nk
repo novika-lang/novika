@@ -1,3 +1,21 @@
+describe 'count' [
+  it should 'leave 0 for empty block' [
+    [ ] count 0 assert=
+  ]
+
+  it should 'leave 0 for empty quote' [
+    '' count 0 assert=
+  ]
+
+  it should 'count the amount of elements in blocks' [
+    [ 1 2 3 4 ] count 4 assert=
+  ]
+
+  it should 'count the amount of characters (graphemes) in quotes' [
+    'Ⓐs°Ämanчеловек' count 14 assert=
+  ]
+]
+
 describe 'asWord' [
   it should 'noop if already word' [
     #hello asWord #hello assert=
@@ -134,7 +152,7 @@ describe 'sliceQuoteAt' [
     'foobar' -1 sliceQuoteAt
   ]
 
-  it dies 'when slicepoint > quote charCount' [
+  it dies 'when slicepoint > quote count' [
     'foobar' 7 sliceQuoteAt
   ]
 
@@ -142,7 +160,7 @@ describe 'sliceQuoteAt' [
     [ ] [ 'foobar' 0 sliceQuoteAt ] there [ '' 'foobar' ] assert=
   ]
 
-  it should 'handle slicepoint quote charCount = case' [
+  it should 'handle slicepoint quote count = case' [
     [ ] [ 'foobar' 6 sliceQuoteAt ] there [ 'foobar' '' ] assert=
   ]
 

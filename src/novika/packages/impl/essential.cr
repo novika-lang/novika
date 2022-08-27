@@ -290,11 +290,6 @@ module Novika::Packages::Impl
         Decimal.new(rand).push(engine)
       end
 
-      target.at("charCount", "( Q -- N ): leaves N, the amount of characters in Quote") do |engine|
-        quote = engine.stack.drop.assert(engine, Quote)
-        Decimal.new(quote.string.size).push(engine)
-      end
-
       target.at("sliceQuoteAt", <<-END
       ( Q Spt -- Qpre Qpost ): given a Quote, slices it before (Qpre) and
        after and including (Qpost) Slice point.
@@ -311,7 +306,7 @@ module Novika::Packages::Impl
         elsif spti.negative?
           spt.die("cannot sliceQuoteAt negative slicepoint")
         elsif spti > s.size
-          spt.die("cannot sliceQuoteAt slicepoint exceeding quote charCount")
+          spt.die("cannot sliceQuoteAt slicepoint exceeding quote count")
         end
 
         # Handle a bunch of quickies.
@@ -327,10 +322,19 @@ module Novika::Packages::Impl
         end
       end
 
-      target.at("count", "( B -- N ): leaves N, the amount of elements in Block.") do |engine|
-        block = engine.stack.drop.assert(engine, Block)
-        count = Decimal.new(block.count)
-        count.push(engine)
+      target.at("count", <<-END
+      ( B/Q -- N ): leaves N, the amount of elements (characters)
+       in Block (Quote).
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        case form
+        when Block then count = form.count
+        when Quote then count = form.string.size
+        else
+          form.die("can 'count' blocks and quotes only, got: #{form}")
+        end
+        Decimal.new(count).push(engine)
       end
 
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |engine|
