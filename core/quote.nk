@@ -7,9 +7,9 @@
      the language's shaky philosophy of having more-or-less type-
      centric words."
     'toCapitalized expected a quote, got: ' qq enquote stitch die
-  ] 
+  ]
 
-  qq charCount 
+  qq count
     dup 0 = => [ qq ^ ]
     dup 1 = => [ drop qq toUppercase ^ ]
     drop

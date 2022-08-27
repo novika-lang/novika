@@ -1002,13 +1002,13 @@ describe 'minmaxBy' [
   ]
 
   it should 'convert to numeric but leave original types' [
-    [ 'AA' 'A' 'AAAAB' 'BAAAAAAB' 'Y' ] [ charCount ] minmaxBy
+    [ 'AA' 'A' 'AAAAB' 'BAAAAAAB' 'Y' ] [ count ] minmaxBy
 
     stack shallowCopy [ 'A' 'BAAAAAAB' ] assert=
   ]
 
   it should 'support blocks implementing *asDecimal as Transform results' [
-    [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+    [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
 
     [ 'AA' 'A' 'AAAB' 'foo' 'barbeee' ] [ toAwesomeBlock ] minmaxBy
 
@@ -1026,18 +1026,18 @@ describe 'minmaxBy' [
 
 describe 'minBy' [
   it should 'leave min from minmaxBy' [
-    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] minBy 'x' assert=
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ count ] ] minBy 'x' assert=
   ]
 ]
 
 describe 'maxBy' [
   it should 'leave max from minmaxBy' [
-    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ charCount ] ] maxBy 100 assert=
+    [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ count ] ] maxBy 100 assert=
   ]
 ]
 
 describe 'sumBy' [
-  [ $: s [ s charCount ] @: *asDecimal this ] @: toAwesomeBlock
+  [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
 
   it should 'leave zero when list block is empty' [
     [ ] [ ] sumBy 0 assert=
@@ -1059,7 +1059,7 @@ describe 'sumBy' [
   it should 'convert to numeric and leave numeric sum & have proper stack signature' [
     [ ] $: stacks
 
-    [ 'foo' 'bar' 3 4 'x' ] [ stack shallowCopy stacks gulp dup quote? => [ charCount ] ] sumBy
+    [ 'foo' 'bar' 3 4 'x' ] [ stack shallowCopy stacks gulp dup quote? => [ count ] ] sumBy
 
     14 assert=
 
