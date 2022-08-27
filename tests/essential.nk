@@ -11,8 +11,68 @@ describe 'count' [
     [ 1 2 3 4 ] count 4 assert=
   ]
 
+  it should 'count one grapheme' [
+    '👨‍👩‍👧' count 1 assert=
+  ]
+
+  it should 'count one character' [
+    'f' count 1 assert=
+  ]
+
+  it should 'count one unicode character' [
+    'å' count 1 assert=
+  ]
+
+  it should 'count Unicode extended grapheme clusters correctly' [
+    '🍎👨‍👩‍👧' count 2 assert= "apple followed by family"
+  ]
+
   it should 'count the amount of characters (graphemes) in quotes' [
     'Ⓐs°Ämanчеловек' count 14 assert=
+  ]
+]
+
+describe 'fromLeft' [
+  it dies 'when block is empty' [
+    [ ] 0 fromLeft
+  ]
+
+  it dies 'when quote is empty' [
+    '' 0 fromLeft
+  ]
+
+  it dies 'when index is negative for block' [
+    [ 1 2 3 ] -1 fromLeft
+  ]
+
+  it dies 'when index is negative for quote' [
+    'hello world' -1 fromLeft
+  ]
+
+  it should 'leave block element when index is in bounds' [
+    [ 1 2 3 ] 0 fromLeft 1 assert=
+    [ 1 2 3 ] 1 fromLeft 2 assert=
+    [ 1 2 3 ] 2 fromLeft 3 assert=
+  ]
+
+  it should 'leave quote grapheme when index is in bounds' [
+    '👨‍👩‍👧🍎' 0 fromLeft '👨‍👩‍👧' assert= "family followed by apple"
+    '👨‍👩‍👧🍎' 1 fromLeft   '🍎' assert=
+
+    'Ⓐs°Ämanчел' 0 fromLeft 'Ⓐ'
+    'Ⓐs°Ämanчел' 1 fromLeft 's'
+    'Ⓐs°Ämanчел' 2 fromLeft '°'
+    'Ⓐs°Ämanчел' 3 fromLeft 'Ä'
+    'Ⓐs°Ämanчел' 6 fromLeft 'n'
+    'Ⓐs°Ämanчел' 9 fromLeft 'л'
+  ]
+
+  it dies 'when block index is out of bounds' [
+    [ 1 2 3 ] 4 fromLeft
+  ]
+
+  it dies 'when quote index is out of bounds' [
+    'hœllö' 5 fromLeft
   ]
 ]
 
@@ -166,6 +226,19 @@ describe 'sliceQuoteAt' [
 
   it should 'properly slice in bounds' [
     [ ] [ 'foo|bar' 3 sliceQuoteAt ] there [ 'foo' '|bar' ] assert=
+  ]
+
+  it should 'properly slice when Unicode characters present' [
+    [ ] [ 'Ⓐs°Ämanчел' 4 sliceQuoteAt ] there [ 'Ⓐs°Ä' 'manчел' ] assert=
+  ]
+
+  it should 'properly slice single grapheme cluster' [
+    [ ] [ '👨‍👩‍👧' 0 sliceQuoteAt ] there [ '' '👨‍👩‍👧' ] assert=
+    [ ] [ '👨‍👩‍👧' 1 sliceQuoteAt ] there [ '👨‍👩‍👧' '' ] assert=
+  ]
+
+  it should 'properly slice multiple grapheme clusters + characters' [
+    [ ] [ '©oobaz👨‍👩‍👧🍎föobar' 7 sliceQuoteAt ] there [ '©oobaz👨‍👩‍👧' '🍎föobar' ] assert=
   ]
 ]
 
