@@ -53,12 +53,12 @@ module Novika
     # Returns whether this quote is empty.
     abstract def empty? : Bool
 
-    # Slices this quote variant at *index*.
+    # Slices this quote variant at *slicept*.
     #
-    # By invoking this method, `Quote` guarantees that *index*
-    # is in bounds (not at the edges 0 or `count`), and that
+    # By invoking this method, `Quote` guarantees that *slicept*
+    # is in bounds (not at the edges `0` or `count`), and that
     # the receiver quote is at least one character long.
-    protected abstract def slice_at!(index : Int32) : {Quote, Quote}?
+    protected abstract def slice_at!(slicept : Int32) : {Quote, Quote}?
 
     # Stitches (concatenates) this and *other* quote variants,
     # and returns the resulting quote.
@@ -74,31 +74,34 @@ module Novika
         # resulting count.
         StringQuote.new(string + other.string, count: a + b)
       else
-        StringQuote.new(string + other.string)
+        # Maybe there is a faster way, maybe there isn't. Looking
+        # at the implementation of `String#+`, there may be one.
+        StringQuote.new(res = string + other.string, count: res.grapheme_size)
       end
     end
 
-    # Slices this quote into two quotes at *index*. Returns
-    # the two resulting quotes. Dies if *index* is out of bounds.
-    def slice_at(index : Int32) : {Quote, Quote}
-      slice_at?(index) || die("grapheme index is out of bounds: #{index}")
+    # Slices this quote into two quotes at *slicept*. Returns
+    # the two resulting quotes. Dies if *slicept* is out
+    # of bounds.
+    def slice_at(slicept : Int32) : {Quote, Quote}
+      slice_at?(slicept) || die("slicepoint is out of bounds: #{slicept}")
     end
 
-    # Slices this quote into two quotes at *index*. Returns
-    # the two resulting quotes. Returns nil if *index* is out
+    # Slices this quote into two quotes at *slicept*. Returns
+    # the two resulting quotes. Returns nil if *slicept* is out
     # of bounds.
-    def slice_at?(index : Int32) : {Quote, Quote}?
+    def slice_at?(slicept : Int32) : {Quote, Quote}?
       size = count
 
       return if size.zero?
-      return unless index.in?(0..size)
+      return unless slicept.in?(0..size)
 
-      if index.zero?
+      if slicept.zero?
         {StringQuote.new("", count: 0), self}
-      elsif index == size
+      elsif slicept == size
         {self, StringQuote.new("", count: 0)}
       else
-        slice_at!(index)
+        slice_at!(slicept)
       end
     end
 
@@ -123,18 +126,32 @@ module Novika
     def initialize(@string : String, count @cached_count : Int32? = nil)
     end
 
-    protected def slice_at!(index : Int32) : {Quote, Quote}?
-      lhalf = ""
-      rhalf = ""
-      last = index
+    protected def slice_at!(slicept : Int32) : {Quote, Quote}?
+      # We always know the size of the left half: it's `slicept`.
+      lhalf = IO::Memory.new(slicept)
 
-      string.each_grapheme.with_index do |it, idx|
-        lhalf, rhalf = rhalf, lhalf if idx == index
-        rhalf += it.to_s
-        last = idx
+      # If we know the size of the right half, good, but we
+      # may not always know it. In that case, use string bytesize
+      # as a "good enough" heuristic. One (probably single,
+      # actually) benefit it will at all times be > than the
+      # amount of preceived characters, or = in case of an
+      # ASCII-only string.
+      #
+      # Of course sometimes it will use (a lot) more memory
+      # than it needs.
+      rhalf = IO::Memory.new((cached_count? || string.bytesize) - slicept)
+
+      half = lhalf
+      index = 0
+
+      string.each_grapheme do |grapheme|
+        half = rhalf if index == slicept
+        half << grapheme
+        index += 1
       end
 
-      {Quote.new(lhalf, count: index), Quote.new(rhalf, count: last)}
+      {Quote.new(lhalf.to_s, count: slicept),
+       Quote.new(rhalf.to_s, count: index - slicept)}
     end
 
     def at?(index : Int32) : Quote?
@@ -214,7 +231,7 @@ module Novika
     #
     # Anything else is out of bounds. Hence grapheme quotes
     # always return nil.
-    protected def slice_at!(index : Int32) : {Quote, Quote}?
+    protected def slice_at!(slicept : Int32) : {Quote, Quote}?
     end
 
     def to_s(io)
