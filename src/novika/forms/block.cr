@@ -101,10 +101,6 @@ module Novika
     # See the same method in `Tape`.
     delegate :cursor, :each, :count, :at?, to: tape
 
-    # Loose equality: for two blocks to be loosely equal, their
-    # tapes and their tables must be loosely equal.
-    def_equals tape, table
-
     # Removes common indentation from this string. Lines that
     # consist entirely of white space are replaced with a
     # single newline character.
@@ -308,18 +304,61 @@ module Novika
       self
     end
 
+    # Loose equality: for two blocks to be loosely equal, their
+    # tapes and their tables must be loosely equal.
+    #
+    # Supports recursive (reflection) equality, e.g.:
+    #
+    # ```novika
+    # [ ] $: a
+    # a a shove
+    # a 0 fromLeft a = "=> true"
+    # ```
+    def ==(other)
+      return false unless other.is_a?(self)
+      return true if same?(other)
+      return false unless count == other.count
+      result = false
+      executed = exec_recursive(:==) do
+        result = tape == other.tape && table == other.table
+      end
+      executed && result
+    end
+
     # Creates and returns an instance of this block, under the
     # given *parent*.)
-    def instance(parent reparent : Block = self) : Block
+    def instance(parent reparent : Block = self, __tr = nil) : Block
       if leaf?
         return self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
       end
 
-      # If this block isn't a leaf, we need to copy its sub-blocks as
-      # well. Note that `map!` allows to skip quickly (i.e., is actual
-      # noop) when the block returns nil.
-      copy = self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
-      copy.tape = copy.tape.map! { |form| form.instance(copy) if form.is_a?(Block) }
+      # If this block isn't a leaf, we need to copy its sub-blocks
+      # as well. Note that `map!` allows to skip quickly (i.e., is
+      # actual noop) when the block returns nil.
+      #
+      # We need to create a translation map which will replace
+      # any reflections of this block with *copy*. E.g.,
+      #
+      #   >>> [ ] $: a
+      #   >>> a a <<
+      #   === [ [a reflection] ]
+      #   >>> new
+      #
+      # ... should create a *copy* of `a`, then go thru its
+      # child blocks depth first (`__tr` boards `instance`
+      # to do that) and replace all reflections with the copy.
+      #
+      # Therefore, the fact that they are reflections of the
+      # parent is maintained.
+      #
+      # Note that we guarantee that key Blocks do not mutate,
+      # for we are in full control for the time `__tr` exists.
+      __tr ||= {} of Block => Block
+      __tr[self] = copy = self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
+      copy.tape = copy.tape.map! do |form|
+        next unless form.is_a?(Block)
+        __tr[form]? || form.instance(copy, __tr: __tr)
+      end
       copy.leaf = false
       copy
     end

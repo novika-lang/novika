@@ -1,0 +1,33 @@
+describe 'Handle infinite block instantiation #22' [
+  "Note: needs more tests, this is a particularly nasty one."
+
+  it should 'instantiate block with reflections' [
+    [ ] $: a
+    a a <<
+    a new >> same?
+  ]
+
+  it should 'instantiate block with deep reflections' [
+    [ ] $: x
+    [ [ [ [ [ x ] ] ] ] ] here $: y
+    x y shove
+    x new
+  ]
+
+  it should 'instantiate stack' [
+    conts 0 fromRight dup new
+  ]
+
+  it should 'compare reflections' [
+    [ ] $: a
+    a a enclose <<
+    a 0 fromLeft a = not
+  ]
+
+  it should 'compare deep reflections' [
+    [ ] $: x
+    [ [ [ [ [ [ [ x ] ] ] ] ] ] ] here $: y
+    x y enclose shove
+    y y = x 0 fromLeft y = not assert=
+  ]
+]
