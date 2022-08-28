@@ -1,3 +1,68 @@
+describe 'quote?' [
+  it should 'leave false for block' [ [ ] quote? not ]
+  it should 'leave false for true' [ true quote? not ]
+  it should 'leave false for false' [ false quote? not ]
+  it should 'leave false for decimal' [ 1234 quote? not ]
+  it should 'leave false for word' [ #foobar quote? not ]
+  it should 'leave false for quoted word' [ ##foobar quote? not ]
+  it should 'leave true for quote' [ 'hello world' quote? ]
+  it should 'leave false for block implementing *asQuote' [
+    [   'foo'   $: *asQuote this ] $: x
+    [ [ 'foo' ] @: *asQuote this ] $: y
+    x quote? false assert=
+    y quote? false assert=
+  ]
+]
+
+describe 'enquote' [
+  "TODO: enquote block. It needs a pretty large set of tests
+   for itself."
+  it should 'enquote boolean true' [ true enquote 'true' assert= ]
+  it should 'enquote boolean false' [ false enquote 'false' assert= ]
+  it should 'enquote builtin' [ #+ here enquote '[native code]' assert= ]
+  it should 'enquote decimal' [ 100 enquote '100' assert= ]
+  it should 'enquote -decimal' [ -100 enquote '-100' assert= ]
+  it should 'enquote +decimal' [ +100 enquote '100' assert= ]
+  it should 'enquote quote' [ 'hello world' enquote 'hello world' assert= ]
+  it should 'enquote word' [ #hello enquote 'hello' assert= ]
+  it should 'enquote quoted word' [ ##hello enquote '#hello' assert= ]
+]
+
+describe 'stitch' [
+  it should 'stitch two empty quotes' [
+    '' '' stitch '' assert=
+  ]
+
+  it should 'stitch char + empty quotes' [
+    'f' '' stitch 'f' assert=
+  ]
+
+  it should 'stitch char/multichar + empty quotes' [
+    '' 'f' stitch 'f' assert=
+    'f' '' stitch 'f' assert=
+    'hello' '' stitch 'hello' assert=
+    '' 'hello' stitch 'hello' assert=
+  ]
+
+  it should 'stitch single character quotes' [
+    'x' 'y' stitch 'xy' assert=
+    'ä' '🤖' stitch 'ä🤖' assert=
+    '👽' '😡' stitch '👽😡' assert=
+  ]
+
+  it should 'stitch single-char + multi-char quote' [
+    'x' 'yzzy' stitch 'xyzzy' assert=
+    'xyzz' 'y' stitch 'xyzzy' assert=
+    '😡' '😈ああax💩🤡' stitch '😡😈ああax💩🤡' assert=
+    '😡😈ああax💩' '🤡' stitch '😡😈ああax💩🤡' assert=
+  ]
+
+  it should 'stitch multi-char + multi-char quote' [
+    'xy' 'zzy' stitch 'xyzzy' assert=
+    '😈ああax💩' '👽😡fubar' stitch '😈ああax💩👽😡fubar' assert=
+  ]
+]
+
 describe 'count' [
   it should 'leave 0 for empty block' [
     [ ] count 0 assert=
@@ -25,6 +90,7 @@ describe 'count' [
 
   it should 'count Unicode extended grapheme clusters correctly' [
     '🍎👨‍👩‍👧' count 2 assert= "apple followed by family"
+    '😡😈ああax💩🤡' count 8 assert=
   ]
 
   it should 'count the amount of characters (graphemes) in quotes' [
@@ -59,12 +125,12 @@ describe 'fromLeft' [
     '👨‍👩‍👧🍎' 0 fromLeft '👨‍👩‍👧' assert= "family followed by apple"
     '👨‍👩‍👧🍎' 1 fromLeft   '🍎' assert=
 
-    'Ⓐs°Ämanчел' 0 fromLeft 'Ⓐ'
-    'Ⓐs°Ämanчел' 1 fromLeft 's'
-    'Ⓐs°Ämanчел' 2 fromLeft '°'
-    'Ⓐs°Ämanчел' 3 fromLeft 'Ä'
-    'Ⓐs°Ämanчел' 6 fromLeft 'n'
-    'Ⓐs°Ämanчел' 9 fromLeft 'л'
+    'Ⓐs°Ämanчел' 0 fromLeft 'Ⓐ' assert=
+    'Ⓐs°Ämanчел' 1 fromLeft 's' assert=
+    'Ⓐs°Ämanчел' 2 fromLeft '°' assert=
+    'Ⓐs°Ämanчел' 3 fromLeft 'Ä' assert=
+    'Ⓐs°Ämanчел' 6 fromLeft 'n' assert=
+    'Ⓐs°Ämanчел' 9 fromLeft 'л' assert=
   ]
 
   it dies 'when block index is out of bounds' [
@@ -87,6 +153,10 @@ describe 'asWord' [
 
   it should 'peel off all quoting' [
     ########hello asWord #hello assert=
+  ]
+
+  it should 'convert when quote has grapheme clusters' [
+    'x👻👺🤖' asWord #x👻👺🤖 assert=
   ]
 
   it dies 'when quote is empty' [
