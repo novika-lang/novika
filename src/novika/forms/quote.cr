@@ -17,12 +17,12 @@ module Novika
     #
     # *count* can be provided if the amount of graphemes in
     # *string* is known.
-    def self.new(string : String, count = string.grapheme_size)
+    def self.new(string : String, count = string.grapheme_size, ascii = string.ascii_only?)
       if count == 1
         string.each_grapheme { |it| return GraphemeQuote.new(it) }
       end
 
-      StringQuote.new(string, count)
+      StringQuote.new(string, count, ascii)
     end
 
     def desc(io : IO)
@@ -97,9 +97,9 @@ module Novika
       return unless slicept.in?(0..size)
 
       if slicept.zero?
-        {StringQuote.new("", count: 0), self}
+        {StringQuote.new("", count: 0, ascii_only: true), self}
       elsif slicept == size
-        {self, StringQuote.new("", count: 0)}
+        {self, StringQuote.new("", count: 0, ascii_only: true)}
       else
         slice_at!(slicept)
       end
@@ -119,14 +119,31 @@ module Novika
   struct Quote::StringQuote
     include Quote
 
+    # Returns the underlying string.
     getter string : String
+
+    # Returns the cached perceived character count in this
+    # string quote, or nil.
     getter? cached_count : Int32?
 
+    # Returns whether this string quote consists of ASCII
+    # characters only.
+    getter? ascii_only : Bool
+
     # Creates a string quote from the given *string*.
-    def initialize(@string : String, count @cached_count : Int32? = nil)
+    def initialize(@string : String, count @cached_count : Int32? = nil, @ascii_only = string.ascii_only?)
+      @cached_count = @string.bytesize if ascii_only?
     end
 
     protected def slice_at!(slicept : Int32) : {Quote, Quote}?
+      return {
+        # Fast path. Also, this string is ASCII only, then its
+        # substrings are also ascii-only. This way, we avoid
+        # a (possibly) O(N) String#ascii_only? call.
+        Quote.new(string[...slicept], count: slicept, ascii: true),
+        Quote.new(string[slicept..], count: count - slicept, ascii: true),
+      } if ascii_only?
+
       # We always know the size of the left half: it's `slicept`.
       lhalf = IO::Memory.new(slicept)
 
@@ -156,9 +173,25 @@ module Novika
 
     def at?(index : Int32) : Quote?
       return if index.negative?
+
+      if ascii_only?
+        return unless byte = string.byte_at?(index)
+        char = byte < 0x80 ? byte.unsafe_chr : Char::REPLACEMENT
+        return GraphemeQuote.new String::Grapheme.new(char)
+      end
+
       string.each_grapheme.with_index do |it, idx|
         return GraphemeQuote.new(it) if idx == index
       end
+    end
+
+    def stitch(other : StringQuote)
+      return super unless ascii_only? && other.ascii_only?
+
+      StringQuote.new(res = string + other.string,
+        count: res.bytesize,
+        ascii_only: true
+      )
     end
 
     def count : Int32
