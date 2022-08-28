@@ -3,31 +3,61 @@
 
 describe 'Decimal parsing' [
   it should 'parse simple decimals' [
-    1 12 123 1234567812345678
+    1 12 123 1234567812345678 12_34_56 1_000_000 000_000_001 5__000
   ]
 
+  it dies 'given "_" in simple decimal' [ _ ] "definition not found"
+  it dies 'when leading underscore in simple decimal' [ _100 ] "definition not found"
+  it dies 'when trailing underscore in simple decimal' [ 100_ ] "definition not found"
+
   it should 'parse negative decimals' [
-    -123 -1 -0 -1234567812345678
+    -123 -1 -0 -1234567812345678 -1_000_000 -123_456 -100_5 -5__000
   ]
+
+  it dies 'given "_" in negative decimal' [ -_ ] "definition not found"
+  it dies 'when leading underscore in negative decimal' [ -_100 ] "definition not found"
+  it dies 'when trailing underscore in negative decimal' [ -100_ ] "definition not found"
 
   it should 'parse explicit positive decimals' [
     +123 +1 +0 +1234567812345678
   ]
 
+  it dies 'given "_" in positive decimal' [ +_ ] "definition not found"
+  it dies 'when leading underscore in positive decimal' [ +_100 ] "definition not found"
+  it dies 'when trailing underscore in positive decimal' [ +100_ ] "definition not found"
+
   it should 'parse floats' [
-    "TODO"
-    false
+    1.0 1.0000000 1.000001 1.01234 1.12_345 100.1 10_0.0 0.0 0.000 0000.0_000
   ]
+
+  it dies 'when nothing before "."' [ .100 ] "no top for block (for '.')"
+  it dies 'when nothing after "."' [ 100. ] "cursor index out of bounds"
+  it dies 'when underscore before "."' [ _.100 ] "definition not found: '_'"
+  it dies 'when underscore after "."' [ 100._ ] "bad type: a decimal number, expected: a block"
+  it dies 'when trailing underscore before "."' [ 100_.3 ] "definition not found"
+  it dies 'when leading underscore after "."' [ 100._3 ] "bad type: a decimal number, expected: a block"
 
   it should 'parse negative floats' [
-    "TODO"
-    false
+    -1.0 -1.0000000 -1.000001 -1.0_1234 -1.12345 -10_0.1 -100.0 -0.0 -0.000 -0000.000_0
   ]
 
+  it dies 'when nothing before "." negative' [ -.100 ]
+  it dies 'when nothing after "." negative' [ -100. ]
+  it dies 'when underscore before "." negative' [ -_.100 ]
+  it dies 'when underscore after "." negative' [ -100._ ]
+  it dies 'when trailing underscore before "." negative' [ -100_.3 ]
+  it dies 'when leading underscore after "." negative' [ -100._3 ]
+
   it should 'parse explicit positive floats' [
-    "TODO"
-    false
+    +1.0 +1.0000_000 +1.000001 +1.01234 +1.12345 +1__0_0.1 +100.0 +0.0 +0.000 +0000.0000
   ]
+
+  it dies 'when nothing before "." positive' [ +.100 ]
+  it dies 'when nothing after "." positive' [ +100. ]
+  it dies 'when underscore before "." positive' [ +_.100 ]
+  it dies 'when underscore after "." positive' [ +100._ ]
+  it dies 'when trailing underscore before "." positive' [ +100_.3 ]
+  it dies 'when leading underscore after "." positive' [ +100._3 ]
 ]
 
 describe 'Package math: inter-domain decimal math' [
@@ -116,17 +146,17 @@ describe 'Package math: cross-domain decimal math' [
 ]
 
 describe 'Package math: floating point (precise) math' [
-  it should 'pass 0.1 + 0.2 assert= 0.3 test' [
-    1 10 / 2 10 / +
-    3 10 / assert=
+  it should 'pass 0.1 + 0.2 = 0.3 test' [
+    0.1 0.2 + 0.3 assert=
   ]
 
   it should 'compute modulo with fp divisor' [
-    5 25 10 / rem 0 assert=
+    "TODO: RAISES FOR SOME REASON 5 0.25 rem 0 assert="
+    false
   ]
 
   it should 'compute modulo with fp divident' [
-    25 10 / 5 rem 1 2 / assert=
+    0.25 5 rem 0.5 assert=
   ]
 ]
 

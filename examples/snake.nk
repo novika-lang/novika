@@ -65,10 +65,10 @@ needsPackage: console
   #nil @: gameOver "Will store the block that breaks the main loop."
 
   "Head direction vector:"
-  1 0 tvec2 $: dir
+  +1 0 tvec2 $: dir
 
   [ "( V -- ): sets the head direction vector to Vector."
-    dup dir . opp?
+    dup dir.opp?
       [ "Opposite direction. Ignore!" drop ]
       [ "Not opposite direction. Set!" =: dir ]
     br
@@ -99,7 +99,7 @@ needsPackage: console
   ] @: forTail
 
   [ "( -- D ): checks whether the snake is Dead."
-    body # [ head . equal? ] 1 >
+    body # [ head.equal? ] 1 >
   ] @: dead?
 
   [ "( -- ): grows the snake by one"
@@ -109,14 +109,14 @@ needsPackage: console
 
   [ "Does one tick of the game. The caterpillar-like movement
      happens here."
-    head dir . addWithScreenWrap $: head
+    head dir.addWithScreenWrap $: head
     [ head swap =: head ] forSnake
   ] @: tick
 
   [ "Renders the game:"
-    "|   Head:"   'O' head  . put
-    "|   Tail:" [ 'o' over  . put ] forTail
-    "|  Apple:"   '@' apple . put
+    "|   Head:"   'O'  head.put
+    "|   Tail:" [ 'o'  over.put ] forTail
+    "|  Apple:"   '@' apple.put
   ] @: render
 
   [ "( K -- ): handles a Key press."
@@ -124,9 +124,9 @@ needsPackage: console
      writing a 'switch' statement:"
     dup 'CTRL_C'      = => [ drop gameOver ]
     dup 'ARROW_UP'    = => [ drop  0 -1 tvec2 setDir ^ ]
-    dup 'ARROW_DOWN'  = => [ drop  0  1 tvec2 setDir ^ ]
+    dup 'ARROW_DOWN'  = => [ drop  0 +1 tvec2 setDir ^ ]
     dup 'ARROW_LEFT'  = => [ drop -1  0 tvec2 setDir ^ ]
-    dup 'ARROW_RIGHT' = => [ drop  1  0 tvec2 setDir ^ ]
+    dup 'ARROW_RIGHT' = => [ drop +1  0 tvec2 setDir ^ ]
     drop
   ] @: handleKey
 
@@ -153,7 +153,7 @@ needsPackage: console
        very hard to explain :)"
       dead? => [ break ]
 
-      apple head . equal? =>
+      apple head.equal? =>
         "Head is over the apple! Grow and randomize apple
          position again. Note that it will be the same apple,
          the only thing that will change is its position."
@@ -186,7 +186,7 @@ needsPackage: console
   this
 ] @: game
 
-game . play
+game.play
 
 'Bye!' echo
 

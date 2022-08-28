@@ -1,14 +1,14 @@
 module Novika
   # The regex that splits Novika source code into morphemes.
   MORPHEMES = /
-    (?<num>     [-+]?\d+) (?:\s+|$)
-  | (?<bb>            \[) (?:\s+|$)
-  | (?<be>            \]) (?:\s+|$)
-  | (?<qword> \#[^"'\s]+)
-  | (?<word>    [^"'\s]+)
-  |'(?<quote>      [^']*)'
-  |"(?<comment>    [^"]*)"
-  |\s+
+      (?<num> [-+]?\d(?:[\d_]*\d)?(?:\.\d(?:[\d_]*\d)?)?) (?=\.|\s+|$)
+    | (?<bb> \[)
+    | (?<be> \])
+    | (?<qword> \#[^"'\s\[\]]+)
+    | (?<word> [^"'\s\.\[\]]+|\.)
+    |'(?<quote> (?:[^'\\]|\\[ntrv'])*)'
+    |"(?<comment> (?:[^"\\]|\\")*)"
+    |\s+
   /x
 
   # Blocks are very fundamental to Novika.
@@ -154,6 +154,7 @@ module Novika
           block.add QuotedWord.new(match.lchop)
         elsif match = $~["quote"]?
           match = match
+            .gsub("\\'", '\'')
             .gsub("\\n", '\n')
             .gsub("\\t", '\t')
             .gsub("\\r", '\r')
@@ -161,7 +162,10 @@ module Novika
 
           block.add Quote.new(match)
         elsif match = $~["comment"]?
-          block.describe_with?(dedent match) if block.count.zero?
+          if block.count.zero?
+            match = match.gsub("\\\"", '"')
+            block.describe_with?(dedent match)
+          end
         elsif $~["bb"]?
           block = self.class.new(block)
         elsif $~["be"]?
