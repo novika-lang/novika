@@ -2,13 +2,19 @@ module Novika
   # Includers are Novika quotes, which are known as strings
   # in most other programming languages.
   #
-  # Currently quotes are completely unoptimizied, other than
-  # treating single `String::Grapheme`s separately from strings
-  # of those, and caching grapheme counts here and there. But
-  # when you are slow, being even more slower doesn't matter
+  # Quotes are optimized for the ASCII-only case. Also, they
+  # treat single `String::Grapheme`s separately from strings
+  # of those, and cache grapheme counts here and there.
+  #
+  # The slowest operations on quotes are `slice_at` and `at`
+  # over *non- ASCII* quotes. Both are currently O(N) in terms
+  # of iterations only; they do a lot of other work besides
+  # iteration as well.
+  #
+  # When you are slow, being even more slower doesn't matter
   # that much anymore. This is the case with Novika.
   #
-  # And yes, quotes do rely on an experimental API.
+  # And yes, quotes do rely on the experimental grapheme API.
   module Quote
     include Form
     extend HasDesc
@@ -55,10 +61,12 @@ module Novika
 
     # Slices this quote variant at *slicept*.
     #
+    # *size* is the `count` of this quote.
+    #
     # By invoking this method, `Quote` guarantees that *slicept*
     # is in bounds (not at the edges `0` or `count`), and that
     # the receiver quote is at least one character long.
-    protected abstract def slice_at!(slicept : Int32) : {Quote, Quote}?
+    protected abstract def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
 
     # Stitches (concatenates) this and *other* quote variants,
     # and returns the resulting quote.
@@ -101,7 +109,7 @@ module Novika
       elsif slicept == size
         {self, StringQuote.new("", count: 0, ascii_only: true)}
       else
-        slice_at!(slicept)
+        slice_at!(slicept, size)
       end
     end
 
@@ -135,40 +143,42 @@ module Novika
       @cached_count = @string.bytesize if ascii_only?
     end
 
-    protected def slice_at!(slicept : Int32) : {Quote, Quote}?
+    protected def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
       return {
         # Fast path. Also, this string is ASCII only, then its
-        # substrings are also ascii-only. This way, we avoid
+        # substrings are also ASCII-only. This way, we avoid
         # a (possibly) O(N) String#ascii_only? call.
         Quote.new(string[...slicept], count: slicept, ascii: true),
-        Quote.new(string[slicept..], count: count - slicept, ascii: true),
+        Quote.new(string[slicept..], count: size - slicept, ascii: true),
       } if ascii_only?
 
-      # We always know the size of the left half: it's `slicept`.
-      lhalf = IO::Memory.new(slicept)
+      lhs = uninitialized String
+      rhs = uninitialized String
+      lhs_ascii_only = true
+      rhs_ascii_only = true
 
-      # If we know the size of the right half, good, but we
-      # may not always know it. In that case, use string bytesize
-      # as a "good enough" heuristic. One (probably single,
-      # actually) benefit it will at all times be > than the
-      # amount of preceived characters, or = in case of an
-      # ASCII-only string.
-      #
-      # Of course sometimes it will use (a lot) more memory
-      # than it needs.
-      rhalf = IO::Memory.new((cached_count? || string.bytesize) - slicept)
-
-      half = lhalf
-      index = 0
-
-      string.each_grapheme do |grapheme|
-        half = rhalf if index == slicept
-        half << grapheme
-        index += 1
+      # Note: we speculate that left half is *slicept*, and
+      # right half is *size* - *slicept* bytes long. It may
+      # not be if it has grapheme clusters.
+      lhs = String.build(slicept) do |lhalf|
+        half = lhalf
+        rhs = String.build(size - slicept) do |rhalf|
+          index = 0
+          string.each_grapheme do |grapheme|
+            half = rhalf if index == slicept
+            half << grapheme
+            if lhs_ascii_only && index < slicept
+              lhs_ascii_only = !!grapheme.@cluster.as?(Char).try(&.ascii?)
+            elsif rhs_ascii_only
+              rhs_ascii_only = !!grapheme.@cluster.as?(Char).try(&.ascii?)
+            end
+            index += 1
+          end
+        end
       end
 
-      {Quote.new(lhalf.to_s, count: slicept),
-       Quote.new(rhalf.to_s, count: index - slicept)}
+      {Quote.new(lhs, count: slicept, ascii: lhs_ascii_only),
+       Quote.new(rhs, count: size - slicept, ascii: rhs_ascii_only)}
     end
 
     def at?(index : Int32) : Quote?
@@ -264,7 +274,7 @@ module Novika
     #
     # Anything else is out of bounds. Hence grapheme quotes
     # always return nil.
-    protected def slice_at!(slicept : Int32) : {Quote, Quote}?
+    protected def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
     end
 
     def to_s(io)
