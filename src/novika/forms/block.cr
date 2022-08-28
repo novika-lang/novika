@@ -20,9 +20,6 @@ module Novika
   # In this sense, blocks have *roles*. But any block can be
   # any role, and change its role as often and whenever it
   # wants or needs to.
-  #
-  # Blocks can be subscribed to for tracking changes at runtime,
-  # or diffed and/or patched analytically, etc.
   class Block
     include Form
     extend HasDesc
@@ -57,13 +54,10 @@ module Novika
     # Returns the tape of this block.
     getter tape = Tape(Form).new
 
+    protected setter tape : Tape(Form)
+
     # Returns the table of this block.
     getter table : ITable = Table.new
-
-    # :nodoc:
-    #
-    # Returns the audience (listeners) for this block.
-    getter audience : Array(self ->) { [] of self -> }
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -92,41 +86,10 @@ module Novika
       io << "a block"
     end
 
-    # Notifies the audience, if any.
-    private def notify : self
-      tap { audience.each &.call(self) if @audience }
-    end
-
-    # Notifies the audience (if any) after the block.
-    private def notify : self
-      yield self
-
-      notify
-    end
-
-    # Updates the tape and notifies the audience.
-    #
-    # Note: Tape object itself is immutable. When this block
-    # changes, it replaces its tape with a new one. This is
-    # why this method works as it should.
-    protected def tape=(@tape)
-      notify
-    end
-
     # Returns this block's comment, or nil if the comment was
     # not defined or is empty.
     protected def comment? : String?
       comment unless comment.try &.empty?
-    end
-
-    # Subscribes to changes in this block.
-    def track(listener : self ->) : self
-      tap { audience << listener }
-    end
-
-    # :ditto:
-    def track(&listener : self ->) : self
-      track(listener)
     end
 
     # Sets the block comment of this block to *comment*
@@ -225,7 +188,7 @@ module Novika
     # Imports entries from *donor* to this block's table by
     # mutating this block's table.
     def import!(from donor : Block) : self
-      notify { table.import!(donor.table) }
+      tap { table.import!(donor.table) }
     end
 
     # See `Tape#next?`.
@@ -264,14 +227,12 @@ module Novika
 
     # Binds *name* to *entry* in this block's table.
     def at(name : Form, entry : Entry) : self
-      notify { table.set(name, entry) }
+      tap { table.set(name, entry) }
     end
 
-    # Tracks *name* for rehashing, binds *name* to *entry*.
+    # Dies: mutable keys disallowed.
     def at(name : Block, entry) : self
-      name.track { table.rehash }
-
-      notify { table.set(name, entry) }
+      die("mutable keys are disallowed, and block is mutable")
     end
 
     # Binds *name* to *form* in this block's table.
