@@ -238,10 +238,20 @@ module Novika::Packages::Impl
         block.attach(other)
       end
 
-      target.at("fromLeft", "( B I -- E ): leaves Index-th Element in Block from the left.") do |engine|
+      target.at("fromLeft", <<-END
+      ( B/Q I -- E/G ): leaves Index-th Element (Grapheme) in
+       Block (Quote) from the left.
+      END
+      ) do |engine|
         index = engine.stack.drop.assert(engine, Decimal)
-        block = engine.stack.drop.assert(engine, Block)
-        block.at(index.to_i).push(engine)
+        form = engine.stack.drop
+
+        case form
+        when Block, Quote
+          form.at(index.to_i).push(engine)
+        else
+          form.die("'fromLeft' expects block or quote, got: #{form}")
+        end
       end
 
       target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |engine|
@@ -296,45 +306,24 @@ module Novika::Packages::Impl
       END
       ) do |engine|
         spt = engine.stack.drop.assert(engine, Decimal)
-        spti = spt.to_i
-
         quote = engine.stack.drop.assert(engine, Quote)
-        s = quote.string
-
-        if s.size.zero?
-          spt.die("quote is empty, cannot sliceQuoteAt")
-        elsif spti.negative?
-          spt.die("cannot sliceQuoteAt negative slicepoint")
-        elsif spti > s.size
-          spt.die("cannot sliceQuoteAt slicepoint exceeding quote count")
-        end
-
-        # Handle a bunch of quickies.
-        if spti.zero?
-          Quote.new("").push(engine)
-          quote.push(engine)
-        elsif spti == s.size
-          quote.push(engine)
-          Quote.new("").push(engine)
-        else
-          Quote.new(quote.string[...spti]).push(engine)
-          Quote.new(quote.string[spti..]).push(engine)
-        end
+        qpre, qpost = quote.slice_at(spt.to_i)
+        qpre.push(engine)
+        qpost.push(engine)
       end
 
       target.at("count", <<-END
-      ( B/Q -- N ): leaves N, the amount of elements (characters)
+      ( B/Q -- N ): leaves N, the amount of elements (graphemes)
        in Block (Quote).
       END
       ) do |engine|
         form = engine.stack.drop
         case form
-        when Block then count = form.count
-        when Quote then count = form.string.size
+        when Block, Quote
+          Decimal.new(form.count).push(engine)
         else
           form.die("can 'count' blocks and quotes only, got: #{form}")
         end
-        Decimal.new(count).push(engine)
       end
 
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |engine|
@@ -396,7 +385,7 @@ module Novika::Packages::Impl
       target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |engine|
         b = engine.stack.drop.assert(engine, Quote)
         a = engine.stack.drop.assert(engine, Quote)
-        engine.stack.add(a + b)
+        engine.stack.add a.stitch(b)
       end
 
       target.at("ls", "( B -- Nb ): gathers all table entry names into Name block.") do |engine|

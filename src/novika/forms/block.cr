@@ -194,7 +194,13 @@ module Novika
         elsif match = $~["qword"]?
           block.add QuotedWord.new(match.lchop)
         elsif match = $~["quote"]?
-          block.add Quote.new(match, peel: true)
+          match = match
+            .gsub("\\n", '\n')
+            .gsub("\\t", '\t')
+            .gsub("\\r", '\r')
+            .gsub("\\v", '\v')
+
+          block.add Quote.new(match)
         elsif match = $~["comment"]?
           block.describe_with?(dedent match) if block.count.zero?
         elsif $~["bb"]?
