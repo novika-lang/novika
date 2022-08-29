@@ -1,3 +1,124 @@
+describe 'asDecimal' [
+  it dies 'when given quote' [ 'foo' asDecimal ]
+  it dies 'when given word' [ #foo asDecimal ]
+  it dies 'when given quoted word' [ ##foo asDecimal ]
+  it dies 'when given boolean' [ true asDecimal ]
+  it dies 'when given block' [ [] asDecimal ]
+  it should 'leave decimal when given decimal' [
+    100 dup asDecimal assert=
+  ]
+
+  [ $: x x $: *asDecimal this ] @: a
+
+  it dies 'when given quote in *asDecimal' [ 'foo' a asDecimal ]
+  it dies 'when given word in *asDecimal' [ #foo a asDecimal ]
+  it dies 'when given quoted word in *asDecimal' [ ##foo a asDecimal ]
+  it dies 'when given boolean in *asDecimal' [ true a asDecimal ]
+  it dies 'when given block in *asDecimal' [ [] a asDecimal ]
+  it should 'leave instance when given decimal in *asDecimal' [
+    100 a dup asDecimal same?
+  ]
+]
+
+describe 'asQuote' [
+  it dies 'when given decimal' [ 100 asQuote ]
+  it dies 'when given word' [ #foo asQuote ]
+  it dies 'when given quoted word' [ ##foo asQuote ]
+  it dies 'when given boolean' [ true asQuote ]
+  it dies 'when given block' [ [] asQuote ]
+  it should 'leave quote when given quote' [
+    'foo' dup asQuote assert=
+  ]
+
+  [ $: x x $: *asQuote this ] @: a
+
+  it dies 'when given decimal in *asQuote' [ 100 a asQuote ]
+  it dies 'when given word in *asQuote' [ #foo a asQuote ]
+  it dies 'when given quoted word in *asQuote' [ ##foo a asQuote ]
+  it dies 'when given boolean in *asQuote' [ true a asQuote ]
+  it dies 'when given block in *asQuote' [ [] a asQuote ]
+  it should 'leave instance when given quote in *asQuote' [
+    'foo' a dup asQuote same?
+  ]
+]
+
+describe 'asWord' [
+  it dies 'when given decimal' [ 100 asWord ]
+  it dies 'when given quote' [ 'foo' asWord ]
+  it dies 'when given quoted word' [ ##foo asWord ]
+  it dies 'when given boolean' [ true asWord ]
+  it dies 'when given block' [ [] asWord ]
+  it should 'leave word when given word' [
+    #foo dup asWord assert=
+  ]
+
+  [ $: x x $: *asWord this ] @: a
+
+  it dies 'when given decimal in *asWord' [ 100 a asWord ]
+  it dies 'when given quote in *asWord' [ 'foo' a asWord ]
+  it dies 'when given quoted word in *asWord' [ ##foo a asWord ]
+  it dies 'when given boolean in *asWord' [ true a asWord ]
+  it dies 'when given block in *asWord' [ [] a asWord ]
+  it should 'leave instance when given word in *asWord' [
+    #foo a dup asWord same?
+  ]
+]
+
+describe 'asQuotedWord' [
+  it dies 'when given decimal' [ 100 asQuotedWord ]
+  it dies 'when given quote' [ 'foo' asQuotedWord ]
+  it dies 'when given word' [ #foo asQuotedWord ]
+  it dies 'when given boolean' [ true asQuotedWord ]
+  it dies 'when given block' [ [] asQuotedWord ]
+  it should 'leave quoted word when given quoted word' [
+    ##foo dup asQuotedWord assert=
+  ]
+
+  [ $: x x $: *asQuotedWord this ] @: a
+
+  it dies 'when given decimal in *asQuotedWord' [ 100 a asQuotedWord ]
+  it dies 'when given quote in *asQuotedWord' [ 'foo' a asQuotedWord ]
+  it dies 'when given word in *asQuotedWord' [ #foo a asQuotedWord ]
+  it dies 'when given boolean in *asQuotedWord' [ true a asQuotedWord ]
+  it dies 'when given block in *asQuotedWord' [ [] a asQuotedWord ]
+  it should 'leave instance when given quoted word in *asQuotedWord' [
+    ##foo a dup asQuotedWord same?
+  ]
+]
+
+describe 'asBoolean' [
+  it dies 'when given decimal' [ 100 asBoolean ]
+  it dies 'when given quote' [ 'foo' asBoolean ]
+  it dies 'when given word' [ #foo asBoolean ]
+  it dies 'when given quoted word' [ ##foo asBoolean ]
+  it dies 'when given block' [ [] asBoolean ]
+  it should 'leave boolean when given boolean' [
+    true dup asBoolean assert=
+  ]
+
+  [ $: x x $: *asBoolean this ] @: a
+
+  it dies 'when given decimal in *asBoolean' [ 100 a asBoolean ]
+  it dies 'when given quote in *asBoolean' [ 'foo' a asBoolean ]
+  it dies 'when given word in *asBoolean' [ #foo a asBoolean ]
+  it dies 'when given quoted word in *asBoolean' [ ##foo a asBoolean ]
+  it dies 'when given block in *asBoolean' [ [] a asBoolean ]
+  it should 'leave instance when given boolean in *asBoolean' [
+    true a dup asBoolean same?
+  ]
+]
+
+describe 'asBlock' [
+  it dies 'when given decimal' [ 100 asBlock ]
+  it dies 'when given quote' [ 'foo' asBlock ]
+  it dies 'when given word' [ #foo asBlock ]
+  it dies 'when given quoted word' [ ##foo asBlock ]
+  it dies 'when given boolean' [ true asBlock ]
+  it should 'leave same block when given block' [
+    [] dup asBlock same?
+  ]
+]
+
 describe 'quote?' [
   it should 'leave false for block' [ [ ] quote? not ]
   it should 'leave false for true' [ true quote? not ]
