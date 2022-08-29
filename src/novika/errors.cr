@@ -55,7 +55,7 @@ module Novika
 
       unless b.zero?
         io.puts "  │"
-        io << "  │ … " << b << " continuation(s) omitted …"
+        io << "  │ … " << b - 1 << " continuation(s) omitted …"
         io.puts
       end
 
