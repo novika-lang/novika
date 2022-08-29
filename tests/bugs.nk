@@ -31,3 +31,33 @@ describe 'Handle infinite block instantiation #22' [
     y y = x 0 fromLeft y = not assert=
   ]
 ]
+
+describe 'Conversion words should not be inherited #25' [
+  [
+    [ ] $: x
+
+    'hello' $: *asQuote
+    [ 100 1 + ] @: *asDecimal
+    false $: *asBoolean
+    [ ##fubar ] @: *asQuotedWord
+    [ [ #baz $: *asWord this ] open ] @: *asWord
+
+    this
+  ] @: b
+
+  it dies 'because child doesn\'t inherit *asQuote' [ b.x asQuote ]
+  it dies 'because child doesn\'t inherit *asDecimal' [ b.x asDecimal ]
+  it dies 'because child doesn\'t inherit *asBoolean' [ b.x asBoolean ]
+  it dies 'because child doesn\'t inherit *asQuotedWord' [ b.x asQuotedWord ]
+  it dies 'because child doesn\'t inherit *asWord' [ b.x asWord ]
+
+  [ [ ] $: x 'hello' $: *asQuote this ] @: issueEg1
+  [ [ ] $: x [ 100 1 + ] @: *asDecimal this ] @: issueEg2
+
+  it should 'pass issue example #1' [ issueEg1 dup asQuote assert= ]
+  it dies 'as expected in issue example #1' [ issueEg1.x asQuote ]
+
+  it should 'pass issue example #2' [ issueEg2 1 + 102 assert= ]
+  it dies 'as expected in issue example #2' [ issueEg2.x 1 +  ]
+
+]

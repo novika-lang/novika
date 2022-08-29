@@ -373,7 +373,7 @@ module Novika
     # Assert through the result of running *name*'s value in
     # this block's table.
     private def assert?(engine : Engine, name : Form, type : T.class) : T? forall T
-      return unless form = at?(name)
+      form = table.get(name) { return }
       result = engine[form, push(self.class.new)].drop
       unless result.is_a?(Block) && same?(result)
         result.assert(engine, T)
