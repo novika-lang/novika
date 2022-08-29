@@ -116,6 +116,26 @@ module Novika::Packages::Impl
         Boolean[engine.stack.drop.is_a?(Block)].push(engine)
       end
 
+      target.at("asBlock", <<-END
+      ( F -- B ): asserts that Form is a Block, dies otherwise.
+
+      >>> 100 asBlock
+      [dies]
+      >>> 'foo' asBlock
+      [dies]
+      >>> #foo asBlock
+      [dies]
+      >>> ##foo asBlock
+      [dies]
+      >>> [] asBlock
+      === [] (the same block)
+      >>> true asBlock
+      [dies]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Block)
+      end
+
       target.at("word?", "( F -- true/false ): leaves whether Form is a word.") do |engine|
         Boolean[engine.stack.drop.is_a?(Word)].push(engine)
       end
@@ -145,20 +165,200 @@ module Novika::Packages::Impl
         end
       end
 
+      target.at("asWord", <<-END
+      ( F -- W ): asserts that Form is a Word, dies otherwise.
+
+      Tries to invoke *asWord while Form or result thereof is
+      a block.
+
+      >>> 100 asWord
+      [dies]
+      >>> 'foo' asWord
+      [dies]
+      >>> #foo asWord
+      === foo
+      >>> ##foo asWord
+      [dies]
+      >>> [] asWord
+      [dies]
+      >>> true asWord
+      [dies]
+      >>> [ $: x x $: *asWord this ] @: a
+      >>> 100 a asWord
+      [dies]
+      >>> 'foo' a asWord
+      [dies]
+      >>> #foo a asWord
+      === instance of a
+      >>> ##foo asWord
+      [dies]
+      >>> [] a asWord
+      [dies]
+      >>> true a asWord
+      [dies]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Word)
+      end
+
       target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word.") do |engine|
         Boolean[engine.stack.drop.is_a?(QuotedWord)].push(engine)
+      end
+
+      target.at("asQuotedWord", <<-END
+      ( F -- Qw ): asserts that Form is a Quoted word, dies otherwise.
+
+      Tries to invoke *asQuotedWord while Form or result thereof is
+      a block implementing *asQuotedWord.
+
+      >>> 100 asQuotedWord
+      [dies]
+      >>> 'foo' asQuotedWord
+      [dies]
+      >>> #foo asQuotedWord
+      [dies]
+      >>> ##foo asQuotedWord
+      === #foo
+      >>> [] asQuotedWord
+      [dies]
+      >>> true asQuotedWord
+      [dies]
+      >>> [ $: x x $: *asQuotedWord this ] @: a
+      >>> 100 a asQuotedWord
+      [dies]
+      >>> 'foo' a asQuotedWord
+      [dies]
+      >>> #foo a asQuotedWord
+      [dies]
+      >>> ##foo a asQuotedWord
+      === instance of a
+      >>> [] a asQuotedWord
+      [dies]
+      >>> true a asQuotedWord
+      [dies]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, QuotedWord)
       end
 
       target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |engine|
         Boolean[engine.stack.drop.is_a?(Decimal)].push(engine)
       end
 
+      target.at("asDecimal", <<-END
+      ( F -- D ): asserts that Form is a Decimal, dies otherwise.
+
+      Tries to invoke *asDecimal while Form or result thereof is
+      a block implementing *asDecimal.
+
+      >>> 100 asDecimal
+      === 100
+      >>> 'foo' asDecimal
+      [dies]
+      >>> #foo asDecimal
+      [dies]
+      >>> ##foo asDecimal
+      [dies]
+      >>> [] asDecimal
+      [dies]
+      >>> true asDecimal
+      [dies]
+      >>> [ $: x x $: *asDecimal this ] @: a
+      >>> 100 a asDecimal
+      === instance of a
+      >>> 'foo' a asDecimal
+      [dies]
+      >>> #foo a asDecimal
+      [dies]
+      >>> ##foo a asDecimal
+      [dies]
+      >>> [] a asDecimal
+      [dies]
+      >>> true a asDecimal
+      [dies]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Decimal)
+      end
+
       target.at("quote?", "( F -- true/false ): leaves whether Form is a quote.") do |engine|
         Boolean[engine.stack.drop.is_a?(Quote)].push(engine)
       end
 
+      target.at("asQuote", <<-END
+      ( F -- Q ): asserts that Form is a Quote, dies otherwise.
+
+      Tries to invoke *asQuote while Form or result thereof is
+      a block implementing *asQuote.
+
+      >>> 100 asQuote
+      [dies]
+      >>> 'foo' asQuote
+      === 'foo'
+      >>> #foo asQuote
+      [dies]
+      >>> ##foo asQuote
+      [dies]
+      >>> [] asQuote
+      [dies]
+      >>> true asQuote
+      [dies]
+      >>> [ $: x x $: *asQuote this ] @: a
+      >>> 100 a asQuote
+      [dies]
+      >>> 'foo' a asQuote
+      === instance of a
+      >>> #foo a asQuote
+      [dies]
+      >>> ##foo a asQuote
+      [dies]
+      >>> [] a asQuote
+      [dies]
+      >>> true a asQuote
+      [dies]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Quote)
+      end
+
       target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean.") do |engine|
         Boolean[engine.stack.drop.is_a?(Boolean)].push(engine)
+      end
+
+      target.at("asBoolean", <<-END
+      ( F -- B ): asserts that Form is a Boolean, dies otherwise.
+
+      Tries to invoke *asBoolean while Form or result thereof is
+      a block implementing *asBoolean.
+
+      >>> 100 asBoolean
+      [dies]
+      >>> 'foo' asBoolean
+      [dies]
+      >>> #foo asBoolean
+      [dies]
+      >>> ##foo asBoolean
+      [dies]
+      >>> [] asBoolean
+      [dies]
+      >>> true asBoolean
+      === true
+      >>> [ $: x x $: *asBoolean this ] @: a
+      >>> 100 a asBoolean
+      [dies]
+      >>> 'foo' a asBoolean
+      [dies]
+      >>> #foo a asBoolean
+      [dies]
+      >>> ##foo a asBoolean
+      [dies]
+      >>> [] a asBoolean
+      [dies]
+      >>> true a asBoolean
+      === instance of a
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Boolean)
       end
 
       target.at("pushes", <<-END

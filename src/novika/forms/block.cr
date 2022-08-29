@@ -31,9 +31,6 @@ module Novika
     # of *nested* blocks.
     MAX_NESTED_COUNT_TO_S = 12
 
-    # Block to boolean hook name.
-    AS_BOOL = Word.new("*asBool")
-
     # Block to word hook name.
     AS_WORD = Word.new("*asWord")
 
@@ -42,6 +39,12 @@ module Novika
 
     # Block to decimal hook name.
     AS_DECIMAL = Word.new("*asDecimal")
+
+    # Block to boolean hook name.
+    AS_BOOLEAN = Word.new("*asBoolean")
+
+    # Block to quoted word hook name.
+    AS_QUOTED_WORD = Word.new("*asQuotedWord")
 
     # Returns and allows to set whether this block is a leaf.
     # A block is a leaf when it has no blocks in its tape.
@@ -384,10 +387,11 @@ module Novika
       return self if is_a?(T)
 
       case T
-      when Decimal.class then assert?(engine, AS_DECIMAL, type)
-      when Quote.class   then assert?(engine, AS_QUOTE, type)
-      when Word.class    then assert?(engine, AS_WORD, type)
-      when Boolean.class then assert?(engine, AS_BOOL, type)
+      when Decimal.class    then assert?(engine, AS_DECIMAL, type)
+      when Quote.class      then assert?(engine, AS_QUOTE, type)
+      when Word.class       then assert?(engine, AS_WORD, type)
+      when Boolean.class    then assert?(engine, AS_BOOLEAN, type)
+      when QuotedWord.class then assert?(engine, AS_QUOTED_WORD, type)
       end || afail(T)
     end
 
