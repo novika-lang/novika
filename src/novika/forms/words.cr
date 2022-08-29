@@ -40,17 +40,37 @@ module Novika
 
     def opened(engine : Engine) : self
       if entry = engine.block.at?(self)
-        # An entry exists for this word in the CC block.
+        # An entry exists for this word in the current block
+        # or in its parents.
         entry.open(engine)
-      elsif trap = engine.block.at?(TRAP)
-        # An undefined word trap exists in the CC block. Quote
-        # this word open it.
+        return self
+      end
+
+      block = current = engine.block
+
+      while block && (trap = block.at?(TRAP))
+        # A trap entry exists for this word in *block*. Traps are
+        # inherited as opposed to conversion words like *asDecimal.
+        form = trap.form
+
+        if form.is_a?(Block) && form.prototype.same?(current.prototype)
+          # If the trap we've found is the same one as this
+          # block, or block is an instance of the trap block,
+          # then this will recurse infinitely. Go search for
+          # the trap in the block above *block* (its parent).
+          block = block.parent?
+          next
+        end
+
         engine.stack.add Word.new(id)
         trap.open(engine)
-      else
-        # No entry and no trap: err out.
-        die("definition for #{self} not found in the enclosing block(s)")
+
+        return self
       end
+
+      # No entry and no valid trap: err out.
+      die("definition for #{self} not found in the enclosing block(s)")
+
       self
     end
 

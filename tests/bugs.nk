@@ -59,5 +59,22 @@ describe 'Conversion words should not be inherited #25' [
 
   it should 'pass issue example #2' [ issueEg2 1 + 102 assert= ]
   it dies 'as expected in issue example #2' [ issueEg2.x 1 +  ]
+]
 
+describe 'Infinite recursion when word undefined inside word trap #8' [
+  it dies 'because definition for this-word-is-undefined not found in the enclosing block(s)' [
+    [ this-word-is-undefined ] @: *trap
+    this-word-is-undefined-and-will-trigger-the-trap
+  ]
+
+  it should 'climb traps' [
+    [ 100 ] @: *trap
+    [ ] [
+      [ 200 trigger-upper-trap2 ] @: *trap
+      [
+        [ 300 trigger-upper-trap ] @: *trap
+        trigger-my-own-trap
+      ] open
+    ] there [ trigger-my-own-trap 300 trigger-upper-trap 200 trigger-upper-trap2 100 ] assert=
+  ]
 ]
