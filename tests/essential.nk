@@ -142,40 +142,40 @@ describe 'fromLeft' [
   ]
 ]
 
-describe 'asWord' [
+describe 'toWord' [
   it should 'noop if already word' [
-    #hello asWord #hello assert=
+    #hello toWord #hello assert=
   ]
 
   it should 'convert quote to word' [
-    'hello' asWord #hello assert=
+    'hello' toWord #hello assert=
   ]
 
   it should 'peel off all quoting' [
-    ########hello asWord #hello assert=
+    ########hello toWord #hello assert=
   ]
 
   it should 'convert when quote has grapheme clusters' [
-    'x👻👺🤖' asWord #x👻👺🤖 assert=
+    'x👻👺🤖' toWord #x👻👺🤖 assert=
   ]
 
   it dies 'when quote is empty' [
-    '' asWord
+    '' toWord
   ]
 
   it dies 'when quote is whitespace' [
-    ' ' asWord
+    ' ' toWord
   ]
 
   it dies 'when quote is newline + whitespace' [
     '
 
 
-    ' asWord
+    ' toWord
   ]
 
   it dies 'when quote contains whitespace' [
-    'hello world' asWord
+    'hello world' toWord
   ]
 ]
 

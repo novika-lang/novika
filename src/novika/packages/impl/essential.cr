@@ -120,7 +120,7 @@ module Novika::Packages::Impl
         Boolean[engine.stack.drop.is_a?(Word)].push(engine)
       end
 
-      target.at("asWord", <<-END
+      target.at("toWord", <<-END
       ( F -- W ): converts Form into Word.
         1. If Form is a word, behaves as noop
         2. If Form is a quote, dies only if quote contains (Unicode) whitespace characters
@@ -135,13 +135,13 @@ module Novika::Packages::Impl
         when Quote
           string = form.string
           if string.empty?
-            form.die("asWord: quote argument is empty")
+            form.die("toWord: quote argument is empty")
           elsif string.each_char.any?(&.whitespace?)
-            form.die("asWord: quote argument contains whitespace")
+            form.die("toWord: quote argument contains whitespace")
           end
           Word.new(form.string).push(engine)
         else
-          form.die("asWord: quote must be one of: word, quote, quoted word")
+          form.die("toWord: quote must be one of: word, quote, quoted word")
         end
       end
 
