@@ -6,7 +6,7 @@
     "We could have enquoted it of course, but that would be against
      the language's shaky philosophy of having more-or-less type-
      centric words."
-    'toCapitalized expected a quote, got: ' qq enquote stitch die
+    'toCapitalized expected a quote, got: ' qq toQuote stitch die
   ]
 
   qq count

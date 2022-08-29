@@ -54,8 +54,8 @@
        case 'Fa is Fb', leaves true and prints nothing."
       $: b $: a
       a b = [
-        'Expected: ' b enquote stitch ', got: ' stitch
-                     a enquote stitch
+        'Expected: ' b toQuote stitch ', got: ' stitch
+                     a toQuote stitch
                      comments gulp
         false
       ] or
@@ -158,7 +158,7 @@
       AFTER IT: <nothing> | itShould ...
     """
 
-    ahead 'it' name enquote toCapitalized stitch toWord inject
+    ahead 'it' name toQuote toCapitalized stitch toWord inject
   ] opens
 
   sectionBlockInstance #itDies itDiesImpl opens
@@ -174,18 +174,18 @@
   '=== Summary for ' sectionName stitch echo
 
   SUCCESS-RGB withEchoFg
-    ' ✔ Successful cases: ' successes enquote stitch withColorEcho
+    ' ✔ Successful cases: ' successes toQuote stitch withColorEcho
   dropEchoFg
 
   failures 0 > => [
     FAILURE-RGB withEchoFg
-      ' × Failures: ' failures enquote stitch withColorEcho
+      ' × Failures: ' failures toQuote stitch withColorEcho
     dropEchoFg
   ]
 
   deaths 0 > => [
     DEATH-RGB withEchoFg
-      ' ☨ Deaths: ' deaths enquote stitch withColorEcho
+      ' ☨ Deaths: ' deaths toQuote stitch withColorEcho
     dropEchoFg
   ]
 

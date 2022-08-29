@@ -17,7 +17,7 @@ module Novika::Packages::Impl
     end
 
     def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
-      string = form.enquote(engine).string
+      string = form.to_quote(engine).string
 
       colorful = string.colorize
       colorful = colorful.fore(*color_u8(*fg)) if fg

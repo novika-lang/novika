@@ -574,8 +574,8 @@ module Novika::Packages::Impl
         recpt.import!(from: donor)
       end
 
-      target.at("enquote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
-        engine.stack.drop.enquote(engine).push(engine)
+      target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
+        engine.stack.drop.to_quote(engine).push(engine)
       end
 
       target.at("die", "( D -- ): dies with Details quote.") do |engine|

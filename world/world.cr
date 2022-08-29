@@ -48,7 +48,7 @@ class IOMod
 
   def inject(into target)
     target.at("echo", "( F -- ): shows Form in the console.") do |world|
-      quote = world.stack.drop.enquote(world)
+      quote = world.stack.drop.to_quote(world)
       @player.println(quote.string)
     end
 
@@ -58,7 +58,7 @@ class IOMod
      bool. If rejected, Answer quote is empty.
     END
     ) do |world|
-      prompt = world.stack.drop.enquote(world)
+      prompt = world.stack.drop.to_quote(world)
       @player.request_user_input(prompt.string, @ichan)
       answer = @ichan.receive
       Novika::Quote.new(answer || "").push(world)

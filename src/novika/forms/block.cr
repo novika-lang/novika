@@ -395,7 +395,7 @@ module Novika
       end || afail(T)
     end
 
-    def enquote(engine : Engine) : Quote
+    def to_quote(engine : Engine) : Quote
       assert?(engine, AS_QUOTE, Quote) || super
     end
 

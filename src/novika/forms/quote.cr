@@ -118,7 +118,7 @@ module Novika
       at?(index) || die("grapheme index out of bounds: #{index}")
     end
 
-    def enquote(engine : Engine) : Quote
+    def to_quote(engine : Engine) : Quote
       self
     end
   end

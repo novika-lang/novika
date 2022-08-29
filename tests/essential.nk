@@ -14,18 +14,18 @@ describe 'quote?' [
   ]
 ]
 
-describe 'enquote' [
+describe 'toQuote' [
   "TODO: enquote block. It needs a pretty large set of tests
    for itself."
-  it should 'enquote boolean true' [ true enquote 'true' assert= ]
-  it should 'enquote boolean false' [ false enquote 'false' assert= ]
-  it should 'enquote builtin' [ #+ here enquote '[native code]' assert= ]
-  it should 'enquote decimal' [ 100 enquote '100' assert= ]
-  it should 'enquote -decimal' [ -100 enquote '-100' assert= ]
-  it should 'enquote +decimal' [ +100 enquote '100' assert= ]
-  it should 'enquote quote' [ 'hello world' enquote 'hello world' assert= ]
-  it should 'enquote word' [ #hello enquote 'hello' assert= ]
-  it should 'enquote quoted word' [ ##hello enquote '#hello' assert= ]
+  it should 'enquote boolean true' [ true toQuote 'true' assert= ]
+  it should 'enquote boolean false' [ false toQuote 'false' assert= ]
+  it should 'enquote builtin' [ #+ here toQuote '[native code]' assert= ]
+  it should 'enquote decimal' [ 100 toQuote '100' assert= ]
+  it should 'enquote -decimal' [ -100 toQuote '-100' assert= ]
+  it should 'enquote +decimal' [ +100 toQuote '100' assert= ]
+  it should 'enquote quote' [ 'hello world' toQuote 'hello world' assert= ]
+  it should 'enquote word' [ #hello toQuote 'hello' assert= ]
+  it should 'enquote quoted word' [ ##hello toQuote '#hello' assert= ]
 ]
 
 describe 'stitch' [

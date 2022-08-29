@@ -8,7 +8,7 @@
 'expected attribute to be a quote, got: '           $: HTML_ATTR_ERR
 'expected value of argument to be a quote, got: '   $: HTML_VAL_ERR
 
-[ enquote stitch die ] @: 2die
+[ toQuote stitch die ] @: 2die
 [ [ ' ' swap ] |slideLeft join ] @: prefixedByWs
 
 [ $: htmlBlock
@@ -55,7 +55,7 @@
     >>> div [ class: 'main' div [ class: 'wrapper' h1 [ 'Hi!' ] ] ]
     === <div class='main'><div class='wrapper'><h1>Hi!</h1></div></div>
     """
-    enquote $: tagName
+    toQuote $: tagName
 
     ahead $: outer
     ahead eject $: argument

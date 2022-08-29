@@ -968,7 +968,7 @@
   >>> [ x '; ' y ] here join
   === '1; 2'
   """
-  [ enquote stitch ] '' reduce
+  [ toQuote stitch ] '' reduce
 ] @: join
 
 
