@@ -1,11 +1,11 @@
 module Novika::Packages::Impl
   class System < ISystem
     def echo(engine, form : Form)
-      puts form.enquote(engine).string
+      puts form.to_quote(engine).string
     end
 
     def readline(engine, prompt : Form) : {Quote, Boolean}
-      string = prompt.enquote(engine).string
+      string = prompt.to_quote(engine).string
       answer = nil
       {% if flag?(:novika_readline) %}
         answer = Readline.readline(string)

@@ -321,7 +321,7 @@ describe '|slideRight' [
       dup 15 /?  => [ drop 'FizzBuzz' next ]
       dup  5 /?  => [ drop 'Buzz' next ]
       dup  3 /?  => [ drop 'Fizz' next ]
-      enquote
+      toQuote
     ]
 
     [ '1' '2' 'Fizz' '4' 'Buzz' 'Fizz' '7' '8' 'Fizz' 'Buzz' '11' 'Fizz'
@@ -912,7 +912,7 @@ describe 'conjure/here' [
   ]
 
   it should 'trigger word trap when word is undefined' [
-    [ enquote 1 sliceQuoteAt nip ] @: *trap
+    [ toQuote 1 sliceQuoteAt nip ] @: *trap
     foobar here 'oobar' assert=
   ]
 ]

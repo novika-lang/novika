@@ -176,7 +176,7 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
   ]
 
   itDies 'when block does not return a decimal in *asDecimal' [
-    [ enquote $: *asDecimal this ] @: wrap
+    [ toQuote $: *asDecimal this ] @: wrap
     1 2 wrap +
   ]
 

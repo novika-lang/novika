@@ -43,7 +43,7 @@ consProduct echo
   $: x
 
   [
-    [ ] x enquote <<  ' @ ' << y enquote <<
+    [ ] x toQuote <<  ' @ ' << y toQuote <<
     [ stitch ] '' reduce
   ] @: *asQuote
 

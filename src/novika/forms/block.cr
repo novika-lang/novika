@@ -31,9 +31,6 @@ module Novika
     # of *nested* blocks.
     MAX_NESTED_COUNT_TO_S = 12
 
-    # Block to boolean hook name.
-    AS_BOOL = Word.new("*asBool")
-
     # Block to word hook name.
     AS_WORD = Word.new("*asWord")
 
@@ -42,6 +39,12 @@ module Novika
 
     # Block to decimal hook name.
     AS_DECIMAL = Word.new("*asDecimal")
+
+    # Block to boolean hook name.
+    AS_BOOLEAN = Word.new("*asBoolean")
+
+    # Block to quoted word hook name.
+    AS_QUOTED_WORD = Word.new("*asQuotedWord")
 
     # Returns and allows to set whether this block is a leaf.
     # A block is a leaf when it has no blocks in its tape.
@@ -370,7 +373,7 @@ module Novika
     # Assert through the result of running *name*'s value in
     # this block's table.
     private def assert?(engine : Engine, name : Form, type : T.class) : T? forall T
-      return unless form = at?(name)
+      form = table.get(name) { return }
       result = engine[form, push(self.class.new)].drop
       unless result.is_a?(Block) && same?(result)
         result.assert(engine, T)
@@ -384,14 +387,15 @@ module Novika
       return self if is_a?(T)
 
       case T
-      when Decimal.class then assert?(engine, AS_DECIMAL, type)
-      when Quote.class   then assert?(engine, AS_QUOTE, type)
-      when Word.class    then assert?(engine, AS_WORD, type)
-      when Boolean.class then assert?(engine, AS_BOOL, type)
+      when Decimal.class    then assert?(engine, AS_DECIMAL, type)
+      when Quote.class      then assert?(engine, AS_QUOTE, type)
+      when Word.class       then assert?(engine, AS_WORD, type)
+      when Boolean.class    then assert?(engine, AS_BOOLEAN, type)
+      when QuotedWord.class then assert?(engine, AS_QUOTED_WORD, type)
       end || afail(T)
     end
 
-    def enquote(engine : Engine) : Quote
+    def to_quote(engine : Engine) : Quote
       assert?(engine, AS_QUOTE, Quote) || super
     end
 

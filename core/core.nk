@@ -130,7 +130,7 @@ _root #@: [
 
 [ "( needs: Pq -- ): ensures that the user has enabled the package
    with id specified by Package quote."
-  ahead eject enquote $: packageId
+  ahead eject toQuote $: packageId
 
   novika:packages [ packageId = ] any? not =>
     [

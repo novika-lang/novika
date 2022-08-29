@@ -81,7 +81,7 @@ module Novika
 
     # Returns this form's quote representation. May run Novika,
     # hence the need for *engine*.
-    def enquote(engine : Engine) : Quote
+    def to_quote(engine : Engine) : Quote
       Quote.new(to_s)
     end
   end
