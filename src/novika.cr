@@ -16,7 +16,7 @@ require "./novika/packages/impl/*"
 module Novika
   extend self
 
-  VERSION = {{`shards version`.chomp.stringify}}
+  VERSION = "0.0.1"
 
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
