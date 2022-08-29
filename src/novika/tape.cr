@@ -19,14 +19,9 @@ module Novika
     # See the same method in `Substrate`.
     delegate :at?, :each, :count, to: substrate
 
-    # Returns the index of the element before the cursor.
-    def high
-      cursor - 1
-    end
-
     # Returns the element before the cursor.
     def top?
-      at?(high)
+      at?(cursor - 1)
     end
 
     # Moves the cursor to *position*. Returns the resulting tape
@@ -51,7 +46,7 @@ module Novika
     # Removes the element before the cursor, and moves the cursor
     # back once. Returns the resulting tape.
     def drop?
-      Tape.new(substrate.delete?(high) || return, high)
+      Tape.new(substrate.delete?(cursor - 1) || return, cursor - 1)
     end
 
     # Replaces this tape's substrate with other. *cursor* is
