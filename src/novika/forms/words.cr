@@ -75,6 +75,7 @@ module Novika
     end
 
     def to_s(io)
+      io << "#" if id.in?("true", "false")
       io << id
     end
 
