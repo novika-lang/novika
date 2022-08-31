@@ -118,6 +118,16 @@ _root #@: [
 ] @: 2p
 
 
+[ """( Q F -- ): dies with Quote message stitched with an
+   enquoted Form.
+
+  >>> 'expected foobar, got: ' 100 2die
+  Sorry: expected foobar, got: 100.
+  """
+  toQuote stitch die
+] @: 2die
+
+
 [ "( B -- Mt ): leaves Monotonic time difference in milliseconds
    for Block (leaves the time Block took to execute, in ms)."
   monotonic $: t1
