@@ -43,10 +43,40 @@ module Novika::Packages::Impl
       target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupe)
       target.at("drop", "( F -- ): drops the Form before cursor.", &.stack.drop)
       target.at("swap", "( A B -- B A ): swaps two Forms before cursor.", &.stack.swap)
-      target.at("hydrate", "( S F -- ): opens Form with Stack set as the active stack.") do |engine|
+      target.at("hydrate", <<-END
+      ( S F -- ): opens (evaluates) Form with Stack set as the
+       active stack. If Form is not a block, it is added to
+       Stack (equivalent to `<<`), If Form is a block, its
+       instance is opened. To open a block without creating
+       an instance of it (unsafe), use `hydrate!`.
+      END
+      ) do |engine|
         form = engine.stack.drop
         stack = engine.stack.drop.assert(engine, Block)
         engine.schedule(form, stack)
+      end
+
+      target.at("hydrate!", <<-END
+      ( S F -- ): opens (evaluates) Form with Stack set as the
+       active stack. If Form is not a block, the behavior is
+       the same as in `hydrate`. If Form is a block, performs
+       unsafe hydration (hydrates without making an instance
+       of the block). For a safer alternative, see `hydrate`.
+       Use if you know what you're doing, or if you're ready
+       to make an instance yourself.
+
+      Details: `hydrate!` is considered unsafe because hydration
+      artifacts are exposed to the user and/or its blocks. The
+      contents of a block after hydration may differ from its
+      contents before unsafe hydration. Indeed, `hydrate!` is
+      almost as unsafe as pushing into `conts`; the only benefit
+      it provides is that it is able to catch infinite/very
+      deep recursion.
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        stack = engine.stack.drop.assert(engine, Block)
+        engine.schedule!(form, stack)
       end
 
       target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine|

@@ -15,10 +15,10 @@ module Novika
     #
     # NOTE: this number should be forgiving and probably settable
     # from the language.
-    MAX_CONTS = 32_000
+    MAX_CONTS = 1024
 
     # Maximum allowed engine nesting.
-    MAX_ENGINE_NESTING = 1000
+    MAX_ENGINE_NESTING = 1024
 
     # Index of the block in a continuation block.
     C_BLOCK_AT = 0
@@ -65,10 +65,15 @@ module Novika
       cont.at(C_STACK_AT).assert(self, Block)
     end
 
-    # Focal point for adding continuations. Returns self.
+    # Focal authorized point for adding continuations unsafely.
+    # Returns self.
     #
-    # The place where continuation stack's depth is tracked.
-    def schedule(other : Block)
+    # Provides protection from continuations stack overflow.
+    #
+    # Adding to `conts` (the unauthorized way) does not protect
+    # one from continuations stack overflow, and therefore from
+    # a memory usage explosion.
+    def schedule!(other : Block)
       if conts.count > MAX_CONTS
         raise Died.new("continuations stack dangerously deep (> #{MAX_CONTS})")
       end
@@ -76,12 +81,29 @@ module Novika
       tap { conts.add(other) }
     end
 
+    # Unsafe `schedule`. Use `schedule` unless you have instantiated
+    # *form* yourself, or you know what you're doing.
+    #
+    # See `schedule(form : Block, stack)`.
+    def schedule!(form : Block, stack)
+      schedule! Engine.cont(form.to(0), stack)
+    end
+
+    # Exactly the same as `schedule(form, stack)`.
+    def schedule!(form, stack)
+      # In case we're running in an empty engine, create an
+      # empty block for the form.
+      schedule! Engine.cont(Block.new, stack)
+
+      tap { form.open(self) }
+    end
+
     # Adds an instance of *form* block to the continuations
     # block, with *stack* set as the continuation stack.
     #
     # Returns self.
     def schedule(form : Block, stack)
-      schedule Engine.cont(form.instance.to(0), stack)
+      schedule!(form.instance, stack)
     end
 
     # Adds an empty continuation with *stack* as set as the
@@ -90,11 +112,7 @@ module Novika
     #
     # Returns self.
     def schedule(form, stack)
-      # In case we're running in an empty engine, create an
-      # empty block for the form.
-      schedule Engine.cont(Block.new, stack)
-
-      tap { form.open(self) }
+      schedule!(form, stack)
     end
 
     # Exhausts all enabled continuations, starting from the
