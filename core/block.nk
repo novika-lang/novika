@@ -1,3 +1,21 @@
+[ """( [ ... | F ... ]B -- F S / S ): leaves Form and/or Status
+   boolean for whether Form exists.
+
+  >>> [ 1 2 3 ] 1 |to
+  === [ 1 | 2 3 ]
+  >>> peek?
+  === 2 true
+
+  >>> [ 1 2 3 ]
+  === [ 1 2 3 | ]
+  >>> peek?
+  === false
+  """
+  dup |at over count = => [ drop false ^ ]
+  dup |at fromLeft true
+] @: peek?
+
+
 [ """( B N -- B ): decrements block cursor position: moves
    cursor back N times in Block.
 
