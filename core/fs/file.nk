@@ -13,7 +13,7 @@
 
   [ "( -- ): creates this file if it doesn't exist. Sets its
      access and modification times to current time."
-    asQuote fs:touch
+    asQuote disk:touch
 
     true =: available?
   ] @: touch
@@ -23,7 +23,7 @@
      and is readable."
     ahead eject $: block
 
-    available? => [ asQuote fs:read enclose block hydrate ]
+    available? => [ asQuote disk:read enclose block hydrate ]
   ] @: contents:
 
   [ '<File at: ' asQuote stitch '>' stitch ] @: *asQuote

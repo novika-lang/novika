@@ -15,7 +15,7 @@ module Novika::Packages
     end
 
     # Returns whether *path* exists and is readable.
-    abstract def readable?(engine, path : Quote) : Boolean
+    abstract def can_read?(engine, path : Quote) : Boolean
 
     # Returns whether *path* exists.
     abstract def has?(engine, path : Quote) : Boolean
@@ -38,10 +38,7 @@ module Novika::Packages
     abstract def read?(engine, path : Quote) : Quote?
 
     def inject(into target : Block)
-      # TODO: use disk: instead of fs:
-      # TODO: disk:has? hasFile hasDir hasSymlink
-
-      target.at("fs:exists?", <<-END
+      target.at("disk:has?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
        on the disk.
       END
@@ -50,16 +47,16 @@ module Novika::Packages
         has?(engine, path).push(engine)
       end
 
-      target.at("fs:readable?", <<-END
+      target.at("disk:canRead?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
        and is readable.
       END
       ) do |engine|
         path = engine.stack.drop.assert(engine, Quote)
-        readable?(engine, path).push(engine)
+        can_read?(engine, path).push(engine)
       end
 
-      target.at("fs:dir?", <<-END
+      target.at("disk:hasDir?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
        and points to a directory.
       END
@@ -68,7 +65,7 @@ module Novika::Packages
         has_dir?(engine, path).push(engine)
       end
 
-      target.at("fs:file?", <<-END
+      target.at("disk:hasFile?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
        and points to a file.
       END
@@ -77,7 +74,7 @@ module Novika::Packages
         has_file?(engine, path).push(engine)
       end
 
-      target.at("fs:symlink?", <<-END
+      target.at("disk:hasSymlink?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
        and points to a symlink.
       END
@@ -86,7 +83,7 @@ module Novika::Packages
         has_symlink?(engine, path).push(engine)
       end
 
-      target.at("fs:touch", <<-END
+      target.at("disk:touch", <<-END
       ( P -- ): creates an empty file at Path. Does nothing
        if Path already exists.
       END
@@ -95,7 +92,7 @@ module Novika::Packages
         touch(engine, path)
       end
 
-      target.at("fs:read", <<-END
+      target.at("disk:read", <<-END
       ( F -- C ): reads and leaves the Contents of File. Dies
        if there is no File.
       END
