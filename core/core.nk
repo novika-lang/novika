@@ -10,17 +10,17 @@ because that's our root, not their root."
 
 conts dup
   count 1 - fromLeft
-        0   fromLeft "continuationBlock"
+        0   fromLeft "getContBlock"
         dup #_root swap pushes
 
 
-_root #continuationBlock [
+_root #getContBlock [
   "( C -- cB ): leaves the continuation Block of a Continuation."
   0 fromLeft
 ] opens
 
 
-_root #continuationStack [
+_root #getContStack [
   "( C -- cS ): leaves the continuation Stack of a Continuation."
   1 fromLeft
 ] opens
@@ -28,19 +28,19 @@ _root #continuationStack [
 
 _root #this [
   "( -- B ): pushes the caller's continuation Block."
-  conts dup count 2 - fromLeft continuationBlock
+  conts dup count 2 - fromLeft getContBlock
 ] opens
 
 
 _root #stack [
   "( -- S ): pushes the Stack of the caller's continuation."
-  conts dup count 2 - fromLeft continuationStack
+  conts dup count 2 - fromLeft getContStack
 ] opens
 
 
 _root #ahead [
   "( -- B ): leaves caller Block on the stack."
-  conts dup count 3 - fromLeft continuationBlock
+  conts dup count 3 - fromLeft getContBlock
 ] opens
 
 

@@ -89,7 +89,7 @@
   $: block
 
   [
-    dup continuationBlock block same?
+    dup getContBlock block same?
       [ ]
       [ drop rec ]
     br
@@ -101,7 +101,7 @@
    its *opener's parent*."
   ahead prototype parent $: above
 
-  [ continuationBlock prototype above same? ] dropContinuationsUntil
+  [ getContBlock prototype above same? ] dropContinuationsUntil
 ] @: ^
 
 
