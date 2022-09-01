@@ -167,7 +167,7 @@ needsPackage: console
         render
       console:present
 
-      10 nap
+      33 nap
     ] loop
   ] @: mainloop
 

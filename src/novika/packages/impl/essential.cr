@@ -30,14 +30,72 @@ module Novika::Packages::Impl
         block.parent.push(engine)
       end
 
-      target.at("conts", "( -- Cs ): Pushes the Continuations block.") do |engine|
+      target.at("conts", "( -- Cs ): pushes the Continuations block.") do |engine|
         engine.conts.push(engine)
+      end
+
+      target.at("cont", "( -- Cs ): pushes the Continuation block.") do |engine|
+        engine.cont.push(engine)
       end
 
       target.at("newContinuation", "( S B -- C ): creates a Continuation from a Stack and a Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         stack = engine.stack.drop.assert(engine, Block)
         Engine.cont(block, stack).push(engine)
+      end
+
+      target.at("getContBlock", <<-END
+      ( C -- cB ): leaves the continuation Block of a Continuation.
+      END
+      ) do |engine|
+        cont = engine.stack.drop.assert(engine, Block)
+        cont.at(Engine::C_BLOCK_AT).push(engine)
+      end
+
+      target.at("getContStack", <<-END
+      ( C -- cS ): leaves the continuation Stack of a Continuation.
+      END
+      ) do |engine|
+        cont = engine.stack.drop.assert(engine, Block)
+        cont.at(Engine::C_STACK_AT).push(engine)
+      end
+
+      target.at("this", <<-END
+      ( -- B ): pushes a reflection of the block it's opened in.
+
+      >>> [ this ] open
+      === [ this ]+ (instance of `[ this ]`)
+      >>> prototype
+      === [ this ] (I told you!)
+      END
+      ) do |engine|
+        engine.block.push(engine)
+      end
+
+      target.at("stack", <<-END
+      ( -- S ): pushes the Stack it's opened in.
+
+      >>> stack
+      === [a reflection]
+      >>> 'foo' <<
+      === [a reflection] 'foo'
+      END
+      ) do |engine|
+        engine.stack.push(engine)
+      end
+
+      target.at("ahead", <<-END
+      ( -- B ): leaves the block that will be executed after
+       `this` finishes.
+
+      >>> 100 [ ahead 1 inject ] open +
+      === 101 (i.e. 100 1 +)
+      END
+      ) do |engine|
+        cont = engine.conts.at(engine.conts.count - 2)
+        cont = cont.as?(Block) || cont.die("malformed continuation")
+        ahead = cont.at(Engine::C_BLOCK_AT)
+        ahead.push(engine)
       end
 
       target.at("dup", "( F -- F F ): duplicates the Form before cursor.", &.stack.dupe)
@@ -77,6 +135,21 @@ module Novika::Packages::Impl
         form = engine.stack.drop
         stack = engine.stack.drop.assert(engine, Block)
         engine.schedule!(form, stack)
+      end
+
+      target.at("open", <<-END
+      ( F -- F' ): opens Form in the active stack. Equivalent
+       to `stack F hydrate`.
+
+      >>> 100 open
+      === 100
+
+      >>> 1 [ 2 + ] open
+      === 3
+      END
+      ) do |engine|
+        form = (stack = engine.stack).drop
+        engine.schedule(form, stack)
       end
 
       target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine|
@@ -568,6 +641,16 @@ module Novika::Packages::Impl
         block.to(cursor.to_i)
       end
 
+      target.at("<|", "( -- ): moves stack cursor once to the left.") do |engine|
+        stack = engine.stack
+        stack.to(stack.cursor - 1)
+      end
+
+      target.at("|>", "( -- ): moves stack cursor once to the left.") do |engine|
+        stack = engine.stack
+        stack.to(stack.cursor + 1)
+      end
+
       target.at("|slice", "( B -- Lh Rh ): slices Block at cursor, leaves Left, Right halves.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         lhs, rhs = block.slice
@@ -591,6 +674,26 @@ module Novika::Packages::Impl
     END
       ) do |engine|
         engine.stack.drop.push(engine.stack.drop.assert(engine, Block))
+      end
+
+      target.at("eject", <<-END
+      ( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
+       leaves the Form after cursor in Block.
+      END
+      ) do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        form = block.eject
+        form.push(engine)
+      end
+
+      target.at("inject", <<-END
+      ( B F -- ): inserts Form to Block: adds Form to Block,
+       and moves cursor back again.
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
+        block.inject(form)
       end
 
       target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |engine|

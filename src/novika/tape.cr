@@ -49,6 +49,18 @@ module Novika
       Tape.new(substrate.delete?(cursor - 1) || return, cursor - 1)
     end
 
+    # Adds element after cursor without moving the cursor.
+    def inject(element)
+      Tape.new(substrate.insert?(cursor, element).not_nil!, cursor)
+    end
+
+    # Drops and returns the element after cursor.
+    def eject?
+      element = substrate.at?(cursor) || return
+
+      {Tape.new(substrate.delete?(cursor).not_nil!, cursor), element}
+    end
+
     # Replaces this tape's substrate with other. *cursor* is
     # left where it was in self if it fits, else is moved to
     # the end.

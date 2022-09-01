@@ -1,8 +1,3 @@
-[ "( B -- B' ): opens Block in the active stack."
-  stack swap ahead #hydrate inject
-] @: open
-
-
 [ "( B -- T ): activates an empty stack for the duration of Block,
    and leaves Top form in the stack. Dies if none."
   [ ] swap there cherry

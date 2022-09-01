@@ -204,6 +204,17 @@ module Novika
       self
     end
 
+    # Adds *form* after the cursor.
+    def inject(form : Form)
+      self.tape = tape.inject(form)
+    end
+
+    # Drops and returns the element after the cursor. Dies if
+    # cursor is at the end.
+    def eject : Form
+      self.tape, _ = tape.eject? || die("eject out of bounds")
+    end
+
     # Returns the table entry corresponding to *name*, or dies.
     def at(name : Form) : Entry
       at?(name) || die("undefined table property: #{name}")
