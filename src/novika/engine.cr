@@ -220,8 +220,12 @@ module Novika
           while form = (scheduler = block).next?
             begin
               form.opened(self)
-              if @profile && !scheduler.same?(schedulee = block)
-                start_prof_for(form, schedulee.not_nil!.prototype, scheduled_by: scheduler.prototype)
+              if @profile
+                schproto = scheduler.prototype
+                scheeproto = block.prototype
+                next if schproto.same?(scheeproto)
+
+                start_prof_for(form, scheeproto, scheduled_by: schproto)
               end
             rescue e : Died
               e.conts = conts.instance
