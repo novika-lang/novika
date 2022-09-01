@@ -78,11 +78,11 @@ module Novika
         io << "  "
         if index == e - 1
           io << "╰  "
-          code.spotlight(io)
+          code.spot(io)
           io.puts
         else
           io << "│  "
-          code.spotlight(io)
+          code.spot(io)
           io.puts
           io.puts "  │"
         end

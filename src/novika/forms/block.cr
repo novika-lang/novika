@@ -46,21 +46,15 @@ module Novika
     # Block to quoted word hook name.
     AS_QUOTED_WORD = Word.new("*asQuotedWord")
 
-    # Returns and allows to set whether this block is a leaf.
-    # A block is a leaf when it has no blocks in its tape.
+    # Whether this block is a leaf. A block is a leaf when
+    # it has no blocks in its tape.
     protected property? leaf = true
 
-    # Returns the string comment of this block. It normally
-    # describes what this block does.
-    private property comment : String?
-
     # Returns the tape of this block.
-    getter tape = Tape(Form).new
-
-    protected setter tape : Tape(Form)
+    protected property tape = Tape(Form).new
 
     # Returns the table of this block.
-    getter table : ITable = Table.new
+    protected property table : ITable = Table.new
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -69,6 +63,10 @@ module Novika
     # Returns the prototype of this block. Block instances return
     # their prototype (AST) blocks, AST blocks return themselves.
     getter! prototype : Block
+
+    # String comment of this block. It normally describes what
+    # this block does.
+    @comment : String?
 
     def initialize(@parent : Block? = nil, @prototype = self, @table = Table.new)
     end
@@ -92,13 +90,13 @@ module Novika
     # Returns this block's comment, or nil if the comment was
     # not defined or is empty.
     protected def comment? : String?
-      comment unless comment.try &.empty?
+      @comment unless @comment.try &.empty?
     end
 
     # Sets the block comment of this block to *comment*
     # in case it doesn't have a comment already.
     def describe_with?(comment comment_ : String) : String?
-      self.comment = comment_ unless comment?
+      @comment = comment_ unless @comment
     end
 
     # See the same method in `Tape`.
@@ -357,9 +355,6 @@ module Novika
       #
       # Therefore, the fact that they are reflections of the
       # parent is maintained.
-      #
-      # Note that we guarantee that key Blocks do not mutate,
-      # for we are in full control for the time `__tr` exists.
       __tr ||= {} of Block => Block
       __tr[self] = copy = self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
       copy.tape = copy.tape.map! do |form|
@@ -406,7 +401,7 @@ module Novika
     #
     # Does not respect `MAX_COUNT_TO_S`. Does not display quotes.
     # Does not display nested blocks.
-    def spotlight(io, vicinity = 10)
+    def spot(io, vicinity = 10)
       io << "["
 
       b = (cursor - vicinity).clamp(0..count - 1)
