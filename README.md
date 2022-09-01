@@ -84,7 +84,9 @@ After all, no language I know of can do this:
 
 ## How can I build and run Novika?
 
-Currently, there is only one official way:
+The [latest release](https://github.com/novika-lang/novika/releases/latest) is available. It should just work.
+
+Building:
 
 1. Clone or download his repo: `git clone https://github.com/novika-lang/novika`.
 2. Make sure your working directory is this repo.
@@ -93,14 +95,16 @@ Currently, there is only one official way:
 4. On Windows, type the following command:
     `shards build --without-development --release --progress --no-debug -Dnovika_frontend`
 
-   On Unix, type the following command:
-    `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console`.
+    On Unix, type the following command:
+    `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
 Wondering about the `-D`s?
 
 * `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
   speaking to you, and it's the same frontend that's going to collect and feed the right files to
   a Novika engine it created.
+
+* `-Dnovika_readline`: use linenoise instead of `gets`.
 
 * `-Dnovika_console`: enables the default console package implementation which uses
   [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so
@@ -289,7 +293,7 @@ Theory:
 
 Practice:
 
-* `crystal run novika.cr -Dnovika_frontend -Dnovika_console -- core file.nk`.
+* `crystal run novika.cr -Dnovika_frontend -Dnovika_console -Dnovika_readline -- core file.nk`.
    Make it break. See where and why. Easy, huh? Build in release. `flamegraph` it?
 
 Seriously, this is a huge TODO.

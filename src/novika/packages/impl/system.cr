@@ -1,8 +1,10 @@
-@[Link(ldflags: "#{__DIR__}/ext/liblinenoise.a")]
-lib Linenoise
-  fun linenoise(prompt : UInt8*) : UInt8*
-  fun linenoise_free = linenoiseFree(prompt : UInt8*) : UInt8*
-end
+{% if flag?(:novika_readline) %}
+  @[Link(ldflags: "#{__DIR__}/ext/liblinenoise.a")]
+  lib Linenoise
+    fun linenoise(prompt : UInt8*) : UInt8*
+    fun linenoise_free = linenoiseFree(prompt : UInt8*) : UInt8*
+  end
+{% end %}
 
 module Novika::Packages::Impl
   class System < ISystem
@@ -12,11 +14,17 @@ module Novika::Packages::Impl
 
     def readline(engine, prompt : Form) : {Quote, Boolean}
       string = prompt.to_quote(engine).string
-      buffer = Linenoise.linenoise(string.to_unsafe)
-      unless buffer.null?
-        answer = String.new(buffer)
-        Linenoise.linenoise_free(buffer)
-      end
+      answer = nil
+      {% if flag?(:novika_readline) %}
+        buffer = Linenoise.linenoise(string.to_unsafe)
+        unless buffer.null?
+          answer = String.new(buffer)
+          Linenoise.linenoise_free(buffer)
+        end
+      {% else %}
+        print string
+        answer = gets
+      {% end %}
       {Quote.new(answer || ""), Boolean[!!answer]}
     end
 
