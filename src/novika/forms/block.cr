@@ -284,8 +284,8 @@ module Novika
     def slice : {Block, Block}
       lhs, rhs = tape.slice
 
-      {Block.new(parent: nil, tape: lhs),
-       Block.new(parent: nil, tape: rhs)}
+      {Block.new(parent: self, tape: lhs),
+       Block.new(parent: self, tape: rhs)}
     end
 
     # Removes and returns the top form. Dies if none.
