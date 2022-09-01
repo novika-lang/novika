@@ -4,10 +4,6 @@ shards:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.0.1
 
-  readline:
-    git: https://github.com/crystal-lang/crystal-readline.git
-    version: 0.1.1
-
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
     version: 0.1.0+git.commit.a58fa765c5514fb6dfc2d47674a86fd5aafb7b94
