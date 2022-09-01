@@ -215,6 +215,13 @@ module Novika
       self.tape, _ = tape.eject? || die("eject out of bounds")
     end
 
+    # Returns form after cursor, and moves cursor past it.
+    #
+    # Similar to `eject`, but doesn't modify the block.
+    def thru
+      self.tape, _ = tape.thru? || die("thru out of bounds")
+    end
+
     # Returns the table entry corresponding to *name*, or dies.
     def at(name : Form) : Entry
       at?(name) || die("undefined table property: #{name}")

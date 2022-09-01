@@ -150,7 +150,7 @@
   >>> open
   === 200 100 300 (note: [ x y + ] block is a closure)
   """
-  ahead eject entry:fetch
+  ahead thru entry:fetch
 ] @: ->
 
 
@@ -187,7 +187,7 @@
 
   >>> [ $: bool
 
-        [ ahead eject
+        [ ahead thru
             bool
               [ echo ]
               [ drop ]
@@ -206,7 +206,7 @@
   >>> . bar: 100
   ===
   """
-  ahead dup eject entry:open
+  ahead dup thru entry:open
 ] @: .
 
 
@@ -225,7 +225,7 @@
   >>> dup #undefinedThing fetch: [ echo ]
   === [ | . x y ]
   """
-  ahead eject @: block
+  ahead thru @: block
 
   [ over block? ] [ 2dup entry:exists? ] and
     [ entry:fetch block ] "Has the entry, fetch and open Block."
@@ -269,7 +269,7 @@
 
 
 [ "( Lb |-> B -- Lb ): infix version of `|slideRight`."
-  ahead eject |slideRight
+  ahead thru |slideRight
 ] @: |->
 
 
@@ -297,7 +297,7 @@
 
 
 [ "( Lb <-| B -- Lb ): infix version of `|slideLeft`."
-  ahead eject |slideLeft
+  ahead thru |slideLeft
 ] @: <-|
 
 
@@ -344,7 +344,7 @@
   STDOUT: 2
   STDOUT: 3
   """
-  ahead eject each
+  ahead thru each
 ] @: each:
 
 
@@ -355,7 +355,7 @@
   STDOUT: 1 2
   STDOUT: 2 3
   """
-  ahead eject eachWithIndex
+  ahead thru eachWithIndex
 ] @: eachWithIndex:
 
 
@@ -396,7 +396,7 @@
   STDOUT: 3
   STDOUT: 7
   """
-  ahead eject pairs
+  ahead thru pairs
 ] @: pairs:
 
 
@@ -437,7 +437,7 @@
   STDOUT: 3
   STDOUT: 5
   """
-  ahead eject consPairs
+  ahead thru consPairs
 ] @: consPairs:
 
 
@@ -479,7 +479,7 @@
 
   >>> [ 1 2 3 ] map: [ 1 + ]
   """
-  ahead eject map
+  ahead thru map
 ] @: map:
 
 
@@ -521,7 +521,7 @@
   >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
   === [ 300 600 | ]
   """
-  ahead eject only
+  ahead thru only
 ] @: only:
 
 
@@ -622,7 +622,7 @@
   >>> [ 1 2 3 ] # [ 2 > ]
   === 1
   """
-  ahead eject amount
+  ahead thru amount
 ] @: #
 
 
@@ -938,7 +938,7 @@
 
 
 [ "( N collect: B -- Lb ): infix version of `collect`."
-  ahead eject collect
+  ahead thru collect
 ] @: collect:
 
 
@@ -972,7 +972,7 @@
   >>> 10 to: 0
   === [ 10 9 8 ... 0 | ]
   """
-  ahead eject range
+  ahead thru range
 ] @: to:
 
 

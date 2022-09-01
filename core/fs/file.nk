@@ -21,7 +21,7 @@
   [ "( contents: B -- ): makes an empty stack, leaves this
      file's contents quote on top there if this file exists
      and is readable."
-    ahead eject $: block
+    ahead thru $: block
 
     available? => [ asQuote disk:read enclose block hydrate ]
   ] @: contents:

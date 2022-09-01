@@ -10,7 +10,7 @@
   ]
 
   There is also a natural language-like word, `is`, which doesn't do much
-  other than `ahead eject`ing the action. The following works exactly
+  other than `ahead thru`ing the action. The following works exactly
   the same as the code above:
 
   >>> describe '+ word' [
@@ -24,8 +24,8 @@
   [ 244 67 54 ] @: FAILURE-RGB
   [ 255 193 7 ] @: DEATH-RGB
 
-  ahead eject $: sectionName
-  ahead eject new $: sectionBlockInstance
+  ahead thru $: sectionName
+  ahead thru new $: sectionBlockInstance
 
   0 $: successes
   0 $: failures
@@ -115,8 +115,8 @@
   [ "( D B -- ): reports Description as success/failure depending
      on whether Block left true/false correspondingly on top of the
      stack after being opened with a new empty stack."
-    ahead eject $: description
-    ahead eject $: testCaseBlock
+    ahead thru $: description
+    ahead thru $: testCaseBlock
 
     [ ] $: comments
 
@@ -129,8 +129,8 @@
 
   [ "( D B -- ): reports Description as success/failure depending on
      whether Block died while being opened with a new empty stack."
-    ahead eject $: description
-    ahead eject $: testCaseBlock
+    ahead thru $: description
+    ahead thru $: testCaseBlock
 
     [ ] $: comments
 

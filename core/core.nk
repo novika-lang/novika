@@ -20,24 +20,24 @@ _root #there [
 
 _root #@: [
   "( F @: N ): makes an opener entry called Name for Form."
-  ahead swap ahead eject swap opens
+  ahead swap ahead thru swap opens
 ] opens
 
 
 [ "( F $: N -- ): makes a pusher entry called Name for Form."
-  ahead swap ahead eject swap pushes
+  ahead swap ahead thru swap pushes
 ] @: $:
 
 
 [ "( V =: N -- ): submits Value to an already defined entry
    under the specified Name."
-  ahead swap ahead eject swap submit
+  ahead swap ahead thru swap submit
 ] @: =:
 
 
 [ "( help F -- ): echoes help for Form. If form is a word,
    fetches it in caller first."
-  ahead dup eject dup word?
+  ahead dup thru dup word?
     [ entry:fetch ]
     [ nip         ]
   br desc echo
@@ -81,7 +81,7 @@ _root #@: [
 
 [ "( needs: Pq -- ): ensures that the user has enabled the package
    with id specified by Package quote."
-  ahead eject toQuote $: packageId
+  ahead thru toQuote $: packageId
 
   novika:packages [ packageId = ] any? not =>
     [

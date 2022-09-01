@@ -696,6 +696,25 @@ module Novika::Packages::Impl
         block.inject(form)
       end
 
+      target.at("thru", <<-END
+      ( [ ... | F ... ] -- [ ... F | ... ] -- F ): moves cursor
+       after Form, and leaves Form. Dies if cursor is at the end.
+
+      Note: prefer `thru` to `eject` because `eject` modifies
+      the block, and that may cause a tape copy which uses up
+      a bit of memory and resources. The difference would matter
+      only in high load scenarios, though.
+
+      Note: anything that *does not* `ahead inject` will be OK
+      with `ahead thru`. And even if it does `ahead inject`,
+      still, there are ways to overcome the problems from not
+      `ahead eject`ing.
+      END
+      ) do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        block.thru.push(engine)
+      end
+
       target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         block.top.push(engine)

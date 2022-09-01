@@ -215,7 +215,7 @@ describe 'entry:open' [
   ]
 
   it should 'preserve ahead' [
-    [ $: bool [ ahead eject bool => [ 1 + ] ] @: bar: this ] @: block
+    [ $: bool [ ahead thru bool => [ 1 + ] ] @: bar: this ] @: block
 
     true block this #bar: entry:open 100 101 assert=
     false block this #bar: entry:open 100 100 assert=
@@ -239,7 +239,7 @@ describe '.' [
   ]
 
   it should 'preserve ahead' [
-    [ $: bool [ ahead eject bool => [ 1 + ] ] @: bar: this ] @: block
+    [ $: bool [ ahead thru bool => [ 1 + ] ] @: bar: this ] @: block
 
     true block . bar: 100 101 assert=
     false block . bar: 100 100 assert=

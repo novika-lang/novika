@@ -16,14 +16,14 @@
 
 
 [ "( D br: T F -- ? ): infix version of `br`."
-  ahead eject "T"
-  ahead eject "F"
+  ahead thru "T"
+  ahead thru "F"
   br
 ] @: br:
 
 
 [ "( D => T -- ? ): opens True form if Determiner is truthy."
-  ahead eject [ ] br
+  ahead thru [ ] br
 ] @: =>
 
 
@@ -153,7 +153,7 @@
 
 
 [ "( loop: Ib -- ): prefix version of `loop`."
-  ahead eject loop
+  ahead thru loop
 ] @: loop:
 
 
@@ -166,8 +166,8 @@
 
 
 [ "( while: C B -- ): prefix version of `while`."
-  ahead eject
-  ahead eject
+  ahead thru
+  ahead thru
   while
 ] @: while:
 
@@ -179,8 +179,8 @@
 
 
 [ "( until: C B -- ): prefix version of `until`."
-  ahead eject
-  ahead eject
+  ahead thru
+  ahead thru
   until
 ] @: until:
 
@@ -201,5 +201,5 @@
 
 
 [ "( N times: B -- ): infix version of `times`."
-  ahead eject times
+  ahead thru times
 ] @: times:

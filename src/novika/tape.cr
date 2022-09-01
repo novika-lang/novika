@@ -61,6 +61,13 @@ module Novika
       {Tape.new(substrate.delete?(cursor).not_nil!, cursor), element}
     end
 
+    # Returns the element after cursor and moves the cursor forward.
+    def thru?
+      element = substrate.at?(cursor) || return
+
+      {Tape.new(substrate, cursor + 1), element}
+    end
+
     # Replaces this tape's substrate with other. *cursor* is
     # left where it was in self if it fits, else is moved to
     # the end.
