@@ -1,4 +1,5 @@
 require "big"
+require "csv"
 require "colorize"
 require "file_utils"
 
@@ -163,7 +164,9 @@ module Novika
     files = [] of Path
     folders = {} of Path => Folder
 
-    engine = Engine.new
+    profile = false
+    profile_small = false
+
     toplevel = Block.new(bundle.bb)
 
     args.each do |arg|
@@ -175,10 +178,27 @@ module Novika
       elsif File.file?(arg)
         # Exists and is a file.
         files << Path[arg]
+      elsif arg.in?("-p", "-profile")
+        profile = true
+        puts <<-END
+          Note: you have enabled profiling. When in profiling mode,
+          your programs will run a lot slower, because a lot of data
+          is being collected.
+        END
+      elsif arg == "-ps"
+        profile = true
+        profile_small = true
+        puts <<-END
+          Note: you have enabled profiling. When in profiling mode,
+          your programs will run a lot slower, because a lot of data
+          is being collected.
+        END
       else
         abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd}"
       end
     end
+
+    engine = Engine.new(profile)
 
     # Evaluate each folder's entry (if any), then its *.nk files.
     folders.each_value do |folder|
@@ -192,6 +212,28 @@ module Novika
 
     # Evaluate the user's files.
     files.each { |file| run(engine, toplevel, file) }
+
+    if profile
+      puts "Done! Writing profiling results to prof.novika.csv..."
+
+      # Print profiling info if profiling was enabled.
+      result = CSV.build do |csv|
+        csv.row "Block ID", "Pseudonym(s)", "Scheduler ID", "Amt of schedules", "Cumulative time (ms)", "Representation"
+
+        engine.prof.each_value do |stat|
+          total_count = stat.scheduled_by.each_value.sum(&.count)
+          total_cumul = stat.scheduled_by.each_value.compact_map(&.cumul).sum(&.total_milliseconds)
+          csv.row stat.id, stat.words.join(' '), "*", total_count, total_cumul, stat.block.to_s
+          next if profile_small
+
+          stat.scheduled_by.each do |sched_id, sched|
+            csv.row "", "", sched_id, sched.count, sched.cumul.try &.total_milliseconds || "-", ""
+          end
+        end
+      end
+
+      File.write("prof.novika.csv", result)
+    end
   rescue e : EngineFailure
     e.report(STDERR)
   end
