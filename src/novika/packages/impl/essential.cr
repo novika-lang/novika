@@ -799,8 +799,50 @@ module Novika::Packages::Impl
         Boolean[!engine.stack.drop.assert(engine, Block).parent?].push(engine)
       end
 
-      target.at("desc", "( F -- Hq ): leaves the description of Form.") do |engine|
+      target.at("desc", <<-END
+      ( F -- Dq ): leaves the Description quote of the given Form.
+
+      >>> 100 desc
+      === 'decimal number 100'
+
+      >>> 'foobar' desc
+      === 'quote 'foobar''
+
+      >>> [ 1 2 3 ] desc
+      === 'a block'
+
+      >>> [ "I am a block" 1 2 3 ] desc
+      === 'I am a block'
+
+      >>> true desc
+      === 'boolean true'
+      END
+      ) do |engine|
         quote = Quote.new(engine.stack.drop.desc)
+        quote.push(engine)
+      end
+
+      target.at("typedesc", <<-END
+      ( F -- Dq ): leaves the type Description quote of the
+       given Form.
+
+      >>> 100 typedesc
+      === 'decimal'
+
+      >>> 'foobar' typedesc
+      === 'quote'
+
+      >>> [ 1 2 3 ] typedesc
+      === 'block'
+
+      >>> [ "I am a block" 1 2 3 ] typedesc
+      === 'block'
+
+      >>> true typedesc
+      === 'boolean'
+      END
+      ) do |engine|
+        quote = Quote.new(engine.stack.drop.class.typedesc)
         quote.push(engine)
       end
     end

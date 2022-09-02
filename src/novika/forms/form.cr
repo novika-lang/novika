@@ -1,23 +1,12 @@
 module Novika
-  # A form with a user-friendly description. Extenders should
-  # also include `Form`.
-  module HasDesc
-    # Appends a description of this form class to *io*.
-    abstract def desc(io : IO)
-
-    # Returns a description of this form class.
-    def desc : String
-      String.build { |io| desc(io) }
-    end
-  end
-
   # Form is an umbrella for words and blocks. Since some words
   # (like numbers, quotes) are just too different from words as
   # we know them, they have their own types directly subordinate
   # to Form.
+  #
+  # Make sure to override `self.typedesc` to avoid weird unrelated
+  # Crystal errors. Crystal breaks at class-level inheritance.
   module Form
-    extend HasDesc
-
     # Raises `Died` providing *details*.
     def die(details : String)
       raise Died.new(details)
@@ -26,11 +15,8 @@ module Novika
     # :nodoc:
     #
     # Dies of assertion failure with *other* type.
-    def afail(other)
-      l, r = self.class, other
-      ldesc = l.is_a?(HasDesc) ? l.desc : l.class
-      rdesc = r.is_a?(HasDesc) ? r.desc : r.class
-      die("bad type: #{ldesc}, expected: #{rdesc}")
+    def afail(other : T.class) forall T
+      die("bad type: #{self.class.typedesc}, expected: a #{T.typedesc}")
     end
 
     # Appends a string description of this form to *io*.
@@ -41,10 +27,6 @@ module Novika
     # Returns a string description of this form.
     def desc : String
       String.build { |io| desc(io) }
-    end
-
-    def self.desc(io : IO)
-      io << "a form"
     end
 
     # Selects either *a* or *b*. Novika defines `False` to be the

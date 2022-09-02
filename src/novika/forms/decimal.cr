@@ -2,7 +2,6 @@ module Novika
   # A representation for decimal numbers inside Novika.
   struct Decimal
     include Form
-    extend HasDesc
 
     # Returns the underlying big decimal value.
     protected getter val : BigDecimal
@@ -18,8 +17,8 @@ module Novika
       io << "decimal number " << val
     end
 
-    def self.desc(io : IO)
-      io << "a decimal number"
+    def self.typedesc
+      "decimal"
     end
 
     # Returns whether this decimal is zero.

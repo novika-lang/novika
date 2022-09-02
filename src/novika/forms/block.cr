@@ -22,7 +22,6 @@ module Novika
   # wants or needs to.
   class Block
     include Form
-    extend HasDesc
 
     # Maximum amount of forms to display in block string representation.
     MAX_COUNT_TO_S = 128
@@ -83,8 +82,8 @@ module Novika
       io << (prototype.comment? || "a block")
     end
 
-    def self.desc(io)
-      io << "a block"
+    def self.typedesc
+      "block"
     end
 
     # Returns this block's comment, or nil if the comment was
@@ -93,10 +92,12 @@ module Novika
       @comment unless @comment.try &.empty?
     end
 
-    # Sets the block comment of this block to *comment*
-    # in case it doesn't have a comment already.
-    def describe_with?(comment comment_ : String) : String?
-      @comment = comment_ unless @comment
+    # Sets the block comment of this block to *comment* in
+    # case it doesn't have a comment already.
+    #
+    # Setting the comment can also be forced by making *force* true.
+    def describe_with?(comment : String, force = false) : String?
+      @comment = comment if force || !comment?
     end
 
     # See the same method in `Tape`.
