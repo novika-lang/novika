@@ -803,10 +803,10 @@ module Novika::Packages::Impl
       ( F -- Dq ): leaves the Description quote of the given Form.
 
       >>> 100 desc
-      === 'a decimal number 100'
+      === 'decimal number 100'
 
       >>> 'foobar' desc
-      === 'a quote 'foobar''
+      === 'quote 'foobar''
 
       >>> [ 1 2 3 ] desc
       === 'a block'
@@ -815,7 +815,7 @@ module Novika::Packages::Impl
       === 'I am a block'
 
       >>> true desc
-      === 'a boolean true'
+      === 'boolean true'
       END
       ) do |engine|
         quote = Quote.new(engine.stack.drop.desc)
