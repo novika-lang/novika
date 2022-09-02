@@ -16,7 +16,6 @@ module Novika
   # enclosing block.
   struct Word
     include Form
-    extend HasDesc
 
     # Death hook name.
     DIED = Word.new("*died")
@@ -34,8 +33,8 @@ module Novika
       io << "a word named " << id
     end
 
-    def self.desc(io : IO)
-      io << "a word"
+    def self.typedesc
+      "word"
     end
 
     def opened(engine : Engine) : self
@@ -88,7 +87,6 @@ module Novika
   # are peeled off like in an onion.
   struct QuotedWord
     include Form
-    extend HasDesc
 
     # Returns the underlying string id.
     getter id : String
@@ -100,8 +98,8 @@ module Novika
       io << "a quoted word named " << id
     end
 
-    def self.desc(io : IO)
-      io << "a quoted word"
+    def self.typedesc
+      "quoted word"
     end
 
     # "Peels" off a layer of quoting.

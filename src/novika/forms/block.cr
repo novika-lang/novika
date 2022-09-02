@@ -22,7 +22,6 @@ module Novika
   # wants or needs to.
   class Block
     include Form
-    extend HasDesc
 
     # Maximum amount of forms to display in block string representation.
     MAX_COUNT_TO_S = 128
@@ -83,8 +82,8 @@ module Novika
       io << (prototype.comment? || "a block")
     end
 
-    def self.desc(io)
-      io << "a block"
+    def self.typedesc
+      "block"
     end
 
     # Returns this block's comment, or nil if the comment was

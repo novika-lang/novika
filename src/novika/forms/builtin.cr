@@ -3,7 +3,6 @@ module Novika
   # `Proc`, for usage in the Novika-land.
   struct Builtin
     include Form
-    extend HasDesc
 
     # :nodoc:
     getter code : Engine ->
@@ -15,8 +14,8 @@ module Novika
       io << @desc
     end
 
-    def self.desc(io : IO)
-      io << "a builtin"
+    def self.typedesc
+      "builtin"
     end
 
     def open(engine : Engine)

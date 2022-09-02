@@ -17,7 +17,6 @@ module Novika
   # And yes, quotes do rely on the experimental grapheme API.
   module Quote
     include Form
-    extend HasDesc
 
     # Creates a quote variant from *string*.
     #
@@ -35,8 +34,8 @@ module Novika
       io << "a quote"
     end
 
-    def self.desc(io : IO)
-      io << "a quote"
+    def self.typedesc
+      "quote"
     end
 
     # Converts this quote variant to `String`.
@@ -143,6 +142,10 @@ module Novika
       @cached_count = @string.bytesize if ascii_only?
     end
 
+    def self.typedesc
+      "quote"
+    end
+
     protected def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
       return {
         # Fast path. Also, this string is ASCII only, then its
@@ -229,6 +232,10 @@ module Novika
     getter grapheme : String::Grapheme
 
     def initialize(@grapheme : String::Grapheme)
+    end
+
+    def self.typedesc
+      "quote"
     end
 
     def string : String

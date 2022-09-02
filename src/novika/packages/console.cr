@@ -7,6 +7,10 @@ require "termbox2" # TODO: remove when common color object exists
 
 struct Termbox::Color # TODO: remove when common color object exists
   include Novika::Form
+
+  def self.typedesc
+    "color"
+  end
 end
 
 # TODO: use same color as in Colors

@@ -20,7 +20,6 @@ module Novika
   # Raised when a form dies.
   class Died < Exception
     include Form
-    extend HasDesc
 
     # How many trace entries to display at max.
     MAX_TRACE = 64
@@ -39,8 +38,8 @@ module Novika
       io << "error: '" << details << "'"
     end
 
-    def self.desc(io : IO)
-      io << "an error"
+    def self.typedesc
+      "error"
     end
 
     # Appends a report about this error to *io*.

@@ -44,8 +44,6 @@ module Novika
   # so on, up until there are no scheduled blocks
   # (continuations) left.
   struct Engine
-    include Form
-
     # Maximum amount of scheduled continuations in `conts`. After
     # passing this number, `Died` is raised to bring attention
     # to such dangerous depth.

@@ -2,7 +2,6 @@ module Novika
   # Represents a boolean (true/false) value.
   abstract struct Boolean
     include Form
-    extend HasDesc
 
     # Creates a `Boolean` subclass for the given *object*.
     def self.[](object) : Boolean
@@ -19,21 +18,19 @@ module Novika
       Boolean[a == b]
     end
 
-    def self.desc(io : IO)
-      io << "a boolean"
+    def self.typedesc
+      "boolean"
     end
   end
 
   # Represents a truthy `Boolean`.
   struct True < Boolean
-    extend HasDesc
-
     def desc(io : IO)
       io << "boolean true"
     end
 
-    def self.desc(io : IO)
-      io << "boolean true"
+    def self.typedesc
+      "boolean"
     end
 
     def to_s(io)
@@ -46,14 +43,12 @@ module Novika
   # Represents a falsey `Boolean`. `False` is the only falsey
   # form in Novika.
   struct False < Boolean
-    extend HasDesc
-
     def desc(io : IO)
       io << "boolean false"
     end
 
-    def self.desc(io : IO)
-      io << "boolean false"
+    def self.typedesc
+      "boolean"
     end
 
     def sel(a, b)
