@@ -61,7 +61,25 @@
       ] or
     ] $: assertEqImpl
 
+    [ "( B M -- true/false ): asserts that Block dies with
+        Message set as the error's message."
+      $: msg new $: block
+      this $: self
+      #nil $: err
+
+      block orphan dup $: diesHandler block parent reparent reparent drop
+
+      diesHandler #*died [ =: err self resume ] opens
+      block do
+
+      err #nil = => [
+        'Expected ' block ' to die with ' msg ', but it didn\'t.' stack join comments gulp ^ ]
+
+      err getErrorDetails msg assertEqImpl open
+    ] $: assertDiesImpl
+
     deathHandlerBlock #assert= assertEqImpl opens
+    deathHandlerBlock #assertDies assertDiesImpl opens
 
     "Reparent test case block to our death handler block.
      Now any death in test case block will be reported to
@@ -122,8 +140,9 @@
 
     comments testCaseBlock
       [ 'Does not ' description stitch reportDeath ^ ]
-      [ val [ 'Does ' description stitch comments reportSuccess ]
-            [ 'Does not ' description stitch comments reportFailure ] br ]
+      [ do comments empty?
+          [ 'Does ' description stitch comments reportSuccess ]
+          [ 'Does not ' description stitch comments reportFailure ] br ]
     itImpl
   ] $: itShouldImpl
 

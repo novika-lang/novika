@@ -726,6 +726,15 @@ module Novika::Packages::Impl
         recpt.import!(from: donor)
       end
 
+      target.at("getErrorDetails", <<-END
+      ( Eo -- Dq ): leaves Details quote containing error details
+       of an Error object.
+      END
+      ) do |engine|
+        error = engine.stack.drop.assert(engine, Died)
+        Quote.new(error.details).push(engine)
+      end
+
       target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |engine|
         engine.stack.drop.to_quote(engine).push(engine)
       end
