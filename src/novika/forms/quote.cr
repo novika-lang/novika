@@ -31,7 +31,7 @@ module Novika
     end
 
     def desc(io : IO)
-      io << "a quote"
+      io << "quote '" << string << "'"
     end
 
     def self.typedesc

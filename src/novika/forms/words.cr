@@ -30,7 +30,7 @@ module Novika
     end
 
     def desc(io : IO)
-      io << "a word named " << id
+      io << "word named '" << id << "'"
     end
 
     def self.typedesc
@@ -95,7 +95,7 @@ module Novika
     end
 
     def desc(io : IO)
-      io << "a quoted word named " << id
+      io << "quoted word '" << id << "'"
     end
 
     def self.typedesc
