@@ -92,10 +92,12 @@ module Novika
       @comment unless @comment.try &.empty?
     end
 
-    # Sets the block comment of this block to *comment*
-    # in case it doesn't have a comment already.
-    def describe_with?(comment comment_ : String) : String?
-      @comment = comment_ unless @comment
+    # Sets the block comment of this block to *comment* in
+    # case it doesn't have a comment already.
+    #
+    # Setting the comment can also be forced by making *force* true.
+    def describe_with?(comment : String, force = false) : String?
+      @comment = comment if force || !comment?
     end
 
     # See the same method in `Tape`.
