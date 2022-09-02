@@ -1,3 +1,47 @@
+describe 'desc' [
+  it should 'leave correct descriptions for value forms' [
+    true desc 'boolean true' assert=
+    false desc 'boolean false' assert=
+    100 desc 'decimal number 100' assert=
+    100.5 desc 'decimal number 100.5' assert=
+    'hello world' desc 'quote \'hello world\'' assert=
+    #foo desc 'word named \'foo\'' assert=
+    ##foo desc 'quoted word \'foo\'' assert=
+    ###foo desc 'quoted word \'#foo\'' assert=
+  ]
+
+  it should 'leave correct descriptions for blocks' [
+    [ ] desc 'a block' assert=
+    [ "hello world" ] desc 'hello world' assert=
+    [ "" "" "" "hello world" ] desc 'hello world' assert=
+    [ "" "" 1 "hello world" 3 ] desc 'a block' assert=
+    [ "foo" [ "boo" ] "baa" ] desc 'foo' assert=
+  ]
+
+  it should 'leave correct descriptions for builtin' [
+    #+ here desc '( A B -- S ): leaves the Sum of two decimals.' assert=
+  ]
+]
+
+describe 'typedesc' [
+  it should 'leave correct descriptions for value forms' [
+    true typedesc 'boolean' assert=
+    false typedesc 'boolean' assert=
+    #+ here typedesc 'builtin' assert=
+    123 typedesc 'decimal' assert=
+    123.456 typedesc 'decimal' assert=
+    'hello world' typedesc 'quote' assert=
+    #foo typedesc 'word' assert=
+    ##foo typedesc 'quoted word' assert=
+  ]
+
+  it should 'leave correct descriptions for blocks' [
+    [ ] typedesc 'block' assert=
+    [ 1 2 3 ] typedesc 'block' assert=
+    [ "foobar" ] typedesc 'block' assert=
+  ]
+]
+
 describe 'asDecimal' [
   it dies 'when given quote' [ 'foo' asDecimal ]
   it dies 'when given word' [ #foo asDecimal ]

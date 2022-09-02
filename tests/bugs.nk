@@ -78,3 +78,11 @@ describe 'Infinite recursion when word undefined inside word trap #8' [
     ] there [ trigger-my-own-trap 300 trigger-upper-trap 200 trigger-upper-trap2 100 ] assert=
   ]
 ]
+
+describe 'Invalid typedesc for abstract types/modules #30' [
+  it should 'die with proper typedescs' [
+    [ 'foo' asWord ] 'bad type: quote, expected: a word' assertDies
+    [ true asQuote ] 'bad type: boolean, expected: a quote' assertDies
+    [ false asQuote ] 'bad type: boolean, expected: a quote' assertDies
+  ]
+]
