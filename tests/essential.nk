@@ -60,7 +60,7 @@ describe 'asDecimal' [
   it dies 'when given boolean in *asDecimal' [ true a asDecimal ]
   it dies 'when given block in *asDecimal' [ [] a asDecimal ]
   it should 'leave instance when given decimal in *asDecimal' [
-    100 a dup asDecimal same?
+    100 a dup asDecimal same? true assert=
   ]
 ]
 
@@ -82,7 +82,7 @@ describe 'asQuote' [
   it dies 'when given boolean in *asQuote' [ true a asQuote ]
   it dies 'when given block in *asQuote' [ [] a asQuote ]
   it should 'leave instance when given quote in *asQuote' [
-    'foo' a dup asQuote same?
+    'foo' a dup asQuote same? true assert=
   ]
 ]
 
@@ -104,7 +104,7 @@ describe 'asWord' [
   it dies 'when given boolean in *asWord' [ true a asWord ]
   it dies 'when given block in *asWord' [ [] a asWord ]
   it should 'leave instance when given word in *asWord' [
-    #foo a dup asWord same?
+    #foo a dup asWord same? true assert=
   ]
 ]
 
@@ -126,7 +126,7 @@ describe 'asQuotedWord' [
   it dies 'when given boolean in *asQuotedWord' [ true a asQuotedWord ]
   it dies 'when given block in *asQuotedWord' [ [] a asQuotedWord ]
   it should 'leave instance when given quoted word in *asQuotedWord' [
-    ##foo a dup asQuotedWord same?
+    ##foo a dup asQuotedWord same? true assert=
   ]
 ]
 
@@ -148,7 +148,7 @@ describe 'asBoolean' [
   it dies 'when given quoted word in *asBoolean' [ ##foo a asBoolean ]
   it dies 'when given block in *asBoolean' [ [] a asBoolean ]
   it should 'leave instance when given boolean in *asBoolean' [
-    true a dup asBoolean same?
+    true a dup asBoolean same? true assert=
   ]
 ]
 
@@ -159,7 +159,7 @@ describe 'asBlock' [
   it dies 'when given quoted word' [ ##foo asBlock ]
   it dies 'when given boolean' [ true asBlock ]
   it should 'leave same block when given block' [
-    [] dup asBlock same?
+    [] dup asBlock same? true assert=
   ]
 ]
 
@@ -350,30 +350,24 @@ describe 'uppercase?' [
   ]
 
   it should 'leave false for whitespace quote' [
-    [ ] [
-      ' ' uppercase? false assert=
-      '     ' uppercase? false assert=
-      '
-      ' uppercase? false assert=
-    ] there [ ] all?
+    ' ' uppercase? false assert=
+    '     ' uppercase? false assert=
+    '
+    ' uppercase? false assert=
   ]
 
   it should 'work for single-letter quotes' [
-    [ ] [
-      'H' uppercase?  true assert=
-      'Á' uppercase?  true assert=
-      'c' uppercase? false assert=
-      '.' uppercase? false assert=
-    ] there [ ] all?
+    'H' uppercase?  true assert=
+    'Á' uppercase?  true assert=
+    'c' uppercase? false assert=
+    '.' uppercase? false assert=
   ]
 
   it should 'work for multi-letter quotes' [
-    [ ] [
-      'HELLO' uppercase?  true assert=
-        'HÁË' uppercase?  true assert=
-      'HeLLO' uppercase? false assert=
-      'HÁËå'  uppercase? false assert=
-    ] there [ ] all?
+    'HELLO' uppercase?  true assert=
+      'HÁË' uppercase?  true assert=
+    'HeLLO' uppercase? false assert=
+    'HÁËå'  uppercase? false assert=
   ]
 ]
 
@@ -391,34 +385,28 @@ describe 'toUppercase' [
   ]
 
   it should 'leave whitespace/single-uppercase-character quote unchanged' [
-    [ ] [
-      ' ' toUppercase ' ' assert=
-      'C' toUppercase 'C' assert=
-      'Ä' toUppercase 'Ä' assert=
-      '.' toUppercase '.' assert=
-      '0' toUppercase '0' assert=
-      '°' toUppercase '°' assert=
-      '€' toUppercase '€' assert=
-    ] there [ ] all?
+    ' ' toUppercase ' ' assert=
+    'C' toUppercase 'C' assert=
+    'Ä' toUppercase 'Ä' assert=
+    '.' toUppercase '.' assert=
+    '0' toUppercase '0' assert=
+    '°' toUppercase '°' assert=
+    '€' toUppercase '€' assert=
   ]
 
 
   it should 'uppercase single lowercase character' [
-    [ ] [
-      'c' toUppercase 'C' assert=
-      'ä' toUppercase 'Ä' assert=
-      'ā' toUppercase 'Ā' assert=
-    ] there [ ] all?
+    'c' toUppercase 'C' assert=
+    'ä' toUppercase 'Ä' assert=
+    'ā' toUppercase 'Ā' assert=
   ]
 
   it should 'uppercase multi-character quotes' [
-    [ ] [
-      'HI' toUppercase 'HI' assert=
-      'Hi' toUppercase 'HI' assert=
-      'hI' toUppercase 'HI' assert=
-      'Ḧï' toUppercase 'ḦÏ' assert=
-      'Ãuxi£åÅ' toUppercase 'ÃUXI£ÅÅ' assert=
-    ] there [ ] all?
+    'HI' toUppercase 'HI' assert=
+    'Hi' toUppercase 'HI' assert=
+    'hI' toUppercase 'HI' assert=
+    'Ḧï' toUppercase 'ḦÏ' assert=
+    'Ãuxi£åÅ' toUppercase 'ÃUXI£ÅÅ' assert=
   ]
 ]
 
@@ -504,10 +492,10 @@ describe '|slice' [
   ]
 
   it should 'slice when |at in first half' [
-    [ ] [ [ 1 2 3 4 ] dup 1 |to |slice ] there [ [ 1 ] [ 2 3 4 ] ]
+    [ ] [ [ 1 2 3 4 ] dup 1 |to |slice ] there [ [ 1 ] [ 2 3 4 ] ] assert=
   ]
 
   it should 'slice when |at in second half' [
-    [ ] [ [ 1 2 3 4 ] dup 3 |to |slice ] there [ [ 1 2 3 ] [ 4 ] ]
+    [ ] [ [ 1 2 3 4 ] dup 3 |to |slice ] there [ [ 1 2 3 ] [ 4 ] ] assert=
   ]
 ]

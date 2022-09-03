@@ -254,13 +254,13 @@ describe 'fetch:' [
   it should 'ignore non-block forms' [
     'This is not a block!' #x fetch: [ 1 + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'do nothing when entry does not exist' [
     [ ] #x fetch: [ 1 + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'fetch when entry exists' [
@@ -285,7 +285,6 @@ describe 'fetch:' [
 
     sumVal [ x y + ] assert=
     sumVal open 300 assert=
-    and
   ]
 ]
 
@@ -430,7 +429,7 @@ describe 'eachWithIndex' [
   it should 'do nothing if empty list block' [
     [ ] eachWithIndex: [ 1 + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'iterate over whole block with cursor at end' [
@@ -490,7 +489,7 @@ describe 'each' [
   it should 'do nothing if empty list block' [
     [ ] each: [ 1 + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'iterate over whole block with cursor at end' [
@@ -544,7 +543,7 @@ describe 'pairs' [
   it should 'do nothing if list block is empty' [
     [ ] pairs: [ + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it dies 'when count is odd' [
@@ -569,10 +568,7 @@ describe 'pairs' [
     a 2 |to
     a pairs: [ stack shallowCopy stacks gulp ]
     a |at 2 assert=
-    stacks [
-      [ 1 2 ]
-      [ 3 4 ]
-    ] assert=
+    stacks [ [ 1 2 ] [ 3 4 ] ] assert=
   ]
 
   it should 'not modify block when pair populated stack is modified' [
@@ -600,13 +596,13 @@ describe 'consPairs' [
   it should 'do nothing if list block is empty' [
     [ ] consPairs: [ + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'do nothing if one item in list block' [
     [ 1 ] consPairs: [ + ]
 
-    stack empty?
+    stack empty? true assert=
   ]
 
   it should 'leave cursor intact' [
@@ -615,11 +611,7 @@ describe 'consPairs' [
     a 2 |to
     a consPairs: [ stack shallowCopy stacks gulp ]
     a |at 2 assert=
-    stacks [
-      [ 1 2 ]
-      [ 2 3 ]
-      [ 3 4 ]
-    ] assert=
+    stacks [ [ 1 2 ] [ 2 3 ] [ 3 4 ] ] assert=
   ]
 
   it should 'support even number of items' [
@@ -727,7 +719,7 @@ describe 'reduce' [
   it should 'call block for one value' [
     false $: status
     [ 1 ] [ true =: status + ] 0 reduce 1 assert=
-    status
+    status true assert=
   ]
 
   it should 'call block and reduce multiple values' [
@@ -811,11 +803,11 @@ describe 'amount' [
 
 describe 'all?' [
   it should 'leave true for empty list' [
-    [ ] [ ] all?
+    [ ] [ ] all? true assert=
   ]
 
   it should 'leave true for empty action block' [
-    [ 1 2 3 ] [ ] all?
+    [ 1 2 3 ] [ ] all? true assert=
   ]
 
   it should 'leave proper result' [
@@ -835,11 +827,11 @@ describe 'all?' [
 
 describe 'any?' [
   it should 'leave false for empty list' [
-    [ ] [ ] any? not
+    [ ] [ ] any? false assert=
   ]
 
   it should 'leave true for empty action block' [
-    [ 1 2 3 ] [ ] any?
+    [ 1 2 3 ] [ ] any? true assert=
   ]
 
   it should 'leave proper result' [
@@ -907,7 +899,7 @@ describe 'conjure/here' [
   it should 'leave definitions of words' [
     [ 1 2 3 4 ] $: a
     a $: b
-    #b here a same?
+    #b here a same? true assert=
   ]
 
   it should 'peel off a # from quoted words' [
@@ -1116,7 +1108,7 @@ describe 'collect' [
   it should 'not call block & leave empty block when N = 0' [
     false $: called
     0 collect: [ true =: called ]
-    called not
+    called false assert=
   ]
 
   it should 'collect results of running block N items & have correct stack signature' [
@@ -1210,7 +1202,9 @@ describe 'concat!' [
   it should 'concat two empty blocks' [
     [ ] $: a
     [ ] $: b
-    a b concat! dup a same? swap [ ] assert= and
+    a b concat! dup a same? true assert=
+    a [ ] assert=
+    b [ ] assert=
   ]
 
   it should 'concat with empty A block' [
@@ -1223,9 +1217,7 @@ describe 'concat!' [
 
   it should 'concat if both non-empty' [
     [ 1 2 3 ] $: a
-      a [ 4 5 6 ] concat! a same?
-      a [ 1 2 3 4 5 6 ] assert=
-    and
+    a [ 4 5 6 ] concat! [ 1 2 3 4 5 6 ] assert=
   ]
 
   it should 'move the cursor in A block, but not B block' [
@@ -1234,9 +1226,8 @@ describe 'concat!' [
     a 1 |to
     b 2 |to
     a b concat!
-      a |at 4 assert=
-      b |at 2 assert=
-    and
+    a |at 4 assert=
+    b |at 2 assert=
   ]
 ]
 

@@ -70,14 +70,13 @@ describe 'Package math: inter-domain decimal math' [
   it should 'subtract when either addend is negative' [
     100 -3 + 100 3 - assert=
     -100 3 + 3 100 - assert=
-    and
   ]
 
   it should 'add when both addends are negative' [
     -100 -300 + -400 assert=
   ]
 
-  itDies 'when a non-decimal is added to decimal' [
+  it dies 'when a non-decimal is added to decimal' [
     1 '2' +
   ]
 
@@ -116,7 +115,7 @@ describe 'Package math: inter-domain decimal math' [
     -100 2 / -50 assert=
   ]
 
-  itDies 'when divisor is zero' [
+  it dies 'when divisor is zero' [
     100 0 /
   ]
 
@@ -133,10 +132,9 @@ describe 'Package math: inter-domain decimal math' [
   it should 'compute modulo with negative divisor' [
     13 -4 rem -3 assert=
     -13 -4 rem -1 assert=
-    and
   ]
 
-  itDies 'when modulo divisor is zero' [
+  it dies 'when modulo divisor is zero' [
     13 0 rem
   ]
 ]
@@ -152,7 +150,7 @@ describe 'Package math: floating point (precise) math' [
 
   it should 'compute modulo with fp divisor' [
     "TODO: RAISES FOR SOME REASON 5 0.25 rem 0 assert="
-    false
+    false true assert=
   ]
 
   it should 'compute modulo with fp divident' [
@@ -161,7 +159,7 @@ describe 'Package math: floating point (precise) math' [
 ]
 
 describe '*asDecimal hook for implicit conversion of blocks to decimals' [
-  itDies 'when block does not implement *asDecimal' [
+  it dies 'when block does not implement *asDecimal' [
     1 [ ] +
   ]
 
@@ -175,7 +173,7 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
     1 2 squareWrap + 5 assert=
   ]
 
-  itDies 'when block does not return a decimal in *asDecimal' [
+  it dies 'when block does not return a decimal in *asDecimal' [
     [ toQuote $: *asDecimal this ] @: wrap
     1 2 wrap +
   ]

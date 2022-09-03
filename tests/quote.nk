@@ -16,13 +16,11 @@ describe 'toCapitalized' [
   ]
 
   it should 'not touch whitespace quote' [
-    [ ] [
-      ' ' toCapitalized ' ' assert=
-      '    ' toCapitalized '    ' assert=
-      '
-      ' toCapitalized '
-      ' assert=
-    ] there [ ] all?
+    ' ' toCapitalized ' ' assert=
+    '    ' toCapitalized '    ' assert=
+    '
+    ' toCapitalized '
+    ' assert=
   ]
 
   it should 'not touch already capitalized quote' [
@@ -30,23 +28,19 @@ describe 'toCapitalized' [
   ]
 
   it should 'work like toUppercase for single-character quote' [
-    [ ] [
-      'h' toCapitalized 'H' assert=
-      'H' toCapitalized 'H' assert=
-      'ḧ' toCapitalized 'Ḧ' assert=
-      '.' toCapitalized '.' assert=
-    ] there [ ] all?
+    'h' toCapitalized 'H' assert=
+    'H' toCapitalized 'H' assert=
+    'ḧ' toCapitalized 'Ḧ' assert=
+    '.' toCapitalized '.' assert=
   ]
 
   it should 'properly capitalize non-capitalized quote' [
-    [ ] [
-      'john doe went to town in search of rats' toCapitalized
-      'John doe went to town in search of rats' assert=
+    'john doe went to town in search of rats' toCapitalized
+    'John doe went to town in search of rats' assert=
 
-      'ïmanu!' toCapitalized
-      'Ïmanu!' assert=
+    'ïmanu!' toCapitalized
+    'Ïmanu!' assert=
 
-      "..."
-    ] there [ ] all?
+    "..."
   ]
 ]

@@ -4,7 +4,7 @@ describe 'Handle infinite block instantiation #22' [
   it should 'instantiate block with reflections' [
     [ ] $: a
     a a <<
-    a new >> same?
+    a new >> same? true assert=
   ]
 
   it should 'instantiate block with deep reflections' [
@@ -21,14 +21,14 @@ describe 'Handle infinite block instantiation #22' [
   it should 'compare reflections' [
     [ ] $: a
     a a enclose <<
-    a 0 fromLeft a = not
+    a 0 fromLeft a = not true assert=
   ]
 
   it should 'compare deep reflections' [
     [ ] $: x
     [ [ [ [ [ [ [ x ] ] ] ] ] ] ] here $: y
     x y enclose shove
-    y y = x 0 fromLeft y = not assert=
+    y y = x 0 fromLeft y = not true assert=
   ]
 ]
 
@@ -88,7 +88,7 @@ describe 'Invalid typedesc for abstract types/modules #30' [
 ]
 
 describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
-  it should 'just push the majority of value forms in hydrate and friends' [
+  it should 'just push the majority of value forms with hydrate and friends' [
     [ ] $: list
     list 1 hydrate "decimal"
     list #foo hydrate "word"
