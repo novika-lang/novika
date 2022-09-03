@@ -105,12 +105,16 @@ module Novika
     # "Peels" off a layer of quoting.
     #
     # ```
-    # QuotedWord.new("#foo").unquote   # Word.new("foo")
-    # QuotedWord.new("##foo").unquote  # QuotedWord.new("#foo")
-    # QuotedWord.new("###foo").unquote # QuotedWord.new("##foo")
+    # QuotedWord.new("#foo").peel   # Word.new("foo")
+    # QuotedWord.new("##foo").peel  # QuotedWord.new("#foo")
+    # QuotedWord.new("###foo").peel # QuotedWord.new("##foo")
     # ```
     def peel
       id.prefixed_by?('#') ? QuotedWord.new(id.lchop) : Word.new(id)
+    end
+
+    def val(engine : Engine? = nil, stack : Block? = nil)
+      peel.push(stack || Block.new)
     end
 
     # Converts this quoted word to `Word`.

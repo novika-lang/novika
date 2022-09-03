@@ -193,14 +193,7 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
   ]
 
   it should 'die when same type left in *asDecimal' [
-    "TODO: change this to itDiesWith (TODO) later. It does die here, but for
-     a different reason."
-
-    "
     [ $: n [ n foos ] @: *asDecimal this ] @: foos
-    100 foos 200 foos + 300 foos assert=
-    "
-
-    false
+    [ 100 foos 200 foos + ] 'recursion or block open is too deep (> 1024)' assertDies
   ]
 ]

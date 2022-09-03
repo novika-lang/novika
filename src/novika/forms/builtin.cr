@@ -22,6 +22,14 @@ module Novika
       code.call(engine)
     end
 
+    def val(engine : Engine? = nil, stack : Block? = nil)
+      stack ||= Block.new
+      engine ||= Engine.new
+      engine.schedule(self, stack)
+      engine.exhaust
+      stack.drop
+    end
+
     def to_s(io)
       io << "[native code]"
     end

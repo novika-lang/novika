@@ -56,8 +56,16 @@ module Novika
     def initialize(@form)
     end
 
-    # Pushes this entry's value form onto the active stack.
+    # See the same method in `Form`.
     delegate :push, to: form
+
+    # Works just like `open`, but returns the result immediately.
+    #
+    # For details on the difference between `open` and `val`,
+    # see `Form#val`.
+    def val(engine : Engine? = nil, stack : Block = nil)
+      form
+    end
 
     # :ditto:
     def open(engine : Engine) : Nil
@@ -77,11 +85,7 @@ module Novika
   # A kind of entry that, when opened, in turn opens its
   # value form.
   class OpenEntry < Entry
-    # Opens this entry's value form in *engine*.
-    def open(engine : Engine) : Nil
-      form.open(engine)
-
-      nil
-    end
+    # See the same method in `Form`.
+    delegate :open, :val, to: form
   end
 end

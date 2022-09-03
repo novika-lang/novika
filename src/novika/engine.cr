@@ -99,6 +99,21 @@ module Novika
       Block.new.add(block).add(stack)
     end
 
+    # Creates and returns an offspring engine. Use this if
+    # you want stack overflow handling instead of segfault.
+    #
+    # There are no speed implications, the only inconvenience
+    # is the need to have a parent engine to begin with.
+    def child
+      nesting = @nesting + 1
+
+      if nesting > MAX_ENGINE_NESTING
+        raise Died.new("recursion or block open is too deep (> #{MAX_ENGINE_NESTING})")
+      end
+
+      Engine.new(nesting, @profile)
+    end
+
     # Returns the active continuation.
     def cont
       conts.top.assert(self, Block)
@@ -124,7 +139,7 @@ module Novika
     # a memory usage explosion.
     def schedule!(other : Block)
       if conts.count > MAX_CONTS
-        raise Died.new("continuations stack dangerously deep (> #{MAX_CONTS})")
+        raise Died.new("recursion or block open is too deep (> #{MAX_CONTS})")
       end
 
       tap { conts.add(other) }
@@ -138,13 +153,30 @@ module Novika
       schedule! Engine.cont(form.to(0), stack)
     end
 
-    # Exactly the same as `schedule(form, stack)`.
-    def schedule!(form, stack)
-      # In case we're running in an empty engine, create an
-      # empty block for the form.
-      schedule! Engine.cont(Block.new, stack)
+    # Schedules *form* for opening in *stack*.
+    #
+    # Same as `schedule(form, stack)`.
+    def schedule!(form : Builtin | QuotedWord, stack)
+      unless stack.same?(self.stack)
+        # Schedule a fictious entry. Note how we do *not* set
+        # the cursor to 0. This handles two things:
+        #
+        # 1) First, the engine won't try to execute *form*
+        #    again on the next interpreter loop cycle.
+        #
+        # 2) Second, if *form* schedules something else, all
+        #    will work as expected: first, the scheduled thing
+        #    will run, and then all that's above, again, without
+        #    re-running *form* because the cursor is past it.
+        schedule! Engine.cont(Block.new.add(form), stack)
+      end
 
-      tap { form.open(self) }
+      form.open(self)
+    end
+
+    # Same as `schedule(form, stack)`.
+    def schedule!(form, stack)
+      form.push(stack)
     end
 
     # Adds an instance of *form* block to the continuations
@@ -260,30 +292,6 @@ module Novika
           raise EngineFailure.new(e)
         end
       end
-    end
-
-    # Schedules *form* in this engine's offspring, with *stack*
-    # set as the stack, and exhausts the offspring. Returns
-    # *stack*.
-    #
-    # Exists to simplify calls to Novika from Crystal. Raises
-    # if cannot nest (due to exceeding recursion depth, see
-    # `MAX_ENGINE_NESTING`).
-    #
-    # Whether the offspring is profiled is inherited from this
-    # engine: if this engine is profiled, the offspring is.
-    def [](form, stack stack_ = stack)
-      if nesting > MAX_ENGINE_NESTING
-        raise Died.new(
-          "too many engines (> #{MAX_ENGINE_NESTING}) of the same " \
-          "origin: probably deep recursion in a word called from" \
-          "native code, such as *asDecimal")
-      end
-
-      engine = Engine.new(nesting + 1, @profile)
-      engine.schedule(form, stack_)
-      engine.exhaust
-      stack_
     end
   end
 end

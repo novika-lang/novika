@@ -310,11 +310,20 @@ module Novika
       top.tap { self.tape = tape.drop? || raise "unreachable" }
     end
 
-    # Adds a continuation for an instance of this block to
-    # *engine*. *stack* may be provided to be the stack the
-    # instance will operate on.
-    def open(engine : Engine, over stack : Block = engine.stack) : self
+    # Schedules this block for execution in *engine* using the
+    # safe scheduling method (see `Engine#schedule`). Optionally,
+    # a *stack* block may be provided (otherwise, the *engine*'s
+    # current stack is used).
+    def open(engine : Engine, stack : Block = engine.stack) : self
       tap { engine.schedule(self, stack) }
+    end
+
+    def val(engine : Engine? = nil, stack : Block? = nil)
+      stack ||= Block.new
+      engine ||= Engine.new
+      engine.schedule(self, stack)
+      engine.exhaust
+      stack.drop
     end
 
     # Returns a shallow copy of this block.
@@ -387,10 +396,11 @@ module Novika
     # Assert through the result of running *name*'s value in
     # this block's table.
     private def assert?(engine : Engine, name : Form, type : T.class) : T? forall T
-      form = table.get(name) { return }
-      result = engine[form, push(self.class.new)].drop
+      entry = table.get(name) { return }
+      child = engine.child
+      result = entry.val(child, Block.new.add(self))
       unless result.is_a?(Block) && same?(result)
-        result.assert(engine, T)
+        result.assert(child, T)
       end
     end
 

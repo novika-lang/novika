@@ -86,3 +86,27 @@ describe 'Invalid typedesc for abstract types/modules #30' [
     [ false asQuote ] 'bad type: boolean, expected: a quote' assertDies
   ]
 ]
+
+describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
+  it should 'just push the majority of value forms in hydrate and friends' [
+    [ ] $: list
+    list 1 hydrate "decimal"
+    list #foo hydrate "word"
+    list true hydrate "bool"
+    list 'hello' hydrate "quote"
+    list [ 1 #foo true 'hello' ] here assert=
+  ]
+
+  it should 'peel off a layer of quoting from quoted words when hydrating' [
+    [ ] ##foobar there [ foobar ] assert=
+    [ ] ###foobar there [ #foobar ] assert=
+  ]
+
+  it should 'evaluate blocks when hydrating' [
+    [ ] [ 1 2 + ] there [ 3 ] assert=
+  ]
+
+  it should 'evaluate builtins when hydrating' [
+    [ 1 2 ] #+ here there [ 3 ] assert=
+  ]
+]
