@@ -74,6 +74,21 @@ module Novika
       Decimal.new(val.trunc)
     end
 
+    # Asserts this decimal is in *range*. Dies if it isn't.
+    def in(range) : Decimal
+      return self if range.includes?(val)
+
+      die("decimal out of range: expected #{range.begin} to: #{range.end}, got: #{self}")
+    end
+
+    # Asserts this decimal is a positive integer (i.e., >= 0).
+    # Dies if it isn't.
+    def posint : Decimal
+      return self if val >= 0 && val.scale.zero?
+
+      die("decimal is not a positive integer: #{self}")
+    end
+
     def to_s(io)
       io << val
     end

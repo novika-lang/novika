@@ -1,0 +1,39 @@
+describe 'rgb' [
+  it should 'create a color from valid 0-255 decimals, get them back' [
+    28 236 100 rgb $: color
+    color desc color toQuote assert=
+    color toQuote 'rgb(28, 236, 100)' assert=
+    [ ] [ color getRGB ] there [ 28 236 100 ] assert=
+  ]
+
+  it should 'allow to set & get alpha' [
+    28 236 100 rgb $: color
+    color getAlpha 255 assert=
+
+    color 100 withAlpha
+    color getAlpha 255 assert= drop "assert that withAlpha doesn't mutate"
+      =: color
+
+    color getAlpha 100 assert=
+    color desc color toQuote assert=
+    color toQuote 'rgba(28, 236, 100, 100)' assert=
+  ]
+
+  it should 'die when channel values are out of range' [
+    [ -1 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 -1 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 0 -1 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 0 0 rgb -1 withAlpha ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+
+    [ 256 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 256 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 0 256 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 0 0 rgb 256 withAlpha ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+
+    [ 0.123 0 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0 rgb 0.123 withAlpha ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+
+]
