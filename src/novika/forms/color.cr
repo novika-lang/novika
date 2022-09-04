@@ -2,22 +2,22 @@ module Novika
   struct Color
     include Form
 
-    # Returns decimal for red channel value (0-255).
+    # Returns red channel value decimal (0-255).
     getter r : Decimal
 
-    # Returns decimal for green channel value (0-255).
+    # Returns green channel value decimal (0-255).
     getter g : Decimal
 
-    # Returns decimal for blue channel value (0-255).
+    # Returns blue channel value decimal (0-255).
     getter b : Decimal
 
-    # Holds decimal for alpha channel value (0-255).
+    # Holds alpha channel value decimal (0-255).
     #
-    # You can mutate this to set alpha, but remember that
+    # You can mutate this to set alpha, but do remember that
     # `Color` is a struct.
     property a : Decimal
 
-    def initialize(@r, @g, @b, @a = Decimal.new(255))
+    protected def initialize(@r, @g, @b, @a = Decimal.new(255))
     end
 
     # Returns a tuple of R, G, B channel values.
@@ -27,72 +27,23 @@ module Novika
 
     # Returns a tuple with H, S, L of this color.
     def hsl : {Decimal, Decimal, Decimal}
-      r = self.r.to_f64
-      g = self.g.to_f64
-      b = self.b.to_f64
+      h, s, l = Color.rgb2hsl(r.to_f64, g.to_f64, b.to_f64)
 
-      rp = r / 255
-      gp = g / 255
-      bp = b / 255
-      cmax = {rp, gp, bp}.max
-      cmin = {rp, gp, bp}.min
-      delta = cmax - cmin
-
-      if delta.zero?
-        h = 0
-      elsif cmax == rp
-        h = 60 * (((gp - bp) / delta) % 6)
-      elsif cmax == gp
-        h = 60 * (((bp - rp) / delta) + 2)
-      elsif cmax == bp
-        h = 60 * (((rp - gp) / delta) + 4)
-      end
-
-      l = (cmax + cmin) / 2
-      s = delta.zero? ? 0 : delta / (1 - (2 * l - 1).abs)
-
-      {Decimal.new(h.not_nil!.round),
-       Decimal.new(s * 100).round,
-       Decimal.new(l * 100).round}
+      {Decimal.new(h), Decimal.new(s), Decimal.new(l)}
     end
 
     # Returns a tuple with H, S, V of this color.
     def hsv : {Decimal, Decimal, Decimal}
-      r = self.r.to_f64
-      g = self.g.to_f64
-      b = self.b.to_f64
+      h, s, v = Color.rgb2hsv(r.to_f64, g.to_f64, b.to_f64)
 
-      rp = r / 255
-      gp = g / 255
-      bp = b / 255
-      cmax = {rp, gp, bp}.max
-      cmin = {rp, gp, bp}.min
-      delta = cmax - cmin
-
-      if delta.zero?
-        h = 0
-      elsif cmax == rp
-        h = 60 * (((gp - bp) / delta) % 6)
-      elsif cmax == gp
-        h = 60 * (((bp - rp) / delta) + 2)
-      elsif cmax == bp
-        h = 60 * (((rp - gp) / delta) + 4)
-      end
-
-      v = cmax
-      s = cmax.zero? ? 0 : delta / cmax
-
-      {Decimal.new(h.not_nil!.round),
-       Decimal.new(s * 100).round,
-       Decimal.new(v * 100).round}
+      {Decimal.new(h), Decimal.new(s), Decimal.new(v)}
     end
 
     # Returns a tuple with L, C, H of this color.
     def lch : {Decimal, Decimal, Decimal}
       l, c, h = Color.rgb2lch(r.to_f64, g.to_f64, b.to_f64)
-      {Decimal.new(l),
-       Decimal.new(c),
-       Decimal.new(h)}
+
+      {Decimal.new(l), Decimal.new(c), Decimal.new(h)}
     end
 
     def self.typedesc
@@ -113,7 +64,8 @@ module Novika
       io << ")"
     end
 
-    # Creates a `Color` from RGB.
+    # Creates a `Color` from *r*ed (0 <= h <= 255), *g*reen
+    # (0 <= g <= 255), *b*lue (0 <= b <= 255) channel values.
     def self.rgb(r, g, b) : Color
       new(r, g, b)
     end
@@ -146,17 +98,42 @@ module Novika
         rp, gp, bp = {c, 0, x}
       end
 
-      rgb(
-        r: Decimal.new(((rp.not_nil! + m) * 255).round),
-        g: Decimal.new(((gp.not_nil! + m) * 255).round),
-        b: Decimal.new(((bp.not_nil! + m) * 255).round),
+      new(
+        Decimal.new(((rp.not_nil! + m) * 255).round),
+        Decimal.new(((gp.not_nil! + m) * 255).round),
+        Decimal.new(((bp.not_nil! + m) * 255).round),
       )
+    end
+
+    # Returns an HSL tuple for an RGB color.
+    protected def self.rgb2hsl(r, g, b)
+      rp = r / 255
+      gp = g / 255
+      bp = b / 255
+      cmax = {rp, gp, bp}.max
+      cmin = {rp, gp, bp}.min
+      delta = cmax - cmin
+
+      if delta.zero?
+        h = 0
+      elsif cmax == rp
+        h = 60 * (((gp - bp) / delta) % 6)
+      elsif cmax == gp
+        h = 60 * (((bp - rp) / delta) + 2)
+      elsif cmax == bp
+        h = 60 * (((rp - gp) / delta) + 4)
+      end
+
+      l = (cmax + cmin) / 2
+      s = delta.zero? ? 0 : delta / (1 - (2 * l - 1).abs)
+
+      {h.not_nil!.round, (s * 100).round, (l * 100).round}
     end
 
     # Creates a `Color` from *h*ue (0 <= h <= 360, degrees),
     # *s*aturation (0 <= s <= 100, percents), and *v*alue
     # (0 <= v <= 100, percents).
-    def self.hsv(h, s, v)
+    def self.hsv(h, s, v) : Color
       h = h.to_f64
       s = s.to_f64
       v = v.to_f64
@@ -182,16 +159,41 @@ module Novika
         rp, gp, bp = {c, 0, x}
       end
 
-      rgb(
-        r: Decimal.new(((rp.not_nil! + m) * 255).round),
-        g: Decimal.new(((gp.not_nil! + m) * 255).round),
-        b: Decimal.new(((bp.not_nil! + m) * 255).round),
+      new(
+        Decimal.new(((rp.not_nil! + m) * 255).round),
+        Decimal.new(((gp.not_nil! + m) * 255).round),
+        Decimal.new(((bp.not_nil! + m) * 255).round),
       )
+    end
+
+    # Returns an HSV tuple for an RGB color.
+    protected def self.rgb2hsv(r, g, b)
+      rp = r / 255
+      gp = g / 255
+      bp = b / 255
+      cmax = {rp, gp, bp}.max
+      cmin = {rp, gp, bp}.min
+      delta = cmax - cmin
+
+      if delta.zero?
+        h = 0
+      elsif cmax == rp
+        h = 60 * (((gp - bp) / delta) % 6)
+      elsif cmax == gp
+        h = 60 * (((bp - rp) / delta) + 2)
+      elsif cmax == bp
+        h = 60 * (((rp - gp) / delta) + 4)
+      end
+
+      v = cmax
+      s = cmax.zero? ? 0 : delta / cmax
+
+      {h.not_nil!.round, (s * 100).round, (v * 100).round}
     end
 
     # Creates a `Color` from *l*ightness (0-100), *c*hroma
     # (0-132), *h*ue (0-360).
-    def self.lch(l, c, h)
+    def self.lch(l, c, h) : Color
       l = l.to_f64
       c = c.to_f64
       h = h.to_f64
@@ -245,6 +247,7 @@ module Novika
       {l, Math.cos(h) * c, Math.sin(h) * c}
     end
 
+    # Returns an RGB tuple for an LCH color.
     protected def self.lch2rgb(l, c, h)
       lab2rgb *lch2lab(l, c, h)
     end
@@ -283,6 +286,7 @@ module Novika
       {l < 0 ? 0 : l, 500 * (x - y), 200 * (y - z)}
     end
 
+    # Returns an LCH tuple for an RGB color.
     protected def self.rgb2lch(r, g, b)
       l, a, b = lab2lch *rgb2lab(r, g, b)
       {l.round,

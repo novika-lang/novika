@@ -7,7 +7,7 @@ module Novika::Packages::Impl
     end
 
     def self.purpose : String
-      "vocabulary for working with colors"
+      "exposes vocabulary for working with colors"
     end
 
     def self.on_by_default? : Bool
