@@ -114,8 +114,8 @@ describe 'hsl' [
     [ 0 0 -1 hsl ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
 
     [ 361 0 0 hsl ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
-    [ 0 361 0 hsl ] 'decimal out of range: expected 0 to: 100, got: 361' assertDies
-    [ 0 0 361 hsl ] 'decimal out of range: expected 0 to: 100, got: 361' assertDies
+    [ 0 101 0 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 0 101 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
 
     [ 0.123 0 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
     [ 0 0.123 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
@@ -196,11 +196,81 @@ describe 'hsv/hsb' [
     [ 0 0 -1 hsv ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
 
     [ 361 0 0 hsv ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
-    [ 0 361 0 hsv ] 'decimal out of range: expected 0 to: 100, got: 361' assertDies
-    [ 0 0 361 hsv ] 'decimal out of range: expected 0 to: 100, got: 361' assertDies
+    [ 0 101 0 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 0 101 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
 
     [ 0.123 0 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
     [ 0 0.123 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
     [ 0 0 0.123 hsv ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+]
+
+describe 'lch' [
+  "As you can see, the conversion is pretty lossy (read the
+   doc on `lch`). So these are just stability tests."
+
+  it should 'create a color from decimals in range, get them back (lossy)' [
+    50 50 50 lch $: color
+    [ ] [ color getRGB ] there [ 182 95 55 ] assert=
+    [ ] [ color getLCH ] there [ 50 50 50 ] assert=
+
+    50 50 215 lch $: color
+    [ ] [ color getRGB ] there [ 0 138 167 ] assert=
+    [ ] [ color getLCH ] there [ 53 32 230 ] assert= "They do look the same!"
+
+    69 9 204 lch $: color
+    [ ] [ color getRGB ] there [ 148 173 175 ] assert=
+    [ ] [ color getLCH ] there [ 69 9 206 ] assert=
+
+    78 74 133 lch $: color
+    [ ] [ color getRGB ] there [ 122 215 85 ] assert=
+    [ ] [ color getLCH ] there [ 78 74 133 ] assert=
+
+    40 38 251 lch $: color
+    [ ] [ color getRGB ] there [ 0 103 153 ] assert=
+    [ ] [ color getLCH ] there [ 41 35 260 ] assert= "They do!"
+
+    44 95 338 lch $: color
+    [ ] [ color getRGB ] there [ 208 0 165 ] assert=
+    [ ] [ color getLCH ] there [ 47 84 339 ] assert=
+
+    44 95 19 lch $: color
+    [ ] [ color getRGB ] there [ 232 0 60 ] assert=
+    [ ] [ color getLCH ] there [ 49 84 26 ] assert=
+
+    74 107 26 lch $: color
+    [ ] [ color getRGB ] there [ 255 61 103 ] assert=
+    [ ] [ color getLCH ] there [ 58 77 17 ] assert=
+  ]
+
+  it should 'stabilize after a few rounds' [
+    74 107 26 lch $: color "This seems to be the most erroneous color."
+
+    [ ] [
+    color getLCH "1st round, errors should go away"
+      lch getLCH "2nd round, more errors go away"
+      lch getLCH "no more errors..."
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+    ] there [ 58 76 17 ] assert=
+  ]
+
+  it should 'die when values are out of range' [
+    [ -1 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ 0 -1 0 lch ] 'decimal out of range: expected 0 to: 132, got: -1' assertDies
+    [ 0 0 -1 lch ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
+
+    [ 101 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 133 0 lch ] 'decimal out of range: expected 0 to: 132, got: 133' assertDies
+    [ 0 0 361 lch ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
+
+    [ 0.123 0 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 lch ] 'decimal is not a positive integer: 0.123' assertDies
   ]
 ]

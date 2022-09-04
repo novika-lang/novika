@@ -13,7 +13,7 @@ module Novika
       initialize(object.to_big_d)
     end
 
-    delegate :to_big_i, to: val
+    delegate :to_f64, to: val
 
     def desc(io : IO)
       io << "decimal number " << val
@@ -86,7 +86,7 @@ module Novika
     # Asserts this decimal is a positive integer (i.e., >= 0).
     # Dies if it isn't.
     def posint : Decimal
-      return self if val >= 0 && val.scale.zero?
+      return self if val >= 0 && val == val.to_big_i
 
       die("decimal is not a positive integer: #{self}")
     end

@@ -25,11 +25,11 @@ module Novika
       {r, g, b}
     end
 
-    # Returns a tuple of H, S, L channel values.
+    # Returns a tuple with H, S, L of this color.
     def hsl : {Decimal, Decimal, Decimal}
-      r = self.r.to_big_i
-      g = self.g.to_big_i
-      b = self.b.to_big_i
+      r = self.r.to_f64
+      g = self.g.to_f64
+      b = self.b.to_f64
 
       rp = r / 255
       gp = g / 255
@@ -56,11 +56,11 @@ module Novika
        Decimal.new(l * 100).round}
     end
 
-    # Returns a tuple of H, S, V channel values.
+    # Returns a tuple with H, S, V of this color.
     def hsv : {Decimal, Decimal, Decimal}
-      r = self.r.to_big_i
-      g = self.g.to_big_i
-      b = self.b.to_big_i
+      r = self.r.to_f64
+      g = self.g.to_f64
+      b = self.b.to_f64
 
       rp = r / 255
       gp = g / 255
@@ -87,6 +87,32 @@ module Novika
        Decimal.new(v * 100).round}
     end
 
+    # Returns a tuple with L, C, H of this color.
+    def lch : {Decimal, Decimal, Decimal}
+      l, c, h = Color.rgb2lch(r.to_f64, g.to_f64, b.to_f64)
+      {Decimal.new(l),
+       Decimal.new(c),
+       Decimal.new(h)}
+    end
+
+    def self.typedesc
+      "color"
+    end
+
+    def desc(io)
+      to_s(io)
+    end
+
+    def to_s(io)
+      a255 = Decimal.new(255)
+
+      io << "rgb"
+      io << "a" unless a == a255
+      io << "(" << r << ", " << g << ", " << b
+      io << ", " << a unless a == a255
+      io << ")"
+    end
+
     # Creates a `Color` from RGB.
     def self.rgb(r, g, b) : Color
       new(r, g, b)
@@ -96,9 +122,9 @@ module Novika
     # *s*aturation (0 <= s <= 100, percents), and *l*ightness
     # (0 <= l <= 100, percents).
     def self.hsl(h, s, l) : Color
-      h = h.to_big_i
-      s = s.to_big_i
-      l = l.to_big_i
+      h = h.to_f64
+      s = s.to_f64
+      l = l.to_f64
 
       s /= 100
       l /= 100
@@ -131,9 +157,9 @@ module Novika
     # *s*aturation (0 <= s <= 100, percents), and *v*alue
     # (0 <= v <= 100, percents).
     def self.hsv(h, s, v)
-      h = h.to_big_i
-      s = s.to_big_i
-      v = v.to_big_i
+      h = h.to_f64
+      s = s.to_f64
+      v = v.to_f64
 
       s /= 100
       v /= 100
@@ -163,22 +189,105 @@ module Novika
       )
     end
 
-    def self.typedesc
-      "color"
+    # Creates a `Color` from *l*ightness (0-100), *c*hroma
+    # (0-132), *h*ue (0-360).
+    def self.lch(l, c, h)
+      l = l.to_f64
+      c = c.to_f64
+      h = h.to_f64
+      r, g, b = lch2rgb(l, c, h)
+      new(Decimal.new(r), Decimal.new(g), Decimal.new(b))
     end
 
-    def desc(io)
-      to_s(io)
+    # Implementation (pretty much) copy-pasted from
+    #
+    # https://github.com/gka/chroma.js
+
+    # D65 standard referent
+
+    private D65_X = 0.950470
+    private D65_Y =        1
+    private D65_Z = 1.088830
+
+    private LAB_T0 = 4 / 29
+    private LAB_T1 = 6 / 29
+    private LAB_T2 = 3 * LAB_T1 ** 2
+    private LAB_T3 = LAB_T1 ** 3
+
+    # --- LCH -> RGB ---------------------------------------
+
+    private def self.lab_xyz(t)
+      t > LAB_T1 ? t * t * t : LAB_T2 * (t - LAB_T0)
     end
 
-    def to_s(io)
-      a255 = Decimal.new(255)
+    private def self.xyz_rgb(n)
+      (255 * (n <= 0.00304 ? 12.92 * n : 1.055 * n**(1 / 2.4) - 0.055)).round.clamp(0..255)
+    end
 
-      io << "rgb"
-      io << "a" unless a == a255
-      io << "(" << r << ", " << g << ", " << b
-      io << ", " << a unless a == a255
-      io << ")"
+    private def self.lab2rgb(l, a, b)
+      y = (l + 16) / 116
+      x = y + a / 500
+      z = y - b / 200
+
+      y = D65_Y * lab_xyz(y)
+      x = D65_X * lab_xyz(x)
+      z = D65_Z * lab_xyz(z)
+
+      r = xyz_rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z) # D65 -> sRGB
+      g = xyz_rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z)
+      b = xyz_rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z)
+
+      {r, g, b}
+    end
+
+    private def self.lch2lab(l, c, h)
+      h = h * Math::PI / 180
+      {l, Math.cos(h) * c, Math.sin(h) * c}
+    end
+
+    protected def self.lch2rgb(l, c, h)
+      lab2rgb *lch2lab(l, c, h)
+    end
+
+    # --- RGB -> LCH ---------------------------------------
+
+    private def self.lab2lch(l, a, b)
+      c = Math.sqrt(a ** 2 + b ** 2)
+      h = (Math.atan2(b, a) * 180 / Math::PI + 360) % 360
+      {l, c, h}
+    end
+
+    private def self.rgb_xyz(n)
+      (n /= 255) <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055)**2.4
+    end
+
+    private def self.xyz_lab(t)
+      t > LAB_T3 ? Math.cbrt(t) : t / LAB_T2 + LAB_T0
+    end
+
+    private def self.rgb2xyz(r, g, b)
+      r = rgb_xyz(r)
+      g = rgb_xyz(g)
+      b = rgb_xyz(b)
+
+      x = xyz_lab((0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65_X)
+      y = xyz_lab((0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65_Y)
+      z = xyz_lab((0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65_Z)
+
+      {x, y, z}
+    end
+
+    private def self.rgb2lab(r, g, b)
+      x, y, z = rgb2xyz(r, g, b)
+      l = 116 * y - 16
+      {l < 0 ? 0 : l, 500 * (x - y), 200 * (y - z)}
+    end
+
+    protected def self.rgb2lch(r, g, b)
+      l, a, b = lab2lch *rgb2lab(r, g, b)
+      {l.round,
+       a.round,
+       b.round}
     end
   end
 end
