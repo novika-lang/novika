@@ -20,9 +20,73 @@ module Novika
     def initialize(@r, @g, @b, @a = Decimal.new(255))
     end
 
+    # Returns a tuple of R, G, B channel values.
+    def rgb : {Decimal, Decimal, Decimal}
+      {r, g, b}
+    end
+
+    # Returns a tuple of H, S, L channel values.
+    def hsl : {Decimal, Decimal, Decimal}
+      r = self.r.to_big_i
+      g = self.g.to_big_i
+      b = self.b.to_big_i
+
+      rp = r / 255
+      gp = g / 255
+      bp = b / 255
+      cmax = {rp, gp, bp}.max
+      cmin = {rp, gp, bp}.min
+      delta = cmax - cmin
+
+      if delta.zero?
+        h = 0
+      elsif cmax == rp
+        h = 60 * (((gp - bp) / delta) % 6)
+      elsif cmax == gp
+        h = 60 * (((bp - rp) / delta) + 2)
+      elsif cmax == bp
+        h = 60 * (((rp - gp) / delta) + 4)
+      end
+
+      l = (cmax + cmin) / 2
+      s = delta.zero? ? 0 : delta / (1 - (2 * l - 1).abs)
+
+      {Decimal.new(h.not_nil!.round),
+       Decimal.new(s * 100).round,
+       Decimal.new(l * 100).round}
+    end
+
     # Creates a `Color` from RGB.
-    def self.rgb(r, g, b)
+    def self.rgb(r, g, b) : Color
       new(r, g, b)
+    end
+
+    # Creates a `Color` from *h*ue (0 <= h <= 360, degrees),
+    # *s*aturation (0 <= s <= 100, percents), and *l*ightness
+    # (0 <= l <= 100, percents).
+    def self.hsl(h, s, l) : Color
+      h = h.to_big_i
+      s = s.to_big_i
+      l = l.to_big_i
+
+      s /= 100
+      l /= 100
+      c = (1 - (2 * l - 1).abs) * s
+      x = c * (1 - ((h / 60) % 2 - 1).abs)
+      m = l - c/2
+
+      rp, gp, bp = {c, x, 0} if h.in?(0...60)
+      rp, gp, bp = {x, c, 0} if h.in?(60...120)
+      rp, gp, bp = {0, c, x} if h.in?(120...180)
+      rp, gp, bp = {0, x, c} if h.in?(180...240)
+      rp, gp, bp = {x, 0, c} if h.in?(240...300)
+      rp, gp, bp = {c, 0, x} if h.in?(300...360)
+
+      rgb(
+        r: Decimal.new(((rp.not_nil! + m) * 255).round),
+        g: Decimal.new(((gp.not_nil! + m) * 255).round),
+        b: Decimal.new(((bp.not_nil! + m) * 255).round),
+      )
     end
 
     def self.typedesc

@@ -13,6 +13,8 @@ module Novika
       initialize(object.to_big_d)
     end
 
+    delegate :to_big_i, to: val
+
     def desc(io : IO)
       io << "decimal number " << val
     end
