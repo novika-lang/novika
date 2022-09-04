@@ -19,9 +19,6 @@ module Novika::Packages::Impl
       ( R G B -- C ): creates a color form from three decimals
        Red (0-255), Green (0-255), and Blue (0-255).
 
-      >>> 0 0 0 rgb
-      === rgb(0, 0 ,0)
-
       >>> 36 255 255 rgb
       === rgb(36, 255 ,255)
       END
@@ -57,9 +54,6 @@ module Novika::Packages::Impl
       Since color forms are stored as RGB colors, the HSL color
       is converted into RGB first.
 
-      >>> 0 0 0 hsl
-      === rgb(0, 0, 0)
-
       >>> 206 35 46 hsl
       === rgb(76, 123, 158)
       END
@@ -85,6 +79,40 @@ module Novika::Packages::Impl
         h.push(engine)
         s.push(engine)
         l.push(engine)
+      end
+
+      target.at("hsv", <<-END
+      ( H S V -- C ): creates a Color form from three decimals
+       Hue (0-360, degrees), Saturation (0-100, percents),
+       Lightness (0-100, percents).
+
+      Since color forms are stored as RGB colors, the HSL color
+      is converted into RGB first.
+
+      >>> 120 100 100 hsv
+      === rgb(0, 255, 0)
+      END
+      ) do |engine|
+        v = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
+        s = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
+        h = engine.stack.drop.assert(engine, Decimal).in(0..360).posint
+        Color.hsv(h, s, v).push(engine)
+      end
+      target.at("getHSV", <<-END
+      ( C -- H S L ): leaves Hue, Saturation, Lightness values
+       for a Color Form.
+
+      >>> 180 100 50 hsv
+      === rgb(0,128,128)
+      >>> getHSV
+      === 180 100 50
+      END
+      ) do |engine|
+        color = engine.stack.drop.assert(engine, Color)
+        h, s, v = color.hsv
+        h.push(engine)
+        s.push(engine)
+        v.push(engine)
       end
 
       target.at("withAlpha", <<-END
