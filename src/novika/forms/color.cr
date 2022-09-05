@@ -46,6 +46,21 @@ module Novika
       {Decimal.new(l), Decimal.new(c), Decimal.new(h)}
     end
 
+    # Returns distance squared to *other* color.
+    private def dsq_to(other : Color)
+      (other.r - r).to_f64**2 + (other.g - g).to_f64**2 + (other.b - b).to_f64**2
+    end
+
+    # Returns the color closest to this color from *palette*.
+    #
+    # How close one color is to another is determined by their
+    # distance to each other.If two or more colors from *palette*
+    # are equidistant to self, then the first out of those
+    # equidistant colors is returned.
+    def closest(palette : Array(Color))
+      palette.min_by { |color| dsq_to(color) }
+    end
+
     def self.typedesc
       "color"
     end

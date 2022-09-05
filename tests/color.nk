@@ -276,3 +276,40 @@ describe 'lch' [
     [ 0 0 0.123 lch ] 'decimal is not a positive integer: 0.123' assertDies
   ]
 ]
+
+describe 'fromPalette' [
+  it should 'map to palette' [
+    [ ] [
+      0 0 0     rgb
+      0 255 0   rgb
+      100 200 0 rgb
+      4 50 100  rgb
+    ] there $: pal
+
+    0 0 0 rgb pal fromPalette 0 0 0 rgb assert=
+    0 255 0 rgb pal fromPalette 0 255 0 rgb assert=
+    100 200 0 rgb pal fromPalette 100 200 0 rgb assert=
+    4 50 100 rgb pal fromPalette 4 50 100 rgb assert=
+
+    0 25 0 rgb pal fromPalette 0 0 0 rgb assert=
+    0 127 0 rgb pal fromPalette 100 200 0 rgb assert=
+    0 128 0 rgb pal fromPalette 100 200 0 rgb assert=
+    5 230 2 rgb pal fromPalette 0 255 0 rgb assert=
+
+    [ ] [ 0 0 0 rgb
+      255 0 0 rgb
+      0 255 0 rgb
+      0 0 255 rgb
+      255 255 255 rgb
+    ] there $: pal2
+
+    0 0 0 rgb pal2 fromPalette 0 0 0 rgb assert= "black = black"
+    76 175 80 rgb pal2 fromPalette 0 255 0 rgb  assert= "green 500 -> green"
+    220 237 200 rgb pal2 fromPalette 255 255 255 rgb assert= "light green 50 -> white"
+    74 20 140 rgb pal2 fromPalette 0 0 255 rgb assert= "purple 900 -> blue :: is that expected?"
+  ]
+
+  it should 'die when given block that has something other than color' [
+   [ 0 0 0 rgb [ 1 0 0 0 rgb 0 255 0 rgb ] fromPalette ] 'bad type: decimal, expected: a color' assertDies
+  ]
+]

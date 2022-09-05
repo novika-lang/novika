@@ -241,6 +241,39 @@ module Novika::Packages::Impl
         color = engine.stack.drop.assert(engine, Color)
         color.a.push(engine)
       end
+
+      target.at("fromPalette", <<-END
+      ( C Pb -- Cl ): leaves the Closest color form to Color from
+       a Palette block. Closeness is determined by distance: the
+       Closest color is that color in Palette block to which Color
+       has least (minimum) distance.
+
+      >>> [ ] [ 0 0 0 rgb
+            255 0 0 rgb
+            0 255 0 rgb
+            0 0 255 rgb
+            255 255 255 rgb
+          ] there $: pal
+      >>> 0 0 0 rgb pal fromPalette
+      === rgb(0, 0, 0)
+      >>> 76 175 80 rgb pal fromPalette "greenish"
+      === rgb(0, 255, 0)
+      >>> 220 237 200 rgb pal fromPalette "very light green"
+      === rgb(255, 255, 255)
+      >>> 74 20 140 rgb pal fromPalette "very dark purple"
+      === rgb(255, 0, 0)
+      END
+      ) do |engine|
+        palette = engine.stack.drop.assert(engine, Block)
+        color = engine.stack.drop.assert(engine, Color)
+
+        colors = [] of Color
+        palette.each do |pcolor|
+          colors << pcolor.assert(engine, Color)
+        end
+
+        color.closest(colors).push(engine)
+      end
     end
   end
 end
