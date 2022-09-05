@@ -126,14 +126,15 @@ module Novika::Packages::Impl
       LCH colors are *very* hard but very fun to use. That's
       why they're in Novika.
 
-      LCH encloses more colors than RGB, so some conversion
-      imprecisions *are* to be expected because they fall out
-      of RGB range, and therefore are clamped into RGB (meaning
-      conversion is lossy, and sometimes very lossy).
+      CIELAB encloses more colors than sRGB, so some conversion
+      imprecisions *are* to be expected because some colors just
+      fall out of sRGB gamut (lossiness is especially noticeable
+      in LCH -> RGB -> LCH conversions, but it stabilizes on the
+      last step because the last step's LCH is guraranteed to be
+      inside the sRGB gamut).
 
-      The conversions here, even though mathematically imprecise
-      (or outright incorrect), do give out colors that look the
-      same, and that's good enough.
+      Any color out of the sRGB gamut is brought into the sRGB
+      gamut by lowering chroma until it's in the sRGB bounds.
 
       Here is a 'good' conversion, meaning it nicely closes
       on itself:
@@ -148,30 +149,30 @@ module Novika::Packages::Impl
       === 78 74 133
       ... and so on ...
 
-      And here is a very bad conversion. At first, though, for
-      it does stabilize after a few rounds as it falls firmly
-      into the RGB color space.
+      And here is a bad conversion. At first, though, for it
+      does stabilize after a few rounds as it falls firmly
+      into the sRGB color space.
 
       >>> 74 107 26 lch
-      === rgb(255, 61, 103)
+      === rgb(255, 154, 151)
       >>> getLCH
-      === 58 77 17 "Note how many units we've lost!"
+      "Note how many chroma units we've lost! Plus, Lab and
+       LCH have hue shift on chroma changes, hence 26 -> 25."
+      === 74 41 25
       >>> lch
-      === rgb(255, 62, 104)
+      === rgb(255, 154, 152)
       >>> getLCH
-      === 58 76 17
+      === 74 41 25
       >>> lch
-      === rgb(255, 64, 105)
+      === rgb(255, 154, 152)
       >>> getLCH
-      === 58 76 17
-      ... and so on, conversion stabilized ...
+      === 74 41 25
+      "... and so on, conversion stabilized ..."
 
       You don't necessarily have to think about this, because
       the resulting colors do look similar enough. Just beware
       that the conversion method used by this word and `getLCH`
-      is lossy and dumb in terms of choosing a fallback RGB
-      color which yields low enough delta when doing LCH ->
-      RGB -> LCH.
+      is lossy sometimes.
       END
       ) do |engine|
         h = engine.stack.drop.assert(engine, Decimal).in(0..360).posint
@@ -191,9 +192,11 @@ module Novika::Packages::Impl
       === 78 74 133
 
       >>> 74 107 26 lch
-      === rgb(255, 61, 103)
+      === rgb(255, 154, 152)
       >>> getLCH
-      === 58 77 17 "Note how many units we've lost! See `lch`"
+      "Chroma lowered to fit into sRGB. Lab and LCH have hue
+       shift on chroma changes, 26 -> 25"
+      === 74 41 25
       END
       ) do |engine|
         color = engine.stack.drop.assert(engine, Color)

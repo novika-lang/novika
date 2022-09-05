@@ -215,8 +215,10 @@ describe 'lch' [
     [ ] [ color getLCH ] there [ 50 50 50 ] assert=
 
     50 50 215 lch $: color
-    [ ] [ color getRGB ] there [ 0 138 167 ] assert=
-    [ ] [ color getLCH ] there [ 53 32 230 ] assert= "They do look the same!"
+    [ ] [ color getRGB ] there [ 0 131 147 ] assert=
+    "This one is different because it's actually RGB -> LCH
+     under the hood, which clipping into sRGB worsens."
+    [ ] [ color getLCH ] there [ 50 29 216 ] assert=
 
     69 9 204 lch $: color
     [ ] [ color getRGB ] there [ 148 173 175 ] assert=
@@ -227,29 +229,27 @@ describe 'lch' [
     [ ] [ color getLCH ] there [ 78 74 133 ] assert=
 
     40 38 251 lch $: color
-    [ ] [ color getRGB ] there [ 0 103 153 ] assert=
-    [ ] [ color getLCH ] there [ 41 35 260 ] assert= "They do!"
+    [ ] [ color getRGB ] there [ 0 101 140 ] assert=
+    [ ] [ color getLCH ] there [ 40 30 251 ] assert=
 
     44 95 338 lch $: color
-    [ ] [ color getRGB ] there [ 208 0 165 ] assert=
-    [ ] [ color getLCH ] there [ 47 84 339 ] assert=
+    [ ] [ color getRGB ] there [ 194 0 156 ] assert=
+    [ ] [ color getLCH ] there [ 44 81 338 ] assert=
 
     44 95 19 lch $: color
-    [ ] [ color getRGB ] there [ 232 0 60 ] assert=
-    [ ] [ color getLCH ] there [ 49 84 26 ] assert=
+    [ ] [ color getRGB ] there [ 208 0 68 ] assert=
+    [ ] [ color getLCH ] there [ 44 74 19 ] assert=
 
     74 107 26 lch $: color
-    [ ] [ color getRGB ] there [ 255 61 103 ] assert=
-    [ ] [ color getLCH ] there [ 58 77 17 ] assert=
+    [ ] [ color getRGB ] there [ 255 154 151 ] assert=
+    [ ] [ color getLCH ] there [ 74 41 25 ] assert=
   ]
 
   it should 'stabilize after a few rounds' [
-    74 107 26 lch $: color "This seems to be the most erroneous color."
+    74 107 26 lch $: color
 
     [ ] [
-    color getLCH "1st round, errors should go away"
-      lch getLCH "2nd round, more errors go away"
-      lch getLCH "no more errors..."
+    color getLCH
       lch getLCH
       lch getLCH
       lch getLCH
@@ -257,7 +257,9 @@ describe 'lch' [
       lch getLCH
       lch getLCH
       lch getLCH
-    ] there [ 58 76 17 ] assert=
+      lch getLCH
+      lch getLCH
+    ] there [ 74 41 25 ] assert=
   ]
 
   it should 'die when values are out of range' [

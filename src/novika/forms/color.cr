@@ -222,11 +222,11 @@ module Novika
       t > LAB_T1 ? t * t * t : LAB_T2 * (t - LAB_T0)
     end
 
-    private def self.xyz_rgb(n)
-      (255 * (n <= 0.00304 ? 12.92 * n : 1.055 * n**(1 / 2.4) - 0.055)).round.clamp(0..255)
+    private def self.xyz_srgb(n)
+      n <= 0.00304 ? 12.92 * n : 1.055 * n**(1 / 2.4) - 0.055
     end
 
-    private def self.lab2rgb(l, a, b)
+    private def self.lab2srgb(l, a, b)
       y = (l + 16) / 116
       x = y + a / 500
       z = y - b / 200
@@ -235,9 +235,9 @@ module Novika
       x = D65_X * lab_xyz(x)
       z = D65_Z * lab_xyz(z)
 
-      r = xyz_rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z) # D65 -> sRGB
-      g = xyz_rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z)
-      b = xyz_rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z)
+      r = xyz_srgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z) # D65 -> sRGB
+      g = xyz_srgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z)
+      b = xyz_srgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z)
 
       {r, g, b}
     end
@@ -247,9 +247,53 @@ module Novika
       {l, Math.cos(h) * c, Math.sin(h) * c}
     end
 
-    # Returns an RGB tuple for an LCH color.
+    private def self.lch2srgb_impl(l, c, h)
+      lab2srgb *lch2lab(l, c, h)
+    end
+
+    # The two methods below are copied from tabatkins's commit
+    # from:
+    #
+    # https://github.com/LeaVerou/css.land/pull/3/commits/d2ec6bdb80317358e2e2e5826b01e87130afd238
+    #
+    # I'm too dumb for all this math stuff so these are pretty
+    # mach copy-pastes, just a bit crystalized.
+
+    # Returns whether an *l*, *c*, *h* color is inside of the
+    # sRGB gamut.
+    private def self.lch_in_srgb?(l, c, h)
+      ε = 0.000005
+      r, g, b = lch2srgb_impl(l, c, h)
+      r.in?(-ε..1 + ε) && g.in?(-ε..1 + ε) && b.in?(-ε..1 + ε)
+    end
+
+    private def self.force_into_srgb(l, c, h)
+      return {l, c, h} if lch_in_srgb?(l, c, h)
+
+      hi_c = c
+      lo_c = 0
+      c /= 2
+
+      while hi_c - lo_c > 0.0001
+        if lch_in_srgb?(l, c, h)
+          lo_c = c
+        else
+          hi_c = c
+        end
+        c = (hi_c + lo_c)/2
+      end
+
+      {l, c, h}
+    end
+
+    # Returns an RGB tuple for the given LCH color.
+    #
+    # The color is forced into the sRGB gamut.
     protected def self.lch2rgb(l, c, h)
-      lab2rgb *lch2lab(l, c, h)
+      r, g, b = lch2srgb_impl *force_into_srgb(l, c, h)
+      {(255 * r).round,
+       (255 * g).round,
+       (255 * b).round}
     end
 
     # --- RGB -> LCH ---------------------------------------
