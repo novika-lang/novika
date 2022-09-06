@@ -2,26 +2,31 @@ require "colorize"
 
 module Novika::Packages::Impl
   class Colors < IColors
-    # Ensures decimals *r*, *g*, *b* are in 0-255 range, and
-    # returns the three corresponding UInt8-s.
-    private def color_u8(r : Decimal, g : Decimal, b : Decimal) : {UInt8, UInt8, UInt8}
-      ri = r.to_i
-      gi = g.to_i
-      bi = b.to_i
-
-      r.die("R channel must be 0-255, got: #{ri}") unless ri.in?(0..255)
-      g.die("G channel must be 0-255, got: #{gi}") unless gi.in?(0..255)
-      b.die("B channel must be 0-255, got: #{gi}") unless bi.in?(0..255)
-
-      {ri.to_u8, gi.to_u8, bi.to_u8}
-    end
+    COMPAT = {
+      Color.rgb(0x00, 0x00, 0x00) => :black,
+      Color.rgb(0x80, 0x00, 0x00) => :red,
+      Color.rgb(0x00, 0x80, 0x00) => :green,
+      Color.rgb(0x80, 0x80, 0x00) => :yellow,
+      Color.rgb(0x00, 0x00, 0x80) => :blue,
+      Color.rgb(0x80, 0x00, 0x80) => :magenta,
+      Color.rgb(0x00, 0x80, 0x80) => :cyan,
+      Color.rgb(0xc0, 0xc0, 0xc0) => :light_gray,
+      Color.rgb(0x80, 0x80, 0x80) => :dark_gray,
+      Color.rgb(0xff, 0x00, 0x00) => :light_red,
+      Color.rgb(0x00, 0xff, 0x00) => :light_green,
+      Color.rgb(0xff, 0xff, 0x00) => :light_yellow,
+      Color.rgb(0x00, 0x00, 0xff) => :light_blue,
+      Color.rgb(0xff, 0x00, 0xff) => :light_magenta,
+      Color.rgb(0x00, 0xff, 0xff) => :light_cyan,
+      Color.rgb(0xff, 0xff, 0xff) => :white,
+    }
 
     def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
       string = form.to_quote(engine).string
 
       colorful = string.colorize
-      colorful = colorful.fore(*color_u8(*fg)) if fg
-      colorful = colorful.back(*color_u8(*bg)) if bg
+      colorful = colorful.fore(COMPAT[fg.closest(COMPAT.keys)]) if fg
+      colorful = colorful.back(COMPAT[bg.closest(COMPAT.keys)]) if bg
 
       form.die(NO_SYSTEM_ECHO_ERROR) unless system = bundle[ISystem]?
 

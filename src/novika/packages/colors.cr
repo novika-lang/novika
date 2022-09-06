@@ -1,9 +1,3 @@
-# Note: this should use the same color object as console, with
-# same color space reduction as console does already. The only
-# interface with Novika should be `r g b color` and `fg bg print`
-# (or something like that), so that the only thing Console actually
-# adds is the ability to choose an arbitrary position to move to.
-
 module Novika::Packages
   # Enables colorful output using `withColorEcho` and friends.
   #
@@ -32,9 +26,6 @@ module Novika::Packages
       true
     end
 
-    # TODO: remove when common color object exists
-    alias Color = {Decimal, Decimal, Decimal}
-
     # Echo foreground color stack.
     property fg = [] of Color
 
@@ -54,25 +45,19 @@ module Novika::Packages
     # Injects the colors vocabulary into *target*.
     def inject(into target)
       target.at("withEchoFg", <<-END
-      ( R G B -- ): pushes 0-255 Red, Green, Blue foreground color
-       onto the echo foreground color stack.
+      ( C -- ): pushes Color form onto the echo foreground
+       color stack.
       END
       ) do |engine|
-        b = engine.stack.drop.assert(engine, Decimal)
-        g = engine.stack.drop.assert(engine, Decimal)
-        r = engine.stack.drop.assert(engine, Decimal)
-        fg << {r, g, b}
+        fg << engine.stack.drop.assert(engine, Color)
       end
 
       target.at("withEchoBg", <<-END
-      ( R G B -- ): pushes 0-255 Red, Green, Blue background color
-       onto the echo background color stack.
+      ( C -- ): pushes Color form onto the echo background
+       color stack.
       END
       ) do |engine|
-        b = engine.stack.drop.assert(engine, Decimal)
-        g = engine.stack.drop.assert(engine, Decimal)
-        r = engine.stack.drop.assert(engine, Decimal)
-        bg << {r, g, b}
+        bg << engine.stack.drop.assert(engine, Color)
       end
 
       target.at("dropEchoFg", <<-END
@@ -92,6 +77,12 @@ module Novika::Packages
 
       Requires the system package, but it's on by default so you
       normally don't need to worry about this.
+
+      Note: some implementations (particularly the Novika's default
+      one) choose to snap foreground and background colors to
+      system's basic 16 colors for compatibility & portability.
+      If you want more cross-platform control over colors (and
+      pretty much everything else), take a look at package console.
       END
       ) do |engine|
         form = engine.stack.drop

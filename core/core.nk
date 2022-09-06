@@ -85,7 +85,7 @@ _root #@: [
 
   novika:packages [ packageId = ] any? not =>
     [
-      244 67 54 withEchoFg
+      244 67 54 rgb withEchoFg
         '! This program requires the `' packageId stitch '` package. Consult the frontend' stitch
         '  you are using for information on how to include it.'
         swap withColorEcho

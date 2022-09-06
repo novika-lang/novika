@@ -291,7 +291,7 @@ describe 'fromPalette' [
     100 200 0 rgb pal fromPalette 100 200 0 rgb assert=
     4 50 100 rgb pal fromPalette 4 50 100 rgb assert=
 
-    0 25 0 rgb pal fromPalette 0 0 0 rgb assert=
+    0 25 0 rgb pal fromPalette 100 200 0 rgb assert= "very dark green -> green"
     0 127 0 rgb pal fromPalette 100 200 0 rgb assert=
     0 128 0 rgb pal fromPalette 100 200 0 rgb assert=
     5 230 2 rgb pal fromPalette 0 255 0 rgb assert=

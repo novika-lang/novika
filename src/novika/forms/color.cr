@@ -46,19 +46,16 @@ module Novika
       {Decimal.new(l), Decimal.new(c), Decimal.new(h)}
     end
 
-    # Returns distance squared to *other* color.
-    private def dsq_to(other : Color)
-      (other.r - r).to_f64**2 + (other.g - g).to_f64**2 + (other.b - b).to_f64**2
-    end
-
     # Returns the color closest to this color from *palette*.
     #
     # How close one color is to another is determined by their
-    # distance to each other.If two or more colors from *palette*
-    # are equidistant to self, then the first out of those
-    # equidistant colors is returned.
+    # distance in an HSV-backed coordinate system.
     def closest(palette : Array(Color))
-      palette.min_by { |color| dsq_to(color) }
+      h, s, v = hsv
+      palette.min_by do |other|
+        h1, s1, v1 = other.hsv
+        (h1 - h).to_f64**2 + (s1 - s).to_f64**2 + (v1 - v).to_f64**2
+      end
     end
 
     def self.typedesc
@@ -81,14 +78,19 @@ module Novika
 
     # Creates a `Color` from *r*ed (0 <= h <= 255), *g*reen
     # (0 <= g <= 255), *b*lue (0 <= b <= 255) channel values.
-    def self.rgb(r, g, b) : Color
+    def self.rgb(r : Decimal, g : Decimal, b : Decimal) : Color
       new(r, g, b)
+    end
+
+    # :ditto:
+    def self.rgb(r, g, b)
+      rgb(Decimal.new(r), Decimal.new(g), Decimal.new(b))
     end
 
     # Creates a `Color` from *h*ue (0 <= h <= 360, degrees),
     # *s*aturation (0 <= s <= 100, percents), and *l*ightness
     # (0 <= l <= 100, percents).
-    def self.hsl(h, s, l) : Color
+    def self.hsl(h : Decimal, s : Decimal, l : Decimal) : Color
       h = h.to_f64
       s = s.to_f64
       l = l.to_f64
@@ -208,7 +210,7 @@ module Novika
 
     # Creates a `Color` from *l*ightness (0-100), *c*hroma
     # (0-132), *h*ue (0-360).
-    def self.lch(l, c, h) : Color
+    def self.lch(l : Decimal, c : Decimal, h : Decimal) : Color
       l = l.to_f64
       c = c.to_f64
       h = h.to_f64
