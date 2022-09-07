@@ -20,9 +20,9 @@
   ]
   """
 
-  [ 76 175 80 ] @: SUCCESS-RGB
-  [ 244 67 54 ] @: FAILURE-RGB
-  [ 255 193 7 ] @: DEATH-RGB
+  76 175 80 rgb $: SUCCESS-RGB
+  244 67 54 rgb $: FAILURE-RGB
+  255 193 7 rgb $: DEATH-RGB
 
   ahead thru $: sectionName
   ahead thru new $: sectionBlockInstance
@@ -97,7 +97,7 @@
      and Comments block."
     $: comments
 
-    SUCCESS-RGB rgb withEchoFg
+    SUCCESS-RGB withEchoFg
       ' ✔ ' swap stitch withColorEcho
     dropEchoFg
 
@@ -110,7 +110,7 @@
      and Comments block."
     $: comments
 
-    FAILURE-RGB rgb withEchoFg
+    FAILURE-RGB withEchoFg
       ' × ' swap stitch withColorEcho
     dropEchoFg
 
@@ -121,7 +121,7 @@
 
   [ "( E D -- ): reports death outcome for Description, and
      prints the report for Error itself."
-    DEATH-RGB rgb withEchoFg
+    DEATH-RGB withEchoFg
       ' ☨ ' swap stitch withColorEcho
     dropEchoFg
 
@@ -192,18 +192,18 @@
 
   '=== Summary for ' sectionName stitch echo
 
-  SUCCESS-RGB rgb withEchoFg
+  SUCCESS-RGB withEchoFg
     ' ✔ Successful cases: ' successes toQuote stitch withColorEcho
   dropEchoFg
 
   failures 0 > => [
-    FAILURE-RGB rgb withEchoFg
+    FAILURE-RGB withEchoFg
       ' × Failures: ' failures toQuote stitch withColorEcho
     dropEchoFg
   ]
 
   deaths 0 > => [
-    DEATH-RGB rgb withEchoFg
+    DEATH-RGB withEchoFg
       ' ☨ Deaths: ' deaths toQuote stitch withColorEcho
     dropEchoFg
   ]
