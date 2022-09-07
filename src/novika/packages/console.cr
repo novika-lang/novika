@@ -1,37 +1,7 @@
 {% skip_file unless flag?(:novika_console) %}
 
-# TODO: ^^^^ Maybe tell the user their platform isn't supported,
-# or have an alternative windows implementation.
-
-require "termbox2" # TODO: remove when common color object exists
-
-struct Termbox::Color # TODO: remove when common color object exists
-  include Novika::Form
-
-  def self.typedesc
-    "color"
-  end
-end
-
-# TODO: use same color as in Colors
-#
 # TODO: refactor the API, it's horrible for portability and
 # general usability and exists to exist only
-#
-# NOTE: there should probably be a bunch of Pallettes as well.
-# If you give a color to a Palette, it will return you the
-# (closest) matching color it knows. This will sort of make
-# console:compat & friends portable, because now resolution is
-# all on the Novika side, and the goal of the renderer/color user
-# is to resolve the color via its own Palette.
-#
-# Now Novika could have Color as a form (because we're living
-# in the 21st century). It already does for Console, but it's
-# more of a hack than a feature.
-
-# TODO: don't pass engine as argument. Make it an ivar smhw
-# (probably by attaching packages to engines instead of to
-# nothing in particular).
 
 module Novika::Packages
   # Enables the console API.
@@ -43,7 +13,6 @@ module Novika::Packages
   # * `console:256`, implemented by `colors_256`
   # * `console:compat`, implemented by `colors_compat`
   # * `console:truecolor`, implemented by `colors_truecolor`
-  # * `console:color`, generic implementation
   # * `console:width`, implemented by `width`
   # * `console:height`, implemented by `height`
   # * `console:peek`, implemented by `peek`
@@ -68,9 +37,6 @@ module Novika::Packages
     def self.on_by_default? : Bool
       false
     end
-
-    # TODO: remove when common color object exists
-    alias Color = Termbox::Color
 
     # Enables the Console API.
     abstract def on(engine)
@@ -130,10 +96,10 @@ module Novika::Packages
     abstract def clear(engine, fg : Color, bg : Color)
 
     # Holds the active primary foreground color.
-    property fg = Color::White
+    property fg : Color = Color.rgb(255, 255, 255)
 
     # Holds the active primary background color.
-    property bg = Color::Black
+    property bg : Color = Color.rgb(0, 0, 0)
 
     @timeout = Decimal.new(-1)
 
@@ -155,7 +121,6 @@ module Novika::Packages
        reduced to one of those 256 colors.
       END
       ) { |engine| colors_256(engine) }
-      # TODO: self.palette = MyOwnCustomAwesome256ColorPalette.new
 
       target.at("console:truecolor", <<-END
       ( -- ): enables the truecolor output mode. In this mode,
@@ -163,28 +128,6 @@ module Novika::Packages
       as-is.
       END
       ) { |engine| colors_truecolor(engine) }
-      # TODO: self.palette = MyOwnCustomAwesomeNoopColorPalette.new
-      #                      ^^^ which all of the above probably should inherit
-
-      # our custom color object should support color:rgb, color:hsl,
-      # maybe just maybe if I can get this right at some point color:lch
-      target.at("console:color", <<-END
-      ( Rd Gd Bd -- C ): creates an RGB Color from the three
-       decimals: R for the Red channel value (0-255), G for
-       the Green channel value (0-255), and B for the blue
-       channel value (0-255).
-      END
-      ) do |engine|
-        # TODO: Here that "same as in Colors" color object
-        # should be created. No need to make this abstract.
-        #
-        # color_u8 would be handy, should be reused, but see
-        # the below & above TODO.
-        b = engine.stack.drop.assert(engine, Decimal)
-        g = engine.stack.drop.assert(engine, Decimal)
-        r = engine.stack.drop.assert(engine, Decimal)
-        Color[r.to_i, g.to_i, b.to_i].push(engine)
-      end
 
       # TODO: This one should work the same as in Colors, where
       # we have withEchoFg and withEchoBg that push onto a
