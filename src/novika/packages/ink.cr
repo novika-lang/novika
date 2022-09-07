@@ -8,14 +8,14 @@ module Novika::Packages
   # * `dropEchoFg`, generic implementation
   # * `dropEchoBg`, generic implementation
   # * `withColorEcho`, implemented by `with_color_echo`
-  abstract class IColors
+  abstract class IInk
     include Package
 
     NO_SYSTEM_ECHO_ERROR = "withColorEcho requires 'echo' from package system, " \
                            "but no instance of package system was found"
 
     def self.id : String
-      "colors"
+      "ink"
     end
 
     def self.purpose : String
