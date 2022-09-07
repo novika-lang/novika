@@ -1,0 +1,315 @@
+describe 'rgb' [
+  it should 'create a color from decimals in range, get them back' [
+    28 236 100 rgb $: color
+    color desc color toQuote assert=
+    color toQuote 'rgb(28, 236, 100)' assert=
+    [ ] [ color getRGB ] there [ 28 236 100 ] assert=
+  ]
+
+  it should 'allow to set & get alpha' [
+    28 236 100 rgb $: color
+    color getAlpha 255 assert=
+
+    color 100 withAlpha
+    color getAlpha 255 assert= drop "assert that withAlpha doesn't mutate"
+      =: color
+
+    color getAlpha 100 assert=
+    color desc color toQuote assert=
+    color toQuote 'rgba(28, 236, 100, 100)' assert=
+  ]
+
+  it should 'die when channel values are out of range' [
+    [ -1 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 -1 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 0 -1 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ 0 0 0 rgb -1 withAlpha ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+
+    [ 256 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 256 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 0 256 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 0 0 0 rgb 256 withAlpha ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+
+    [ 0.123 0 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 rgb ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0 rgb 0.123 withAlpha ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+]
+
+describe 'hsl' [
+  it should 'create a color from decimals in range, get them back' [
+    0 0 0 hsl $: color
+    [ ] [ color getRGB ] there [ 0 0 0 ] assert=
+    [ ] [ color getHSL ] there [ 0 0 0 ] assert=
+
+    0 0 0 hsl $: color
+    [ ] [ color getRGB ] there [ 0 0 0 ] assert=
+    [ ] [ color getHSL ] there [ 0 0 0 ] assert=
+
+    0 0 100 hsl $: color
+    [ ] [ color getRGB ] there [ 255 255 255 ] assert=
+    [ ] [ color getHSL ] there [ 0 0 100 ] assert=
+
+    0 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 255 0 0 ] assert=
+    [ ] [ color getHSL ] there [ 0 100 50 ] assert=
+
+    120 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 0 255 0 ] assert=
+    [ ] [ color getHSL ] there [ 120 100 50 ] assert=
+
+    240 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 0 0 255 ] assert=
+    [ ] [ color getHSL ] there [ 240 100 50 ] assert=
+
+    60 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 255 255 0 ] assert=
+    [ ] [ color getHSL ] there [ 60 100 50 ] assert=
+
+    180 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 0 255 255 ] assert=
+    [ ] [ color getHSL ] there [ 180 100 50 ] assert=
+
+    300 100 50 hsl $: color
+    [ ] [ color getRGB ] there [ 255 0 255 ] assert=
+    [ ] [ color getHSL ] there [ 300 100 50 ] assert=
+
+    0 0 75 hsl $: color
+    [ ] [ color getRGB ] there [ 191 191 191 ] assert=
+    [ ] [ color getHSL ] there [ 0 0 75 ] assert=
+
+    0 0 50 hsl $: color
+    [ ] [ color getRGB ] there [ 128 128 128 ] assert=
+    [ ] [ color getHSL ] there [ 0 0 50 ] assert=
+
+    0 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 128 0 0 ] assert=
+    [ ] [ color getHSL ] there [ 0 100 25 ] assert=
+
+    60 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 128 128 0 ] assert=
+    [ ] [ color getHSL ] there [ 60 100 25 ] assert=
+
+    120 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 0 128 0 ] assert=
+    [ ] [ color getHSL ] there [ 120 100 25 ] assert=
+
+    300 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 128 0 128 ] assert=
+    [ ] [ color getHSL ] there [ 300 100 25 ] assert=
+
+    180 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 0 128 128 ] assert=
+    [ ] [ color getHSL ] there [ 180 100 25 ] assert=
+
+    240 100 25 hsl $: color
+    [ ] [ color getRGB ] there [ 0 0 128 ] assert=
+    [ ] [ color getHSL ] there [ 240 100 25 ] assert=
+  ]
+
+  it should 'die when values are out of range' [
+    [ -1 0 0 hsl ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
+    [ 0 -1 0 hsl ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ 0 0 -1 hsl ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+
+    [ 361 0 0 hsl ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
+    [ 0 101 0 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 0 101 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+
+    [ 0.123 0 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 hsl ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+]
+
+describe 'hsv/hsb' [
+  it should 'create a color from decimals in range, get them back' [
+    0 0 0 hsv $: color
+    [ ] [ color getRGB ] there [ 0 0 0 ] assert=
+    [ ] [ color getHSV ] there [ 0 0 0 ] assert=
+
+    0 0 100 hsv $: color
+    [ ] [ color getRGB ] there [ 255 255 255 ] assert=
+    [ ] [ color getHSV ] there [ 0 0 100 ] assert=
+
+    0 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 255 0 0 ] assert=
+    [ ] [ color getHSV ] there [ 0 100 100 ] assert=
+
+    120 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 0 255 0 ] assert=
+    [ ] [ color getHSV ] there [ 120 100 100 ] assert=
+
+    240 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 0 0 255 ] assert=
+    [ ] [ color getHSV ] there [ 240 100 100 ] assert=
+
+    60 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 255 255 0 ] assert=
+    [ ] [ color getHSV ] there [ 60 100 100 ] assert=
+
+    180 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 0 255 255 ] assert=
+    [ ] [ color getHSV ] there [ 180 100 100 ] assert=
+
+    300 100 100 hsv $: color
+    [ ] [ color getRGB ] there [ 255 0 255 ] assert=
+    [ ] [ color getHSV ] there [ 300 100 100 ] assert=
+
+    0 0 75 hsv $: color
+    [ ] [ color getRGB ] there [ 191 191 191 ] assert=
+    [ ] [ color getHSV ] there [ 0 0 75 ] assert=
+
+    0 0 50 hsv $: color
+    [ ] [ color getRGB ] there [ 128 128 128 ] assert=
+    [ ] [ color getHSV ] there [ 0 0 50 ] assert=
+
+    0 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 128 0 0 ] assert=
+    [ ] [ color getHSV ] there [ 0 100 50 ] assert=
+
+    60 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 128 128 0 ] assert=
+    [ ] [ color getHSV ] there [ 60 100 50 ] assert=
+
+    120 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 0 128 0 ] assert=
+    [ ] [ color getHSV ] there [ 120 100 50 ] assert=
+
+    300 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 128 0 128 ] assert=
+    [ ] [ color getHSV ] there [ 300 100 50 ] assert=
+
+    180 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 0 128 128 ] assert=
+    [ ] [ color getHSV ] there [ 180 100 50 ] assert=
+
+    240 100 50 hsv $: color
+    [ ] [ color getRGB ] there [ 0 0 128 ] assert=
+    [ ] [ color getHSV ] there [ 240 100 50 ] assert=
+  ]
+
+  it should 'die when values are out of range' [
+    [ -1 0 0 hsv ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
+    [ 0 -1 0 hsv ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ 0 0 -1 hsv ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+
+    [ 361 0 0 hsv ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
+    [ 0 101 0 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 0 101 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+
+    [ 0.123 0 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 hsv ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+]
+
+describe 'lch' [
+  "As you can see, the conversion is pretty lossy (read the
+   doc on `lch`). So these are just stability tests."
+
+  it should 'create a color from decimals in range, get them back (lossy)' [
+    50 50 50 lch $: color
+    [ ] [ color getRGB ] there [ 182 95 55 ] assert=
+    [ ] [ color getLCH ] there [ 50 50 50 ] assert=
+
+    50 50 215 lch $: color
+    [ ] [ color getRGB ] there [ 0 131 147 ] assert=
+    "This one is different because it's actually RGB -> LCH
+     under the hood, which clipping into sRGB worsens."
+    [ ] [ color getLCH ] there [ 50 29 216 ] assert=
+
+    69 9 204 lch $: color
+    [ ] [ color getRGB ] there [ 148 173 175 ] assert=
+    [ ] [ color getLCH ] there [ 69 9 206 ] assert=
+
+    78 74 133 lch $: color
+    [ ] [ color getRGB ] there [ 122 215 85 ] assert=
+    [ ] [ color getLCH ] there [ 78 74 133 ] assert=
+
+    40 38 251 lch $: color
+    [ ] [ color getRGB ] there [ 0 101 140 ] assert=
+    [ ] [ color getLCH ] there [ 40 30 251 ] assert=
+
+    44 95 338 lch $: color
+    [ ] [ color getRGB ] there [ 194 0 156 ] assert=
+    [ ] [ color getLCH ] there [ 44 81 338 ] assert=
+
+    44 95 19 lch $: color
+    [ ] [ color getRGB ] there [ 208 0 68 ] assert=
+    [ ] [ color getLCH ] there [ 44 74 19 ] assert=
+
+    74 107 26 lch $: color
+    [ ] [ color getRGB ] there [ 255 154 151 ] assert=
+    [ ] [ color getLCH ] there [ 74 41 25 ] assert=
+  ]
+
+  it should 'stabilize after a few rounds' [
+    74 107 26 lch $: color
+
+    [ ] [
+    color getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+      lch getLCH
+    ] there [ 74 41 25 ] assert=
+  ]
+
+  it should 'die when values are out of range' [
+    [ -1 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ 0 -1 0 lch ] 'decimal out of range: expected 0 to: 132, got: -1' assertDies
+    [ 0 0 -1 lch ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
+
+    [ 101 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 0 133 0 lch ] 'decimal out of range: expected 0 to: 132, got: 133' assertDies
+    [ 0 0 361 lch ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
+
+    [ 0.123 0 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0.123 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0 0 0.123 lch ] 'decimal is not a positive integer: 0.123' assertDies
+  ]
+]
+
+describe 'fromPalette' [
+  it should 'map to palette' [
+    [ ] [
+      0 0 0     rgb
+      0 255 0   rgb
+      100 200 0 rgb
+      4 50 100  rgb
+    ] there $: pal
+
+    0 0 0 rgb pal fromPalette 0 0 0 rgb assert=
+    0 255 0 rgb pal fromPalette 0 255 0 rgb assert=
+    100 200 0 rgb pal fromPalette 100 200 0 rgb assert=
+    4 50 100 rgb pal fromPalette 4 50 100 rgb assert=
+
+    0 25 0 rgb pal fromPalette 100 200 0 rgb assert= "very dark green -> green"
+    0 127 0 rgb pal fromPalette 100 200 0 rgb assert=
+    0 128 0 rgb pal fromPalette 100 200 0 rgb assert=
+    5 230 2 rgb pal fromPalette 0 255 0 rgb assert=
+
+    [ ] [ 0 0 0 rgb
+      255 0 0 rgb
+      0 255 0 rgb
+      0 0 255 rgb
+      255 255 255 rgb
+    ] there $: pal2
+
+    0 0 0 rgb pal2 fromPalette 0 0 0 rgb assert= "black = black"
+    76 175 80 rgb pal2 fromPalette 0 255 0 rgb  assert= "green 500 -> green"
+    220 237 200 rgb pal2 fromPalette 255 255 255 rgb assert= "light green 50 -> white"
+    74 20 140 rgb pal2 fromPalette 0 0 255 rgb assert= "purple 900 -> blue :: is that expected?"
+  ]
+
+  it should 'die when given block that has something other than color' [
+   [ 0 0 0 rgb [ 1 0 0 0 rgb 0 255 0 rgb ] fromPalette ] 'bad type: decimal, expected: a color' assertDies
+  ]
+]

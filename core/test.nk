@@ -20,9 +20,9 @@
   ]
   """
 
-  [ 76 175 80 ] @: SUCCESS-RGB
-  [ 244 67 54 ] @: FAILURE-RGB
-  [ 255 193 7 ] @: DEATH-RGB
+  76 175 80 rgb $: SUCCESS-RGB
+  244 67 54 rgb $: FAILURE-RGB
+  255 193 7 rgb $: DEATH-RGB
 
   ahead thru $: sectionName
   ahead thru new $: sectionBlockInstance

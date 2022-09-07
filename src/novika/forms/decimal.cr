@@ -13,6 +13,8 @@ module Novika
       initialize(object.to_big_d)
     end
 
+    delegate :to_f64, to: val
+
     def desc(io : IO)
       io << "decimal number " << val
     end
@@ -72,6 +74,21 @@ module Novika
     # Truncates this decimal.
     def trunc : Decimal
       Decimal.new(val.trunc)
+    end
+
+    # Asserts this decimal is in *range*. Dies if it isn't.
+    def in(range) : Decimal
+      return self if range.includes?(val)
+
+      die("decimal out of range: expected #{range.begin} to: #{range.end}, got: #{self}")
+    end
+
+    # Asserts this decimal is a positive integer (i.e., >= 0).
+    # Dies if it isn't.
+    def posint : Decimal
+      return self if val >= 0 && val == val.to_big_i
+
+      die("decimal is not a positive integer: #{self}")
     end
 
     def to_s(io)

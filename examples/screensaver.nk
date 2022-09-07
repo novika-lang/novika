@@ -12,13 +12,12 @@ goForth @: step
 
 [
   console:peek
-  console:hadKeyPressed
-    [ break ]
-    [ 0 0 0 console:color n n n console:color erase ]
-  br
+  console:hadKeyPressed => [ break ]
+
+  0 0 0 rgb 60 48 n lch erase
 
   n 0 =   => [ goForth =: step ]
-  n 255 = => [ goBack =: step ]
+  n 360 = => [ goBack =: step ]
 
   n step =: n
 
