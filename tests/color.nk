@@ -47,63 +47,63 @@ describe 'hsl' [
     [ ] [ color getRGB ] there [ 0 0 0 ] assert=
     [ ] [ color getHSL ] there [ 0 0 0 ] assert=
 
-  	0 0 100 hsl $: color
+    0 0 100 hsl $: color
     [ ] [ color getRGB ] there [ 255 255 255 ] assert=
     [ ] [ color getHSL ] there [ 0 0 100 ] assert=
 
-  	0 100 50 hsl $: color
+    0 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 255 0 0 ] assert=
     [ ] [ color getHSL ] there [ 0 100 50 ] assert=
 
-  	120 100 50 hsl $: color
+    120 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 0 255 0 ] assert=
     [ ] [ color getHSL ] there [ 120 100 50 ] assert=
 
-  	240 100 50 hsl $: color
+    240 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 0 0 255 ] assert=
     [ ] [ color getHSL ] there [ 240 100 50 ] assert=
 
-  	60 100 50 hsl $: color
+    60 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 255 255 0 ] assert=
     [ ] [ color getHSL ] there [ 60 100 50 ] assert=
 
-  	180 100 50 hsl $: color
+    180 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 0 255 255 ] assert=
     [ ] [ color getHSL ] there [ 180 100 50 ] assert=
 
-  	300 100 50 hsl $: color
+    300 100 50 hsl $: color
     [ ] [ color getRGB ] there [ 255 0 255 ] assert=
     [ ] [ color getHSL ] there [ 300 100 50 ] assert=
 
-  	0 0 75 hsl $: color
+    0 0 75 hsl $: color
     [ ] [ color getRGB ] there [ 191 191 191 ] assert=
     [ ] [ color getHSL ] there [ 0 0 75 ] assert=
 
-  	0 0 50 hsl $: color
+    0 0 50 hsl $: color
     [ ] [ color getRGB ] there [ 128 128 128 ] assert=
     [ ] [ color getHSL ] there [ 0 0 50 ] assert=
 
-  	0 100 25 hsl $: color
+    0 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 128 0 0 ] assert=
     [ ] [ color getHSL ] there [ 0 100 25 ] assert=
 
-  	60 100 25 hsl $: color
+    60 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 128 128 0 ] assert=
     [ ] [ color getHSL ] there [ 60 100 25 ] assert=
 
-  	120 100 25 hsl $: color
+    120 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 0 128 0 ] assert=
     [ ] [ color getHSL ] there [ 120 100 25 ] assert=
 
-  	300 100 25 hsl $: color
+    300 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 128 0 128 ] assert=
     [ ] [ color getHSL ] there [ 300 100 25 ] assert=
 
-  	180 100 25 hsl $: color
+    180 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 0 128 128 ] assert=
     [ ] [ color getHSL ] there [ 180 100 25 ] assert=
 
-  	240 100 25 hsl $: color
+    240 100 25 hsl $: color
     [ ] [ color getRGB ] there [ 0 0 128 ] assert=
     [ ] [ color getHSL ] there [ 240 100 25 ] assert=
   ]
@@ -129,63 +129,63 @@ describe 'hsv/hsb' [
     [ ] [ color getRGB ] there [ 0 0 0 ] assert=
     [ ] [ color getHSV ] there [ 0 0 0 ] assert=
 
-  	0 0 100 hsv $: color
+    0 0 100 hsv $: color
     [ ] [ color getRGB ] there [ 255 255 255 ] assert=
     [ ] [ color getHSV ] there [ 0 0 100 ] assert=
 
-  	0 100 100 hsv $: color
+    0 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 255 0 0 ] assert=
     [ ] [ color getHSV ] there [ 0 100 100 ] assert=
 
-  	120 100 100 hsv $: color
+    120 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 0 255 0 ] assert=
     [ ] [ color getHSV ] there [ 120 100 100 ] assert=
 
-  	240 100 100 hsv $: color
+    240 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 0 0 255 ] assert=
     [ ] [ color getHSV ] there [ 240 100 100 ] assert=
 
-  	60 100 100 hsv $: color
+    60 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 255 255 0 ] assert=
     [ ] [ color getHSV ] there [ 60 100 100 ] assert=
 
-  	180 100 100 hsv $: color
+    180 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 0 255 255 ] assert=
     [ ] [ color getHSV ] there [ 180 100 100 ] assert=
 
-  	300 100 100 hsv $: color
+    300 100 100 hsv $: color
     [ ] [ color getRGB ] there [ 255 0 255 ] assert=
     [ ] [ color getHSV ] there [ 300 100 100 ] assert=
 
-  	0 0 75 hsv $: color
+    0 0 75 hsv $: color
     [ ] [ color getRGB ] there [ 191 191 191 ] assert=
     [ ] [ color getHSV ] there [ 0 0 75 ] assert=
 
-  	0 0 50 hsv $: color
+    0 0 50 hsv $: color
     [ ] [ color getRGB ] there [ 128 128 128 ] assert=
     [ ] [ color getHSV ] there [ 0 0 50 ] assert=
 
-  	0 100 50 hsv $: color
+    0 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 128 0 0 ] assert=
     [ ] [ color getHSV ] there [ 0 100 50 ] assert=
 
-  	60 100 50 hsv $: color
+    60 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 128 128 0 ] assert=
     [ ] [ color getHSV ] there [ 60 100 50 ] assert=
 
-  	120 100 50 hsv $: color
+    120 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 0 128 0 ] assert=
     [ ] [ color getHSV ] there [ 120 100 50 ] assert=
 
-  	300 100 50 hsv $: color
+    300 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 128 0 128 ] assert=
     [ ] [ color getHSV ] there [ 300 100 50 ] assert=
 
-  	180 100 50 hsv $: color
+    180 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 0 128 128 ] assert=
     [ ] [ color getHSV ] there [ 180 100 50 ] assert=
 
-  	240 100 50 hsv $: color
+    240 100 50 hsv $: color
     [ ] [ color getRGB ] there [ 0 0 128 ] assert=
     [ ] [ color getHSV ] there [ 240 100 50 ] assert=
   ]
