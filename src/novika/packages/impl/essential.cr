@@ -1,5 +1,3 @@
-{% if flag?(:novika_readline) %} require "readline" {% end %}
-
 module Novika::Packages::Impl
   class Essential
     include Package
