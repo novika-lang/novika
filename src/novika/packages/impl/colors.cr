@@ -16,7 +16,7 @@ module Novika::Packages::Impl
 
     def inject(into target : Block)
       target.at("rgb", <<-END
-      ( R G B -- C ): creates a color form from three decimals
+      ( R G B -- C ): creates a Color form from three decimals
        Red (0-255), Green (0-255), and Blue (0-255).
 
       >>> 36 255 255 rgb

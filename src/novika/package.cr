@@ -144,8 +144,8 @@ module Novika
           {% subclasses = package.all_subclasses %}
           {% if !package.abstract? && subclasses.empty? %}
             {{package}},
-          {% else %}
-            {{subclasses.reject(&.abstract?).last}},
+          {% elsif subclass = subclasses.reject(&.abstract?).last %}
+            {{subclass}},
           {% end %}
         {% end %}] of IPackageClass
       {% end %}

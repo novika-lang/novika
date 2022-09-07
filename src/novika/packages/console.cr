@@ -1,5 +1,3 @@
-{% skip_file unless flag?(:novika_console) %}
-
 # TODO: refactor the API, it's horrible for portability and
 # general usability and exists to exist only
 
