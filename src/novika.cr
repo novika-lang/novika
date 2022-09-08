@@ -38,9 +38,6 @@ module Novika
     Colorize.enabled = Colorize.enabled?.tap do
       # Contextually enable/disable colors depending on whether
       # the user wants them.
-      #
-      # Contextually because we don't want to affect `colors`
-      # et al.
       Colorize.enabled = colorful?
 
       cdir = "directory".colorize.blue
@@ -49,67 +46,68 @@ module Novika
       on = "on by default".colorize.bold
 
       io << <<-END
-  Welcome to Novika, and thanks for trying it out!
+      novika - command-line frontend to the Novika programming language [#{VERSION}].
 
-  Try reading this, or else you may find yourself slightly confused.
+      #{" Syntax              ".colorize.reverse.bold}
 
-  This is the command-line frontend of Novika. It requires that
-  you manually list directories, packages, and files that you
-  want to be loaded and/or run. For instance:
+        novika [switches] [runnables]
 
-    $ novika     core          console      example.nk
-                 ----          -------      ----------
-                 a #{cdir}   a #{cpkg}    a #{cfile}
+      #{" Switches            ".colorize.reverse.bold}
 
-  Let's take a look at what you ask this frontend to do when
-  you give it such a command:
+        -p        \twrites dense (callers are recorded) profiling data to 'prof.novika.csv'
+        -ps       \twrites sparse profiling data to 'prof.novika.csv'
+        -h, --help\tprints this message
 
-  (1) Please load (and run) all files in the 'core' #{cdir}
-      found in the current working directory, all files in the
-      sub-directories of 'core', etc. This saves you from listing
-      all files found in core/ by hand via (3).
+      #{" Runnables           ".colorize.reverse.bold}
 
-      The order a directory is processed in is as follows: first,
-      <directory-name>.nk file is run (if it exists), then all
-      other files are run, then this process is repeated on sub-
-      directories (if any).
+      * When #{"runnable".colorize.bold} is a file, it is run.
 
-  (2) Please load the #{cpkg} called 'console'. Packages are
-      pre-compiled into this binary, and this CLI frontend has
-      control over which packages are going to be available for
-      the Novika code that it's going to execute.
+      * When #{"runnable".colorize.bold} is a directory, *.nk files in it are run. First, <directory-name>.nk
+        file is run (if it exists), then, all other files are run. Lastly, this process is
+        repeated on sub-directories (if any).
 
-      A list of packages you can choose from is shown below. Most
-      of them are on by default, so you don't have to do anything,
-      but some are not. #{"This is the way you can load a package
-    when the code you are running asks for it.".colorize.bold}
+      * When #{"runnable".colorize.bold} is a package, its words are exposed to all other files and packages
+        run. Here is a list of available packages:
 
-  (3) Please load (and run) the #{cfile} called 'example.nk',
-      found in the current working directory.
-
-  Most Novika code depends on 'core', which is the language's
-  standard library, so you'd almost always have the following
-  as the go-to command for running Novika files:
-
-    $ novika core path/to/the/file/you/want/to/run.nk
-
-  Here is a list of #{cpkg}s that were pre-compiled into this binary:
-
-  END
+      END
 
       packages = Bundle.available
 
       packages.select(&.on_by_default?).each do |pkg|
         io.puts
-        io << "- " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
+        io << "    - " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
       end
 
       packages.reject(&.on_by_default?).each do |pkg|
         io.puts
-        io << "- " << pkg.id << " (" << pkg.purpose << ")"
+        io << "    - " << pkg.id << " (" << pkg.purpose << ")"
       end
 
       io.puts
+
+      io << <<-END
+
+      #{" Standard library    ".colorize.reverse.bold}
+
+      Most Novika code depends on 'core', which is the language's standard library, so you'd
+      almost always use the following command:
+
+        $ novika core path/to/the/file/you/want/to/run.nk
+
+      #{" Examples            ".colorize.reverse.bold}
+
+      $ novika core repl.nk
+               ---- -------
+               std  file
+
+      $ novika core console examples/snake.nk
+               ---- ------- -----------------
+               std  pkg     file
+
+      If you're having an issue, head out to https://github.com/novika-lang/novika/issues,
+      and submit an issue.
+
+      END
     end
   end
 
@@ -150,13 +148,12 @@ module Novika
 
   # Novika command-line frontend entry point.
   def frontend(args : Array(String), cwd = Path[FileUtils.pwd])
-    if ARGV.empty?
+    if ARGV.empty? || ARGV.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
       help(STDERR)
       exit(1)
     end
 
     bundle = Bundle.new
-
     Bundle.available.each { |pkg| bundle << pkg }
 
     bundle.enable_default
