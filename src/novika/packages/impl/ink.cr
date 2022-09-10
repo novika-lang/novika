@@ -21,7 +21,7 @@ module Novika::Packages::Impl
       Color.rgb(0xff, 0xff, 0xff) => :white,
     }
 
-    def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
+    def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
       string = form.to_quote(engine).string
 
       colorful = string.colorize
@@ -30,7 +30,7 @@ module Novika::Packages::Impl
 
       form.die(NO_SYSTEM_ECHO_ERROR) unless system = bundle[ISystem]?
 
-      system.echo(engine, Quote.new(colorful.to_s))
+      system.append_echo(engine, Quote.new(colorful.to_s))
     end
   end
 end

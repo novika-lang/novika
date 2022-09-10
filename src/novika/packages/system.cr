@@ -20,9 +20,8 @@ module Novika::Packages
       true
     end
 
-    # Enquotes and prints *form*, followed by newline, to the
-    # standard output stream.
-    abstract def echo(engine, form : Form)
+    # Enquotes and appends *form* to the standard output stream.
+    abstract def append_echo(engine, form : Form)
 
     # Enquotes and prints *prompt* to STDOUT. Waits for the
     # user to answer, enquotes the answer and returns it
@@ -43,11 +42,11 @@ module Novika::Packages
     abstract def monotonic(engine) : Decimal
 
     def inject(into target : Block)
-      target.at("echo", <<-END
-      ( F -- ): enquotes and prints Form, followed by newline,
-       to the standard output stream.
+      target.at("appendEcho", <<-END
+      ( F -- ): enquotes and appends Form to the standard
+       output stream.
       END
-      ) { |engine| echo(engine, engine.stack.drop) }
+      ) { |engine| append_echo(engine, engine.stack.drop) }
 
       target.at("readLine", <<-END
       ( Pf -- Aq Sb ): enquotes and prints Prompt form to the

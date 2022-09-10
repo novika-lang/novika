@@ -1,0 +1,3 @@
+[
+  withColorAppendEcho '\n' appendEcho
+] @: withColorEcho

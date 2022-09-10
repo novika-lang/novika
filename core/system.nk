@@ -1,3 +1,8 @@
+[ "( F -- ): enquotes Form, and appends the resulting quote,
+   followed by newline, to the standard output stream."
+  appendEcho '\n' appendEcho
+] @: echo
+
 
 [ "( help F -- ): echoes help for Form. If form is a word,
    fetches it in caller first."

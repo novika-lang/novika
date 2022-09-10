@@ -37,10 +37,10 @@ module Novika::Packages
     # Defaults to `Novika.colorful?`.
     property? enabled : Bool { Novika.colorful? }
 
-    # Echoes *form* with *fg* foreground color (if any) and
-    # *bg* background color (if any). One of *fg*, *bg* is
-    # guaranteed to be non-nil.
-    abstract def with_color_echo(engine, fg : Color?, bg : Color?, form : Form)
+    # Appends *form* with *fg* foreground color (if any) and
+    # *bg* background color (if any) to the standard output
+    # stream. One of *fg*, *bg* is guaranteed to be non-nil.
+    abstract def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
 
     # Injects the colors vocabulary into *target*.
     def inject(into target)
@@ -70,10 +70,11 @@ module Novika::Packages
       END
       ) { |engine| bg.pop? }
 
-      target.at("withColorEcho", <<-END
-      ( F -- ): echoes Form with last color from the echo foreground
-       color stack set as foreground color, and the last as color from
-       the echo background stack set as background color.
+      target.at("withColorAppendEcho", <<-END
+      ( F -- ): appends Form with last color from the echo
+       foreground color stack set as foreground color, and
+       the last as color from the echo background stack set
+       as background color, to the standard output stream.
 
       Requires the system package, but it's on by default so you
       normally don't need to worry about this.
@@ -90,10 +91,10 @@ module Novika::Packages
         if enabled? && (fg.last? || bg.last?)
           # If color output is enabled and either foreground
           # or background is set, output with color.
-          with_color_echo(engine, fg.last?, bg.last?, form)
+          with_color_append_echo(engine, fg.last?, bg.last?, form)
         elsif system = bundle[ISystem]?
           # Use system echo as a fallback (colorless) echo.
-          system.echo(engine, form)
+          system.append_echo(engine, form)
         else
           # At least let the user know we tried. At this point
           # there really isn't anything to do other than die or
