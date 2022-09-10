@@ -1,212 +1,212 @@
-[ """( describe Sd B ): introduces a group of tests with common success,
-   failure, and death counters, with the given Section description, and
-   then runs an instance of Block with various testing words injected
-   (e.g., `itDies`, `itShould`)
+[ ahead thru asQuote $: desc
+  ahead thru asBlock $: _secBody
 
-  >>> describe '+ word' [
-    itShould 'add numbers' [ 1 1 + 2 = ]
-    itDies 'when adding wrong types' [ 1 '2' + ]
-    itShould 'display failure on this' [ 1 1 + 3 = ]
-  ]
+  76 175 80 rgb $: OK-COLOR
+  244 67 54 rgb $: ERR-COLOR
+  255 152 0 rgb $: DIE-COLOR
 
-  There is also a natural language-like word, `is`, which doesn't do much
-  other than `ahead thru`ing the action. The following works exactly
-  the same as the code above:
+  [ "A list of case instances in this describe block." ] $: caseList
 
-  >>> describe '+ word' [
-    it should 'add numbers' [ 1 1 + 2 = ]
-    it dies 'when adding wrong types' [ 1 '2' + ]
-    it should 'display failure on this' [ 1 1 + 3 = ]
-  ]
-  """
+  [ "( -- Rb ): runs this test case. Leaves Report block which
+     contains information such as whether this test case failed,
+     and details for the failure."
+    'child/inheritor responsibility' die
+  ] @: run
 
-  76 175 80 rgb $: SUCCESS-RGB
-  244 67 54 rgb $: FAILURE-RGB
-  255 193 7 rgb $: DEATH-RGB
+  [ """( A -- O ): code implementation and Object for the
+     'it should' case. Takes Ahead (i.e., a block expected
+     to be `ahead`).
 
-  ahead thru $: sectionName
-  ahead thru new $: sectionBlockInstance
+    Words `assert=`, `assertDies`, etc. are defined inside
+    the body block of 'it should'.
 
-  0 $: successes
-  0 $: failures
-  0 $: deaths
+    >>> it should 'do math' [ 1 2 + 3 assert= ]
+    [ok]
 
-  [ "( Cb Tcb Dhb Rb -- ): opens Runner block with Test case
-     block on top of a new stack. If Test case block dies,
-     Death handler block with error on top of a new stack
-     is opened. Comments from '=' checks (such as 'expected
-     x, got y') are inserted into Comments block."
-    $: runner
-    $: deathHandler
-    $: testCaseBlock
-    $: comments
+    >>> it should 'do math' [ 1 2 + 5 assert= ]
+    [fail]
 
-    orphan $: deathHandlerBlock
+    >>> it should 'do boo' [ [ 'boo' die ] 'boo' assertDies ]
+    [ok]
 
-    "Reparent death handler block to our test case's
-     original parent to preserve lookup whilst adding
-     our own death handler."
-    deathHandlerBlock testCaseBlock parent reparent
-    deathHandlerBlock #*died deathHandler opens
+    >>> it should 'do boo' [ [ 'boo' ] 'boo' assertDies ]
+    [fail]
+    """
+    dup thru asQuote $: desc
+        thru asBlock $: block
 
-    [ "( Fa Fb -- true/false ): adds an 'Fa is not Fb' message and
-       leaves false when that is the case (determined using `=`); in
-       case 'Fa is Fb', leaves true and prints nothing."
-      $: b $: a
-      a b = [
-        'Expected: ' b toQuote stitch ', got: ' stitch
-                     a toQuote stitch
-                     comments gulp
-        false
-      ] or
-    ] $: assertEqImpl
+    [ ":inherit:"
+      this  $: self
 
-    [ "( B M -- true/false ): asserts that Block dies with
-        Message set as the error's message."
-      $: msg new $: block
-      this $: self
-      #nil $: err
+      "Whether this test run succeeded."
+      true  $: ok?
 
-      block orphan dup $: diesHandler block parent reparent reparent drop
+      "Whether this test run had failed unexpectedly."
+      false $: failedUnexpectedly?
 
-      diesHandler #*died [ =: err self resume ] opens
+      "A list of failure messages."
+      [ ] $: failures
+
+      [ """( A B -- ): asserts that two forms, A and B, are
+         equal (using `=`). If they are, that is counted as
+         success. If they aren't, that is counted as failure.
+
+        >>> 1 2 assert=
+        [test case fails]
+
+        >>> 1 1 assert=
+        [test case succeeds]
+        """
+        $: b $: a
+
+        a b = not => [
+          false =: ok?
+
+          [ 'Assertion failure: expected ' b ', got: ' a ] here join
+            failures gulp
+        ]
+      ] $: assert=
+
+      [ """( B M -- ): asserts that Block dies with Message
+         set as the error's message (aka its details, obtained
+         via `getErrorDetails`).
+
+        >>> [ #foo asWord ] 'bad type: decimal, expected: a word' assertDies
+        [test case fails]
+
+        >>> [ 123 asWord ] 'bad type: decimal, expected: a word' assertDies
+        [test case succeeds]
+        """
+        $: message new $: block
+
+        this $: self 'no error' $: errorDetails
+
+        block #*died [
+          "Records that the subject block has died successfully,
+           and resumes (transfers control back to) assertDies."
+          getErrorDetails =: errorDetails
+          self resume
+        ] opens
+
+        block do
+
+        "Use `assert=` to ensure messages are equal."
+        errorDetails message assert= open
+      ] $: assertDies
+
+      block #*died [
+        "Records that this test run had failed unexpectedly,
+         and resumes execution of `self`."
+        getErrorDetails failures gulp
+
+        false =: ok?
+        true  =: failedUnexpectedly?
+
+        self resume
+      ] opens
+
+      block #assert= assert= opens
+      block #assertDies assertDies opens
       block do
 
-      err #nil = => [
-        'Expected ' block ' to die with ' msg ', but it didn\'t.' stack join comments gulp ^ ]
+      this
+    ] @: run
 
-      err getErrorDetails msg assertEqImpl open
-    ] $: assertDiesImpl
+    this
+  ] @: newItShould
 
-    deathHandlerBlock #assert= assertEqImpl opens
-    deathHandlerBlock #assertDies assertDiesImpl opens
+  [ """( A -- O ): code implementation and Object for the
+     'it dies' case. Takes Ahead (i.e., a block expected
+     to be `ahead`).
 
-    "Reparent test case block to our death handler block.
-     Now any death in test case block will be reported to
-     the death handler block."
-    testCaseBlock deathHandlerBlock reparent
-
-    testCaseBlock enclose runner hydrate
-  ] @: itImpl
-
-  [ "( Cb ) -- reports a Comments block."
-    each: [ '  ◦ ' swap stitch echo ]
-  ] @: reportComments
-
-  [ "( D Cb -- ): reports success outcome given Description
-     and Comments block."
-    $: comments
-
-    SUCCESS-RGB withEchoFg
-      ' ✔ ' swap stitch withColorEcho
-    dropEchoFg
-
-    comments reportComments
-
-    successes 1 + =: successes
-  ] @: reportSuccess
-
-  [ "( D Cb -- ): reports failure outcome given Description
-     and Comments block."
-    $: comments
-
-    FAILURE-RGB withEchoFg
-      ' × ' swap stitch withColorEcho
-    dropEchoFg
-
-    comments reportComments
-
-    failures 1 + =: failures
-  ] @: reportFailure
-
-  [ "( E D -- ): reports death outcome for Description, and
-     prints the report for Error itself."
-    DEATH-RGB withEchoFg
-      ' ☨ ' swap stitch withColorEcho
-    dropEchoFg
-
-    reportError
-
-    deaths 1 + =: deaths
-  ] @: reportDeath
-
-  [ "( D B -- ): reports Description as success/failure depending
-     on whether Block left true/false correspondingly on top of the
-     stack after being opened with a new empty stack."
-    ahead thru $: description
-    ahead thru $: testCaseBlock
-
-    [ ] $: comments
-
-    comments testCaseBlock
-      [ 'Does not ' description stitch reportDeath ^ ]
-      [ do comments empty?
-          [ 'Does ' description stitch comments reportSuccess ]
-          [ 'Does not ' description stitch comments reportFailure ] br ]
-    itImpl
-  ] $: itShouldImpl
-
-  [ "( D B -- ): reports Description as success/failure depending on
-     whether Block died while being opened with a new empty stack."
-    ahead thru $: description
-    ahead thru $: testCaseBlock
-
-    [ ] $: comments
-
-    comments description testCaseBlock
-      [ 'Dies ' description stitch comments reportSuccess ^ ]
-      [ do 'Does not die ' description stitch comments reportFailure ]
-    itImpl
-  ] $: itDiesImpl
-
-  "Export blocks to a section block instance."
-
-  sectionBlockInstance #it [
-    """( it _ ... -- ): helps with natural-language-like test phrasing,
-     for instance `it should 'do stuff'`, `it dies 'when stuff'`, etc.
-
-    Has no effect in terms of functionality.
+    >>> it dies 'when boo' [ … ]
     """
-    ahead eject $: name
+    dup thru asQuote $: desc
+        thru asBlock $: block
 
-    """
-    'it' basically ejects itself (by being evaluated) and
-    the next word from ahead, then joins them, and shits
-    them right in front of the call to it:
-      CALLER:   it | should          ...
-      AFTER IT: <nothing> | itShould ...
-    """
+    [ ":inherit:"
+      desc $: desc "Hoist desc here. We'll (maybe) redefine it."
+      this $: self
 
-    ahead 'it' name toQuote toCapitalized stitch toWord inject
-  ] opens
+      "See `newItShould` for what these mean. We're agreeing with
+       `newItShould` on these words here, so callers think we're
+       of one supertype. The latter is currently not enforced."
+      false $: ok?
+      false $: failedUnexpectedly?
+      [ ] $: failures
 
-  sectionBlockInstance #itDies itDiesImpl opens
-  sectionBlockInstance #itShould itShouldImpl opens
+      block #*died [ true =: ok? self resume ] opens
+      block do
 
-  '--- Starting to test ' sectionName stitch echo
-  '' echo
+      ok? not => [
+        'die ' desc stitch  =: desc
+        'Did not die ' desc stitch failures gulp
+      ]
 
-  sectionBlockInstance do
+      this
+    ] @: run
 
-  '' echo
+    this
+  ] @: newItDies
 
-  '=== Summary for ' sectionName stitch echo
+  [ "( it {should|dies Dq Bb} ): creates a test case with the
+     given Description quote and Body block. See `newItShould`
+     and `newItDies` for usage examples of each."
+    ahead dup thru asWord $: det
 
-  SUCCESS-RGB withEchoFg
-    ' ✔ Successful cases: ' successes toQuote stitch withColorEcho
-  dropEchoFg
+    det #should = => [ newItShould caseList gulp ^ ]
+    det   #dies = => [   newItDies caseList gulp ^ ]
 
-  failures 0 > => [
-    FAILURE-RGB withEchoFg
-      ' × Failures: ' failures toQuote stitch withColorEcho
-    dropEchoFg
-  ]
+    [ 'invalid \'it\': expected \'should\' or \'dies\', not \'' det '\'' ] here join die
+  ] $: it
 
-  deaths 0 > => [
-    DEATH-RGB withEchoFg
-      ' ☨ Deaths: ' deaths toQuote stitch withColorEcho
-    dropEchoFg
-  ]
+  [ "( -- Fc ): runs all registered test cases, printing the
+     progress '.'s. Afterwards, filters out and leaves a block
+     containing only Failed cases."
+    caseList map: [.run] only: [ $: case
+      case.ok? OK-COLOR ERR-COLOR sel
+        withEchoFg
+          '.' withColorAppendEcho
+        dropEchoFg
 
-  '' echo
+      "Leave only failed cases. TODO: use `but:` or `without:`
+       or whatever other name I would come up with."
+      case.ok? not
+    ]
+  ] @: _runWithProgressAndGetFailCases
+
+  [ "Prints test case failures to STDOUT."
+    dup empty? => [ drop ^ ] $: failCases
+
+    [ '\n\n=== Wrong description for \'' desc '\':' ] here join echo
+
+    failCases each: [ $: failCase
+      failCase.desc $: failCaseDesc
+      failCase.failedUnexpectedly? br:
+        [ DIE-COLOR '☠' ]
+        [ ERR-COLOR '⨯' ]
+      $: bullet
+
+      withEchoFg
+        [ '  ' bullet ' Does not ' failCaseDesc ] here join withColorEcho
+      dropEchoFg
+
+      failCase.failures each: [
+        "Print bullets for each failure message. In case of
+         an unexpected failure, there is only one such message:
+         its details."
+        '    • ' swap '.' stack join echo
+      ]
+
+      '' echo
+    ]
+  ] @: _presentFailCases
+
+  "Define 'it' as an opener for the block we've defined above,
+   and evaluate the section body block to populate our list
+   of pending cases."
+  _secBody #it it opens
+  _secBody do
+
+  _runWithProgressAndGetFailCases _presentFailCases
 ] @: describe
