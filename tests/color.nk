@@ -11,7 +11,7 @@ describe 'rgb' [
     color getAlpha 255 assert=
 
     color 100 withAlpha
-    color getAlpha 255 assert= drop "assert that withAlpha doesn't mutate"
+    color getAlpha 255 assert= "assert that withAlpha doesn't mutate"
       =: color
 
     color getAlpha 100 assert=

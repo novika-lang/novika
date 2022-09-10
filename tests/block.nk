@@ -126,11 +126,16 @@ describe '>>' [
   ]
 
   it should 'drop at cursor' [
-    [ 1 2 3 ] dup 1 |to >> 1 assert= swap [ 2 3 ] dup 0 |to assert=
+    [ 1 2 3 ] $: b
+    b 1 |to
+    b >> 1 assert=
+    b [ 2 3 ] dup 0 |to assert=
   ]
 
   it should 'drop at end' [
-    [ 1 2 3 ] >> 3 assert= swap [ 1 2 ] assert=
+    [ 1 2 3 ] $: b
+    b >> 3 assert=
+    b [ 1 2 ] assert=
   ]
 ]
 
