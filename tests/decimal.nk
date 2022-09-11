@@ -2,6 +2,8 @@
  because I really lack imagination for writing this kind of stuff."
 
 describe 'Decimal parsing' [
+  in lang
+
   it should 'parse simple decimals' [
     1 12 123 1234567812345678 12_34_56 1_000_000 000_000_001 5__000
   ]
@@ -61,6 +63,8 @@ describe 'Decimal parsing' [
 ]
 
 describe 'Package math: inter-domain decimal math' [
+  in lang
+
   "--- Addition: primitive word + ------------------------"
 
   it should 'add two small decimals' [
@@ -140,10 +144,14 @@ describe 'Package math: inter-domain decimal math' [
 ]
 
 describe 'Package math: cross-domain decimal math' [
+  in lang
+
 
 ]
 
 describe 'Package math: floating point (precise) math' [
+  in lang
+
   it should 'pass 0.1 + 0.2 = 0.3 test' [
     0.1 0.2 + 0.3 assert=
   ]
@@ -159,6 +167,8 @@ describe 'Package math: floating point (precise) math' [
 ]
 
 describe '*asDecimal hook for implicit conversion of blocks to decimals' [
+  in lang
+
   it dies 'when block does not implement *asDecimal' [
     1 [ ] +
   ]

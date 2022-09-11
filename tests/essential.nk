@@ -1,4 +1,6 @@
 describe 'desc' [
+  in lang
+
   it should 'leave correct descriptions for value forms' [
     true desc 'boolean true' assert=
     false desc 'boolean false' assert=
@@ -24,6 +26,8 @@ describe 'desc' [
 ]
 
 describe 'typedesc' [
+  in lang
+
   it should 'leave correct descriptions for value forms' [
     true typedesc 'boolean' assert=
     false typedesc 'boolean' assert=
@@ -43,6 +47,8 @@ describe 'typedesc' [
 ]
 
 describe 'asDecimal' [
+  in lang
+
   it dies 'when given quote' [ 'foo' asDecimal ]
   it dies 'when given word' [ #foo asDecimal ]
   it dies 'when given quoted word' [ ##foo asDecimal ]
@@ -65,6 +71,8 @@ describe 'asDecimal' [
 ]
 
 describe 'asQuote' [
+  in lang
+
   it dies 'when given decimal' [ 100 asQuote ]
   it dies 'when given word' [ #foo asQuote ]
   it dies 'when given quoted word' [ ##foo asQuote ]
@@ -87,6 +95,8 @@ describe 'asQuote' [
 ]
 
 describe 'asWord' [
+  in lang
+
   it dies 'when given decimal' [ 100 asWord ]
   it dies 'when given quote' [ 'foo' asWord ]
   it dies 'when given quoted word' [ ##foo asWord ]
@@ -109,6 +119,8 @@ describe 'asWord' [
 ]
 
 describe 'asQuotedWord' [
+  in lang
+
   it dies 'when given decimal' [ 100 asQuotedWord ]
   it dies 'when given quote' [ 'foo' asQuotedWord ]
   it dies 'when given word' [ #foo asQuotedWord ]
@@ -131,6 +143,8 @@ describe 'asQuotedWord' [
 ]
 
 describe 'asBoolean' [
+  in lang
+
   it dies 'when given decimal' [ 100 asBoolean ]
   it dies 'when given quote' [ 'foo' asBoolean ]
   it dies 'when given word' [ #foo asBoolean ]
@@ -153,6 +167,8 @@ describe 'asBoolean' [
 ]
 
 describe 'asBlock' [
+  in lang
+
   it dies 'when given decimal' [ 100 asBlock ]
   it dies 'when given quote' [ 'foo' asBlock ]
   it dies 'when given word' [ #foo asBlock ]
@@ -164,6 +180,8 @@ describe 'asBlock' [
 ]
 
 describe 'quote?' [
+  in lang
+
   it should 'leave false for block' [ [ ] quote? not ]
   it should 'leave false for true' [ true quote? not ]
   it should 'leave false for false' [ false quote? not ]
@@ -180,6 +198,8 @@ describe 'quote?' [
 ]
 
 describe 'toQuote' [
+  in lang
+
   "TODO: enquote block. It needs a pretty large set of tests
    for itself."
   it should 'enquote boolean true' [ true toQuote 'true' assert= ]
@@ -194,6 +214,8 @@ describe 'toQuote' [
 ]
 
 describe 'stitch' [
+  in lang
+
   it should 'stitch two empty quotes' [
     '' '' stitch '' assert=
   ]
@@ -229,6 +251,8 @@ describe 'stitch' [
 ]
 
 describe 'count' [
+  in lang
+
   it should 'leave 0 for empty block' [
     [ ] count 0 assert=
   ]
@@ -264,6 +288,8 @@ describe 'count' [
 ]
 
 describe 'fromLeft' [
+  in lang
+
   it dies 'when block is empty' [
     [ ] 0 fromLeft
   ]
@@ -308,6 +334,8 @@ describe 'fromLeft' [
 ]
 
 describe 'toWord' [
+  in lang
+
   it should 'noop if already word' [
     #hello toWord #hello assert=
   ]
@@ -345,6 +373,8 @@ describe 'toWord' [
 ]
 
 describe 'uppercase?' [
+  in lang
+
   it should 'leave false for empty quote' [
     '' uppercase? false assert=
   ]
@@ -372,6 +402,8 @@ describe 'uppercase?' [
 ]
 
 describe 'toUppercase' [
+  in lang
+
   it dies 'when not given a quote #1' [
     0 toUppercase
   ]
@@ -411,6 +443,8 @@ describe 'toUppercase' [
 ]
 
 describe 'sliceQuoteAt' [
+  in lang
+
   it dies 'when given non-quote #1' [
     0 1 sliceQuoteAt
   ]
@@ -466,6 +500,8 @@ describe 'sliceQuoteAt' [
 ]
 
 describe '|slice' [
+  in lang
+
   it dies 'when given non-block #1' [
     #foobar |slice
   ]

@@ -1,11 +1,79 @@
-[ ahead thru asQuote $: desc
+76 175 80 rgb $: _OK-COLOR
+244 67 54 rgb $: _ERR-COLOR
+255 152 0 rgb $: _DIE-COLOR
+
+orphan $: _testPools
+
+[ asWord $: name
+
+  [ ] $: caseList
+
+  _testPools name this pushes
+
+  this
+] @: _createTestPool
+
+
+[ asWord $: name
+
+  _testPools name entry:exists? not =>
+    [ name _createTestPool ^ ]
+
+  _testPools name entry:fetch
+] @: _fetchTestPool
+
+[
+  ahead thru asWord _testPools swap entry:fetch $: pool
+
+  pool.caseList map: [ .run $: case
+    case.ok? _OK-COLOR _ERR-COLOR sel
+      withEchoFg
+        '.' withColorAppendEcho
+      dropEchoFg
+    case
+  ] only: [ .ok? not ]
+
+  dup empty? => [ drop ^ ] $: failCases
+
+  failCases groupBy: [ .secDesc ] each: [ $: section
+    [ ] [ '\n\n=== Wrong description for \'' section first .secDesc '\':' ] there join echo
+
+    section each: [ $: failCase
+      failCase.desc $: failCaseDesc
+      failCase.failedUnexpectedly? br:
+        [ _DIE-COLOR '☠' ]
+        [ _ERR-COLOR '⨯' ]
+      $: bullet
+
+      withEchoFg
+        [ '  ' bullet ' Does not ' failCaseDesc ] here join withColorEcho
+      dropEchoFg
+
+      failCase.failures each: [
+        "Print bullets for each failure message. In case of
+          an unexpected failure, there is only one such message:
+          its details."
+        '    • ' swap '.' stack join echo
+      ]
+    ]
+  ]
+
+  '' echo
+] @: runTestsIn
+
+
+[ ahead thru asQuote $: secDesc
   ahead thru asBlock $: _secBody
 
-  76 175 80 rgb $: OK-COLOR
-  244 67 54 rgb $: ERR-COLOR
-  255 152 0 rgb $: DIE-COLOR
+  #nil $: pool
 
-  [ "A list of case instances in this describe block." ] $: caseList
+  this $: self
+
+  [ "Leaves list of test case instances in pool. If no pool,
+     creates a new pool."
+    pool #nil = => [ #global _fetchTestPool =: pool ]
+    self #caseList pool.caseList dup <| pushes |>
+  ] @: caseList
 
   [ "( -- Rb ): runs this test case. Leaves Report block which
      contains information such as whether this test case failed,
@@ -67,6 +135,11 @@
         ]
       ] $: assert=
 
+      [ "( B1 B2 -- ): asserts taht block tapes of B1 and B2
+         are equal."
+        tapes= true assert=
+      ] $: assertTapes=
+
       [ """( B M -- ): asserts that Block dies with Message
          set as the error's message (aka its details, obtained
          via `getErrorDetails`).
@@ -106,6 +179,7 @@
       ] opens
 
       block #assert= assert= opens
+      block #assertTapes= assertTapes= opens
       block #assertDies assertDies opens
       block do
 
@@ -113,7 +187,7 @@
     ] @: run
 
     this
-  ] @: newItShould
+  ] @: createItShould
 
   [ """( A -- O ): code implementation and Object for the
      'it dies' case. Takes Ahead (i.e., a block expected
@@ -128,8 +202,8 @@
       desc $: desc "Hoist desc here. We'll (maybe) redefine it."
       this $: self
 
-      "See `newItShould` for what these mean. We're agreeing with
-       `newItShould` on these words here, so callers think we're
+      "See `createItShould` for what these mean. We're agreeing with
+       `createItShould` on these words here, so callers think we're
        of one supertype. The latter is currently not enforced."
       false $: ok?
       false $: failedUnexpectedly?
@@ -147,66 +221,31 @@
     ] @: run
 
     this
-  ] @: newItDies
+  ] @: createItDies
 
   [ "( it {should|dies Dq Bb} ): creates a test case with the
-     given Description quote and Body block. See `newItShould`
-     and `newItDies` for usage examples of each."
+     given Description quote and Body block. See `createItShould`
+     and `createItDies` for usage examples of each."
     ahead dup thru asWord $: det
 
-    det #should = => [ newItShould caseList gulp ^ ]
-    det   #dies = => [   newItDies caseList gulp ^ ]
+    det #should = => [ createItShould caseList gulp ^ ]
+    det   #dies = => [   createItDies caseList gulp ^ ]
 
     [ 'invalid \'it\': expected \'should\' or \'dies\', not \'' det '\'' ] here join die
   ] $: it
 
-  [ "( -- Fc ): runs all registered test cases, printing the
-     progress '.'s. Afterwards, filters out and leaves a block
-     containing only Failed cases."
-    caseList map: [.run] only: [ $: case
-      case.ok? OK-COLOR ERR-COLOR sel
-        withEchoFg
-          '.' withColorAppendEcho
-        dropEchoFg
+  [ ahead thru asWord $: poolName
 
-      "Leave only failed cases. TODO: use `but:` or `without:`
-       or whatever other name I would come up with."
-      case.ok? not
+    pool #nil = not => [
+      "Forbid to chage pools on-the-fly, because that would
+       present us with some difficulties."
+      [ ] [ 'can\'t change test pool \'' pool.name '\' to \'' poolName '\'' ] there join die
     ]
-  ] @: _runWithProgressAndGetFailCases
 
-  [ "Prints test case failures to STDOUT."
-    dup empty? => [ drop ^ ] $: failCases
+    poolName _fetchTestPool =: pool
+  ] $: in
 
-    [ '\n\n=== Wrong description for \'' desc '\':' ] here join echo
-
-    failCases each: [ $: failCase
-      failCase.desc $: failCaseDesc
-      failCase.failedUnexpectedly? br:
-        [ DIE-COLOR '☠' ]
-        [ ERR-COLOR '⨯' ]
-      $: bullet
-
-      withEchoFg
-        [ '  ' bullet ' Does not ' failCaseDesc ] here join withColorEcho
-      dropEchoFg
-
-      failCase.failures each: [
-        "Print bullets for each failure message. In case of
-         an unexpected failure, there is only one such message:
-         its details."
-        '    • ' swap '.' stack join echo
-      ]
-
-      '' echo
-    ]
-  ] @: _presentFailCases
-
-  "Define 'it' as an opener for the block we've defined above,
-   and evaluate the section body block to populate our list
-   of pending cases."
   _secBody #it it opens
+  _secBody #in in opens
   _secBody do
-
-  _runWithProgressAndGetFailCases _presentFailCases
 ] @: describe

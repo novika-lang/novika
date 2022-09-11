@@ -1,4 +1,6 @@
 describe 'peek?' [
+  in lang
+
   it should 'leave false when block is empty' [
     [ ] [ [ ] peek? ] there [ false ] here assert=
   ]
@@ -18,6 +20,8 @@ describe 'peek?' [
 ]
 
 describe '|-' [
+  in lang
+
   it dies 'when cursor is at 0' [
     [ 1 2 3 ] dup 0 |to 1 |-
   ]
@@ -40,6 +44,8 @@ describe '|-' [
 ]
 
 describe '|+' [
+  in lang
+
   it dies 'when cursor is at end' [
     [ 1 2 3 ] 1 |+
   ]
@@ -62,6 +68,8 @@ describe '|+' [
 ]
 
 describe 'gulp' [
+  in lang
+
   it should 'add at start' [
     [ ] $: block
 
@@ -88,6 +96,8 @@ describe 'gulp' [
 ]
 
 describe 'spit' [
+  in lang
+
   it dies 'at start' [
     [ 1 2 3 ] dup 0 |to spit
   ]
@@ -107,6 +117,8 @@ describe 'spit' [
 ]
 
 describe '<<' [
+  in lang
+
   it should 'add at start' [
     [ ] 1 << [ 1 ] assert=
   ]
@@ -121,6 +133,8 @@ describe '<<' [
 ]
 
 describe '>>' [
+  in lang
+
   it dies 'at start' [
     [ ] >>
   ]
@@ -140,18 +154,24 @@ describe '>>' [
 ]
 
 describe 'enclose' [
+  in lang
+
   it should 'wrap a form in block' [
     1 enclose [ 1 ] assert=
   ]
 ]
 
 describe '2enclose' [
+  in lang
+
   it should 'wrap a pair of forms in block' [
     1 2 2enclose [ 1 2 ] assert=
   ]
 ]
 
 describe 'fromRight' [
+  in lang
+
   it should 'leave nth from right' [
     [ ] [
       [ 1 2 3 ] 0 fromRight 3 assert=
@@ -170,6 +190,8 @@ describe 'fromRight' [
 ]
 
 describe 'first' [
+  in lang
+
   it should 'leave first element' [
     [ [ ] first ] 'index out of bounds' assertDies
     [ 0 ] first 0 assert=
@@ -179,6 +201,8 @@ describe 'first' [
 
 
 describe 'last' [
+  in lang
+
   it should 'leave last element' [
     [ [ ] last ] 'index out of bounds' assertDies
     [ 0 ] last 0 assert=
@@ -186,7 +210,10 @@ describe 'last' [
   ]
 ]
 
+
 describe 'child' [
+  in lang
+
   it should 'create empty child block' [
     [ 1 2 ] $: a a child $: b
 
@@ -196,6 +223,8 @@ describe 'child' [
 ]
 
 describe '->' [
+  in lang
+
   it should 'fetch the entry' [
     [ 200 $: x
       100 $: y
@@ -228,6 +257,8 @@ describe '->' [
 ]
 
 describe 'entry:open' [
+  in lang
+
   it should 'fetch /& open entry' [
     [ 200 $: x 100 $: y [ x y + ] @: sum this ] open $: block
 
@@ -249,6 +280,8 @@ describe 'entry:open' [
 ]
 
 describe '.' [
+  in lang
+
   "These are pretty much the same as 'entry:open' but without
    the `this`es:"
 
@@ -273,6 +306,8 @@ describe '.' [
 ]
 
 describe 'fetch:' [
+  in lang
+
   it should 'ignore non-block forms' [
     'This is not a block!' #x fetch: [ 1 + ]
 
@@ -311,6 +346,8 @@ describe 'fetch:' [
 ]
 
 describe '|slideRight' [
+  in lang
+
   it should 'do nothing if empty list block' [
     [ ] [ 1 + ] |slideRight [ ] assert=
   ]
@@ -391,6 +428,8 @@ describe '|slideRight' [
 ]
 
 describe '|slideLeft' [
+  in lang
+
   it should 'do nothing if empty list block' [
     [ ] [ 1 + ] |slideLeft [ ] assert=
   ]
@@ -448,6 +487,8 @@ describe '|slideLeft' [
 ]
 
 describe 'eachWithIndex' [
+  in lang
+
   it should 'do nothing if empty list block' [
     [ ] eachWithIndex: [ 1 + ]
 
@@ -508,6 +549,8 @@ describe 'eachWithIndex' [
 ]
 
 describe 'each' [
+  in lang
+
   it should 'do nothing if empty list block' [
     [ ] each: [ 1 + ]
 
@@ -562,6 +605,8 @@ describe 'each' [
 ]
 
 describe 'pairs' [
+  in lang
+
   it should 'do nothing if list block is empty' [
     [ ] pairs: [ + ]
 
@@ -615,6 +660,8 @@ describe 'pairs' [
 ]
 
 describe 'consPairs' [
+  in lang
+
   it should 'do nothing if list block is empty' [
     [ ] consPairs: [ + ]
 
@@ -665,6 +712,8 @@ describe 'consPairs' [
 ]
 
 describe 'map' [
+  in lang
+
   it should 'do nothing if list block is empty' [
     [ ] map: [ 1 + ] [ ] assert=
   ]
@@ -693,6 +742,8 @@ describe 'map' [
 ]
 
 describe 'only' [
+  in lang
+
   it should 'do nothing if list block is empty' [
     [ ] [ 100 > ] only [ ] assert=
   ]
@@ -734,6 +785,8 @@ describe 'only' [
 ]
 
 describe 'reduce' [
+  in lang
+
   it should 'leave memo if list block is empty' [
     [ ] [ + ] 0 reduce 0 assert=
   ]
@@ -791,6 +844,8 @@ describe 'reduce' [
 ]
 
 describe 'amount' [
+  in lang
+
   it should 'leave zero for empty block' [
     [ ] # [ even? ] 0 assert=
   ]
@@ -824,6 +879,8 @@ describe 'amount' [
 ]
 
 describe 'all?' [
+  in lang
+
   it should 'leave true for empty list' [
     [ ] [ ] all? true assert=
   ]
@@ -848,6 +905,8 @@ describe 'all?' [
 ]
 
 describe 'any?' [
+  in lang
+
   it should 'leave false for empty list' [
     [ ] [ ] any? false assert=
   ]
@@ -872,6 +931,8 @@ describe 'any?' [
 ]
 
 describe 'zip' [
+  in lang
+
   it should 'zip two empty blocks into an empty block' [
     [ ] [ ] zip [ ] assert=
   ]
@@ -889,6 +950,8 @@ describe 'zip' [
 ]
 
 describe 'zipWithDefault' [
+  in lang
+
   it should 'work for empty blocks' [
     [ ] [ ] #hole zipWithDefault [ ] assert=
   ]
@@ -912,6 +975,8 @@ describe 'zipWithDefault' [
 ]
 
 describe 'conjure/here' [
+  in lang
+
   it should 'accept decimal, bool, etc.' [
     0 here 0 assert=
     true here true assert=
@@ -951,6 +1016,8 @@ describe 'conjure/here' [
 ]
 
 describe 'minmax' [
+  in lang
+
   it dies 'when block is empty' [
     [ ] minmax
   ]
@@ -983,18 +1050,24 @@ describe 'minmax' [
 ]
 
 describe 'min' [
+  in lang
+
   it should 'leave min part of minmax' [
     [ 100 5 -100 2 3 -29 4 500 ] min -100 assert=
   ]
 ]
 
 describe 'max' [
+  in lang
+
   it should 'leave max part of minmax' [
     [ 100 5 -100 2 3 -29 4 500 ] max 500 assert=
   ]
 ]
 
 describe 'sum' [
+  in lang
+
   it should 'leave 0 when block is empty' [
     [ ] sum 0 assert=
   ]
@@ -1022,6 +1095,8 @@ describe 'sum' [
 ]
 
 describe 'minmaxBy' [
+  in lang
+
   it dies 'when list block is empty' [
     [ ] [ ] minmaxBy
   ]
@@ -1058,18 +1133,24 @@ describe 'minmaxBy' [
 ]
 
 describe 'minBy' [
+  in lang
+
   it should 'leave min from minmaxBy' [
     [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ count ] ] minBy 'x' assert=
   ]
 ]
 
 describe 'maxBy' [
+  in lang
+
   it should 'leave max from minmaxBy' [
     [ 'foo' 100 'x' 'buzzer' ] [ dup quote? => [ count ] ] maxBy 100 assert=
   ]
 ]
 
 describe 'sumBy' [
+  in lang
+
   [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
 
   it should 'leave zero when list block is empty' [
@@ -1123,6 +1204,8 @@ describe 'sumBy' [
 ]
 
 describe 'collect' [
+  in lang
+
   it dies 'when amount is negative' [
     -1 collect: [ ]
   ]
@@ -1162,6 +1245,8 @@ describe 'collect' [
 
 
 describe 'groupBy' [
+  in lang
+
   it should 'leave empty block intact' [
     [ ] $: b
     b groupBy: [ ] $: gbyr
@@ -1193,6 +1278,8 @@ describe 'groupBy' [
 
 
 describe 'range' [
+  in lang
+
   it should 'leave 1-number range when B = E' [
     0 to: 0 [ 0 ] assert=
   ]
@@ -1221,6 +1308,8 @@ describe 'range' [
 ]
 
 describe 'join' [
+  in lang
+
   it should 'leave empty quote on empty block' [
     [ ] join '' assert=
   ]
@@ -1253,6 +1342,8 @@ describe 'join' [
 ]
 
 describe 'concat!' [
+  in lang
+
   it should 'concat two empty blocks' [
     [ ] $: a
     [ ] $: b
@@ -1286,6 +1377,8 @@ describe 'concat!' [
 ]
 
 describe 'concat' [
+  in lang
+
   it should 'not modify A nor B block' [
     [ 1 2 3 ] $: a
     [ 4 5 6 ] $: b
