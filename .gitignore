@@ -7,3 +7,5 @@ cachegrind.out.*
 callgrind.out.*
 flamegraph.svg
 perf.data
+perf.data.*
+prof.novika.csv
