@@ -764,7 +764,24 @@ module Novika::Packages::Impl
         block.top.push(engine)
       end
 
-      target.at("mergeTables") do |engine|
+      target.at("mergeTables", <<-END
+      ( Rb Db -- ): copies entries from Donor block's table to
+       Recipient block's table. Donor entries override same-
+       named entries in Recipient. Donor entries starting with
+       one or more underscores are not imported.
+
+      >>> [ ] $: a
+      >>> a #x 100 pushes
+      >>> a #_private 'Fool!' pushes
+      >>> [ ] $: b
+      >>> b #y 200 pushes
+      >>> b a
+      === [ | . y ] [ | . x _private ]
+      >>> mergeTables
+      >>> b
+      === [ . y x ]
+      END
+      ) do |engine|
         donor = engine.stack.drop.assert(engine, Block)
         recpt = engine.stack.drop.assert(engine, Block)
         recpt.import!(from: donor)

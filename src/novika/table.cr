@@ -11,6 +11,9 @@ module Novika
     abstract def get(name : Form, & : Form -> Entry?) : Entry?
 
     # Imports entries from *donor* table into this table.
+    #
+    # Entries whose names are preceded by one or more `_` are
+    # not imported (they are considered private).
     abstract def import!(donor : Table)
 
     # Returns whether this table currently stores no entries.
@@ -36,7 +39,11 @@ module Novika
     end
 
     def import!(donor : Table)
-      @store.merge!(donor.@store)
+      other = donor.@store
+
+      other.each do |k, v|
+        @store[k] = v unless k.is_a?(Word) && k.id.prefixed_by?("_")
+      end
     end
 
     def empty? : Bool
