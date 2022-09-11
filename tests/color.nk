@@ -1,4 +1,6 @@
 describe 'rgb' [
+  in lang
+
   it should 'create a color from decimals in range, get them back' [
     28 236 100 rgb $: color
     color desc color toQuote assert=
@@ -11,7 +13,7 @@ describe 'rgb' [
     color getAlpha 255 assert=
 
     color 100 withAlpha
-    color getAlpha 255 assert= drop "assert that withAlpha doesn't mutate"
+    color getAlpha 255 assert= "assert that withAlpha doesn't mutate"
       =: color
 
     color getAlpha 100 assert=
@@ -38,6 +40,8 @@ describe 'rgb' [
 ]
 
 describe 'hsl' [
+  in lang
+
   it should 'create a color from decimals in range, get them back' [
     0 0 0 hsl $: color
     [ ] [ color getRGB ] there [ 0 0 0 ] assert=
@@ -124,6 +128,8 @@ describe 'hsl' [
 ]
 
 describe 'hsv/hsb' [
+  in lang
+
   it should 'create a color from decimals in range, get them back' [
     0 0 0 hsv $: color
     [ ] [ color getRGB ] there [ 0 0 0 ] assert=
@@ -206,6 +212,8 @@ describe 'hsv/hsb' [
 ]
 
 describe 'lch' [
+  in lang
+
   "As you can see, the conversion is pretty lossy (read the
    doc on `lch`). So these are just stability tests."
 
@@ -278,6 +286,8 @@ describe 'lch' [
 ]
 
 describe 'fromPalette' [
+  in lang
+
   it should 'map to palette' [
     [ ] [
       0 0 0     rgb

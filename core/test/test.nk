@@ -1,0 +1,314 @@
+76 175 80 rgb $: _OK-COLOR
+244 67 54 rgb $: _ERR-COLOR
+255 152 0 rgb $: _DIE-COLOR
+
+
+"Holds instances of test groups."
+orphan $: _groups
+
+
+[ """( N -- Tg ): creates a Test group with Name.
+
+  Currently, test groups have two reachable fields:
+    * name: leaves Name of the Test group
+    * cases: holds cases in this Test group
+  """
+  asWord $: name
+  orphan $: cases
+  _groups name this pushes
+  this
+] @: _createTestGroup
+
+
+[ "( N -- Tg ): fetches (creates or retrieves) a Test group
+   with the given Name."
+  asWord $: name
+  _groups name entry:fetch? not =>
+    [ name _createTestGroup ]
+] @: _fetchTestGroup
+
+
+[ "( C -- ): prints a '.' with the specified foreground Color."
+  withEchoFg
+    '.' withColorAppendEcho
+  dropEchoFg
+] @: _withColorAppendDot
+
+
+[ "( runTestGroup: G -- ): runs all test cases under Group.
+   Reports the results on-the-fly. Dies if Group doesn't exist."
+  ahead thru asWord $: groupName
+
+  "Fetch the test group. If none, die out of this word. Else,
+   put it under `group` for use later on."
+  _groups groupName entry:fetch? not =>
+    [ 'no such test group: ' groupName toQuote stitch die ]
+  $: group
+
+  [ ] $: failedCases
+
+  "Run cases, collect failed ones. This is the part that
+   produces the '.'s."
+  group.cases each: [ .run $: reportBlock
+    reportBlock .ok? br:
+      [  _OK-COLOR _withColorAppendDot ]
+      [ _ERR-COLOR _withColorAppendDot failedCases reportBlock shove ]
+  ]
+
+  failedCases groupBy: [ .describeDesc ] each: [ $: section
+    [ ] [ '\n\n=== Wrong description for \'' section first .describeDesc '\':' ] there join echo
+
+    section each: [ $: failedCase
+      failedCase.desc $: failedCaseDesc
+      failedCase.died? br:
+        [ _DIE-COLOR '☠' ]
+        [ _ERR-COLOR '⨯' ]
+      $: bullet
+
+      withEchoFg
+        [ '  ' bullet ' Does not ' failedCaseDesc ] here join withColorEcho
+      dropEchoFg
+
+      failedCase.failures each: [
+        "Print bullets for each failure message. In case of an
+         unexpected failure, there is only one such message:
+         its details."
+        '    • ' swap '.' stack join echo
+      ]
+    ]
+  ]
+
+  '' echo
+] @: runTestGroup:
+
+
+[ """( describe Dq B -- ): groups multiple test cases (listed
+   in Block) under a single Description quote.
+
+  Describes can be grouped under the so-called *test groups*. By
+  default, they are grouped under the test group called 'global'.
+
+  You can group under a different test group using `in`. The
+  following describes are grouped under 'global':
+
+    describe 'Foo' [
+      it should 'work' [ … ]
+    ]
+
+    describe 'Bar' [
+      it should 'a' [ … ]
+      it should 'b' [ … ]
+    ]
+
+  The following describes are grouped under 'foo':
+
+    describe 'Foo' [
+      in foo
+
+      it should 'work' [ … ]
+    ]
+
+    describe 'Bar' [
+      in foo
+
+      it should 'a' [ … ]
+      it should 'b' [ … ]
+    ]
+
+  You can run a test group using `runTestGroup:`. That will
+  run all tests and echo the test report to the standard
+  output on the fly. With tests describes as above, you can
+  run them with:
+
+    runTestGroup: foo
+  """
+  ahead thru asQuote $: describeDesc
+  ahead thru asBlock $: _describeBody
+
+  this $: self
+
+  "A list of test case instances in the test pool of this describe."
+  #nil $: cases
+
+  "Current test pool block. `global` is the default (fallback)
+   pool. `cases` is set to global's case list here to save
+   up some time."
+  #nil $: testGroup
+
+
+  [ "( -- Rb ): runs this test case. Leaves Report block which
+     contains information such as whether this test case failed,
+     and details for the failure."
+    'child/inheritor responsibility' die
+  ] @: run
+
+
+  [ """( A -- O ): code implementation and Object for the 'it should'
+     test case. Takes Ahead (i.e., a block expected to be `ahead`).
+
+    Exposes to the test case block the following voabulary:
+      * `assert=`
+      * `assertDies`
+
+    >>> it should 'do math' [ 1 2 + 3 assert= ]
+    [ok]
+
+    >>> it should 'do math' [ 1 2 + 5 assert= ]
+    [fail]
+
+    >>> it should 'do boo' [ [ 'boo' die ] 'boo' assertDies ]
+    [ok]
+
+    >>> it should 'do boo' [ [ 'boo' ] 'boo' assertDies ]
+    [fail]
+    """
+    dup thru asQuote $: desc
+        thru asBlock $: block
+
+    [ ":inherit:"
+      this  $: self
+
+      "Whether this test run succeeded."
+      true  $: ok?
+
+      "Whether this test run had died unexpectedly."
+      false $: died?
+
+      "A list of failure messages in this test run."
+      [ ] $: failures
+
+      [ "( Mq -- ): records failure with Message quote."
+        failures gulp false =: ok?
+      ] @: _fail
+
+      [ """( A B -- ): asserts that two forms, A and B, are
+         equal (using `=`). If they are, that is counted as
+         success. If they aren't, that is counted as failure.
+
+        >>> 1 2 assert=
+        [test case fails]
+
+        >>> 1 1 assert=
+        [test case succeeds]
+        """
+        2dup = br:
+          [ 2drop ]
+          [ $: b $: a [ 'Assert: expected ' b ', got: ' a ] here join _fail ]
+      ] $: assert=
+
+      [ """( B M -- ): asserts that Block dies with Message
+         set as the error's message (aka its details, obtained
+         via `getErrorDetails`).
+
+        >>> [ #foo asWord ] 'bad type: decimal, expected: a word' assertDies
+        [test case fails]
+
+        >>> [ 123 asWord ] 'bad type: decimal, expected: a word' assertDies
+        [test case succeeds]
+        """
+        $: message new $: block
+
+        this $: self 'no error' $: errorDetails
+
+        block #*died [
+          "Records that the subject block has died successfully,
+           and resumes (transfers control back to) assertDies."
+          getErrorDetails =: errorDetails
+          self resume
+        ] opens
+
+        block do
+
+        errorDetails message assert= open
+      ] $: assertDies
+
+      block #*died [
+        "Records that this test run had failed unexpectedly,
+         and resumes execution of `self`."
+        getErrorDetails failures gulp
+
+        false =: ok?
+        true  =: died?
+
+        self resume
+      ] opens
+
+      block #assert= assert= opens
+      block #assertDies assertDies opens
+      block do
+
+      this
+    ] @: run
+
+    this
+  ] @: createItShould
+
+
+  [ """( A -- O ): code implementation and Object for the 'it dies'
+     test case. Takes Ahead (i.e., a block expected to be `ahead`).
+
+    >>> it dies 'when du' [ 'xyzzy' die ]
+    [ok]
+
+    >>> it dies 'when fu' [ ]
+    [fail]
+
+    Note: scheduled for removal. Prefer using 'it should' together
+    with `assertDies`.
+    """
+    dup thru asQuote $: desc
+        thru asBlock $: block
+
+    [ ":inherit:"
+      desc $: desc "Hoist desc here. We'll (maybe) redefine it."
+      this $: self
+
+      "See `createItShould` for what these mean. We're agreeing with
+       `createItShould` on these words here, so callers think we're
+       of one supertype. The latter is currently not enforced."
+      false $: ok?
+      false $: died?
+      [ ] $: failures
+
+      block #*died [ true =: ok? self resume ] opens
+      block do
+
+      ok? not => [
+        'die ' desc stitch =: desc
+        'Did not die ' desc stitch failures gulp
+      ]
+
+      this
+    ] @: run
+
+    this
+  ] @: createItDies
+
+
+  [ "( it {should|dies Dq Bb} ): creates a test case with the
+     given Description quote and Body block. See `createItShould`
+     and `createItDies` for usage examples of both."
+    ahead dup thru asWord $: det
+
+    "If test group is still unset, use `in` to set it to global."
+    testGroup #nil = => [ in open global ]
+
+    det #should = => [ createItShould cases gulp ^ ]
+    det   #dies = => [   createItDies cases gulp ^ ]
+
+    [ 'invalid \'it\': expected \'should\' or \'dies\', not \'' det '\'' ] here join die
+  ] $: it
+
+
+  [ "( in Nw -- ): moves this test group to the test group under
+     the given Name."
+    ahead thru asWord _fetchTestGroup
+      dup.cases =: cases
+                =: testGroup
+  ] $: in
+
+
+  _describeBody #it it opens
+  _describeBody #in in opens
+  _describeBody do
+] @: describe

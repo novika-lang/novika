@@ -87,7 +87,7 @@ needsPackage: console
   [ ] 0 0 tvec2 << $: body
 
   [ "( -- P ): leaves tvec2 Position of the snake head."
-    body 0 fromLeft
+    body first
   ] @: head
 
   [ "( B forSnake -- ): slides Block thru whole snake."

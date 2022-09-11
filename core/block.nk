@@ -113,7 +113,7 @@
 ] @: 2enclose
 
 
-[ """( B I -- F ): returns Index-th Form from right in Block.
+[ """( B I -- F ): leaves Index-th Form from right in Block.
 
   >>> [ 1 2 3 ] 0 fromRight
   === 3
@@ -126,6 +126,36 @@
   """
   over count 1 - swap - fromLeft
 ] @: fromRight
+
+
+[ """( B -- F ): leaves first Form in Block.
+
+  >>> [ ] first
+  [dies]
+
+  >>> [ 0 ] first
+  === 0
+
+  >>> [ 1 2 3 ] first
+  === 1
+  """
+  0 fromLeft
+] @: first
+
+
+[ """( B -- F ): leaves last Form in Block.
+
+  >>> [ ] last
+  [dies]
+
+  >>> [ 0 ] last
+  === 0
+
+  >>> [ 1 2 3 ] last
+  === 3
+  """
+  0 fromRight
+] @: last
 
 
 [ "( B -- Bc ): leaves an empty Block child."
@@ -586,7 +616,7 @@
 
 
 [ """( Lb B -- A ): leaves the Amount of items for which Block,
-   when opened with an item on top of an empty stack, returns
+   when opened with an item on top of an empty stack, leaves
    a truthy form. `break` and `next` are available.
 
   >>> [ 1 2 3 ] [ 2 > ] amount
@@ -793,7 +823,7 @@
 
   dup empty? => [ 'Cannot minmax an empty block' die ]
 
-  dup 0 fromLeft
+  dup first
     dup $: min
         $: max
 
@@ -858,7 +888,7 @@
   dup empty? => [ drop minmax ^ ] $: transformer
   dup empty? => [ 'Cannot minmax an empty block' die ]
 
-  dup 0 fromLeft "Get the first item in the List block."
+  dup first "Get the first item in the List block."
     dup $: min "Original minimum."
     dup $: max "Original maximum."
     enclose transformer there cherry
@@ -940,6 +970,71 @@
 [ "( N collect: B -- Lb ): infix version of `collect`."
   ahead thru collect
 ] @: collect:
+
+
+[ """( B G -- Lg ): groups forms in Block according to Grouper
+   block. Leaves a List of groups. Grouper block is opened
+   with consequent items on top of an empty stack. Grouper
+   block can leave any form except block. Order of groups
+   in List of groups is the same as in Block, i.e., if the
+   first item in Block is is in group G1, then the first group
+   in List of groups will be G1.
+
+  If necessary, the form Group left for a particular group
+  can be accessed with `.id`. Group members do not have access
+  to their group block's `id`.
+
+  >>> [ 1 2 3 ] [ 1 > ] groupBy
+  === [ [ 1 ] [ 2 3 ] ]
+
+  >>> [ 1 2 3 ] [ 1 <= ] groupBy
+  === [ [ 1 ] [ 2 3 ] ]
+
+  >>> [ 1 2 3 ] [ 1 <= ] groupBy [ .id ] map
+  === [ true false ]
+
+  >>> [ 1 2 3 ] [ 1 <= 'foo' 'bar' sel ] groupBy [ dup .id 2enclose ] map
+  === [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ]
+  """
+  asBlock $: grouper asBlock $: block
+
+  block empty? => [ [ ] ^ ]
+
+  orphan $: groupMap
+
+  block each: [ $: element
+    element enclose grouper there cherry $: group
+    groupMap group entry:exists? br:
+      [ groupMap group entry:fetch ]
+      [ "Create an orphan for ID, and another orhpan child for
+         group elements. This lets the user '=' but still have
+         'id' without additional trickery."
+        orphan orphan dup #id group pushes reparent dup
+        <| groupMap group |> pushes ]
+    element shove
+  ]
+
+  groupMap ls map: [ groupMap swap entry:fetch ]
+] @: groupBy
+
+
+[ """( B G -- Lg ): infix version of `groupBy`. See `groupBy`
+   for information on what this word does.
+
+  >>> [ 1 2 3 ] groupBy: [ 1 > ]
+  === [ [ 1 ] [ 2 3 ] ]
+
+  >>> [ 1 2 3 ] groupBy: [ 1 <= ]
+  === [ [ 1 ] [ 2 3 ] ]
+
+  >>> [ 1 2 3 ] groupBy: [ 1 <= ] map: [ .id ]
+  === [ true false ]
+
+  >>> [ 1 2 3 ] groupBy: [ 1 <= 'foo' 'bar' sel ] map: [ dup .id 2enclose ]
+  === [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ]
+  """
+  ahead thru asBlock groupBy
+] @: groupBy:
 
 
 [ """( B E -- Rb ): leaves Range block containing decimals

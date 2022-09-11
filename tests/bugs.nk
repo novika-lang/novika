@@ -1,4 +1,6 @@
 describe 'Handle infinite block instantiation #22' [
+  in lang
+
   "Note: needs more tests, this is a particularly nasty one."
 
   it should 'instantiate block with reflections' [
@@ -21,18 +23,20 @@ describe 'Handle infinite block instantiation #22' [
   it should 'compare reflections' [
     [ ] $: a
     a a enclose <<
-    a 0 fromLeft a = not true assert=
+    a first a = not true assert=
   ]
 
   it should 'compare deep reflections' [
     [ ] $: x
     [ [ [ [ [ [ [ x ] ] ] ] ] ] ] here $: y
     x y enclose shove
-    y y = x 0 fromLeft y = not true assert=
+    y y = x first y = not true assert=
   ]
 ]
 
 describe 'Conversion words should not be inherited #25' [
+  in lang
+
   [
     [ ] $: x
 
@@ -62,6 +66,8 @@ describe 'Conversion words should not be inherited #25' [
 ]
 
 describe 'Infinite recursion when word undefined inside word trap #8' [
+  in lang
+
   it dies 'because definition for this-word-is-undefined not found in the enclosing block(s)' [
     [ this-word-is-undefined ] @: *trap
     this-word-is-undefined-and-will-trigger-the-trap
@@ -80,6 +86,8 @@ describe 'Infinite recursion when word undefined inside word trap #8' [
 ]
 
 describe 'Invalid typedesc for abstract types/modules #30' [
+  in lang
+
   it should 'die with proper typedescs' [
     [ 'foo' asWord ] 'bad type: quote, expected: a word' assertDies
     [ true asQuote ] 'bad type: boolean, expected: a quote' assertDies
@@ -88,6 +96,8 @@ describe 'Invalid typedesc for abstract types/modules #30' [
 ]
 
 describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
+  in lang
+
   it should 'just push the majority of value forms with hydrate and friends' [
     [ ] $: list
     list 1 hydrate "decimal"

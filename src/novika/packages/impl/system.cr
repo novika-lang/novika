@@ -8,8 +8,8 @@
 
 module Novika::Packages::Impl
   class System < ISystem
-    def echo(engine, form : Form)
-      puts form.to_quote(engine).string
+    def append_echo(engine, form : Form)
+      print form.to_quote(engine).string
     end
 
     def readline(engine, prompt : Form) : {Quote, Boolean}

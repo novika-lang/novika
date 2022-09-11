@@ -1,0 +1,4 @@
+[ "( F -- ): same as `withColorAppendEcho`, but also appends
+   a newline to the end."
+  withColorAppendEcho '\n' appendEcho
+] @: withColorEcho

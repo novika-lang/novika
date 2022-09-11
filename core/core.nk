@@ -35,30 +35,6 @@ _root #@: [
 ] @: =:
 
 
-[ "( help F -- ): echoes help for Form. If form is a word,
-   fetches it in caller first."
-  ahead dup thru dup word?
-    [ entry:fetch ]
-    [ nip         ]
-  br desc echo
-] @: help
-
-
-[ "( F1 F2 -- ): echoes a pair of Forms."
-  swap echo echo
-] @: 2echo
-
-
-[ "( F -- F ): echoes a Form but leaves it."
-  dup echo
-] @: p
-
-
-[ "( F1 F2 -- F1 F2 ): echoes a pair of Forms but leaves them."
-  2dup 2echo
-] @: 2p
-
-
 [ """( Q F -- ): dies with Quote message stitched with an
    enquoted Form.
 
@@ -67,16 +43,6 @@ _root #@: [
   """
   toQuote stitch die
 ] @: 2die
-
-
-[ "( B -- Mt ): leaves Monotonic time difference in milliseconds
-   for Block (leaves the time Block took to execute, in ms)."
-  monotonic $: t1
-  do
-  monotonic $: t2
-
-  t2 t1 -
-] @: measure
 
 
 [ "( needs: Pq -- ): ensures that the user has enabled the package

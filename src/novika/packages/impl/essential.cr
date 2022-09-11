@@ -150,6 +150,18 @@ module Novika::Packages::Impl
         engine.schedule(form, stack)
       end
 
+      target.at("do", <<-END
+      ( F -- ): activates Form over an empty stack.
+
+      >>> [ 'Hi!' echo ] do
+      Hi!
+      ===
+      END
+      ) do |engine|
+        form = (stack = engine.stack).drop
+        engine.schedule(form, Block.new)
+      end
+
       target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         block.instance.push(engine)
@@ -164,6 +176,18 @@ module Novika::Packages::Impl
         a = engine.stack.drop
         det = engine.stack.drop
         det.sel(a, b).push(engine)
+      end
+
+      target.at("br", <<-END
+      ( D T F -- ? ): opens True/False forms depending on
+       Determiner being true/false.
+      END
+      ) do |engine|
+        stack = engine.stack
+        b = stack.drop
+        a = stack.drop
+        det = stack.drop
+        engine.schedule(det.sel(a, b), stack)
       end
 
       target.at("<", "( A B -- S ): leaves whether one decimal is smaller than other.") do |engine|
@@ -513,6 +537,28 @@ module Novika::Packages::Impl
         name = engine.stack.drop
         block = engine.stack.drop.assert(engine, Block)
         block.at(name).push(engine)
+      end
+
+      target.at("entry:fetch?", <<-END
+      ( B N -- F true / false ): leaves the value Form under Name
+       in Block's table followed by `true`, or `false` if no such
+       entry is in Block.
+
+      >>> [ ] $: a
+      >>> a #x 100 pushes
+      >>> a #x entry:fetch?
+      === 100 true
+
+      >>> a #y entry:fetch?
+      === false
+      END
+      ) do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
+        if form = block.at?(name)
+          form.push(engine)
+        end
+        Boolean[!!form].push(engine)
       end
 
       target.at("entry:isOpenEntry?", <<-END

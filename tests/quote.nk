@@ -1,4 +1,6 @@
 describe 'toCapitalized' [
+  in lang
+
   it dies 'when given non-quote #1' [
     1 toCapitalized
   ]
