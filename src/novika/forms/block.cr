@@ -345,7 +345,7 @@ module Novika
     # ```novika
     # [ ] $: a
     # a a shove
-    # a 0 fromLeft a = "=> true"
+    # a first a = "=> true"
     # ```
     def ==(other)
       return false unless other.is_a?(self)

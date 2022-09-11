@@ -21,14 +21,14 @@ describe 'Handle infinite block instantiation #22' [
   it should 'compare reflections' [
     [ ] $: a
     a a enclose <<
-    a 0 fromLeft a = not true assert=
+    a first a = not true assert=
   ]
 
   it should 'compare deep reflections' [
     [ ] $: x
     [ [ [ [ [ [ [ x ] ] ] ] ] ] ] here $: y
     x y enclose shove
-    y y = x 0 fromLeft y = not true assert=
+    y y = x first y = not true assert=
   ]
 ]
 
