@@ -46,3 +46,25 @@ describe 'toCapitalized' [
     "..."
   ]
 ]
+
+describe '~~' [
+  in lang
+
+  it should 'leave value forms intact' [
+    123 ~~ '123' assert=
+    'hello' ~~ 'hello' assert=
+    true ~~ 'true' assert=
+    #true ~~ '#true' assert=
+    ###true ~~ '##true' assert=
+    0 0 0 rgb ~~ 'rgb(0, 0, 0)' assert=
+    #+ here ~~ '[native code]' assert=
+  ]
+
+  it should 'join forms in blocks into quote non recursively' [
+    [ 1 2 3 ] ~~ '123' assert=
+    [ [ 'A' true ] true ] ~~ '[ \'A\' #true | ]+true' assert=
+    100 $: x
+    200 $: y
+    [ [ x y ] ' :: ' x ' @ ' y ] ~~ '[ x y | ]+ :: 100 @ 200' assert=
+  ]
+]

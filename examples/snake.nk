@@ -54,7 +54,7 @@ needsPackage: console
   ] @: random
 
   [
-    [ x '@' y ] here join
+    [ x '@' y ] ~~
   ] @: *asQuote
 
   this

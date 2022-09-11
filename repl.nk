@@ -70,7 +70,7 @@ this child $: pgRoot
          to have no errors."
         pgRoot pgRootInstance mergeTables
         pgStackCopy =: pgStack
-        [ 'In ' timeTakenMs 'ms' ] here join echo
+        [ 'In ' timeTakenMs 'ms' ] ~~ echo
       ]
 
     pgStack echo

@@ -16,3 +16,30 @@
 
   qq 1 sliceQuoteAt swap toUppercase swap stitch
 ] @: toCapitalized
+
+
+[ """( F -- Q ): similar to `here join` (but faster and not
+   recursive), if Form is a block. Else, same as `toQuote`.
+
+  >>> 123 ~
+  === '123'
+
+  >>> [ 1 2 3 ] ~~
+  === '123'
+
+  >>> 'John' $: name
+  >>> [ 'My name is ' name '!' ] ~~
+  === 'My name is John!'
+
+  Beware:
+
+  >>> [ 1 2 + ] @: foo
+  >>> [ 'foo = ' foo ] ~~
+  === 'foo = [ 1 2 + | ]'
+  """
+  dup block? not => [ toQuote ^ ]
+
+  ahead $: caller
+
+  [ dup word? => [ caller swap entry:fetch ] toQuote stitch ] '' reduce
+] @: ~~
