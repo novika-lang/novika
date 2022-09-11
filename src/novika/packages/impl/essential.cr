@@ -539,6 +539,28 @@ module Novika::Packages::Impl
         block.at(name).push(engine)
       end
 
+      target.at("entry:fetch?", <<-END
+      ( B N -- F true / false ): leaves the value Form under Name
+       in Block's table followed by `true`, or `false` if no such
+       entry is in Block.
+
+      >>> [ ] $: a
+      >>> a #x 100 pushes
+      >>> a #x entry:fetch?
+      === 100 true
+
+      >>> a #y entry:fetch?
+      === false
+      END
+      ) do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
+        if form = block.at?(name)
+          form.push(engine)
+        end
+        Boolean[!!form].push(engine)
+      end
+
       target.at("entry:isOpenEntry?", <<-END
     ( B N -- true/false ): leaves whether an entry called Name
      in Block is an open entry.

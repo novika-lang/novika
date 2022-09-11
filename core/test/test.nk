@@ -2,78 +2,139 @@
 244 67 54 rgb $: _ERR-COLOR
 255 152 0 rgb $: _DIE-COLOR
 
-orphan $: _testPools
 
-[ asWord $: name
+"Holds instances of test groups."
+orphan $: _groups
 
-  [ ] $: caseList
 
-  _testPools name this pushes
+[ """( N -- Tg ): creates a Test group with Name.
 
+  Currently, test groups have two reachable fields:
+    * name: leaves Name of the Test group
+    * cases: holds cases in this Test group
+  """
+  asWord $: name
+  orphan $: cases
+  _groups name this pushes
   this
-] @: _createTestPool
+] @: _createTestGroup
 
 
-[ asWord $: name
+[ "( N -- Tg ): fetches (creates or retrieves) a Test group
+   with the given Name."
+  asWord $: name
+  _groups name entry:fetch? not =>
+    [ name _createTestGroup ]
+] @: _fetchTestGroup
 
-  _testPools name entry:exists? not =>
-    [ name _createTestPool ^ ]
 
-  _testPools name entry:fetch
-] @: _fetchTestPool
+[ "( C -- ): prints a '.' with the specified foreground Color."
+  withEchoFg
+    '.' withColorAppendEcho
+  dropEchoFg
+] @: _withColorAppendDot
 
-[
-  ahead thru asWord _testPools swap entry:fetch $: pool
 
-  pool.caseList map: [ .run $: case
-    case.ok? _OK-COLOR _ERR-COLOR sel
-      withEchoFg
-        '.' withColorAppendEcho
-      dropEchoFg
-    case
-  ] only: [ .ok? not ]
+[ "( runTestGroup: G -- ): runs all test cases under Group.
+   Reports the results on-the-fly. Dies if Group doesn't exist."
+  ahead thru asWord $: groupName
 
-  dup empty? => [ drop ^ ] $: failCases
+  "Fetch the test group. If none, die out of this word. Else,
+   put it under `group` for use later on."
+  _groups groupName entry:fetch? not =>
+    [ 'no such test group: ' groupName toQuote stitch die ]
+  $: group
 
-  failCases groupBy: [ .secDesc ] each: [ $: section
-    [ ] [ '\n\n=== Wrong description for \'' section first .secDesc '\':' ] there join echo
+  [ ] $: failedCases
 
-    section each: [ $: failCase
-      failCase.desc $: failCaseDesc
-      failCase.failedUnexpectedly? br:
+  "Run cases, collect failed ones. This is the part that
+   produces the '.'s."
+  group.cases each: [ .run $: reportBlock
+    reportBlock .ok? br:
+      [  _OK-COLOR _withColorAppendDot ]
+      [ _ERR-COLOR _withColorAppendDot failedCases reportBlock shove ]
+  ]
+
+  failedCases groupBy: [ .describeDesc ] each: [ $: section
+    [ ] [ '\n\n=== Wrong description for \'' section first .describeDesc '\':' ] there join echo
+
+    section each: [ $: failedCase
+      failedCase.desc $: failedCaseDesc
+      failedCase.died? br:
         [ _DIE-COLOR '☠' ]
         [ _ERR-COLOR '⨯' ]
       $: bullet
 
       withEchoFg
-        [ '  ' bullet ' Does not ' failCaseDesc ] here join withColorEcho
+        [ '  ' bullet ' Does not ' failedCaseDesc ] here join withColorEcho
       dropEchoFg
 
-      failCase.failures each: [
-        "Print bullets for each failure message. In case of
-          an unexpected failure, there is only one such message:
-          its details."
+      failedCase.failures each: [
+        "Print bullets for each failure message. In case of an
+         unexpected failure, there is only one such message:
+         its details."
         '    • ' swap '.' stack join echo
       ]
     ]
   ]
 
   '' echo
-] @: runTestsIn
+] @: runTestGroup:
 
 
-[ ahead thru asQuote $: secDesc
-  ahead thru asBlock $: _secBody
+[ """( describe Dq B -- ): groups multiple test cases (listed
+   in Block) under a single Description quote.
 
-  #nil $: pool
+  Describes can be grouped under the so-called *test groups*. By
+  default, they are grouped under the test group called 'global'.
+
+  You can group under a different test group using `in`. The
+  following describes are grouped under 'global':
+
+    describe 'Foo' [
+      it should 'work' [ … ]
+    ]
+
+    describe 'Bar' [
+      it should 'a' [ … ]
+      it should 'b' [ … ]
+    ]
+
+  The following describes are grouped under 'foo':
+
+    describe 'Foo' [
+      in foo
+
+      it should 'work' [ … ]
+    ]
+
+    describe 'Bar' [
+      in foo
+
+      it should 'a' [ … ]
+      it should 'b' [ … ]
+    ]
+
+  You can run a test group using `runTestGroup:`. That will
+  run all tests and echo the test report to the standard
+  output on the fly. With tests describes as above, you can
+  run them with:
+
+    runTestGroup: foo
+  """
+  ahead thru asQuote $: describeDesc
+  ahead thru asBlock $: _describeBody
 
   this $: self
 
-  [ "Leaves list of test case instances in pool. If no pool,
-     creates a new pool."
-    pool #nil = => [ #global _fetchTestPool =: pool ]
-    self #caseList pool.caseList dup <| pushes |>
-  ] @: caseList
+  "A list of test case instances in the test pool of this describe."
+  #nil $: cases
+
+  "Current test pool block. `global` is the default (fallback)
+   pool. `cases` is set to global's case list here to save
+   up some time."
+  #nil $: testGroup
+
 
   [ "( -- Rb ): runs this test case. Leaves Report block which
      contains information such as whether this test case failed,
@@ -81,12 +142,13 @@ orphan $: _testPools
     'child/inheritor responsibility' die
   ] @: run
 
-  [ """( A -- O ): code implementation and Object for the
-     'it should' case. Takes Ahead (i.e., a block expected
-     to be `ahead`).
 
-    Words `assert=`, `assertDies`, etc. are defined inside
-    the body block of 'it should'.
+  [ """( A -- O ): code implementation and Object for the 'it should'
+     test case. Takes Ahead (i.e., a block expected to be `ahead`).
+
+    Exposes to the test case block the following voabulary:
+      * `assert=`
+      * `assertDies`
 
     >>> it should 'do math' [ 1 2 + 3 assert= ]
     [ok]
@@ -109,11 +171,15 @@ orphan $: _testPools
       "Whether this test run succeeded."
       true  $: ok?
 
-      "Whether this test run had failed unexpectedly."
-      false $: failedUnexpectedly?
+      "Whether this test run had died unexpectedly."
+      false $: died?
 
-      "A list of failure messages."
+      "A list of failure messages in this test run."
       [ ] $: failures
+
+      [ "( Mq -- ): records failure with Message quote."
+        failures gulp false =: ok?
+      ] @: _fail
 
       [ """( A B -- ): asserts that two forms, A and B, are
          equal (using `=`). If they are, that is counted as
@@ -125,20 +191,10 @@ orphan $: _testPools
         >>> 1 1 assert=
         [test case succeeds]
         """
-        $: b $: a
-
-        a b = not => [
-          false =: ok?
-
-          [ 'Assertion failure: expected ' b ', got: ' a ] here join
-            failures gulp
-        ]
+        2dup = br:
+          [ 2drop ]
+          [ $: b $: a [ 'Assert: expected ' b ', got: ' a ] here join _fail ]
       ] $: assert=
-
-      [ "( B1 B2 -- ): asserts taht block tapes of B1 and B2
-         are equal."
-        tapes= true assert=
-      ] $: assertTapes=
 
       [ """( B M -- ): asserts that Block dies with Message
          set as the error's message (aka its details, obtained
@@ -163,7 +219,6 @@ orphan $: _testPools
 
         block do
 
-        "Use `assert=` to ensure messages are equal."
         errorDetails message assert= open
       ] $: assertDies
 
@@ -173,13 +228,12 @@ orphan $: _testPools
         getErrorDetails failures gulp
 
         false =: ok?
-        true  =: failedUnexpectedly?
+        true  =: died?
 
         self resume
       ] opens
 
       block #assert= assert= opens
-      block #assertTapes= assertTapes= opens
       block #assertDies assertDies opens
       block do
 
@@ -189,11 +243,18 @@ orphan $: _testPools
     this
   ] @: createItShould
 
-  [ """( A -- O ): code implementation and Object for the
-     'it dies' case. Takes Ahead (i.e., a block expected
-     to be `ahead`).
 
-    >>> it dies 'when boo' [ … ]
+  [ """( A -- O ): code implementation and Object for the 'it dies'
+     test case. Takes Ahead (i.e., a block expected to be `ahead`).
+
+    >>> it dies 'when du' [ 'xyzzy' die ]
+    [ok]
+
+    >>> it dies 'when fu' [ ]
+    [fail]
+
+    Note: scheduled for removal. Prefer using 'it should' together
+    with `assertDies`.
     """
     dup thru asQuote $: desc
         thru asBlock $: block
@@ -206,14 +267,14 @@ orphan $: _testPools
        `createItShould` on these words here, so callers think we're
        of one supertype. The latter is currently not enforced."
       false $: ok?
-      false $: failedUnexpectedly?
+      false $: died?
       [ ] $: failures
 
       block #*died [ true =: ok? self resume ] opens
       block do
 
       ok? not => [
-        'die ' desc stitch  =: desc
+        'die ' desc stitch =: desc
         'Did not die ' desc stitch failures gulp
       ]
 
@@ -223,29 +284,31 @@ orphan $: _testPools
     this
   ] @: createItDies
 
+
   [ "( it {should|dies Dq Bb} ): creates a test case with the
      given Description quote and Body block. See `createItShould`
-     and `createItDies` for usage examples of each."
+     and `createItDies` for usage examples of both."
     ahead dup thru asWord $: det
 
-    det #should = => [ createItShould caseList gulp ^ ]
-    det   #dies = => [   createItDies caseList gulp ^ ]
+    "If test group is still unset, use `in` to set it to global."
+    testGroup #nil = => [ in open global ]
+
+    det #should = => [ createItShould cases gulp ^ ]
+    det   #dies = => [   createItDies cases gulp ^ ]
 
     [ 'invalid \'it\': expected \'should\' or \'dies\', not \'' det '\'' ] here join die
   ] $: it
 
-  [ ahead thru asWord $: poolName
 
-    pool #nil = not => [
-      "Forbid to chage pools on-the-fly, because that would
-       present us with some difficulties."
-      [ ] [ 'can\'t change test pool \'' pool.name '\' to \'' poolName '\'' ] there join die
-    ]
-
-    poolName _fetchTestPool =: pool
+  [ "( in Nw -- ): moves this test group to the test group under
+     the given Name."
+    ahead thru asWord _fetchTestGroup
+      dup.cases =: cases
+                =: testGroup
   ] $: in
 
-  _secBody #it it opens
-  _secBody #in in opens
-  _secBody do
+
+  _describeBody #it it opens
+  _describeBody #in in opens
+  _describeBody do
 ] @: describe
