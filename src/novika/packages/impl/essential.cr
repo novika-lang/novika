@@ -150,6 +150,18 @@ module Novika::Packages::Impl
         engine.schedule(form, stack)
       end
 
+      target.at("do", <<-END
+      ( F -- ): activates Form over an empty stack.
+
+      >>> [ 'Hi!' echo ] do
+      Hi!
+      ===
+      END
+      ) do |engine|
+        form = (stack = engine.stack).drop
+        engine.schedule(form, Block.new)
+      end
+
       target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         block.instance.push(engine)
@@ -164,6 +176,18 @@ module Novika::Packages::Impl
         a = engine.stack.drop
         det = engine.stack.drop
         det.sel(a, b).push(engine)
+      end
+
+      target.at("br", <<-END
+      ( D T F -- ? ): opens True/False forms depending on
+       Determiner being true/false.
+      END
+      ) do |engine|
+        stack = engine.stack
+        b = stack.drop
+        a = stack.drop
+        det = stack.drop
+        engine.schedule(det.sel(a, b), stack)
       end
 
       target.at("<", "( A B -- S ): leaves whether one decimal is smaller than other.") do |engine|

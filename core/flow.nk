@@ -4,17 +4,6 @@
 ] @: val
 
 
-[ "( B -- ): activates an empty stack for the duration of Block."
-  [ ] swap hydrate
-] @: do
-
-
-[ "( D T F -- ? ): opens True/False forms depending on Determiner
-   being true/false."
-  sel open
-] @: br
-
-
 [ "( D br: T F -- ? ): infix version of `br`."
   ahead thru "T"
   ahead thru "F"
