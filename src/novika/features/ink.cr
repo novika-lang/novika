@@ -1,4 +1,4 @@
-module Novika::Packages
+module Novika::Features
   # Enables colorful output using `withColorEcho` and friends.
   #
   # Exposed vocabulary:
@@ -9,10 +9,10 @@ module Novika::Packages
   # * `dropEchoBg`, generic implementation
   # * `withColorEcho`, implemented by `with_color_echo`
   abstract class IInk
-    include Package
+    include Feature
 
-    NO_SYSTEM_ECHO_ERROR = "withColorEcho requires 'echo' from package system, " \
-                           "but no instance of package system was found"
+    NO_SYSTEM_ECHO_ERROR = "withColorEcho requires 'echo' from feature system, " \
+                           "but no instance of feature system was found"
 
     def self.id : String
       "ink"
@@ -76,14 +76,14 @@ module Novika::Packages
        the last as color from the echo background stack set
        as background color, to the standard output stream.
 
-      Requires the system package, but it's on by default so you
+      Requires the system feature, but it's on by default so you
       normally don't need to worry about this.
 
       Note: some implementations (particularly the Novika's default
       one) choose to snap foreground and background colors to
       system's basic 16 colors for compatibility & portability.
       If you want more cross-platform control over colors (and
-      pretty much everything else), take a look at package console.
+      pretty much everything else), take a look at feature console.
       END
       ) do |engine|
         form = engine.stack.drop

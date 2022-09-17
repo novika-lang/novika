@@ -1,6 +1,6 @@
-module Novika::Packages::Impl
+module Novika::Features::Impl
   class Essential
-    include Package
+    include Feature
 
     def self.id : String
       "essential"

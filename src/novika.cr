@@ -10,9 +10,9 @@ require "./novika/tape"
 require "./novika/table"
 require "./novika/forms/*"
 require "./novika/engine"
-require "./novika/package"
-require "./novika/packages/*"
-require "./novika/packages/impl/*"
+require "./novika/feature"
+require "./novika/features/*"
+require "./novika/features/impl/*"
 
 module Novika
   extend self
@@ -40,9 +40,6 @@ module Novika
       # the user wants them.
       Colorize.enabled = colorful?
 
-      cdir = "directory".colorize.blue
-      cpkg = "package".colorize.magenta
-      cfile = "file".colorize.green
       on = "on by default".colorize.bold
 
       io << <<-END
@@ -66,21 +63,21 @@ module Novika
         file is run (if it exists), then, all other files are run. Lastly, this process is
         repeated on sub-directories (if any).
 
-      * When #{"runnable".colorize.bold} is a package, its words are exposed to all other files and packages
-        run. Here is a list of available packages:
+      * When #{"runnable".colorize.bold} is a feature, its words are exposed to all other files and features
+        run. Here is a list of available features:
 
       END
 
-      packages = Bundle.available
+      features = Bundle.features
 
-      packages.select(&.on_by_default?).each do |pkg|
+      features.select(&.on_by_default?).each do |feature|
         io.puts
-        io << "    - " << pkg.id << " (" << pkg.purpose << "; " << on << ")"
+        io << "    - " << feature.id << " (" << feature.purpose << "; " << on << ")"
       end
 
-      packages.reject(&.on_by_default?).each do |pkg|
+      features.reject(&.on_by_default?).each do |feature|
         io.puts
-        io << "    - " << pkg.id << " (" << pkg.purpose << ")"
+        io << "    - " << feature.id << " (" << feature.purpose << ")"
       end
 
       io.puts
@@ -102,10 +99,10 @@ module Novika
 
       $ novika core console examples/snake.nk
                ---- ------- -----------------
-               std  pkg     file
+               std  feature file
 
-      If you're having an issue, head out to https://github.com/novika-lang/novika/issues,
-      and submit an issue.
+      If you're having any issues, head out to https://github.com/novika-lang/novika/issues,
+      and click "New issue".
 
       END
     end
@@ -154,7 +151,7 @@ module Novika
     end
 
     bundle = Bundle.new
-    Bundle.available.each { |pkg| bundle << pkg }
+    Bundle.features.each { |feature| bundle << feature }
 
     bundle.enable_default
 
@@ -191,7 +188,7 @@ module Novika
           is being collected.
         END
       else
-        abort "#{arg.colorize.bold} is not a file, directory, or package avaliable in #{cwd}"
+        abort "#{arg.colorize.bold} is not a file, directory, or feature avaliable in #{cwd}"
       end
     end
 

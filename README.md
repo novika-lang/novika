@@ -46,7 +46,7 @@ TODO: a code example here? Won't it scare y'all off? :)
 ## Using Novika as a library
 
 I don't know why you would need that, but there is some API and if you don't inject the
-packages, you'd get bare-bones Novika. But then you'd be better off with splitting a
+features, you'd get bare-bones Novika. But then you'd be better off with splitting a
 string on whitespaces and fetching each word from a hashmap.
 
 ```yml
@@ -106,7 +106,7 @@ Wondering about the `-D`s?
 
 * `-Dnovika_readline`: use linenoise instead of `gets`.
 
-* `-Dnovika_console`: enables the default console package implementation which uses
+* `-Dnovika_console`: enables the default console feature implementation which uses
   [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so
   you'd also have to drop it.
 

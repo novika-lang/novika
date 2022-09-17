@@ -11,7 +11,7 @@ running this. Once you've got the Novika executable, run:
 
   $ novika core console examples/snake.nk
 
-Note that the `console` package is only available on Linux/
+Note that the `console` feature is only available on Linux/
 UNIX/whatever.
 
 It's funny how the snake moves slower and slower the longer it
@@ -19,7 +19,7 @@ gets. That's Novika chugging through hundreds if not thousands
 of nested block calls. Phew!
 """
 
-needsPackage: console
+needsFeature: console
 
 
 [ "Terminal vector object. CONSOLE MUST BE ON before using this."

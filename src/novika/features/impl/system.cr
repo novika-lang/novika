@@ -6,7 +6,7 @@
   end
 {% end %}
 
-module Novika::Packages::Impl
+module Novika::Features::Impl
   class System < ISystem
     def append_echo(engine, form : Form)
       print form.to_quote(engine).string

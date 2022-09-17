@@ -17,7 +17,7 @@ no automatic tests, of course), to reiterate, bugs are expected.
 
 "REPL root block, also persisted for the entire REPL session.
  A child of the block this comment is part of, and so inherits
- all imported packages/files (such as core) and essential."
+ all imported features/files (such as core) and essential."
 this child $: pgRoot
 
 [

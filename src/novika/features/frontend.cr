@@ -1,6 +1,6 @@
-module Novika::Packages
+module Novika::Features
   abstract class IFrontend
-    include Package
+    include Feature
 
     def self.id : String
       "frontend"
@@ -17,8 +17,8 @@ module Novika::Packages
     # Returns version of the frontend.
     abstract def version(engine) : Quote
 
-    # Returns a list block of packages provided by the frontend.
-    abstract def packages(engine) : Block
+    # Returns a list block of features provided by the frontend.
+    abstract def features(engine) : Block
 
     def inject(into target : Block)
       target.at("novika:version", <<-END
@@ -26,14 +26,14 @@ module Novika::Packages
       END
       ) { |engine| version(engine).push(engine) }
 
-      target.at("novika:packages", <<-END
-      ( -- Pb ): lists the ids of packages provided by the
-       frontend in Package block.
+      target.at("novika:features", <<-END
+      ( -- Fb ): lists the ids of features provided by the
+       frontend in Feature block.
 
-      >>> novika:packages
+      >>> novika:features
       === [ 'essential' 'colors' 'console' | ] (yours may differ)
       END
-      ) { |engine| packages(engine).push(engine) }
+      ) { |engine| features(engine).push(engine) }
     end
   end
 end

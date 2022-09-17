@@ -1,7 +1,7 @@
 # TODO: refactor the API, it's horrible for portability and
 # general usability and exists to exist only
 
-module Novika::Packages
+module Novika::Features
   # Enables the console API.
   #
   # Exposed vocabulary:
@@ -22,7 +22,7 @@ module Novika::Packages
   # * `console:clear`, implemented by `clear`
   # * `console:setPrimary`, implemented as setting `fg` and `bg`
   abstract class IConsole
-    include Package
+    include Feature
 
     def self.id : String
       "console"

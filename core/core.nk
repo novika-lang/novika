@@ -45,19 +45,19 @@ _root #@: [
 ] @: 2die
 
 
-[ "( needs: Pq -- ): ensures that the user has enabled the package
-   with id specified by Package quote."
-  ahead thru toQuote $: packageId
+[ "( needsFeature: Id -- ): ensures that the frontend has feature
+   with the specified Id enabled."
+  ahead thru toQuote $: featureId
 
-  novika:packages [ packageId = ] any? not =>
+  novika:features [ featureId = ] any? not =>
     [
       244 67 54 rgb withEchoFg
-        '! This program requires the `' packageId stitch '` package. Consult the frontend' stitch
+        '! This program requires the `' featureId stitch '` feature. Consult the frontend' stitch
         '  you are using for information on how to include it.'
         swap withColorEcho
              withColorEcho
       dropEchoFg
 
-      'missing package: ' packageId stitch die
+      'missing feature: ' featureId stitch die
     ]
-] @: needsPackage:
+] @: needsFeature:

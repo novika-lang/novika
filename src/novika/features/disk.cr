@@ -1,6 +1,6 @@
-module Novika::Packages
+module Novika::Features
   abstract class IDisk
-    include Package
+    include Feature
 
     def self.id : String
       "disk"
