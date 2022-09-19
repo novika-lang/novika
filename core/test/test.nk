@@ -193,7 +193,7 @@ orphan $: _groups
         """
         2dup = br:
           [ 2drop ]
-          [ $: b $: a [ 'Assert: expected ' b ', got: ' a ] ~~ _fail ]
+          [ $: b $: a [ 'Assert: expected ｢' b '｣, got: ｢' a '｣' ] ~~ _fail ]
       ] $: assert=
 
       [ """( B M -- ): asserts that Block dies with Message
