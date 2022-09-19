@@ -423,6 +423,23 @@ module Novika
       end || afail(T)
     end
 
+    # Returns whether this block implements hook(s) needed
+    # for behaving like *type*. See also: `assert(engine, type)`.
+    def can_be?(type : T.class) forall T
+      return true if is_a?(T)
+
+      case T
+      when Decimal.class    then table.has?(AS_DECIMAL)
+      when Quote.class      then table.has?(AS_QUOTE)
+      when Word.class       then table.has?(AS_WORD)
+      when Color.class      then table.has?(AS_COLOR)
+      when Boolean.class    then table.has?(AS_BOOLEAN)
+      when QuotedWord.class then table.has?(AS_QUOTED_WORD)
+      else
+        false
+      end
+    end
+
     def to_quote(engine : Engine) : Quote
       assert?(engine, AS_QUOTE, Quote) || super
     end

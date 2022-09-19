@@ -10,6 +10,10 @@ module Novika
     # table, or yields with *name* and returns the block result.
     abstract def get(name : Form, & : Form -> Entry?) : Entry?
 
+    # Returns whether this table has an entry corresponding
+    # to *name* form.
+    abstract def has?(name : Form) : Bool
+
     # Imports entries from *donor* table into this table.
     #
     # Entries whose names are preceded by one or more `_` are
@@ -36,6 +40,10 @@ module Novika
 
     def get(name : Form) : Entry?
       @store.fetch(name) { yield name }
+    end
+
+    def has?(name : Form) : Bool
+      @store.has_key?(name)
     end
 
     def import!(donor : Table)

@@ -256,8 +256,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, Block)
       end
 
-      target.at("word?", "( F -- true/false ): leaves whether Form is a word form.") do |engine|
-        Boolean[engine.stack.drop.is_a?(Word)].push(engine)
+      target.at("word?", <<-END
+      ( F -- true/false ): leaves whether Form is a word form,
+       or a block that implements '*asWord'.
+
+      >>> #foo word?
+      === true
+
+      >>> [ #foo $: *asWord this ] open word?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(Word) || (form.is_a?(Block) && form.can_be?(Word))].push(engine)
       end
 
       target.at("toWord", <<-END
@@ -311,8 +322,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, Word)
       end
 
-      target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word form.") do |engine|
-        Boolean[engine.stack.drop.is_a?(QuotedWord)].push(engine)
+      target.at("quotedWord?", <<-END
+      ( F -- true/false ): leaves whether Form is a quoted word
+       form, or a block that implements '*asQuotedWord'.
+
+      >>> ##foo quotedWord?
+      === true
+
+      >>> [ ##foo $: *asQuotedWord this ] open quotedWord?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(QuotedWord) || (form.is_a?(Block) && form.can_be?(QuotedWord))].push(engine)
       end
 
       target.at("asQuotedWord", <<-END
@@ -341,8 +363,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, QuotedWord)
       end
 
-      target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal form.") do |engine|
-        Boolean[engine.stack.drop.is_a?(Decimal)].push(engine)
+      target.at("decimal?", <<-END
+      ( F -- true/false ): leaves whether Form is a decimal form,
+       or a block that implements '*asDecimal'.
+
+      >>> 123 decimal?
+      === true
+
+      >>> [ 123 $: *asDecimal this ] open decimal?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(Decimal) || (form.is_a?(Block) && form.can_be?(Decimal))].push(engine)
       end
 
       target.at("asDecimal", <<-END
@@ -371,8 +404,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, Decimal)
       end
 
-      target.at("quote?", "( F -- true/false ): leaves whether Form is a quote form.") do |engine|
-        Boolean[engine.stack.drop.is_a?(Quote)].push(engine)
+      target.at("quote?", <<-END
+      ( F -- true/false ): leaves whether Form is a quote form,
+       or a block that implements '*asQuote'.
+
+      >>> 'foo' quote?
+      === true
+
+      >>> [ 'foo' $: *asQuote this ] open quote?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(Quote) || (form.is_a?(Block) && form.can_be?(Quote))].push(engine)
       end
 
       target.at("asQuote", <<-END
@@ -401,8 +445,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, Quote)
       end
 
-      target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean form.") do |engine|
-        Boolean[engine.stack.drop.is_a?(Boolean)].push(engine)
+      target.at("boolean?", <<-END
+      ( F -- true/false ): leaves whether Form is a boolean form,
+       or a block that implements '*asBoolean'.
+
+      >>> true boolean?
+      === true
+
+      >>> [ true $: *asBoolean this ] open boolean?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(Boolean) || (form.is_a?(Block) && form.can_be?(Boolean))].push(engine)
       end
 
       target.at("asBoolean", <<-END
@@ -452,8 +507,19 @@ module Novika::Features::Impl
         engine.stack.top.assert(engine, Builtin)
       end
 
-      target.at("color?", "( F -- true/false ): leaves whether Form is a color form.") do |engine|
-        Boolean[!!engine.stack.drop.is_a?(Color)].push(engine)
+      target.at("color?", <<-END
+      ( F -- true/false ): leaves whether Form is a color form,
+       or a block that implements '*asColor'.
+
+      >>> 0 0 0 rgb color?
+      === true
+
+      >>> [ 0 0 0 rgb $: *asColor this ] open color?
+      === true
+      END
+      ) do |engine|
+        form = engine.stack.drop
+        Boolean[form.is_a?(Color) || (form.is_a?(Block) && form.can_be?(Color))].push(engine)
       end
 
       target.at("asColor", <<-END

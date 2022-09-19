@@ -46,6 +46,136 @@ describe 'typedesc' [
   ]
 ]
 
+describe 'block?' [
+  in lang
+
+  it should 'leave true for block' [ [] block? true assert= ]
+  it should 'leave false for others' [
+    'foo' block? false assert=
+    123 block? false assert=
+    "..."
+  ]
+]
+
+describe 'word?' [
+  in lang
+
+  it should 'leave true for word' [ #foo word? true assert= ]
+  it should 'leave true for block implementing *asWord' [
+    [ #foo  $: *asWord this ] @: x
+    [ [ x ] @: *asWord this ] @: y
+    x word? true assert=
+    y word? true assert=
+  ]
+
+  it should 'leave false for others' [
+    'foo' word? false assert=
+    123 word? false assert=
+    [ ] word? false assert=
+    "..."
+  ]
+]
+
+describe 'quotedWord?' [
+  in lang
+
+  it should 'leave true for quoted word' [ ##foo quotedWord? true assert= ]
+  it should 'leave true for block implementing *asQuotedWord' [
+    [ ##foo $: *asQuotedWord this ] @: x
+    [ [ x ] @: *asQuotedWord this ] @: y
+    x quotedWord? true assert=
+    y quotedWord? true assert=
+  ]
+
+  it should 'leave false for others' [
+    'foo' quotedWord? false assert=
+    123 quotedWord? false assert=
+    [ ] quotedWord? false assert=
+    #foo quotedWord? false assert=
+    "..."
+  ]
+]
+
+describe 'decimal?' [
+  in lang
+
+  it should 'leave true for decimal' [ 100 decimal? true assert= ]
+  it should 'leave true for block implementing *asDecimal' [
+    [ 100   $: *asDecimal this ] @: x
+    [ [ x ] @: *asDecimal this ] @: y
+    x decimal? true assert=
+    y decimal? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] decimal? false assert=
+    true decimal? false assert=
+    #foobar decimal? false assert=
+    '1234' decimal? false assert=
+    "..."
+  ]
+]
+
+describe 'quote?' [
+  in lang
+
+  it should 'leave true for quote' [ 'foo' quote? true assert= ]
+  it should 'leave true for block implementing *asQuote' [
+    [ 'foo' $: *asQuote this ] @: x
+    [ [ x ] @: *asQuote this ] @: y
+    x quote? true assert=
+    y quote? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] quote? false assert=
+    true quote? false assert=
+    #foobar quote? false assert=
+    1234 quote? false assert=
+    " ... etc ... "
+  ]
+]
+
+describe 'boolean?' [
+  in lang
+
+  it should 'leave true for boolean' [ true boolean? true assert= ]
+  it should 'leave true for block implementing *asBoolean' [
+    [ true  $: *asBoolean this ] @: x
+    [ [ x ] @: *asBoolean this ] @: y
+    x boolean? true assert=
+    y boolean? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] boolean? false assert=
+    #true boolean? false assert=
+    #foobar boolean? false assert=
+    '1234' boolean? false assert=
+    " ... etc ... "
+  ]
+]
+
+describe 'color?' [
+  in lang
+
+  it should 'leave true for color' [ 0 0 0 rgb color? true assert= ]
+  it should 'leave true for block implementing *asColor' [
+    [ 0 0 0 rgb $: *asColor this ] @: x
+    [ [ x ] @: *asColor this ] @: y
+    x color? true assert=
+    y color? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] color? false assert=
+    #true color? false assert=
+    #foobar color? false assert=
+    '1234' color? false assert=
+    " ... etc ... "
+  ]
+]
+
 describe 'asDecimal' [
   in lang
 
@@ -176,24 +306,6 @@ describe 'asBlock' [
   it dies 'when given boolean' [ true asBlock ]
   it should 'leave same block when given block' [
     [] dup asBlock same? true assert=
-  ]
-]
-
-describe 'quote?' [
-  in lang
-
-  it should 'leave false for block' [ [ ] quote? false assert= ]
-  it should 'leave false for true' [ true quote? false assert= ]
-  it should 'leave false for false' [ false quote? false assert= ]
-  it should 'leave false for decimal' [ 1234 quote? false assert= ]
-  it should 'leave false for word' [ #foobar quote? false assert= ]
-  it should 'leave false for quoted word' [ ##foobar quote? false assert= ]
-  it should 'leave true for quote' [ 'hello world' quote? true assert= ]
-  it should 'leave false for block implementing *asQuote' [
-    [   'foo'   $: *asQuote this ] $: x
-    [ [ 'foo' ] @: *asQuote this ] $: y
-    x quote? false assert=
-    y quote? false assert=
   ]
 ]
 
