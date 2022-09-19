@@ -44,49 +44,33 @@ module Novika
 
     # Appends a report about this error to *io*.
     def report(io : IO)
+      if conts = self.conts
+        b = Math.max(0, conts.count - MAX_TRACE)
+        e = conts.count
+
+        unless b.zero?
+          io << "  │ … " << b - 1 << " continuation(s) omitted …"
+          io.puts
+        end
+
+        (b...e).each do |index|
+          io << "  ╿ due to "
+
+          cont = conts.at(index).as?(Block)
+          code = cont.try &.at?(Engine::C_BLOCK_AT).as?(Block)
+          unless cont && code
+            io.puts "[malformed continuation]"
+            next
+          end
+
+          io << "'" << code.top.colorize.bold << "', which was opened here:"
+          io.puts
+          io << "  │  "
+          code.spot(io)
+          io.puts
+        end
+      end
       io << "Sorry: ".colorize.red.bold << details << "."
-      io.puts
-
-      return unless conts = self.conts
-
-      b = Math.max(0, conts.count - MAX_TRACE)
-      e = conts.count
-
-      unless b.zero?
-        io.puts "  │"
-        io << "  │ … " << b - 1 << " continuation(s) omitted …"
-        io.puts
-      end
-
-      io.puts "  │"
-
-      (b...e).each do |index|
-        io << "  ├ due to "
-
-        cont = conts.at(index).as?(Block)
-        code = cont.try &.at?(Engine::C_BLOCK_AT).as?(Block)
-        unless cont && code
-          io.puts "[malformed continuation]"
-          next
-        end
-
-        io << "'" << code.top.colorize.bold << "', which was opened here:"
-        io.puts
-        io.puts "  │  "
-
-        io << "  "
-        if index == e - 1
-          io << "╰  "
-          code.spot(io)
-          io.puts
-        else
-          io << "│  "
-          code.spot(io)
-          io.puts
-          io.puts "  │"
-        end
-      end
-
       io.puts
     end
 
