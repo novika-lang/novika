@@ -33,6 +33,9 @@ module Novika
     # Block to word hook name.
     AS_WORD = Word.new("*asWord")
 
+    # Block to color hook name.
+    AS_COLOR = Word.new("*asColor")
+
     # Block to quote hook name.
     AS_QUOTE = Word.new("*asQuote")
 
@@ -414,6 +417,7 @@ module Novika
       when Decimal.class    then assert?(engine, AS_DECIMAL, type)
       when Quote.class      then assert?(engine, AS_QUOTE, type)
       when Word.class       then assert?(engine, AS_WORD, type)
+      when Color.class      then assert?(engine, AS_COLOR, type)
       when Boolean.class    then assert?(engine, AS_BOOLEAN, type)
       when QuotedWord.class then assert?(engine, AS_QUOTED_WORD, type)
       end || afail(T)

@@ -242,34 +242,29 @@ module Novika::Features::Impl
       end
 
       target.at("asBlock", <<-END
-      ( F -- B ): asserts that Form is a Block, dies otherwise.
+      ( F -- B ): asserts that Form is a Block, dies if it's not.
 
       >>> 100 asBlock
       [dies]
-      >>> 'foo' asBlock
-      [dies]
-      >>> #foo asBlock
-      [dies]
-      >>> ##foo asBlock
-      [dies]
+
+      Et cetera for all other forms, except:
+
       >>> [] asBlock
       === [] (the same block)
-      >>> true asBlock
-      [dies]
       END
       ) do |engine|
         engine.stack.top.assert(engine, Block)
       end
 
-      target.at("word?", "( F -- true/false ): leaves whether Form is a word.") do |engine|
+      target.at("word?", "( F -- true/false ): leaves whether Form is a word form.") do |engine|
         Boolean[engine.stack.drop.is_a?(Word)].push(engine)
       end
 
       target.at("toWord", <<-END
       ( F -- W ): converts Form into Word.
         1. If Form is a word, behaves as noop
-        2. If Form is a quote, dies only if quote contains (Unicode) whitespace characters
-         or is itself empty.
+        2. If Form is a quote, dies only if quote contains
+           Unicode whitespace characters or is itself empty.
         3. If Form is a quoted word, peels off **all** quoting
       END
       ) do |engine|
@@ -291,199 +286,200 @@ module Novika::Features::Impl
       end
 
       target.at("asWord", <<-END
-      ( F -- W ): asserts that Form is a Word, dies otherwise.
-
-      Tries to invoke *asWord while Form or result thereof is
-      a block.
+      ( F -- W ): asserts that Form is a Word form, dies if
+       it's not.
 
       >>> 100 asWord
       [dies]
-      >>> 'foo' asWord
-      [dies]
+
+      Et cetera for all other forms, except:
+
       >>> #foo asWord
       === foo
-      >>> ##foo asWord
-      [dies]
-      >>> [] asWord
-      [dies]
-      >>> true asWord
-      [dies]
+
+      '*asWord' hook can make a block usable in place of a word,
+      provided its definition leaves a word or a block which
+      implements '*asWord':
+
       >>> [ $: x x $: *asWord this ] @: a
-      >>> 100 a asWord
-      [dies]
-      >>> 'foo' a asWord
-      [dies]
       >>> #foo a asWord
       === instance of a
-      >>> ##foo asWord
-      [dies]
-      >>> [] a asWord
-      [dies]
-      >>> true a asWord
-      [dies]
+      >>> #boo a a asWord
+      === instance of a
       END
       ) do |engine|
         engine.stack.top.assert(engine, Word)
       end
 
-      target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word.") do |engine|
+      target.at("quotedWord?", "( F -- true/false ): leaves whether Form is a quoted word form.") do |engine|
         Boolean[engine.stack.drop.is_a?(QuotedWord)].push(engine)
       end
 
       target.at("asQuotedWord", <<-END
-      ( F -- Qw ): asserts that Form is a Quoted word, dies otherwise.
-
-      Tries to invoke *asQuotedWord while Form or result thereof is
-      a block implementing *asQuotedWord.
+      ( F -- Qw ): asserts that Form is a Quoted word form,
+       dies if it's not.
 
       >>> 100 asQuotedWord
       [dies]
-      >>> 'foo' asQuotedWord
-      [dies]
-      >>> #foo asQuotedWord
-      [dies]
+
+      Et cetera for all other forms, except:
+
       >>> ##foo asQuotedWord
       === #foo
-      >>> [] asQuotedWord
-      [dies]
-      >>> true asQuotedWord
-      [dies]
+
+      '*asQuotedWord' hook can make a block usable in place of
+      a quoted word, provided its definition leaves a quoted
+      word or a block that implements '*asQuotedWord':
+
       >>> [ $: x x $: *asQuotedWord this ] @: a
-      >>> 100 a asQuotedWord
-      [dies]
-      >>> 'foo' a asQuotedWord
-      [dies]
-      >>> #foo a asQuotedWord
-      [dies]
       >>> ##foo a asQuotedWord
       === instance of a
-      >>> [] a asQuotedWord
-      [dies]
-      >>> true a asQuotedWord
-      [dies]
+      >>> ##boo a a asQuotedWord
+      === instance of a
       END
       ) do |engine|
         engine.stack.top.assert(engine, QuotedWord)
       end
 
-      target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal.") do |engine|
+      target.at("decimal?", "( F -- true/false ): leaves whether Form is a decimal form.") do |engine|
         Boolean[engine.stack.drop.is_a?(Decimal)].push(engine)
       end
 
       target.at("asDecimal", <<-END
-      ( F -- D ): asserts that Form is a Decimal, dies otherwise.
+      ( F -- D ): asserts that Form is a Decimal form, dies if
+       it's not.
 
-      Tries to invoke *asDecimal while Form or result thereof is
-      a block implementing *asDecimal.
+      >>> 'foo' 'asDecimal
+      [dies]
+
+      Et cetera for all other forms, except:
 
       >>> 100 asDecimal
       === 100
-      >>> 'foo' asDecimal
-      [dies]
-      >>> #foo asDecimal
-      [dies]
-      >>> ##foo asDecimal
-      [dies]
-      >>> [] asDecimal
-      [dies]
-      >>> true asDecimal
-      [dies]
+
+      '*asDecimal' hook can make a block usable in place of a
+      decimal, provided its definition leaves a decimal or a
+      block that implements '*asDecimal':
+
       >>> [ $: x x $: *asDecimal this ] @: a
       >>> 100 a asDecimal
       === instance of a
-      >>> 'foo' a asDecimal
-      [dies]
-      >>> #foo a asDecimal
-      [dies]
-      >>> ##foo a asDecimal
-      [dies]
-      >>> [] a asDecimal
-      [dies]
-      >>> true a asDecimal
-      [dies]
+      >>> 200 a a asDecimal
+      === instance of a
       END
       ) do |engine|
         engine.stack.top.assert(engine, Decimal)
       end
 
-      target.at("quote?", "( F -- true/false ): leaves whether Form is a quote.") do |engine|
+      target.at("quote?", "( F -- true/false ): leaves whether Form is a quote form.") do |engine|
         Boolean[engine.stack.drop.is_a?(Quote)].push(engine)
       end
 
       target.at("asQuote", <<-END
-      ( F -- Q ): asserts that Form is a Quote, dies otherwise.
-
-      Tries to invoke *asQuote while Form or result thereof is
-      a block implementing *asQuote.
+      ( F -- Q ): asserts that Form is a Quote form, dies if
+       it's not.
 
       >>> 100 asQuote
       [dies]
+
+      Et cetera for all other forms, except:
+
       >>> 'foo' asQuote
       === 'foo'
-      >>> #foo asQuote
-      [dies]
-      >>> ##foo asQuote
-      [dies]
-      >>> [] asQuote
-      [dies]
-      >>> true asQuote
-      [dies]
+
+      '*asQuote' hook can make a block usable in place of a
+      quote, provided its definition leaves a quote or a block
+      that implements '*asQuote':
+
       >>> [ $: x x $: *asQuote this ] @: a
-      >>> 100 a asQuote
-      [dies]
       >>> 'foo' a asQuote
       === instance of a
-      >>> #foo a asQuote
-      [dies]
-      >>> ##foo a asQuote
-      [dies]
-      >>> [] a asQuote
-      [dies]
-      >>> true a asQuote
-      [dies]
+      >>> 'boo' a a asQuote
+      === instance of a
       END
       ) do |engine|
         engine.stack.top.assert(engine, Quote)
       end
 
-      target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean.") do |engine|
+      target.at("boolean?", "( F -- true/false ): leaves whether Form is a boolean form.") do |engine|
         Boolean[engine.stack.drop.is_a?(Boolean)].push(engine)
       end
 
       target.at("asBoolean", <<-END
-      ( F -- B ): asserts that Form is a Boolean, dies otherwise.
+      ( F -- B ): asserts that Form is a Boolean form, dies if
+       it's not.
 
-      Tries to invoke *asBoolean while Form or result thereof is
-      a block implementing *asBoolean.
+      >>> 100 asWord
+      [dies]
 
-      >>> 100 asBoolean
-      [dies]
-      >>> 'foo' asBoolean
-      [dies]
-      >>> #foo asBoolean
-      [dies]
-      >>> ##foo asBoolean
-      [dies]
-      >>> [] asBoolean
-      [dies]
+      Et cetera for all other forms, except:
+
       >>> true asBoolean
       === true
+      >>> false asBoolean
+      === false
+
+      '*asBoolean' hook can make a block usable in place of a
+      boolean, provided its definition leaves a boolean or a
+      block that implements '*asBoolean':
+
       >>> [ $: x x $: *asBoolean this ] @: a
-      >>> 100 a asBoolean
-      [dies]
-      >>> 'foo' a asBoolean
-      [dies]
-      >>> #foo a asBoolean
-      [dies]
-      >>> ##foo a asBoolean
-      [dies]
-      >>> [] a asBoolean
-      [dies]
       >>> true a asBoolean
+      === instance of a
+      >>> true a a asBoolean
       === instance of a
       END
       ) do |engine|
         engine.stack.top.assert(engine, Boolean)
+      end
+
+      target.at("builtin?", "( F -- true/false ): leaves whether Form is a builtin form.") do |engine|
+        Boolean[engine.stack.drop.is_a?(Builtin)].push(engine)
+      end
+
+      target.at("asBuiltin", <<-END
+      ( F -- B ): asserts Form is a Builtin, dies if it's not.
+
+      >>> 'foo' asBuiltin
+      [dies]
+
+      Et cetera for all other forms, except:
+
+      >>> #+ here asBuiltin
+      === [native code]
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Builtin)
+      end
+
+      target.at("color?", "( F -- true/false ): leaves whether Form is a color form.") do |engine|
+        Boolean[!!engine.stack.drop.is_a?(Color)].push(engine)
+      end
+
+      target.at("asColor", <<-END
+      ( F -- C ): asserts that Form is a Color form, dies if
+       it's not.
+
+      >>> 100 asColor
+      [dies]
+
+      Et cetera for all other forms, except:
+
+      >>> 0 0 0 rgb asColor
+      === rgb(0, 0, 0)
+
+      '*asColor' hook can make a block usable in place of a
+      color, provided its definition leaves a color or a block
+      that implements '*asColor':
+
+      >>> [ $: x x $: *asColor this ] @: a
+      >>> 0 0 0 rgb a asColor
+      === instance of a
+      >>> 0 0 0 rgb a a asColor
+      === instance of a
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Color)
       end
 
       target.at("pushes", <<-END

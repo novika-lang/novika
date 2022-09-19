@@ -182,13 +182,13 @@ describe 'asBlock' [
 describe 'quote?' [
   in lang
 
-  it should 'leave false for block' [ [ ] quote? not ]
-  it should 'leave false for true' [ true quote? not ]
-  it should 'leave false for false' [ false quote? not ]
-  it should 'leave false for decimal' [ 1234 quote? not ]
-  it should 'leave false for word' [ #foobar quote? not ]
-  it should 'leave false for quoted word' [ ##foobar quote? not ]
-  it should 'leave true for quote' [ 'hello world' quote? ]
+  it should 'leave false for block' [ [ ] quote? false assert= ]
+  it should 'leave false for true' [ true quote? false assert= ]
+  it should 'leave false for false' [ false quote? false assert= ]
+  it should 'leave false for decimal' [ 1234 quote? false assert= ]
+  it should 'leave false for word' [ #foobar quote? false assert= ]
+  it should 'leave false for quoted word' [ ##foobar quote? false assert= ]
+  it should 'leave true for quote' [ 'hello world' quote? true assert= ]
   it should 'leave false for block implementing *asQuote' [
     [   'foo'   $: *asQuote this ] $: x
     [ [ 'foo' ] @: *asQuote this ] $: y
@@ -211,6 +211,79 @@ describe 'toQuote' [
   it should 'enquote quote' [ 'hello world' toQuote 'hello world' assert= ]
   it should 'enquote word' [ #hello toQuote 'hello' assert= ]
   it should 'enquote quoted word' [ ##hello toQuote '#hello' assert= ]
+]
+
+describe 'builtin?' [
+  in lang
+
+  it should 'leave true for builtin' [
+    #+ here builtin? true assert=
+  ]
+
+  it should 'leave false for everything else' [
+    [ ] builtin? false assert=
+    123 builtin? false assert=
+    "..."
+  ]
+]
+
+describe 'asBuiltin' [
+  in lang
+
+  it should 'leave builtins as is' [
+    #+ here asBuiltin #+ here assert=
+  ]
+
+  it should 'die when not a builtin' [
+    [ 123 asBuiltin ] 'bad type: decimal, expected: a builtin' assertDies
+    [ '123' asBuiltin ] 'bad type: quote, expected: a builtin' assertDies
+    [ [ ] asBuiltin ] 'bad type: block, expected: a builtin' assertDies
+  ]
+]
+
+describe 'color?' [
+  in lang
+
+  it should 'leave true for colors' [
+    0 0 0 rgb color? true assert=
+  ]
+
+  it should 'leave false for other forms' [
+    123 color? false assert=
+    '123' color? false assert=
+    [ ] color? false assert= "...etc.."
+  ]
+
+  it should 'leave false for block implementing *asColor' [
+    [   0 0 0 rgb  $: *asColor this ] $: x
+    [ [ 0 0 0 rgb] @: *asColor this ] $: y
+    x color? false assert=
+    y color? false assert=
+  ]
+
+  [ $: x x $: *asColor this ] @: a
+
+  it should 'leave instance when given color in *asColor' [
+    0 0 0 rgb a dup asColor same? true assert=
+  ]
+
+  it should 'die when not given color in *asColor' [
+    [ 'foo' a asColor ] 'bad type: quote, expected: a color' assertDies
+  ]
+]
+
+describe 'asColor' [
+  in lang
+
+  it should 'leave colors as is' [
+    0 0 0 rgb asColor 0 0 0 rgb assert=
+  ]
+
+  it should 'die when not a color' [
+    [ 123 asColor ] 'bad type: decimal, expected: a color' assertDies
+    [ '123' asColor ] 'bad type: quote, expected: a color' assertDies
+    [ [ ] asColor ] 'bad type: block, expected: a color' assertDies
+  ]
 ]
 
 describe 'stitch' [
