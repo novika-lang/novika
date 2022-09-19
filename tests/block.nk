@@ -1341,6 +1341,25 @@ describe 'join' [
   ]
 ]
 
+describe 'sepBy' [
+  in lang
+
+  it should 'sep empty block' [ [ ] ', ' sepBy '' assert= ]
+  it should 'sep one-item block' [ [ 1 ] ', ' sepBy '1' assert= ]
+  it should 'sep multi-item block' [
+    [ 1 2 3 ] ', ' sepBy '1, 2, 3' assert=
+  ]
+  it should 'properly perform toQuote on items' [
+    [ foo #foo true '3' ] ', ' sepBy 'foo, #foo, #true, 3' assert=
+  ]
+  it should 'sep empty stack' [
+    stack ', ' sepBy '' assert=
+  ]
+  it should 'sep stack' [
+    1 2 3 stack ', ' sepBy '1, 2, 3' assert=
+  ]
+]
+
 describe 'concat!' [
   in lang
 

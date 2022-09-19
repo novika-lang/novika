@@ -1071,7 +1071,8 @@
 ] @: to:
 
 
-[ """( Ql -- Q ): stitches quotes in Quote list into Quote.
+[ """( Fl -- Q ): stitches enquoted forms from Form list
+   into Quote.
 
   >>> [ 'A' 'B' 'C' ] join
   === 'ABC'
@@ -1083,6 +1084,35 @@
   """
   [ toQuote stitch ] '' reduce
 ] @: join
+
+
+[ """( Fl S -- Q ): stitches enquoted forms from Form list
+   into Quote, inserting enquoted Separator in the middle
+   of pairs.
+
+  >>> [ 'a' 'b' '=' 1 ] ' ' sepBy
+  === 'a b = 1'
+  """
+  toQuote $: sep
+  asBlock $: formList
+
+  '' $: result
+
+  formList eachWithIndex: [ $: form $: index
+    result form toQuote stitch
+    index formList count 1 - = not =>
+      [ sep stitch ]
+    =: result
+  ]
+
+  result
+] @: sepBy
+
+
+[ "( Fl sepBy:/join: S -- Q ): infix version of `sepBy`."
+  ahead thru sepBy
+] dup @: sepBy:
+      @: join:
 
 
 [ """( B1 B2 -- B1 ): adds elements from B2 into B1.

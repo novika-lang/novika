@@ -18,7 +18,66 @@ no automatic tests, of course), to reiterate, bugs are expected.
 "REPL root block, also persisted for the entire REPL session.
  A child of the block this comment is part of, and so inherits
  all imported features/files (such as core) and essential."
-this child $: pgRoot
+this child $: _pgRoot
+
+
+_pgRoot #? [
+'
+Welcome to Novika, and thanks for trying it out!
+
+Typing `help <word>` prints help for the specified word. For example:
+
+  >>> help help
+  ( help F -- ): echoes help for Form. If form is a word,
+  fetches it in caller first.
+  …
+
+  >>> help +
+  ( A B -- S ): leaves the Sum of two decimals.
+  …
+
+To list all available words, use the following script:
+
+  >>> ls* sepBy: \' \' echo
+  ? _pgRoot startSession there @: $: =: 2die needsFeature: withColorEcho …
+
+... then you can start exploring:
+
+  >>> help there
+  ( S B -- S ): opens Block in Stack, leaves Stack. Ahead
+  is transferred to block.
+  …
+
+  (your output may differ)
+
+To list words followed by their descriptions, use:
+
+  >>> ls* map: [ dup here desc stack sepBy: \'\\n\' ] sepBy: \'\\n\\n\' echo
+  …
+  ls
+  ( B -- Nb ): gathers all table entry names into Name block.
+
+  reparent
+  ( C P -- C ): changes the parent of Child to Parent. Checks
+  for cycles which can hang the interpreter, therefore is
+  O(N) where N is the amount of Parent\'s ancestors.
+
+  slurp
+  ( B Q -- B ): parses Quote and adds all forms from Quote
+  to Block.
+  …
+
+  (your output may differ)
+
+Help messages often contain examples. You can try typing some
+in and playing with stuff.
+
+Visit https://github.com/novika-lang/novika for more Novika content.
+Create an issue at https://github.com/novika-lang/novika/issues if
+you need help.
+' echo
+] opens
+
 
 [
   "Whether there was an error."
@@ -38,7 +97,7 @@ this child $: pgRoot
 
     "Create an instance of the root block so that the line of code
      we will execute has access to all words the frontend provided."
-    pgRoot new $: pgRootInstance
+    _pgRoot new $: pgRootInstance
 
     "Create an instance of the stack block, for if an error happens,
      we'd like to restore back to the 'good' stack."
@@ -68,7 +127,7 @@ this child $: pgRoot
          instance visible to next REPL inputs. Also, substitute
          the global stack with the updated stack, which proved
          to have no errors."
-        pgRoot pgRootInstance mergeTables
+        _pgRoot pgRootInstance mergeTables
         pgStackCopy =: pgStack
         [ 'In ' timeTakenMs 'ms' ] ~~ echo
       ]
@@ -85,17 +144,10 @@ this child $: pgRoot
 ] @: startSession
 
 
-' ┌ Welcome to Novika!
- │
- ├─* You can type `help <word>` to see info about a word whose
- │   name you already know. Try `help help`.
- │
- ├─* To see what words are available, type `ls* each: [ echo ]`.
- │   To see help for those words alongside, you can hack up a
- │   tiny program: `ls* each: [ p here desc echo ]`.
- │
- ├─* To exit, hit Ctrl-D or Ctrl-C (force-quit).
- ┘
-' echo
+[ ] [
+  'Novika ' novika:version '\n'
+  'Hit Ctrl-D or Ctrl-C to quit. Type "?" for more information.'
+] there join echo
+
 
 startSession
