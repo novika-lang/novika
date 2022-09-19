@@ -6,7 +6,7 @@ module Novika
     | (?<be> \])
     | (?<qword> \#[^"'\s\[\]]+)
     | (?<word> [^"'\s\.\[\]]+|\.)
-    |'(?<quote> (?:[^'\\]|\\[ntrv'])*)'
+    |'(?<quote> (?:[^'\\]|\\[\\ntrv'])*)'
     |"(?<comment> (?:[^"\\]|\\.)*)"
     |\s+
   /x
@@ -159,16 +159,18 @@ module Novika
           block.add QuotedWord.new(match.lchop)
         elsif match = $~["quote"]?
           match = match
-            .gsub("\\'", '\'')
-            .gsub("\\n", '\n')
-            .gsub("\\t", '\t')
-            .gsub("\\r", '\r')
-            .gsub("\\v", '\v')
-
+            .gsub(/(?<!\\)\\'/, '\'')
+            .gsub(/(?<!\\)\\n/, '\n')
+            .gsub(/(?<!\\)\\t/, '\t')
+            .gsub(/(?<!\\)\\r/, '\r')
+            .gsub(/(?<!\\)\\v/, '\v')
+            .gsub(/\\\\/, '\\')
           block.add Quote.new(match)
         elsif match = $~["comment"]?
           if block.count.zero?
-            match = match.gsub("\\\"", '"')
+            match = match
+              .gsub(/(?<!\\)\\"/, '"')
+              .gsub(/\\\\/, '\\')
             block.describe_with?(dedent match)
           end
         elsif $~["bb"]?
