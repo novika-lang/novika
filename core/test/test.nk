@@ -56,7 +56,7 @@ orphan $: _groups
   ]
 
   failedCases groupBy: [ .describeDesc ] each: [ $: section
-    [ ] [ '\n\n=== Wrong description for \'' section first .describeDesc '\':' ] there join echo
+    [ ] [ '\n\n=== Wrong description for \'' section.id '\':' ] there join echo
 
     section each: [ $: failedCase
       failedCase.desc $: failedCaseDesc
@@ -130,9 +130,7 @@ orphan $: _groups
   "A list of test case instances in the test pool of this describe."
   #nil $: cases
 
-  "Current test pool block. `global` is the default (fallback)
-   pool. `cases` is set to global's case list here to save
-   up some time."
+  "Current test pool block. `global` is the default (fallback) pool."
   #nil $: testGroup
 
 
@@ -146,7 +144,7 @@ orphan $: _groups
   [ """( A -- O ): code implementation and Object for the 'it should'
      test case. Takes Ahead (i.e., a block expected to be `ahead`).
 
-    Exposes to the test case block the following voabulary:
+    Exposes to the test case block the following vocabulary:
       * `assert=`
       * `assertDies`
 
