@@ -303,6 +303,12 @@
 ] @: |->
 
 
+[ "( Lb ||-> B -- Lb ): same as `|->`, but moves the cursor
+   to the start of List block first."
+  dup 0 |to ahead thruBlock |slideRight
+] @: ||->
+
+
 [ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
    from right to left. Consult `|slideRight`. `break` and
    `next` are available."
@@ -513,10 +519,10 @@
 ] @: map:
 
 
-[ """( Lb B -- MLb ): opens Block with each item of List block
-   on top of an empty stack. Removes that item in Modified List
-   block if Block's stack top is false after it was opened.
-   `break` and `next` are available.
+[ """( Lb B -- Rb ): opens Block with each item of List block
+   on top of an empty stack. Removes that item in Result block
+   if Block's stack top is false after it was opened. `break`
+   and `next` are available.
 
   >>> [ ] [ 100 > ] only
   === [ | ] (a different block!)
@@ -546,13 +552,27 @@
 ] @: only
 
 
-[ """( Lb B -- MLb ): infix version of `only`.
+[ "( Lb B -- Rb ): inverse of `only`."
+  @: block [ block not ] only
+] @: without
+
+
+[ """( Lb only: B -- Rb ): infix version of `only`.
 
   >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
   === [ 300 600 | ]
   """
   ahead thruBlock only
 ] @: only:
+
+
+[ """( Lb without: B -- MLb ): infix version of `without`.
+
+  >>> [ 1 100 2 300 4 600 10 ] without: [ 100 > ]
+  === [ 1 100 2 4 10 ]
+  """
+  ahead thruBlock without
+] @: without:
 
 
 [ """( Lb B M -- M ): reduces List block using Block. Block

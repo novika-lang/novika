@@ -70,3 +70,9 @@
   """
   rot rot
 ] @: -rot
+
+
+[ "( B -- ): replaces current stack with Block in-place. Cursor
+   position is saved (clamped to end if Block is smaller)"
+  stack resub
+] @: cover
