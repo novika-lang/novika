@@ -1410,3 +1410,19 @@ describe 'concat' [
    if it's good or bad or worth it to copy tests like that, considering the
    language may change any minute."
 ]
+
+describe 'toTape' [
+  in lang
+
+  it should 'leave tape block for block' [
+    [ 1 2 3 ] $: a
+    a #x 0 pushes
+
+    a toQuote '[ 1 2 3 | . x ]+' assert=
+
+    a toTape $: aTape
+    aTape [ 1 2 3 ] assert=
+    aTape orphan? true assert=
+    aTape ls [ ] assert=
+  ]
+]

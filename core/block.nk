@@ -598,7 +598,7 @@
         beforeCursor block memo reduce enclose afterCursor concat!
           $: result
 
-        result list attach list 1 |to
+        result list resub list 1 |to
      ] do
      ^
     ]
@@ -1155,3 +1155,19 @@
 
   ahead rec result
 ] @: ls*
+
+
+[ """( B -- Tb ): leaves Tape block for Block. Useful for e.g.
+   comparing two blocks only for tape contents, when Block may
+   have table entries.
+
+  Lookup hierarchy is destroyed: Tape block is an orphan.
+
+  >>> [ 1 2 3 ] $: a
+  >>> a #x 0 pushes
+  >>> a a toTape 2echo
+  [ 1 2 3 | . x ]
+  [ 1 2 3 | ]
+  """
+  new toOrphan
+] @: toTape

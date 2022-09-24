@@ -25,6 +25,9 @@ module Novika
 
     # Lists all name forms stored in this table.
     abstract def names : Array(Form)
+
+    # Returns a *shallow* copy of this table.
+    abstract def copy : ITable
   end
 
   # Default table protocol implementation: default block table
@@ -33,6 +36,13 @@ module Novika
     include ITable
 
     @store = {} of Form => Entry
+
+    # :nodoc:
+    def initialize
+    end
+
+    protected def initialize(@store)
+    end
 
     def set(name : Form, entry : Entry) : Entry
       @store[name] = entry
@@ -60,6 +70,10 @@ module Novika
 
     def names : Array(Form)
       @store.keys
+    end
+
+    def copy : ITable
+      Table.new(@store.dup)
     end
   end
 

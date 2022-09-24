@@ -37,12 +37,14 @@
 
 
 [ "( B -- ): makes shallow copy of continuations stack the
-   stack for the duration of Block. Attaches after Block."
+   stack for the duration of Block. Replaces substrate of the
+   continuation stack with the modified shallow copy after
+   Block is opened."
   conts shallowCopy
     "Don't forget to drop the call to continues (as it will
      obscure what the caller expects continuations block to be)"
     [ drop ] there swap there
-  conts attach
+  conts resub
 ] @: continues
 
 

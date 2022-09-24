@@ -1,3 +1,83 @@
+describe 'toOrphan' [
+  in lang
+
+  it should 'convert block into orphan' [
+    0 $: x
+    [ ] $: b
+    b . x 0 assert=
+    b toOrphan
+    [ b . x ] 'undefined table property: x' assertDies
+  ]
+]
+
+
+describe 'shallowCopy' [
+  in lang
+
+  it should 'create a shallow copy' [
+    [ 1 2 3 ] $: a
+    a #x 0 pushes
+    a shallowCopy $: b
+    b #y 1 pushes
+    b 1 shove
+
+    a toTape [ 1 2 3 ] assert=
+    a ls [ x ] assert=
+
+    b toTape [ 1 2 3 1 ] assert=
+    b ls [ x y ] assert=
+  ]
+]
+
+
+describe 'resub' [
+  in lang
+
+  it should 'replace substrate of block with other block\'s' [
+    [ 1 2 3 ] $: a
+    [ 'a' 'b' 'c' ] $: b
+    b #x 0 pushes
+
+    b toTape [ 'a' 'b' 'c' ] assert=
+    b |at 3 assert=
+    b ls [ x ] assert=
+
+    b 2 |-
+    a b resub
+    b toTape [ 1 2 3 ] dup 1 |to assert=
+    b ls [ x ] assert=
+  ]
+]
+
+
+describe 'round' [
+  in lang
+
+  it should 'round good cases' [
+    1 round 1 assert=
+    1.23 round 1 assert=
+    1.67 round 2 assert=
+  ]
+
+  it should 'do banker\'s rounding' [
+    1.5 round 2 assert=
+    2.5 round 2 assert=
+    5.5 round 6 assert=
+    6.5 round 6 assert=
+  ]
+]
+
+
+describe 'trunc' [
+  it should 'truncate decimals' [
+    1 trunc 1 assert=
+    1.23 trunc 1 assert=
+    1.67 trunc 1 assert=
+    2.5 trunc 2 assert=
+  ]
+]
+
+
 describe 'desc' [
   in lang
 

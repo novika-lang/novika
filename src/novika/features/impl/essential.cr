@@ -197,9 +197,9 @@ module Novika::Features::Impl
       end
 
       target.at("same?", <<-END
-    ( F1 F2 -- true/false ): leaves whether two Forms are the
-     same (by reference for block, by value  for any other form).
-    END
+      ( F1 F2 -- true/false ): leaves whether two Forms are the
+       same (by reference for block, by value  for any other form).
+      END
       ) do |engine|
         b = engine.stack.drop
         a = engine.stack.drop
@@ -207,10 +207,10 @@ module Novika::Features::Impl
       end
 
       target.at("=", <<-END
-    ( F1 F2 -- true/false ): leaves whether two Forms are equal
-     (they may or may not be same forms, i.e., those for which
-     `same?` would leave true).
-    END
+      ( F1 F2 -- true/false ): leaves whether two Forms are equal
+       (they may or may not be same forms, i.e., those for which
+       `same?` would leave true).
+      END
       ) do |engine|
         b = engine.stack.drop
         a = engine.stack.drop
@@ -549,9 +549,9 @@ module Novika::Features::Impl
       end
 
       target.at("pushes", <<-END
-    ( B N F -- ): creates a definition for Name in Block that
-     pushes Form when resolved there.
-    END
+      ( B N F -- ): creates a definition for Name in Block that
+       pushes Form when resolved there.
+      END
       ) do |engine|
         form = engine.stack.drop
         name = engine.stack.drop
@@ -560,9 +560,9 @@ module Novika::Features::Impl
       end
 
       target.at("opens", <<-END
-    ( B N F -- ): creates a definition for Name in Block that
-     opens Form when resolved there.
-    END
+      ( B N F -- ): creates a definition for Name in Block that
+       opens Form when resolved there.
+      END
       ) do |engine|
         form = engine.stack.drop
         name = engine.stack.drop
@@ -571,10 +571,10 @@ module Novika::Features::Impl
       end
 
       target.at("submit", <<-END
-    ( B N F -- ): changes the value form of an existing definition
-     of Name in Block to Form, but keeps its resolution action
-     (open/push).
-    END
+      ( B N F -- ): changes the value form of an existing definition
+       of Name in Block to Form, but keeps its resolution action
+       (open/push).
+      END
       ) do |engine|
         form = engine.stack.drop
         name = engine.stack.drop
@@ -586,16 +586,20 @@ module Novika::Features::Impl
       end
 
       target.at("entry:exists?", <<-END
-    ( T N -- true/false ): leaves whether Table can fetch
-     value for Name.
-    END
+      ( T N -- true/false ): leaves whether Table can fetch
+       value for Name.
+      END
       ) do |engine|
         name = engine.stack.drop
         block = engine.stack.drop.assert(engine, Block)
         Boolean[block.has?(name)].push(engine)
       end
 
-      target.at("entry:fetch", "( B N -- F ): leaves the value Form under Name in Block's table.") do |engine|
+      target.at("entry:fetch", <<-END
+      ( B N -- F ): leaves the value Form under Name in Block's
+       table. Does not open the value form.
+      END
+      ) do |engine|
         name = engine.stack.drop
         block = engine.stack.drop.assert(engine, Block)
         block.at(name).push(engine)
@@ -624,9 +628,9 @@ module Novika::Features::Impl
       end
 
       target.at("entry:isOpenEntry?", <<-END
-    ( B N -- true/false ): leaves whether an entry called Name
-     in Block is an open entry.
-    END
+      ( B N -- true/false ): leaves whether an entry called Name
+       in Block is an open entry.
+      END
       ) do |engine|
         name = engine.stack.drop
         block = engine.stack.drop.assert(engine, Block)
@@ -634,22 +638,63 @@ module Novika::Features::Impl
       end
 
       target.at("shallowCopy", <<-END
-    ( B -- C ): makes a shallow copy of Block's tape, and
-     leaves a Copy block with the tape copy set as Copy's tape.
-    END
+      ( B -- C ): makes a shallow copy (sub-blocks are not copied)
+       of Block's tape and table, and leaves a Copy block with
+       the tape copy, table copy set as its tape, table.
+
+      >>> [ 1 2 3 ] $: a
+      >>> a shallowCopy $: b
+      >>> a #x 0 pushes
+      >>> b #y 1 pushes
+      >>> b 1 shove
+      >>> a b 2echo
+      [ 1 2 3 | . x ]
+      [ 1 2 3 1 | . y ]
+      END
       ) do |engine|
         engine.stack.drop.assert(engine, Block).shallow.push(engine)
       end
 
-      target.at("attach", "( O B -- ): replaces the tape of Block with Other's tape.") do |engine|
+      target.at("resub", <<-END
+      ( O B -- ): replaces the substrate of Block with Other's
+       substrate. This is useful if you want to swap Block's
+       contents with Other's without changing Block's identity:
+
+      >>> [ 1 2 3 ] $: a
+      >>> [ 'a' 'b' 'c' ] $: b
+      >>> b #x 0 pushes
+      >>> b echo
+      [ 'a' 'b' 'c' | . x ]
+      >>> a b resub
+      >>> b
+      === [ 1 2 3 | . x ]
+
+      Note that since *substrate* is replaced, not *tape*, the
+      cursor position is saved:
+
+      >>> a b 2echo
+      [ 1 2 3 | ]
+      [ 'a' 'b' 'c' | . x ]
+      >>> b 2 |-
+      >>> a b 2echo
+      [ 1 2 3 | ]
+      [ 'a' | 'b' 'c' . x ]
+      >>> a b resub
+      >>> b echo
+      [ 1 | 2 3 . x ]
+      END
+      ) do |engine|
         block = engine.stack.drop.assert(engine, Block)
         other = engine.stack.drop.assert(engine, Block)
-        block.attach(other)
+        block.resub(other)
       end
 
       target.at("fromLeft", <<-END
       ( B/Q I -- E/G ): leaves Index-th Element (Grapheme) in
        Block (Quote) from the left.
+
+      >>> [ 1 2 3 ] 0 fromLeft
+      === 1
       END
       ) do |engine|
         index = engine.stack.drop.assert(engine, Decimal)
@@ -695,12 +740,47 @@ module Novika::Features::Impl
         engine.stack.add(a % b)
       end
 
-      target.at("round", "( D -- Dr ): leaves round Decimal.") do |engine|
+      target.at("round", <<-END
+      ( D -- Dr ): rounds towards the nearest integer. If both
+       neighboring integers are equidistant, rounds towards the
+       even neighbor (Banker's rounding).
+
+      >>> 1 round
+      === 1
+
+      >>> 1.23 round
+      === 1
+
+      >>> 1.67 round
+      === 2
+
+      >>> 1.5 round
+      === 2
+
+      >>> 2.5 round
+      === 2 "rounds towards the even neighbor"
+      END
+      ) do |engine|
         decimal = engine.stack.drop.assert(engine, Decimal)
         decimal.round.push(engine)
       end
 
-      target.at("trunc", "( D -- Dt ): leaves truncated Decimal.") do |engine|
+      target.at("trunc", <<-END
+      ( D -- Dt ): leaves truncated Decimal (omits all past '.').
+
+      >>> 1 trunc
+      === 1
+
+      >>> 1.23 trunc
+      === 1
+
+      >>> 1.67 trunc
+      === 1
+
+      >>> 2.5 trunc
+      === 2
+      END
+      ) do |engine|
         decimal = engine.stack.drop.assert(engine, Decimal)
         decimal.trunc.push(engine)
       end
@@ -710,8 +790,11 @@ module Novika::Features::Impl
       end
 
       target.at("sliceQuoteAt", <<-END
-      ( Q Spt -- Qpre Qpost ): given a Quote, slices it before (Qpre) and
-       after and including (Qpost) Slice point.
+      ( Q Spt -- Qpre Qpost ): given a Quote, slices it before
+       (Qpre) and after and including (Qpost) Slice point.
+
+      >>> 'hello world' 2 sliceQuoteAt
+      === 'he' 'llo world'
       END
       ) do |engine|
         spt = engine.stack.drop.assert(engine, Decimal)
@@ -757,7 +840,11 @@ module Novika::Features::Impl
         stack.to(stack.cursor + 1)
       end
 
-      target.at("|slice", "( B -- Lh Rh ): slices Block at cursor, leaves Left, Right halves.") do |engine|
+      target.at("|slice", <<-END
+      ( B -- Lh Rh ): slices Block at cursor, leaves Left,
+       Right halves.
+      END
+      ) do |engine|
         block = engine.stack.drop.assert(engine, Block)
         lhs, rhs = block.slice
         lhs.push(engine)
@@ -765,19 +852,19 @@ module Novika::Features::Impl
       end
 
       target.at("cherry", <<-END
-    ( [ ... E | ... ]B -- [ ... | ... ]B -- E ): drops Block
-     and Element before cursor in Block (and moves cursor back
-     once), leaves Element.
-    END
+      ( [ ... E | ... ]B -- [ ... | ... ]B -- E ): drops Block
+       and Element before cursor in Block (and moves cursor back
+       once), leaves Element.
+      END
       ) do |engine|
         engine.stack.drop.assert(engine, Block).drop.push(engine)
       end
 
       target.at("shove", <<-END
-    ( [ ... | ... ]B E -- [ ... E | ... ]B -- ): adds Element
-     before cursor in Block (and moves cursor forward once),
-     drops both.
-    END
+      ( [ ... | ... ]B E -- [ ... E | ... ]B -- ): adds Element
+       before cursor in Block (and moves cursor forward once),
+       drops both.
+      END
       ) do |engine|
         engine.stack.drop.push(engine.stack.drop.assert(engine, Block))
       end
@@ -882,10 +969,10 @@ module Novika::Features::Impl
       end
 
       target.at("reparent", <<-END
-    ( C P -- C ): changes the parent of Child to Parent. Checks
-     for cycles which can hang the interpreter, therefore is
-     O(N) where N is the amount of Parent's ancestors.
-    END
+      ( C P -- C ): changes the parent of Child to Parent. Checks
+       for cycles which can hang the interpreter, therefore is
+       O(N) where N is the amount of Parent's ancestors.
+      END
       ) do |engine|
         parent = engine.stack.drop.assert(engine, Block)
         child = engine.stack.top.assert(engine, Block)
@@ -905,9 +992,9 @@ module Novika::Features::Impl
       end
 
       target.at("slurp", <<-END
-    ( B Q -- B ): parses Quote and adds all forms from Quote
-     to Block.
-    END
+      ( B Q -- B ): parses Quote and adds all forms from Quote
+       to Block.
+      END
       ) do |engine|
         source = engine.stack.drop.assert(engine, Quote)
         block = engine.stack.top.assert(engine, Block)
@@ -920,6 +1007,23 @@ module Novika::Features::Impl
 
       target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |engine|
         Boolean[!engine.stack.drop.assert(engine, Block).parent?].push(engine)
+      end
+
+      target.at("toOrphan", <<-END
+      ( B -- B ): makes Block an orphan (destroys the link with
+       its parent).
+
+      >>> 0 $: x
+      >>> [ ] $: b
+      >>> b . x echo
+      0
+      >>> b toOrphan
+      === [ | ]
+      >>> . x
+      Sorry: undefined table property: x.
+      END
+      ) do |engine|
+        engine.stack.top.assert(engine, Block).parent = nil
       end
 
       target.at("desc", <<-END

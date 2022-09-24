@@ -71,7 +71,7 @@ module Novika
     # Replaces this tape's substrate with other. *cursor* is
     # left where it was in self if it fits, else is moved to
     # the end.
-    def replace(other)
+    def resub(other)
       substrate.deref
 
       Tape.new(other.substrate.copy, Math.min(cursor, other.count))

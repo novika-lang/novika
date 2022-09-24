@@ -333,12 +333,12 @@ module Novika
 
     # Returns a shallow copy of this block.
     def shallow : Block
-      self.class.new(parent: parent?, tape: tape.copy, table: table, prototype: prototype)
+      self.class.new(parent: parent?, tape: tape.copy, table: table.copy, prototype: prototype)
     end
 
     # Replaces this block's tape with *other*'s.
-    def attach(other : Block) : self
-      self.tape = tape.replace(other.tape)
+    def resub(other : Block) : self
+      self.tape = tape.resub(other.tape)
       self
     end
 
