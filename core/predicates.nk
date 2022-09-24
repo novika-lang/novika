@@ -29,7 +29,7 @@
 
 
 [ "( A B -- true/false ): leaves whether A is divisible by B."
-  rem zero?
+  mod zero?
 ] @: /?
 
 

@@ -58,7 +58,7 @@ module Novika
 
     # Returns the remainder of this and *other* decimal numbers.
     def %(other : Decimal) : Decimal
-      Decimal.new(val.to_big_i % other.val.to_big_i)
+      self - other * (self / other).floor
     end
 
     # Returns whether this decimal is smaller than *other*.
@@ -74,6 +74,11 @@ module Novika
     # Truncates this decimal.
     def trunc : Decimal
       Decimal.new(val.trunc)
+    end
+
+    # Rounds this decimal down.
+    def floor : Decimal
+      Decimal.new(val.floor)
     end
 
     # Asserts this decimal is in *range*. Dies if it isn't.

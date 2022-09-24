@@ -26,8 +26,8 @@ needsFeature: console
   $: y $: x
 
   [ "( V -- S ): leaves sum of this and other Vector"
-    x over . x + console:width rem
-    y rot  . y + console:height rem
+    x over . x + console:width mod
+    y rot  . y + console:height mod
     tvec2
   ] @: addWithScreenWrap
 

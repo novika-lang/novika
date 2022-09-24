@@ -733,10 +733,10 @@ module Novika::Features::Impl
         engine.stack.add(a / b)
       end
 
-      target.at("rem", "( A B -- R ): leaves the Remainder of two decimals.") do |engine|
+      target.at("mod", "( A B -- M ): leaves the Modulo of two decimals.") do |engine|
         b = engine.stack.drop.assert(engine, Decimal)
         a = engine.stack.drop.assert(engine, Decimal)
-        b.die("division by zero") if b.zero?
+        b.die("modulo by zero") if b.zero?
         engine.stack.add(a % b)
       end
 

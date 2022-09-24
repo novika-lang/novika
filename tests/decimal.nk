@@ -125,21 +125,12 @@ describe 'Math: inter-domain decimal math' [
 
   "--- Modulo: primitive word % --------------------------"
 
-  it should 'compute modulo for two small decimals' [
-    13 3 rem 1 assert=
-  ]
-
-  it should 'compute modulo with negative divident' [
-    -13 4 rem 3 assert=
-  ]
-
-  it should 'compute modulo with negative divisor' [
-    13 -4 rem -3 assert=
-    -13 -4 rem -1 assert=
-  ]
-
-  it dies 'when modulo divisor is zero' [
-    13 0 rem
+  it should 'compute modulo' [
+    9 4 mod 1 assert=
+    -9 4 mod 3 assert=
+    9 -4 mod -3 assert=
+    -9 -4 mod -1 assert=
+    [ 13 0 mod ] 'modulo by zero' assertDies
   ]
 ]
 
@@ -157,12 +148,11 @@ describe 'Math: floating point (precise) math' [
   ]
 
   it should 'compute modulo with fp divisor' [
-    "TODO: RAISES FOR SOME REASON 5 0.25 rem 0 assert="
-    false true assert=
+    5 0.25 mod 0 assert=
   ]
 
   it should 'compute modulo with fp divident' [
-    0.25 5 rem 0.5 assert=
+    0.25 5 mod 0.25 assert=
   ]
 ]
 
