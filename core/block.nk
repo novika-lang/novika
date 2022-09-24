@@ -255,7 +255,7 @@
   >>> dup #undefinedThing fetch: [ echo ]
   === [ | . x y ]
   """
-  ahead thru @: block
+  ahead thruBlock @: block
 
   [ over block? ] [ 2dup entry:exists? ] and
     [ entry:fetch block ] "Has the entry, fetch and open Block."
@@ -299,7 +299,7 @@
 
 
 [ "( Lb |-> B -- Lb ): infix version of `|slideRight`."
-  ahead thru |slideRight
+  ahead thruBlock |slideRight
 ] @: |->
 
 
@@ -327,7 +327,7 @@
 
 
 [ "( Lb <-| B -- Lb ): infix version of `|slideLeft`."
-  ahead thru |slideLeft
+  ahead thruBlock |slideLeft
 ] @: <-|
 
 
@@ -374,7 +374,7 @@
   STDOUT: 2
   STDOUT: 3
   """
-  ahead thru each
+  ahead thruBlock each
 ] @: each:
 
 
@@ -385,7 +385,7 @@
   STDOUT: 1 2
   STDOUT: 2 3
   """
-  ahead thru eachWithIndex
+  ahead thruBlock eachWithIndex
 ] @: eachWithIndex:
 
 
@@ -426,7 +426,7 @@
   STDOUT: 3
   STDOUT: 7
   """
-  ahead thru pairs
+  ahead thruBlock pairs
 ] @: pairs:
 
 
@@ -467,7 +467,7 @@
   STDOUT: 3
   STDOUT: 5
   """
-  ahead thru consPairs
+  ahead thruBlock consPairs
 ] @: consPairs:
 
 
@@ -509,7 +509,7 @@
 
   >>> [ 1 2 3 ] map: [ 1 + ]
   """
-  ahead thru map
+  ahead thruBlock map
 ] @: map:
 
 
@@ -551,7 +551,7 @@
   >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
   === [ 300 600 | ]
   """
-  ahead thru only
+  ahead thruBlock only
 ] @: only:
 
 
@@ -652,7 +652,7 @@
   >>> [ 1 2 3 ] # [ 2 > ]
   === 1
   """
-  ahead thru amount
+  ahead thruBlock amount
 ] @: #
 
 
@@ -956,7 +956,7 @@
 
   0 $: current
 
-  block  [ current max < ]
+  block [ current max < ]
   [
     current enclose swap there dup empty? not =>
       [ cherry result gulp ]
@@ -968,7 +968,7 @@
 
 
 [ "( N collect: B -- Lb ): infix version of `collect`."
-  ahead thru collect
+  ahead thruBlock collect
 ] @: collect:
 
 
@@ -1033,7 +1033,7 @@
   >>> [ 1 2 3 ] groupBy: [ 1 <= 'foo' 'bar' sel ] map: [ dup .id 2enclose ]
   === [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ]
   """
-  ahead thru asBlock groupBy
+  ahead thruBlock groupBy
 ] @: groupBy:
 
 
@@ -1110,7 +1110,7 @@
 
 
 [ "( Fl sepBy:/join: S -- Q ): infix version of `sepBy`."
-  ahead thru sepBy
+  ahead thruBlock sepBy
 ] dup @: sepBy:
       @: join:
 

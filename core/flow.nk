@@ -5,14 +5,14 @@
 
 
 [ "( D br: T F -- ? ): infix version of `br`."
-  ahead thru "T"
-  ahead thru "F"
+  ahead thruBlock "T"
+  ahead thruBlock "F"
   br
 ] @: br:
 
 
 [ "( D => T -- ? ): opens True form if Determiner is truthy."
-  ahead thru [ ] br
+  ahead thruBlock [ ] br
 ] @: =>
 
 
@@ -144,7 +144,7 @@
 
 
 [ "( loop: Ib -- ): prefix version of `loop`."
-  ahead thru loop
+  ahead thru asBlock loop
 ] @: loop:
 
 
@@ -192,5 +192,5 @@
 
 
 [ "( N times: B -- ): infix version of `times`."
-  ahead thru times
+  ahead thruBlock times
 ] @: times:

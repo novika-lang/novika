@@ -908,6 +908,24 @@ module Novika::Features::Impl
         block.thru.push(engine)
       end
 
+      target.at("thruBlock", <<-END
+      ( B -- Bf / [ Vf ] ): similar to `thru` for Block. If
+       form after cursor is a Block form, it is left. If it is
+       a Value form, then it is enclosed in a new block whose
+       parent is Block.
+      END
+      ) do |engine|
+        block = engine.stack.drop.assert(engine, Block)
+        form = block.thru
+        if form.is_a?(Block)
+          form.push(engine)
+        else
+          child = Block.new(block)
+          child.add(form)
+          child.push(engine)
+        end
+      end
+
       target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |engine|
         block = engine.stack.drop.assert(engine, Block)
         block.top.push(engine)
