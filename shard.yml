@@ -1,6 +1,6 @@
 name: novika
 version: 0.0.2
-repository: https://github.com/homonoidian/novika
+repository: https://github.com/novika-lang/novika
 
 authors:
   - homonoidian <homonoidian@yandex.ru>
