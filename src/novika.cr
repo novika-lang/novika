@@ -72,7 +72,7 @@ module Novika
 
       features.select(&.on_by_default?).each do |feature|
         io.puts
-        io << "    - " << feature.id << " (" << feature.purpose << "; " << on << ")"
+        io << "    - " << on << " " << feature.id << " (" << feature.purpose << ")"
       end
 
       features.reject(&.on_by_default?).each do |feature|
