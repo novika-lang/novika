@@ -1,0 +1,79 @@
+[
+  [ ] $: subscribers
+
+  this $: self
+
+  [ ahead thru subscribers gulp ] @: each:
+  [ ahead thru @: block createObservable dup $: cons each: [ block cons.emit ] ] @: map:
+  [ ahead thru @: block createObservable dup $: cons each: [ $: v v block => [v cons.emit] ] ] @: only:
+  [ ahead thru @: block only: [ block not ] ] @: without:
+  [ enclose $: value subscribers [ value shallowCopy swap hydrate ] each ] @: emit
+
+  this
+] @: createObservable
+
+describe 'observable' [
+  in obs
+
+  it should 'create an observable, allow subscribing, emit' [
+    createObservable $: obs
+
+    [ ] $: list
+
+    obs.each: [ list gulp ]
+    obs.each: [ 1 + list gulp ]
+
+    100 obs.emit
+    200 obs.emit
+
+    list [ 100 101 200 201 ] assert=
+  ]
+
+  it should 'support map' [
+    createObservable $: obs
+
+    [ ] $: list
+
+    obs.map: [ 1 + ]
+       .each: [ list gulp ]
+
+    100 obs.emit
+    200 obs.emit
+    300 obs.emit
+
+    list [ 101 201 301 ] assert=
+  ]
+
+  it should 'support select' [
+    createObservable $: obs
+
+    [ ] $: list
+
+    obs.map: [ 3 * ]
+       .only: [ even? ]
+       .only: [ 18 > ]
+       .map: [ 100 + ]
+       .each: [ list gulp ]
+
+   1 to: 20 each: [ obs.emit ]
+
+    list [ 124 130 136 142 148 154 160 ] assert=
+  ]
+
+  it should 'support without' [
+    createObservable $: obs
+
+    [ ] $: list
+
+    obs.map: [ 1 + ]
+       .only: [ odd? ]
+       .without: [ 9 < ]
+       .each: [ list gulp ]
+
+    1 to: 13 each: [ obs.emit ]
+
+    list [ 9 11 13 ] assert=
+  ]
+]
+
+runTestGroup: obs
