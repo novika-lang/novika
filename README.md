@@ -46,6 +46,14 @@ Yup. It's damn hard to even introduce.
 ```novika
 "Sieve of Eratosthenes: prints prime numbers in [2; 120]."
 2 to: 120 ||-> [ $: n stack without: [ n /? ] cover n ] each: echo
+
+"First 100 Fizz buzz rounds:"
+1 to: 100 each: [
+  dup 15 /? => [ drop 'FizzBuzz' echo next ]
+  dup  5 /? => [ drop     'Buzz' echo next ]
+  dup  3 /? => [ drop     'Fizz' echo next ]
+  echo
+]
 ```
 
 ## Using Novika as a library
