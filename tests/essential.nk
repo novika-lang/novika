@@ -6,7 +6,7 @@ describe 'toOrphan' [
     [ ] $: b
     b . x 0 assert=
     b toOrphan
-    [ b . x ] 'undefined table property: x' assertDies
+    [ b . x ] 'undefined dictionary property: x' assertDies
   ]
 ]
 

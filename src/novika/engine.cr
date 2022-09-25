@@ -93,8 +93,9 @@ module Novika
 
     # Creates a conventional continuation `Block`.
     #
-    # A conventional continuation block consists of two table
-    # fields: one for the block, and one for the stack.
+    # A conventional continuation block consists of two blocks:
+    # a code block (aka simply the block), and a stack block
+    # (aka simply the stack).
     def self.cont(block, stack)
       Block.new.add(block).add(stack)
     end

@@ -586,7 +586,7 @@ module Novika::Features::Impl
       end
 
       target.at("entry:exists?", <<-END
-      ( T N -- true/false ): leaves whether Table can fetch
+      ( D N -- true/false ): leaves whether Dictionary can fetch
        value for Name.
       END
       ) do |engine|
@@ -597,7 +597,7 @@ module Novika::Features::Impl
 
       target.at("entry:fetch", <<-END
       ( B N -- F ): leaves the value Form under Name in Block's
-       table. Does not open the value form.
+       dictionary. Does not open the value form.
       END
       ) do |engine|
         name = engine.stack.drop
@@ -606,9 +606,9 @@ module Novika::Features::Impl
       end
 
       target.at("entry:fetch?", <<-END
-      ( B N -- F true / false ): leaves the value Form under Name
-       in Block's table followed by `true`, or `false` if no such
-       entry is in Block.
+      ( B N -- F true / false ): leaves the value Form under
+       Name in Block's dictionary followed by `true`, or `false`
+       if no such entry is in Block.
 
       >>> [ ] $: a
       >>> a #x 100 pushes
@@ -639,8 +639,8 @@ module Novika::Features::Impl
 
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
-       of Block's tape and table, and leaves a Copy block with
-       the tape copy, table copy set as its tape, table.
+       of Block's tape and dictionary, and leaves a Copy block with
+       the tape copy, dictionary copy set as its tape, dictionary.
 
       >>> [ 1 2 3 ] $: a
       >>> a shallowCopy $: b
@@ -931,11 +931,11 @@ module Novika::Features::Impl
         block.top.push(engine)
       end
 
-      target.at("mergeTables", <<-END
-      ( Rb Db -- ): copies entries from Donor block's table to
-       Recipient block's table. Donor entries override same-
-       named entries in Recipient. Donor entries starting with
-       one or more underscores are not imported.
+      target.at("mergeDicts", <<-END
+      ( Rb Db -- ): copies entries from Donor block's dictionary
+       to Recipient block's dictionary. Donor entries override
+       same-named entries in Recipient. Donor entries starting
+       with one or more underscores are not imported.
 
       >>> [ ] $: a
       >>> a #x 100 pushes
@@ -944,7 +944,7 @@ module Novika::Features::Impl
       >>> b #y 200 pushes
       >>> b a
       === [ | . y ] [ | . x _private ]
-      >>> mergeTables
+      >>> mergeDicts
       >>> b
       === [ . y x ]
       END
@@ -977,7 +977,11 @@ module Novika::Features::Impl
         engine.stack.add a.stitch(b)
       end
 
-      target.at("ls", "( B -- Nb ): gathers all table entry names into Name block.") do |engine|
+      target.at("ls", <<-END
+      ( B -- Nb ): gathers all dictionary entry names into
+       Name block.
+      END
+      ) do |engine|
         block = engine.stack.drop.assert(engine, Block)
         result = Block.new
         block.ls.each do |form|
@@ -1038,7 +1042,7 @@ module Novika::Features::Impl
       >>> b toOrphan
       === [ | ]
       >>> . x
-      Sorry: undefined table property: x.
+      Sorry: undefined dictionary property: x.
       END
       ) do |engine|
         engine.stack.top.assert(engine, Block).parent = nil

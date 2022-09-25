@@ -23,7 +23,7 @@ Most notable features of Novika include:
 * Code is data, and data is code. Homoiconicity is a polluted term, but you knew
   this would be coming in such kind of language didn't you? :)
 
-* As data, blocks can be arrays, or stacks with an insertion point, or tables
+* As data, blocks can be arrays, or stacks with an insertion point, or dictionaries
   (ordered hash maps mapping form to form), or anything in-between. Blocks also
   hold continuations. Individual continuations are blocks as well. Each consists
   of two sub-blocks: the stack block (a block used as a stack), and a code block
@@ -220,9 +220,9 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
 
 * Comments = double quotes: `1 "I'm a comment" 2 +`
 
-* Blocks consist of a *tape* and a *table*.
+* Blocks consist of a *tape* and a *dictionary*.
   * Block tape is an ordered list plus an insertion point called *cursor*.
-  * Block table is an ordered hash map mapping form to form.
+  * Block dictionary is an ordered hash map mapping form to form.
 
 * `open` (opening) = evaluate (evaluating).
 

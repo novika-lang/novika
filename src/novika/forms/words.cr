@@ -12,8 +12,8 @@ class String
 end
 
 module Novika
-  # Words open entries they're assigned to in the table of their
-  # enclosing block.
+  # Words open entries they're assigned to in the dictionary
+  # of their enclosing block.
   struct Word
     include Form
 

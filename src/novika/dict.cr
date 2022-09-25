@@ -1,39 +1,43 @@
 module Novika
-  # Novika table protocol. Objects or values that want to be
-  # `Block#table`s can implement this protocol to make that
-  # possible.
-  module ITable
-    # Assigns *name* form to *entry* in this table.
+  # Novika dictionary protocol. Objects or values that want
+  # to be Block dictionaries can implement this protocol to
+  # make that possible.
+  module IDict
+    # Assigns *name* form to *entry* in this dictionary.
     abstract def set(name : Form, entry : Entry) : Entry
 
     # Returns the entry corresponding to *name* form in this
-    # table, or yields with *name* and returns the block result.
+    # dictionary, or yields with *name* and returns the block
+    # result.
     abstract def get(name : Form, & : Form -> Entry?) : Entry?
 
-    # Returns whether this table has an entry corresponding
+    # Returns whether this dictionary has an entry corresponding
     # to *name* form.
     abstract def has?(name : Form) : Bool
 
-    # Imports entries from *donor* table into this table.
+    # Imports entries from *donor* dictionary into this dictionary.
     #
     # Entries whose names are preceded by one or more `_` are
     # not imported (they are considered private).
-    abstract def import!(donor : Table)
+    abstract def import!(donor : IDict)
 
-    # Returns whether this table currently stores no entries.
+    # Returns whether this dictionary currently stores no entries.
     abstract def empty? : Bool
 
-    # Lists all name forms stored in this table.
+    # Lists all name forms stored in this dictionary.
     abstract def names : Array(Form)
 
-    # Returns a *shallow* copy of this table.
-    abstract def copy : ITable
+    # Returns a *shallow* copy of this dictionary.
+    abstract def copy : IDict
+
+    # Yields key, value forms in this dictionary.
+    abstract def each(& : Form, Form ->)
   end
 
-  # Default table protocol implementation: default block table
-  # implementation. Uses a hash map for storage.
-  struct Table
-    include ITable
+  # Default dictionary protocol implementation: default block
+  # dictionary implementation. Uses a hash map for storage.
+  struct Dict
+    include IDict
 
     @store = {} of Form => Entry
 
@@ -56,10 +60,8 @@ module Novika
       @store.has_key?(name)
     end
 
-    def import!(donor : Table)
-      other = donor.@store
-
-      other.each do |k, v|
+    def import!(donor : IDict)
+      donor.each do |k, v|
         @store[k] = v unless k.is_a?(Word) && k.id.prefixed_by?("_")
       end
     end
@@ -72,12 +74,17 @@ module Novika
       @store.keys
     end
 
-    def copy : ITable
-      Table.new(@store.dup)
+    def copy : IDict
+      Dict.new(@store.dup)
+    end
+
+    def each
+      @store.each { |k, v| yield k, v }
     end
   end
 
-  # Represents a table entry. Table entries hold the value form.
+  # Represents a dictionary entry. Dictionary entries hold the
+  # value form.
   class Entry
     # Returns the form currently held by this entry.
     getter form : Form

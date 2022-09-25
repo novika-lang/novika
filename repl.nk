@@ -55,7 +55,7 @@ To list words followed by their descriptions, use:
   >>> ls* map: [ dup here desc stack sepBy: \'\\n\' ] sepBy: \'\\n\\n\' echo
   …
   ls
-  ( B -- Nb ): gathers all table entry names into Name block.
+  ( B -- Nb ): gathers all dictionary entry names into Name block.
 
   reparent
   ( C P -- C ): changes the parent of Child to Parent. Checks
@@ -122,12 +122,12 @@ you need help.
          reported by the death handler above."
         false =: error
       ]
-      [ "There was no error. Merge tables of original and instance
-         of the REPL root block, making entries defined in the
-         instance visible to next REPL inputs. Also, substitute
-         the global stack with the updated stack, which proved
-         to have no errors."
-        _pgRoot pgRootInstance mergeTables
+      [ "There was no error. Merge dictionaries of original and
+         instance of the REPL root block, making entries defined
+         in the instance visible to next REPL inputs. Also,
+         substitute the global stack with the updated stack,
+         which proved to have no errors."
+        _pgRoot pgRootInstance mergeDicts
         pgStackCopy =: pgStack
         [ 'In ' timeTakenMs 'ms' ] ~~ echo
       ]

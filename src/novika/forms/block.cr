@@ -55,8 +55,8 @@ module Novika
     # Returns the tape of this block.
     protected property tape = Tape(Form).new
 
-    # Returns the table of this block.
-    protected property table : ITable = Table.new
+    # Returns the dictionary of this block.
+    protected property dict : IDict = Dict.new
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -70,13 +70,13 @@ module Novika
     # this block does.
     @comment : String?
 
-    def initialize(@parent : Block? = nil, @prototype = self, @table = Table.new)
+    def initialize(@parent : Block? = nil, @prototype = self, @dict = Dict.new)
     end
 
     protected def initialize(*,
                              @parent : Block?,
                              @tape : Tape(Form),
-                             @table = Table.new,
+                             @dict = Dict.new,
                              @prototype = self,
                              @leaf = true)
     end
@@ -187,15 +187,15 @@ module Novika
       self
     end
 
-    # Lists all name forms in this block's table.
+    # Lists all name forms in this block's dictionary.
     def ls : Array(Form)
-      table.names
+      dict.names
     end
 
-    # Imports entries from *donor* to this block's table by
-    # mutating this block's table.
+    # Imports entries from *donor* to this block's dictionary
+    # by mutating this block's dictionary.
     def import!(from donor : Block) : self
-      tap { table.import!(donor.table) }
+      tap { dict.import!(donor.dict) }
     end
 
     # See `Tape#next?`.
@@ -228,17 +228,18 @@ module Novika
       self.tape, _ = tape.thru? || die("thru out of bounds")
     end
 
-    # Returns the table entry corresponding to *name*, or dies.
+    # Returns the dictionary entry corresponding to *name*,
+    # or dies.
     def at(name : Form) : Entry
-      at?(name) || die("undefined table property: #{name}")
+      at?(name) || die("undefined dictionary property: #{name}")
     end
 
-    # Returns the table entry corresponding to *name*.
+    # Returns the dictionary entry corresponding to *name*.
     def at?(name : Form) : Entry?
-      table.get(name) { parent?.try &.at?(name) }
+      dict.get(name) { parent?.try &.at?(name) }
     end
 
-    # Returns whether this table has an entry corresponding
+    # Returns whether this dictionary has an entry corresponding
     # to *name*.
     def has?(name : Form)
       !!at?(name)
@@ -250,9 +251,9 @@ module Novika
       tape.at?(index) || die("index out of bounds")
     end
 
-    # Binds *name* to *entry* in this block's table.
+    # Binds *name* to *entry* in this block's dictionary.
     def at(name : Form, entry : Entry) : self
-      tap { table.set(name, entry) }
+      tap { dict.set(name, entry) }
     end
 
     # Dies: mutable keys disallowed.
@@ -260,7 +261,7 @@ module Novika
       die("mutable keys are disallowed, and block is mutable")
     end
 
-    # Binds *name* to *form* in this block's table.
+    # Binds *name* to *form* in this block's dictionary.
     def at(name : Form, form : Form) : self
       at name, Entry.new(form)
     end
@@ -333,7 +334,7 @@ module Novika
 
     # Returns a shallow copy of this block.
     def shallow : Block
-      self.class.new(parent: parent?, tape: tape.copy, table: table.copy, prototype: prototype)
+      self.class.new(parent: parent?, tape: tape.copy, dict: dict.copy, prototype: prototype)
     end
 
     # Replaces this block's tape with *other*'s.
@@ -343,7 +344,7 @@ module Novika
     end
 
     # Loose equality: for two blocks to be loosely equal, their
-    # tapes and their tables must be loosely equal.
+    # tapes and their dictionaries must be loosely equal.
     #
     # Supports recursive (reflection) equality, e.g.:
     #
@@ -358,7 +359,7 @@ module Novika
       return false unless count == other.count
       result = false
       executed = exec_recursive(:==) do
-        result = tape == other.tape && table == other.table
+        result = tape == other.tape && dict == other.dict
       end
       executed && result
     end
@@ -399,9 +400,9 @@ module Novika
     end
 
     # Assert through the result of running *name*'s value in
-    # this block's table.
+    # this block's dictionary.
     private def assert?(engine : Engine, name : Form, type : T.class) : T? forall T
-      entry = table.get(name) { return }
+      entry = dict.get(name) { return }
       child = engine.child
       result = entry.val(child, Block.new.add(self))
       unless result.is_a?(Block) && same?(result)
@@ -431,12 +432,12 @@ module Novika
       return true if is_a?(T)
 
       case T
-      when Decimal.class    then table.has?(AS_DECIMAL)
-      when Quote.class      then table.has?(AS_QUOTE)
-      when Word.class       then table.has?(AS_WORD)
-      when Color.class      then table.has?(AS_COLOR)
-      when Boolean.class    then table.has?(AS_BOOLEAN)
-      when QuotedWord.class then table.has?(AS_QUOTED_WORD)
+      when Decimal.class    then dict.has?(AS_DECIMAL)
+      when Quote.class      then dict.has?(AS_QUOTE)
+      when Word.class       then dict.has?(AS_WORD)
+      when Color.class      then dict.has?(AS_COLOR)
+      when Boolean.class    then dict.has?(AS_BOOLEAN)
+      when QuotedWord.class then dict.has?(AS_QUOTED_WORD)
       else
         false
       end
@@ -502,7 +503,7 @@ module Novika
         return
       end
 
-      unless table.empty?
+      unless dict.empty?
         io << " . "; ls.join(io, ' ')
       end
 
