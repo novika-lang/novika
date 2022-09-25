@@ -1191,3 +1191,73 @@
   """
   new toOrphan
 ] @: toTape
+
+
+[ "( B -- true/false ): leaves whether Block has a description."
+  desc 'a block' = not
+] @: hasDesc?
+
+
+[ """( Lb C -- S true/false ): slides right (see `|slideRight`)
+   through List block, executes Condition block for each form
+   under cursor. Stops *past* form if Condition block left true
+   for it. Leaves Skipped forms block. Leaves true when Condition
+   matched, false when reached the end of List block without
+   a match.
+
+  Note: if Condition is not a block, it is wrapped like so: `[ C = ]`.
+
+  Useful for writing parsers for Novika DSLs.
+
+  >>> [ 1 2 3 4 5 6 ] $: a
+  >>> a 1 |to
+  >>> a
+  === [ 1 | 2 3 4 5 6 ]
+  >>> [ 4 = ] past?
+  === [ 2 3 ] true
+  >>> a echo
+  [ 1 2 3 4 | 5 6 ]
+  """
+  $: pattern
+
+  pattern block?
+      pattern
+    [ pattern = ]
+  sel @: cond
+
+    [ ] $: memo
+  false $: match
+
+  |-> [ dup cond => [ true =: match break ] dup memo gulp ] drop
+
+  memo match
+] @: past?
+
+
+[ """( Lb C -- S ): same as `past?`, but dies when reached end of
+   List block without matching.
+
+  When Condition is a block, its desc, if available, is printed as
+  the thing that was expected. Otherwise, Condition itself is printed.
+
+  >>> [ 1 2 3 4 5 6 ] $: a
+  >>> a 1 |to
+  >>> a
+  === [ 1 | 2 3 4 5 6 ]
+  >>> 4 past
+  === [ 2 3 | ]
+  >>> a echo
+  [ 1 2 3 4 | 5 6 ]
+  >>> a 'doesn\'t exist' past
+  Sorry: expected ｢doesn't exist｣ to match, but reached end of block.
+  """
+  dup $: cond
+
+  past? => [ ^ ] drop
+
+  cond dup block? =>
+    [ dup hasDesc? => desc ]
+  $: what
+
+  [ 'expected ｢' what '｣ to match, but reached end of block' ] ~* die
+] @: past
