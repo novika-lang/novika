@@ -1426,38 +1426,62 @@ describe 'toTape' [
 ]
 
 
-describe 'past/past?' [
+describe '|after/|after!/|after?' [
   in lang
 
-  it should 'put cursor past matching form' [
+  it should 'put cursor |after matching form' [
     [ 1 2 3 4 5 6 7 ] $: a
     a 1 |to
-    [ a [ 6 = ] past? ] vals [ [ 2 3 4 5 ] true ] here assert=
+    [ a [ 6 = ] |after? ] vals [ [ 2 3 4 5 ] true ] here assert=
     a |at 6 assert=
 
     a 1 |to
-    [ a 6 past? ] vals [ [ 2 3 4 5 ] true ] here assert=
+    [ a 6 |after? ] vals [ [ 2 3 4 5 ] true ] here assert=
     a |at 6 assert=
 
     a 1 |to
-    [ a [ 8 = ] past? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
+    [ a [ 8 = ] |after? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
     a |at 7 assert=
 
     a 1 |to
-    [ a 8 past? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
+    [ a 8 |after? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
     a |at 7 assert=
   ]
 
-  it should 'die when using past, with proper details' [
+  it should 'die when using |after!, with proper details' [
     [ 1 2 3 4 5 6 7 ] $: a
     a 1 |to
-    [ a [ 6 = ] past ] vals [ [ 2 3 4 5 ] ] assert=
+    [ a [ 6 = ] |after! ] vals [ [ 2 3 4 5 ] ] assert=
     a |at 6 assert=
 
     [ 1 2 3 4 5 6 7 ] $: a
     a 1 |to
-    [ a [ 8 = ] past ] 'expected ｢[ 8 = | ]+｣ to match, but reached end of block' assertDies
-    [ a 8 past ] 'expected ｢8｣ to match, but reached end of block' assertDies
+    [ a [ 8 = ] |after! ] 'expected ｢[ 8 = | ]+｣ to match, but reached end of block' assertDies
+    [ a 8 |after! ] 'expected ｢8｣ to match, but reached end of block' assertDies
   ]
 ]
 
+
+describe '|before/|before?||before!' [
+  in lang
+
+  it should 'put cursor before matching item' [
+    [ 1 2 3 4 5 6 7 ] $: a
+    a 1 |to
+    [ a [ 6 = ] |before? ] vals [ [ 2 3 4 5 ] true ] here assert=
+    a |at 5 assert=
+  ]
+
+  it should 'not move if reached the end' [
+    [ 1 2 3 4 5 6 7 ] $: a
+    a 1 |to
+    [ a 8 |after? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
+    a |at 7 assert=
+  ]
+
+  it should 'allow some parsing' [
+    [ ahead |before: [ decimal? not ] bi: sum count / ] @: avgOf
+    avgOf 1 2 3 $: avg
+    avg 2 assert=
+  ]
+]

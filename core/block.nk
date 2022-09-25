@@ -1200,7 +1200,7 @@
 
 [ """( Lb C -- S true/false ): slides right (see `|slideRight`)
    through List block, executes Condition block for each form
-   under cursor. Stops *past* form if Condition block left true
+   under cursor. Stops *|after* form if Condition block left true
    for it. Leaves Skipped forms block. Leaves true when Condition
    matched, false when reached the end of List block without
    a match.
@@ -1213,7 +1213,7 @@
   >>> a 1 |to
   >>> a
   === [ 1 | 2 3 4 5 6 ]
-  >>> [ 4 = ] past?
+  >>> [ 4 = ] |after?
   === [ 2 3 ] true
   >>> a echo
   [ 1 2 3 4 | 5 6 ]
@@ -1231,10 +1231,16 @@
   |-> [ dup cond => [ true =: match break ] dup memo gulp ] drop
 
   memo match
-] @: past?
+] @: |after?
 
 
-[ """( Lb C -- S ): same as `past?`, but dies when reached end of
+[ "( Lb C -- S ): same as `|after?`, but disregards whether the
+   end was reached instead of Condition matching."
+  |after? drop
+] @: |after
+
+
+[ """( Lb C -- S ): same as `|after?`, but dies when reached end of
    List block without matching.
 
   When Condition is a block, its desc, if available, is printed as
@@ -1244,20 +1250,98 @@
   >>> a 1 |to
   >>> a
   === [ 1 | 2 3 4 5 6 ]
-  >>> 4 past
+  >>> 4 |after!
   === [ 2 3 | ]
   >>> a echo
   [ 1 2 3 4 | 5 6 ]
-  >>> a 'doesn\'t exist' past
+  >>> a 'doesn\'t exist' |after!
   Sorry: expected ｢doesn't exist｣ to match, but reached end of block.
   """
   dup $: cond
 
-  past? => [ ^ ] drop
+  |after? => [ ^ ] drop
 
   cond dup block? =>
     [ dup hasDesc? => desc ]
   $: what
 
   [ 'expected ｢' what '｣ to match, but reached end of block' ] ~* die
-] @: past
+] @: |after!
+
+
+[ "( Lb |after?: C -- S ): infix version of `|after?`."
+  ahead thru |after?
+] @: |after?:
+
+
+[ "( Lb |after: C -- S ): infix version of `|after`."
+  ahead thru |after
+] @: |after:
+
+
+[ "( Lb |after!: C -- S ): infix version of `|after!`."
+  ahead thru |after!
+] @: |after!:
+
+
+[ """( Lb C -- S true/false ): similar to `|after?`, but leaves
+   the cursor in List block *before* the matching item.
+
+  >>> [ 1 2 3 4 5 6 ] $: a
+  >>> a 1 |to
+  >>> a
+  === [ 1 | 2 3 4 5 6 ]
+  >>> 4 |before?
+  === [ 2 3 | ]
+  >>> a echo
+  [ 1 2 3 | 4 5 6 ]
+         ~^~ note the cursor position
+  """
+  over $: list
+
+  |after?
+
+  list empty? not => [ list 1 |- ]
+] @: |before?
+
+
+[ "( Lb C -- S ): same as `|before?`, but disregards whether the
+   end was reached instead of Condition matching."
+  |before? drop
+] @: |before
+
+
+[ """( Lb C -- S ): similar to `|before!`, but leaves the cursor
+   in List block *before* the matching item.
+
+  >>> [ 1 2 3 4 5 6 ] $: a
+  >>> a 1 |to
+  >>> a
+  === [ 1 | 2 3 4 5 6 ]
+  >>> 4 |before!
+  === [ 2 3 | ]
+  >>> a echo
+  [ 1 2 3 | 4 5 6 ]
+         ~^~ note the cursor position
+  """
+  over $: list
+
+  |after!
+
+  list empty? not => [ list 1 |- ]
+] @: |before!
+
+
+[ "( Lb |before?: C -- S ): infix version of `|before?`."
+  ahead thru |before?
+] @: |before?:
+
+
+[ "( Lb |before: C -- S ): infix version of `|before`."
+  ahead thru |before
+] @: |before:
+
+
+[ "( Lb |before!: C -- S ): infix version of `|before!`."
+  ahead thru |before!
+] @: |before!:
