@@ -5,6 +5,8 @@
 Novika is a novel interpreted programming language, somewhat related
 to Forth, Red/Rebol, Self, and Lisp.
 
+> Novika [organizes](doc/BlockOrg.pdf) and evaluates forms.
+
 This branch is the most recent (10th) prototype implementation of Novika.
 
 Most notable features of Novika include:
