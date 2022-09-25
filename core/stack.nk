@@ -76,3 +76,20 @@
    position is saved (clamped to end if Block is smaller)"
   stack resub
 ] @: cover
+
+
+[ """( ... T F -- ... F' T ): opens Form behind ToS.
+
+  >>> 1 2 4 [ + ] dip
+  === 3 4
+
+  >>> 1 2 4 100 dip
+  === 1 2 100 4
+  """
+  swap <| open |>
+] @: dip
+
+
+[ "( ... F dip: B -- ... B' F ): infix version of `dip`."
+  ahead thruBlock dip
+] @: dip:

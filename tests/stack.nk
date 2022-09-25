@@ -1,0 +1,13 @@
+describe 'dip' [
+  in lang
+
+  it should 'hide top' [
+    [ ] [ 1 2 4 100 dip ] there [ 1 2 100 4 ] assert=
+    [ ] [ 1 2 4 [ + ] dip ] there [ 3 4 ] assert=
+    [ ] [ 1 2 [ + ] dip there ] 'no top for block' assertDies
+  ]
+
+  it should 'support infix' [
+    [ ] [ 1 2 4 dip: + ] there [ 3 4 ] assert=
+  ]
+]
