@@ -18,7 +18,7 @@
   block pairs: [
     $: body
     $: cond
-    orphan form << cond there cherry => [ body =: form break ]
+    form enclose cond there cherry => [ body =: form break ]
   ]
 
   form open
