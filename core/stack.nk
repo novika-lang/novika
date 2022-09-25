@@ -111,3 +111,29 @@
 [ "( ... T keep: F -- ... T F' -- ... F' T ): infix version of `keep`."
   ahead thruBlock keep
 ] @: keep:
+
+
+[ """( F B1 B2 -- F B1', F B2' -- B1' B2' ): opens Blocks with
+   Form placed on top for each Block, leaves their results
+   in order.
+
+  >>> [ 1 2 3 ] [ sum ] [ count ] bi /
+  === 2 \"average\"
+  """
+  @: b2 @: b1 $: form
+
+  form b1
+  form b2
+] @: bi
+
+
+[ """( F bi: B1 B2 -- F B1', F B2' -- B1' B2' ): infix version
+   of `bi`.
+
+  >>> [ 1 2 3 ] bi: sum count /
+  === 2
+  """
+  ahead thruBlock
+  ahead thruBlock
+  bi
+] @: bi:

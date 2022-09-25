@@ -27,3 +27,19 @@ describe 'keep' [
     [ ] [ 1 2 4 keep: + ] there [ 1 6 4 ] assert=
   ]
 ]
+
+
+describe 'bi' [
+  in lang
+
+  it should 'open for two forms' [
+    [ ] [ 1 2 3 bi ] there [ 1 2 1 3 ] assert=
+    [ ] [ 1 [ 1 + ] [ 2 + ] bi ] there [ 2 3 ] assert=
+    [ ] [ [ 1 2 3 ] [ sum ] [ count ] bi / ] there [ 2 ] assert=
+  ]
+
+  it should 'support infix' [
+    [ ] [ 1 bi: 2 3 ] there [ 1 2 1 3 ] assert=
+    [ ] [ [ 1 2 3 ] bi: sum count / ] there [ 2 ] assert=
+  ]
+]
