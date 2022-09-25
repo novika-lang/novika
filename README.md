@@ -43,17 +43,32 @@ Most notable features of Novika include:
 
 Yup. It's damn hard to even introduce.
 
-```novika
-"Sieve of Eratosthenes: prints prime numbers in [2; 120]."
-2 to: 120 ||-> [ $: n stack without: [ n /? ] cover n ] each: echo
+## Examples
 
-"First 100 Fizz buzz rounds:"
+Sieve of Eratosthenes: prints prime numbers in [2; 120].
+
+```novika
+2 to: 120 ||-> [ $: n stack without: [ n /? ] cover n ] each: echo
+```
+
+First 100 Fizz buzz rounds:
+
+```novika
 1 to: 100 each: [
   [ [ 15 /? ] 'FizzBuzz'
     [  5 /? ] 'Buzz'
     [  3 /? ] 'Fizz'
   ] choose echo
 ]
+```
+
+A tiny DSL for counting average number:
+
+```novika
+[ ahead |before: [ decimal? not ] bi: sum count / ] @: avg:
+
+avg: 1 2 3      echo "STDOUT: 2⏎"
+avg: 100 4 6 5  echo "STDOUT: 28.75⏎"
 ```
 
 ## Using Novika as a library
