@@ -113,22 +113,21 @@
 ] @: keep:
 
 
-[ """( F B1 B2 -- F B1', F B2' -- B1' B2' ): opens Blocks with
-   Form placed on top for each Block, leaves their results
+[ """( F B1 B2 -- F B1', B1' F B2' -- B1' B2' ): opens Blocks
+   with Form placed on top for each Block, leaves their results
    in order.
 
   >>> [ 1 2 3 ] [ sum ] [ count ] bi /
   === 2 \"average\"
   """
-  @: b2 @: b1 $: form
-
-  form b1
-  form b2
+  @: b2 @: b1 $: f
+  f b1
+  f b2
 ] @: bi
 
 
-[ """( F bi: B1 B2 -- F B1', F B2' -- B1' B2' ): infix version
-   of `bi`.
+[ """( F bi: B1 B2 -- F B1', B1' F B2' -- B1' B2' ): infix
+   version of `bi`.
 
   >>> [ 1 2 3 ] bi: sum count /
   === 2
@@ -137,3 +136,27 @@
   ahead thruBlock
   bi
 ] @: bi:
+
+
+[ """( F1 F2 B1 B2 -- F1 B1', B1' F2 B2' -- B1' B2' ): opens
+   two Blocks with two corresponding Forms, leaves results of
+   opening Blocks.
+
+  >>> [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi*
+  === 1 4
+
+  >>> [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi*
+  === 5 \"result of B1 is available to B2\"
+  """
+  @: b2 @: b1 $: f2 $: f1
+  f1 b1
+  f2 b2
+] @: bi*
+
+
+[ "( F1 F2 B1 B2 -- F1 B1', B1' F2 B2' -- B1' B2' ): infix
+   version of `bi*`."
+  ahead thruBlock
+  ahead thruBlock
+  bi*
+] @: bi*:

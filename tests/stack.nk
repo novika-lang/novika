@@ -43,3 +43,21 @@ describe 'bi' [
     [ ] [ [ 1 2 3 ] bi: sum count / ] there [ 2 ] assert=
   ]
 ]
+
+
+describe 'bi*' [
+  in lang
+
+  it should 'open two blocks for two forms' [
+    [ ] [ 1 2 3 4 bi* ] there [ 1 3 2 4 ] assert=
+    [ ] [ 1 2 [ 1 + ] [ 2 + ] bi* ] there [ 2 4 ] assert=
+    [ ] [ [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi* ] there [ 1 4 ] assert=
+    [ ] [ [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi* ] there [ 5 ] assert=
+  ]
+
+  it should 'support infix' [
+    [ ] [ 1 2 bi*: 3 4 ] there [ 1 3 2 4 ] assert=
+    [ ] [ 1 2 bi*: [ 1 + ] [ 2 + ] ] there [ 2 4 ] assert=
+    [ ] [ [ 1 2 ] [ 3 4 ] bi*: first last ] there [ 1 4 ] assert=
+  ]
+]
