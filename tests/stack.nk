@@ -11,3 +11,19 @@ describe 'dip' [
     [ ] [ 1 2 4 dip: + ] there [ 3 4 ] assert=
   ]
 ]
+
+
+describe 'keep' [
+  in lang
+
+  it should 'open & restore top' [
+    [ ] [ 1 2 4 'hello' keep ] there [ 1 2 4 'hello' 4 ] assert=
+    [ ] [ 1 2 4 [ + ] keep ] there [ 1 6 4 ] assert=
+    [ ] [ 1 2 [ + ] keep ] there [ 3 2 ] assert=
+    [ [ ] [ 1 [ + ] keep ] there ] 'no top for block' assertDies
+  ]
+
+  it should 'support infix' [
+    [ ] [ 1 2 4 keep: + ] there [ 1 6 4 ] assert=
+  ]
+]

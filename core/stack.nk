@@ -78,7 +78,7 @@
 ] @: cover
 
 
-[ """( ... T F -- ... F' T ): opens Form behind ToS.
+[ """( ... T dip: F -- ... F' -- ... F' T ): opens Form behind ToS.
 
   >>> 1 2 4 [ + ] dip
   === 3 4
@@ -90,6 +90,24 @@
 ] @: dip
 
 
-[ "( ... F dip: B -- ... B' F ): infix version of `dip`."
+[ "( ... T dip: F -- ... F' -- ... F' T ): infix version of `dip`."
   ahead thruBlock dip
 ] @: dip:
+
+
+[ """( ... T F -- ... T F' -- ... F' T ): opens Form with Top
+   as ToS, restoring Top after Form is opened.
+
+  >>> 1 2 4 [ + ] keep
+  === 1 6 4
+
+  >>> 1 2 4 'hello' keep
+  === 1 2 4 'hello' 4
+  """
+  swap dup <| swap open |>
+] @: keep
+
+
+[ "( ... T keep: F -- ... T F' -- ... F' T ): infix version of `keep`."
+  ahead thruBlock keep
+] @: keep:
