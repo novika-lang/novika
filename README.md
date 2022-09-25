@@ -49,10 +49,10 @@ Yup. It's damn hard to even introduce.
 
 "First 100 Fizz buzz rounds:"
 1 to: 100 each: [
-  dup 15 /? => [ drop 'FizzBuzz' echo next ]
-  dup  5 /? => [ drop     'Buzz' echo next ]
-  dup  3 /? => [ drop     'Fizz' echo next ]
-  echo
+  [ [ 15 /? ] 'FizzBuzz'
+    [  5 /? ] 'Buzz'
+    [  3 /? ] 'Fizz'
+  ] choose echo
 ]
 ```
 

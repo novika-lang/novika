@@ -1,0 +1,25 @@
+[ """( F Cs -- Cb' ): high-level conditional. Acts similar to `case`
+   or `switch` in other languages. Takes a Form to match over, and
+   a list of Cases like `[ Condition Case-Body Condition Case-Body ... ]`.
+   Leaves the result of Case body corresponding to the condition that
+   matched Form, otherwise (if no cases matched), Form itself.
+
+  ```novika
+  1 to: 100 each: [
+    [ [ 15 /? ] 'FizzBuzz'
+      [  5 /? ] 'Buzz'
+      [  3 /? ] 'Fizz'
+    ] choose echo
+  ]
+  ```
+  """
+  $: block $: form
+
+  block pairs: [
+    $: body
+    $: cond
+    orphan form << cond there cherry => [ body =: form break ]
+  ]
+
+  form open
+] @: choose
