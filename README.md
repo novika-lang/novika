@@ -75,10 +75,10 @@ After all, no language I know of can do this:
   #* here @: __*
   #/ here @: __/
 
-  [ val ahead thru val __+ ] @: +
-  [ val ahead thru val __- ] @: -
-  [ val ahead thru val __* ] @: *
-  [ val ahead thru val __/ ] @: /
+  [ val ahead thruVal __+ ] @: +
+  [ val ahead thruVal __- ] @: -
+  [ val ahead thruVal __* ] @: *
+  [ val ahead thruVal __/ ] @: /
 
   "Going from 3 4 * 10 / 1 + to:"
   1 + [ [ 3 * 4 ] / 10 ] echo "==> 2.2"

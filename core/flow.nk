@@ -10,6 +10,16 @@
 ] @: val
 
 
+[ "( B -- F' ): same as `thruBlock val`."
+  thruBlock val
+] @: thruVal
+
+
+[ "( B -- ): same as `thruBlock vals`."
+  thruBlock vals
+] @: thruVals
+
+
 [ "( D br: T F -- ? ): infix version of `br`."
   ahead thruBlock "T"
   ahead thruBlock "F"

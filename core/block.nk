@@ -1087,7 +1087,7 @@
   >>> 10 to: 0
   === [ 10 9 8 ... 0 | ]
   """
-  ahead thru range
+  ahead thruVal range
 ] @: to:
 
 
