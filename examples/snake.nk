@@ -54,7 +54,7 @@ needsFeature: console
   ] @: random
 
   [
-    [ x '@' y ] ~~
+    [ x '@' y ] ~*
   ] @: *asQuote
 
   this

@@ -129,7 +129,7 @@ you need help.
          which proved to have no errors."
         _pgRoot pgRootInstance mergeDicts
         pgStackCopy =: pgStack
-        [ 'In ' timeTakenMs 'ms' ] ~~ echo
+        [ 'In ' timeTakenMs 'ms' ] ~* echo
       ]
 
     pgStack echo

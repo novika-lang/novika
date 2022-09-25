@@ -18,23 +18,36 @@
 ] @: toCapitalized
 
 
+[ """( F1 F2 -- Q ): similar to `stitch`: stitches two Forms,
+   enquotes if necessary.
+
+  >>> 100 200 ~
+  === '100200'
+
+  >>> 'hello' 'world' ~
+  === 'helloworld'
+  """
+  bi@: toQuote stitch
+] @: ~
+
+
 [ """( F -- Q ): similar to `here join` (but faster and not
    recursive), if Form is a block. Else, same as `toQuote`.
 
-  >>> 123 ~
+  >>> 123 ~*
   === '123'
 
-  >>> [ 1 2 3 ] ~~
+  >>> [ 1 2 3 ] ~*
   === '123'
 
   >>> 'John' $: name
-  >>> [ 'My name is ' name '!' ] ~~
+  >>> [ 'My name is ' name '!' ] ~*
   === 'My name is John!'
 
   Beware:
 
   >>> [ 1 2 + ] @: foo
-  >>> [ 'foo = ' foo ] ~~
+  >>> [ 'foo = ' foo ] ~*
   === 'foo = [ 1 2 + | ]'
   """
   dup block? not => [ toQuote ^ ]
@@ -42,4 +55,4 @@
   ahead $: caller
 
   [ dup word? => [ caller swap entry:fetch ] toQuote stitch ] '' reduce
-] @: ~~
+] @: ~*

@@ -61,3 +61,20 @@ describe 'bi*' [
     [ ] [ [ 1 2 ] [ 3 4 ] bi*: first last ] there [ 1 4 ] assert=
   ]
 ]
+
+
+describe 'bi@' [
+  in lang
+
+  it should 'open block for two forms' [
+    [ ] [ 1 2 [ 1 + ] bi@ ] there [ 2 3 ] assert=
+    [ ] [ 'john' 'John' [ toUppercase ] bi@ = ] val true assert=
+    [ ] [ 1 2 [ 'X = ' swap ~ ] bi@ ] there [ 'X = 1' 'X = 2' ] assert=
+  ]
+
+  it should 'support infix' [
+    [ ] [ 1 2 bi@: [ 1 + ] ] there [ 2 3 ] assert=
+    [ ] [ 'john' 'John' bi@: toUppercase = ] val true assert=
+
+  ]
+]
