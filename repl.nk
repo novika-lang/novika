@@ -144,10 +144,10 @@ you need help.
 ] @: startSession
 
 
-[ ] [
+[
   'Novika ' novika:version '\n'
   'Hit Ctrl-D or Ctrl-C to quit. Type "?" for more information.'
-] there join echo
+] vals join echo
 
 
 startSession

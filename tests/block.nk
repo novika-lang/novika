@@ -2,20 +2,20 @@ describe 'peek?' [
   in lang
 
   it should 'leave false when block is empty' [
-    [ ] [ [ ] peek? ] there [ false ] here assert=
+    [ [  ] peek? ] vals [ false ] here assert=
   ]
 
   it should 'leave false when block cursor is at end' [
-    [ ] [ [ 1 2 3 ] peek? ] there [ false ] here assert=
+    [ [ 1 2 3 ] peek? ] vals [ false ] here assert=
   ]
 
   it should 'leave form, true when block cursor is at start' [
-    [ ] [ [ 1 2 3 ] dup 0 |to peek? ] there [ 1 true ] here assert=
+    [ [ 1 2 3 ] dup 0 |to peek? ] vals [ 1 true ] here assert=
   ]
 
   it should 'leave form, true when block cursor is in the middle' [
-    [ ] [ [ 1 2 3 ] dup 1 |to peek? ] there [ 2 true ] here assert=
-    [ ] [ [ 1 2 3 ] dup 2 |to peek? ] there [ 3 true ] here assert=
+    [ [ 1 2 3 ] dup 1 |to peek? ] vals [ 2 true ] here assert=
+    [ [ 1 2 3 ] dup 2 |to peek? ] vals [ 3 true ] here assert=
   ]
 ]
 
@@ -173,11 +173,9 @@ describe 'fromRight' [
   in lang
 
   it should 'leave nth from right' [
-    [ ] [
-      [ 1 2 3 ] 0 fromRight 3 assert=
-      [ 1 2 3 ] 1 fromRight 2 assert=
-      [ 1 2 3 ] 2 fromRight 1 assert=
-    ] there [ ] all?
+    [ 1 2 3 ] 0 fromRight 3 assert=
+    [ 1 2 3 ] 1 fromRight 2 assert=
+    [ 1 2 3 ] 2 fromRight 1 assert=
   ]
 
   it dies 'when index is out of bounds' [

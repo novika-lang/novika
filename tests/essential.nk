@@ -739,28 +739,28 @@ describe 'sliceQuoteAt' [
   ]
 
   it should 'handle slicepoint 0 = case' [
-    [ ] [ 'foobar' 0 sliceQuoteAt ] there [ '' 'foobar' ] assert=
+    [ 'foobar' 0 sliceQuoteAt ] vals [ '' 'foobar' ] assert=
   ]
 
   it should 'handle slicepoint quote count = case' [
-    [ ] [ 'foobar' 6 sliceQuoteAt ] there [ 'foobar' '' ] assert=
+    [ 'foobar' 6 sliceQuoteAt ] vals [ 'foobar' '' ] assert=
   ]
 
   it should 'properly slice in bounds' [
-    [ ] [ 'foo|bar' 3 sliceQuoteAt ] there [ 'foo' '|bar' ] assert=
+    [ 'foo|bar' 3 sliceQuoteAt ] vals [ 'foo' '|bar' ] assert=
   ]
 
   it should 'properly slice when Unicode characters present' [
-    [ ] [ 'Ⓐs°Ämanчел' 4 sliceQuoteAt ] there [ 'Ⓐs°Ä' 'manчел' ] assert=
+    [ 'Ⓐs°Ämanчел' 4 sliceQuoteAt ] vals [ 'Ⓐs°Ä' 'manчел' ] assert=
   ]
 
   it should 'properly slice single grapheme cluster' [
-    [ ] [ '👨‍👩‍👧' 0 sliceQuoteAt ] there [ '' '👨‍👩‍👧' ] assert=
-    [ ] [ '👨‍👩‍👧' 1 sliceQuoteAt ] there [ '👨‍👩‍👧' '' ] assert=
+    [ '👨‍👩‍👧' 0 sliceQuoteAt ] vals [ '' '👨‍👩‍👧' ] assert=
+    [ '👨‍👩‍👧' 1 sliceQuoteAt ] vals [ '👨‍👩‍👧' '' ] assert=
   ]
 
   it should 'properly slice multiple grapheme clusters + characters' [
-    [ ] [ '©oobaz👨‍👩‍👧🍎föobar' 7 sliceQuoteAt ] there [ '©oobaz👨‍👩‍👧' '🍎föobar' ] assert=
+    [ '©oobaz👨‍👩‍👧🍎föobar' 7 sliceQuoteAt ] vals [ '©oobaz👨‍👩‍👧' '🍎föobar' ] assert=
   ]
 ]
 
@@ -784,19 +784,19 @@ describe '|slice' [
   ]
 
   it should 'slice when |at 0' [
-    [ ] [ [ ] |slice ] there [ [ ] [ ] ] assert=
-    [ ] [ [ 1 2 3 ] dup 0 |to |slice ] there [ [ ] [ 1 2 3 ] ] assert=
+    [ [ ] |slice ] vals [ [ ] [ ] ] assert=
+    [ [ 1 2 3 ] dup 0 |to |slice ] vals [ [ ] [ 1 2 3 ] ] assert=
   ]
 
   it should 'slice when |at count' [
-    [ ] [ [ 1 2 3 ] |slice ] there [ [ 1 2 3 ] [ ] ] assert=
+    [ [ 1 2 3 ] |slice ] vals [ [ 1 2 3 ] [ ] ] assert=
   ]
 
   it should 'slice when |at in first half' [
-    [ ] [ [ 1 2 3 4 ] dup 1 |to |slice ] there [ [ 1 ] [ 2 3 4 ] ] assert=
+    [ [ 1 2 3 4 ] dup 1 |to |slice ] vals [ [ 1 ] [ 2 3 4 ] ] assert=
   ]
 
   it should 'slice when |at in second half' [
-    [ ] [ [ 1 2 3 4 ] dup 3 |to |slice ] there [ [ 1 2 3 ] [ 4 ] ] assert=
+    [ [ 1 2 3 4 ] dup 3 |to |slice ] vals [ [ 1 2 3 ] [ 4 ] ] assert=
   ]
 ]

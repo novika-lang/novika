@@ -2,13 +2,13 @@ describe 'dip' [
   in lang
 
   it should 'hide top' [
-    [ ] [ 1 2 4 100 dip ] there [ 1 2 100 4 ] assert=
-    [ ] [ 1 2 4 [ + ] dip ] there [ 3 4 ] assert=
-    [ ] [ 1 2 [ + ] dip there ] 'no top for block' assertDies
+    [ 1 2 4 100 dip ] vals [ 1 2 100 4 ] assert=
+    [ 1 2 4 [ + ] dip ] vals [ 3 4 ] assert=
+    [ 1 2 [ + ] dip ] 'no top for block' assertDies
   ]
 
   it should 'support infix' [
-    [ ] [ 1 2 4 dip: + ] there [ 3 4 ] assert=
+    [ 1 2 4 dip: + ] vals [ 3 4 ] assert=
   ]
 ]
 
@@ -17,14 +17,14 @@ describe 'keep' [
   in lang
 
   it should 'open & restore top' [
-    [ ] [ 1 2 4 'hello' keep ] there [ 1 2 4 'hello' 4 ] assert=
-    [ ] [ 1 2 4 [ + ] keep ] there [ 1 6 4 ] assert=
-    [ ] [ 1 2 [ + ] keep ] there [ 3 2 ] assert=
-    [ [ ] [ 1 [ + ] keep ] there ] 'no top for block' assertDies
+    [ 1 2 4 'hello' keep ] vals [ 1 2 4 'hello' 4 ] assert=
+    [ 1 2 4 [ + ] keep ] vals [ 1 6 4 ] assert=
+    [ 1 2 [ + ] keep ] vals [ 3 2 ] assert=
+    [ 1 [ + ] keep ] 'no top for block' assertDies
   ]
 
   it should 'support infix' [
-    [ ] [ 1 2 4 keep: + ] there [ 1 6 4 ] assert=
+    [ 1 2 4 keep: + ] vals [ 1 6 4 ] assert=
   ]
 ]
 
@@ -33,14 +33,14 @@ describe 'bi' [
   in lang
 
   it should 'open for two forms' [
-    [ ] [ 1 2 3 bi ] there [ 1 2 1 3 ] assert=
-    [ ] [ 1 [ 1 + ] [ 2 + ] bi ] there [ 2 3 ] assert=
-    [ ] [ [ 1 2 3 ] [ sum ] [ count ] bi / ] there [ 2 ] assert=
+    [ 1 2 3 bi ] vals [ 1 2 1 3 ] assert=
+    [ 1 [ 1 + ] [ 2 + ] bi ] vals [ 2 3 ] assert=
+    [ [ 1 2 3 ] [ sum ] [ count ] bi / ] vals [ 2 ] assert=
   ]
 
   it should 'support infix' [
-    [ ] [ 1 bi: 2 3 ] there [ 1 2 1 3 ] assert=
-    [ ] [ [ 1 2 3 ] bi: sum count / ] there [ 2 ] assert=
+    [ 1 bi: 2 3 ] vals [ 1 2 1 3 ] assert=
+    [ [ 1 2 3 ] bi: sum count / ] vals [ 2 ] assert=
   ]
 ]
 
@@ -49,16 +49,16 @@ describe 'bi*' [
   in lang
 
   it should 'open two blocks for two forms' [
-    [ ] [ 1 2 3 4 bi* ] there [ 1 3 2 4 ] assert=
-    [ ] [ 1 2 [ 1 + ] [ 2 + ] bi* ] there [ 2 4 ] assert=
-    [ ] [ [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi* ] there [ 1 4 ] assert=
-    [ ] [ [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi* ] there [ 5 ] assert=
+    [ 1 2 3 4 bi* ] vals [ 1 3 2 4 ] assert=
+    [ 1 2 [ 1 + ] [ 2 + ] bi* ] vals [ 2 4 ] assert=
+    [ [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi* ] vals [ 1 4 ] assert=
+    [ [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi* ] vals [ 5 ] assert=
   ]
 
   it should 'support infix' [
-    [ ] [ 1 2 bi*: 3 4 ] there [ 1 3 2 4 ] assert=
-    [ ] [ 1 2 bi*: [ 1 + ] [ 2 + ] ] there [ 2 4 ] assert=
-    [ ] [ [ 1 2 ] [ 3 4 ] bi*: first last ] there [ 1 4 ] assert=
+    [ 1 2 bi*: 3 4 ] vals [ 1 3 2 4 ] assert=
+    [ 1 2 bi*: [ 1 + ] [ 2 + ] ] vals [ 2 4 ] assert=
+    [ [ 1 2 ] [ 3 4 ] bi*: first last ] vals [ 1 4 ] assert=
   ]
 ]
 
@@ -67,14 +67,13 @@ describe 'bi@' [
   in lang
 
   it should 'open block for two forms' [
-    [ ] [ 1 2 [ 1 + ] bi@ ] there [ 2 3 ] assert=
-    [ ] [ 'john' 'John' [ toUppercase ] bi@ = ] val true assert=
-    [ ] [ 1 2 [ 'X = ' swap ~ ] bi@ ] there [ 'X = 1' 'X = 2' ] assert=
+    [ 1 2 [ 1 + ] bi@ ] vals [ 2 3 ] assert=
+    [ 'john' 'John' [ toUppercase ] bi@ = ] val true assert=
+    [ 1 2 [ 'X = ' swap ~ ] bi@ ] vals [ 'X = 1' 'X = 2' ] assert=
   ]
 
   it should 'support infix' [
-    [ ] [ 1 2 bi@: [ 1 + ] ] there [ 2 3 ] assert=
-    [ ] [ 'john' 'John' bi@: toUppercase = ] val true assert=
-
+    [ 1 2 bi@: [ 1 + ] ] vals [ 2 3 ] assert=
+    [ 'john' 'John' bi@: toUppercase = ] val true assert=
   ]
 ]

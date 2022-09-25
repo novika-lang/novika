@@ -1,6 +1,12 @@
+[ "( B -- S ): activates an empty Stack for the duration
+   of Block."
+  orphan swap there
+] @: vals
+
+
 [ "( B -- T ): activates an empty stack for the duration of Block,
    and leaves Top form in the stack. Dies if none."
-  [ ] swap there cherry
+  vals cherry
 ] @: val
 
 

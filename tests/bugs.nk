@@ -75,13 +75,13 @@ describe 'Infinite recursion when word undefined inside word trap #8' [
 
   it should 'climb traps' [
     [ 100 ] @: *trap
-    [ ] [
+    [
       [ 200 trigger-upper-trap2 ] @: *trap
       [
         [ 300 trigger-upper-trap ] @: *trap
         trigger-my-own-trap
       ] open
-    ] there [ trigger-my-own-trap 300 trigger-upper-trap 200 trigger-upper-trap2 100 ] assert=
+    ] vals [ trigger-my-own-trap 300 trigger-upper-trap 200 trigger-upper-trap2 100 ] assert=
   ]
 ]
 
@@ -108,12 +108,12 @@ describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
   ]
 
   it should 'peel off a layer of quoting from quoted words when hydrating' [
-    [ ] ##foobar there [ foobar ] assert=
-    [ ] ###foobar there [ #foobar ] assert=
+    ##foobar vals [ foobar ] assert=
+    ###foobar vals [ #foobar ] assert=
   ]
 
   it should 'evaluate blocks when hydrating' [
-    [ ] [ 1 2 + ] there [ 3 ] assert=
+    [ 1 2 + ] vals [ 3 ] assert=
   ]
 
   it should 'evaluate builtins when hydrating' [

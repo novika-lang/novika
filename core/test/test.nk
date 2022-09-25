@@ -56,7 +56,7 @@ orphan $: _groups
   ]
 
   failedCases groupBy: [ .describeDesc ] each: [ $: section
-    [ ] [ '\n\n=== Wrong description for \'' section.id '\':' ] there join echo
+    [ '\n\n=== Wrong description for \'' section.id '\':' ] vals join echo
 
     section each: [ $: failedCase
       failedCase.desc $: failedCaseDesc
