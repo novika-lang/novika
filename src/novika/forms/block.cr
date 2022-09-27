@@ -1,7 +1,7 @@
 module Novika
   # The regex that splits Novika source code into morphemes.
   MORPHEMES = /
-      (?<num> [-+]?\d(?:[\d_]*\d)?(?:\.\d(?:[\d_]*\d)?)?) (?=\.|\s+|$)
+      (?<num> [-+]?\d(?:[\d_]*\d)?(?:\.\d(?:[\d_]*\d)?)?) (?=\.|\s+|\[|\]|$)
     | (?<bb> \[)
     | (?<be> \])
     | (?<qword> \#[^"'\s\[\]]+)
