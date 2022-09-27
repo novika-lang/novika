@@ -959,6 +959,14 @@
 ] @: sumBy
 
 
+[ """( Lb sumBy: T -- Sum ): infix version of `sumBy`.
+  >>> [ 'a' 'aaa' 'aa' ] sumBy: count
+  === 6
+  """
+  ahead thruBlock sumBy
+] @: sumBy:
+
+
 [ """( N B -- Lb ): leaves a List block with N results of opening
    Block with the current N. Basically a combo of `times` and `map`.
    `break` and `next` are available. The current result is skipped
