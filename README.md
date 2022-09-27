@@ -71,6 +71,85 @@ avg: 1 2 3      echo "STDOUT: 2⏎"
 avg: 100 4 6 5  echo "STDOUT: 28.75⏎"
 ```
 
+`definfix` and `withInfixMath` DSL to create words with precedence, in
+this case for evaluating simple math expressions. It's 35 lines if you
+remove comments and empty lines, and 27 if you remove the examples.
+Quite short for bootstrapping precedence parsing (but could be shorter,
+I agree).
+
+```novika
+[ "( Cb B P N -- ): defines an infix operator in caller: assigns
+   it given Precedence, and saves it under Name in caller, and
+   in Context dict block (used for looking up information about
+   the available operators). Code Block will be executed when
+   this operator terminates."
+  $: ctx @: code asDecimal $: prec asWord $: name
+
+  ctx name this pushes "Register operator in the database block."
+
+  ahead name [
+    "This block is run when you *use* an operator."
+    ahead $: caller
+
+    "In this case, |before? will collect (group) until another
+     operator has *less* precedence than we."
+    caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |before? not
+      => [ caller 1 |+ ]
+
+    "When we've met end-of-block or an operator with less precedence,
+     execute code block in the caller context, passing it all we've
+     gathered so far.."
+    caller reparent vals last code
+  ] opens
+] @: definfix
+
+
+[
+  0 $: _SUM
+  1 $: _FACTOR
+  2 $: _POWER
+
+  [ ] $: _ctx
+
+  "Save old (stack) operators. There are better ways, but this
+   will do too. Note that these won't be available inside the
+   block passed to withInfixMath: this could be a point to
+   address in case this gets into the standard library."
+   #+ here @: _+
+   #- here @: _-
+   #* here @: _*
+   #/ here @: _/
+  #** here @: _**
+
+  #+     _SUM [ 2val _+  ] _ctx definfix
+  #-     _SUM [ 2val _-  ] _ctx definfix
+  #*  _FACTOR [ 2val _*  ] _ctx definfix
+  #/  _FACTOR [ 2val _/  ] _ctx definfix
+  #**  _POWER [ 2val _** ] _ctx definfix
+
+  this reparent
+] @: withInfixMath
+
+
+[ [ 3 * 8 + 5 ] + 2 + 3 ] withInfixMath val echo "STDOUT: 34⏎"
+[ [ 3 * 8 + 5 ] + 2 + 3 ] withInfixMath val echo "STDOUT: 34⏎"
+[ 100 * [ 1 / 4 ] ] withInfixMath val echo "STDOUT: 25⏎"
+[ 2 + 3 ** 8 + 6 * 3 ] withInfixMath val echo "STDOUT: 6581⏎"
+"...etc. Any simple math expression will work."
+
+
+"Fragments between the operators are blocks of their own right,
+ thereby allowing:"
+
+[ "Leaves a 2D point object." $: x ahead thruVal $: y this ] @: @
+
+100 @ 200 $: A
+300 @ 50  $: B
+
+"Euclidean distance between A and B:"
+[ [B.x - A.x] ** 2 + [B.y - A.y] ** 2 ] withInfixMath val sqrt echo "STDOUT: 250⏎"
+```
+
 ## Using Novika as a library
 
 I don't know why you would need that, but there is some API and if you don't inject the
@@ -89,26 +168,6 @@ Yes and no. It's a project done with smart look on the face, but
 honestly, I see little or no ways Novika can actually be used in
 practice, mainly in money-making practice. So it's pure language
 research and experimentation thingy for now.
-
-After all, no language I know of can do this:
-
-```novika
-  #+ here @: __+
-  #- here @: __-
-  #* here @: __*
-  #/ here @: __/
-
-  [ val ahead thruVal __+ ] @: +
-  [ val ahead thruVal __- ] @: -
-  [ val ahead thruVal __* ] @: *
-  [ val ahead thruVal __/ ] @: /
-
-  "Going from 3 4 * 10 / 1 + to:"
-  1 + [ [ 3 * 4 ] / 10 ] echo "==> 2.2"
-
-  "... and just a Pratt parser away from proper precedence, if you
-   manage to scope things right."
-```
 
 ## How can I build and run Novika?
 
