@@ -3,4 +3,4 @@ This file runs novika lang[uage] tests.
   $ novika core tests tests.nk
 """
 
-runTestGroup: lang
+runTestsInGroup: lang

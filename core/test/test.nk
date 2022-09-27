@@ -35,7 +35,7 @@ orphan $: _groups
 ] @: _withColorAppendDot
 
 
-[ "( runTestGroup: G -- ): runs all test cases under Group.
+[ "( runTestsInGroup: G -- ): runs all test cases under Group.
    Reports the results on-the-fly. Dies if Group doesn't exist."
   ahead thru asWord $: groupName
 
@@ -79,7 +79,7 @@ orphan $: _groups
   ]
 
   '' echo
-] @: runTestGroup:
+] @: runTestsInGroup:
 
 
 [ """( describe Dq B -- ): groups multiple test cases (listed
@@ -115,12 +115,12 @@ orphan $: _groups
       it should 'b' [ … ]
     ]
 
-  You can run a test group using `runTestGroup:`. That will
-  run all tests and echo the test report to the standard
+  You can run a test group using the word `runTestsInGroup:`.
+  It will run all tests and echo the test report to the standard
   output on the fly. With tests describes as above, you can
   run them with:
 
-    runTestGroup: foo
+  >>> runTestsInGroup: foo
   """
   ahead thru asQuote $: describeDesc
   ahead thru asBlock $: _describeBody

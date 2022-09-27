@@ -76,4 +76,4 @@ describe 'observable' [
   ]
 ]
 
-runTestGroup: obs
+runTestsInGroup: obs
