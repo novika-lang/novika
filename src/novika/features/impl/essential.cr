@@ -755,6 +755,12 @@ module Novika::Features::Impl
         engine.stack.add(a % b)
       end
 
+      target.at("**", "( A B -- R ): raises A to the power B, leaves Result.") do |engine|
+        b = engine.stack.drop.assert(engine, Decimal)
+        a = engine.stack.drop.assert(engine, Decimal)
+        engine.stack.add(a ** b)
+      end
+
       target.at("round", <<-END
       ( D -- Dr ): rounds towards the nearest integer. If both
        neighboring integers are equidistant, rounds towards the
@@ -798,6 +804,11 @@ module Novika::Features::Impl
       ) do |engine|
         decimal = engine.stack.drop.assert(engine, Decimal)
         decimal.trunc.push(engine)
+      end
+
+      target.at("sqrt", "( D -- R ): leaves the square Root of Decimal.") do |engine|
+        decimal = engine.stack.drop.assert(engine, Decimal)
+        decimal.sqrt.push(engine)
       end
 
       target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |engine|

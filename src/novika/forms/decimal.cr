@@ -33,7 +33,7 @@ module Novika
     def to_i : Int32
       val.to_i
     rescue OverflowError
-      die("conversion overflow when downgrading a decimal")
+      die("overflow when downgrading a decimal: this decimal is too big")
     end
 
     # Returns the sum of this and *other* decimal numbers.
@@ -59,6 +59,16 @@ module Novika
     # Returns the remainder of this and *other* decimal numbers.
     def %(other : Decimal) : Decimal
       self - other * (self / other).floor
+    end
+
+    # Raises this decimal to the power of *other*.
+    def **(other : Decimal) : Decimal
+      Decimal.new(val.to_big_f ** other.to_i)
+    end
+
+    # Returns the square root of this decimal.
+    def sqrt : Decimal
+      Decimal.new(Math.sqrt(val.to_big_f))
     end
 
     # Returns whether this decimal is smaller than *other*.
