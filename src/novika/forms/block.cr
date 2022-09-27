@@ -239,6 +239,12 @@ module Novika
       dict.get(name) { parent?.try &.at?(name) }
     end
 
+    # Returns the dictionary entry corresponding to *name*.
+    # Does not traverse the block hierarchy.
+    def flat_at?(name : Form) : Entry?
+      dict.get(name) { }
+    end
+
     # Returns whether this dictionary has an entry corresponding
     # to *name*.
     def has?(name : Form)

@@ -627,6 +627,21 @@ module Novika::Features::Impl
         Boolean[!!form].push(engine)
       end
 
+      target.at("entry:flatFetch?", <<-END
+      ( B N -- F true / false ): leaves the value Form under
+       Name in Block's dictionary followed by `true`, or `false`
+       if no such entry is in Block. Block hierarchy is not
+       traversed (only the Block's own table is looked at).
+      END
+      ) do |engine|
+        name = engine.stack.drop
+        block = engine.stack.drop.assert(engine, Block)
+        if form = block.flat_at?(name)
+          form.push(engine)
+        end
+        Boolean[!!form].push(engine)
+      end
+
       target.at("entry:isOpenEntry?", <<-END
       ( B N -- true/false ): leaves whether an entry called Name
        in Block is an open entry.
