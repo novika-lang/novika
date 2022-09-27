@@ -9,6 +9,11 @@
   vals cherry
 ] @: val
 
+[ "( B1 B2 -- T1 T2 ): activates individual empty stacks for each
+   of the two Blocks, and leaves their corresponding Top forms."
+  bi*: val val
+] @: 2val
+
 
 [ "( B -- F' ): same as `thruBlock val`."
   thruBlock val
