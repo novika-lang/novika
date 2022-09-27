@@ -1226,15 +1226,17 @@
   >>> a echo
   [ 1 2 3 4 | 5 6 ]
   """
-  $: pattern
+  $: pattern ahead $: caller
 
-  pattern block?
-      pattern
-    [ pattern = ]
-  sel @: cond
+  pattern block? not =>
+    "Create a [ pattern = ] block, and make it a child of the
+     caller. This makes e.g. [...] 4 |after? behave the same
+     as if the user wrote [...] [ 4 = ] |after?"
+    [ pattern #= 2enclose caller reparent =: pattern ]
+  pattern @: cond
 
-    [ ] $: memo
-  false $: match
+  false  $: match
+  orphan $: memo
 
   |-> [ dup cond => [ true =: match break ] dup memo gulp ] drop
 
