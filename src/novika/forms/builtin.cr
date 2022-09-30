@@ -5,7 +5,7 @@ module Novika
     include Form
 
     # :nodoc:
-    getter code : Engine ->
+    getter code : Engine, Block ->
 
     def initialize(@desc : String, @code)
     end
@@ -19,7 +19,7 @@ module Novika
     end
 
     def open(engine : Engine)
-      code.call(engine)
+      code.call(engine, engine.stack)
     end
 
     def val(engine : Engine? = nil, stack : Block? = nil)

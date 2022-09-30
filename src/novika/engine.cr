@@ -177,7 +177,7 @@ module Novika
 
     # Same as `schedule(form, stack)`.
     def schedule!(form, stack)
-      form.push(stack)
+      form.onto(stack)
     end
 
     # Adds an instance of *form* block to the continuations

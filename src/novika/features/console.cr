@@ -102,15 +102,15 @@ module Novika::Features
     @timeout = Decimal.new(-1)
 
     def inject(into target)
-      target.at("console:on", "( -- ): enables the Console API.") { |engine| on(engine) }
-      target.at("console:off", "( -- ): disables the Console API.") { |engine| off(engine) }
+      target.at("console:on", "( -- ): enables the Console API.") { |engine, stack| on(engine) }
+      target.at("console:off", "( -- ): disables the Console API.") { |engine, stack| off(engine) }
 
       target.at("console:compat", <<-END
       ( -- ): enables the compatibility color output mode. In
        this mode, only 8 colors are available. All RGB colors
        are automatically reduced to one of those 8 colors.
       END
-      ) { |engine| colors_compat(engine) }
+      ) { |engine, stack| colors_compat(engine) }
       # TODO: self.palette = MyOwnCustomAwesome8ColorPalette.new
 
       target.at("console:256", <<-END
@@ -118,14 +118,14 @@ module Novika::Features
        256 colors are available. All RGB colors are automatically
        reduced to one of those 256 colors.
       END
-      ) { |engine| colors_256(engine) }
+      ) { |engine, stack| colors_256(engine) }
 
       target.at("console:truecolor", <<-END
       ( -- ): enables the truecolor output mode. In this mode,
       all colors are available and are passed to the console
       as-is.
       END
-      ) { |engine| colors_truecolor(engine) }
+      ) { |engine, stack| colors_truecolor(engine) }
 
       # TODO: This one should work the same as in Colors, where
       # we have withEchoFg and withEchoBg that push onto a
@@ -137,17 +137,17 @@ module Novika::Features
        these colors. But after you `console:clear`, the whole console
        will be cleared with these colors.
       END
-      ) do |engine|
-        self.bg = engine.stack.drop.assert(engine, Color)
-        self.fg = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        self.bg = stack.drop.assert(engine, Color)
+        self.fg = stack.drop.assert(engine, Color)
       end
 
-      target.at("console:width", "( -- W ): leaves console width (in columns)") do |engine|
-        width(engine).push(engine)
+      target.at("console:width", "( -- W ): leaves console width (in columns)") do |engine, stack|
+        width(engine).onto(stack)
       end
 
-      target.at("console:height", "( -- W ): leaves console height (in rows)") do |engine|
-        height(engine).push(engine)
+      target.at("console:height", "( -- W ): leaves console height (in rows)") do |engine, stack|
+        height(engine).onto(stack)
       end
 
       target.at("console:setTimeout", <<-END
@@ -162,8 +162,8 @@ module Novika::Features
        * If Timeout is positive, `console:peek` will peek
          during the timeout window.
       END
-      ) do |engine|
-        @timeout = engine.stack.drop.assert(engine, Decimal)
+      ) do |engine, stack|
+        @timeout = stack.drop.assert(engine, Decimal)
       end
 
       target.at("console:peek", <<-END
@@ -171,7 +171,7 @@ module Novika::Features
        the input state. Use `console:hadKeyPressed` and friends to explore
        the input state afterwards.
       END
-      ) { |engine| peek(engine, @timeout) }
+      ) { |engine, stack| peek(engine, @timeout) }
 
       # TODO: instead of this, have
       #
@@ -190,18 +190,18 @@ module Novika::Features
        use `console:getKeyPressed`, *but only after making sure
        that Boolean is true*.
       END
-      ) { |engine| had_key_pressed?(engine).push(engine) }
+      ) { |engine, stack| had_key_pressed?(engine).onto(stack) }
 
       target.at("console:getKeyPressed", <<-END
       ( -- Kq ): leaves most recent key pressed. Dies if none. You
        can use `console:hadKeyPressed` to check whether there was
        a key pressed before opening this word.
       END
-      ) do |engine|
+      ) do |engine, stack|
         unless had_key_pressed?(engine)
           raise Died.new("no key pressed: make sure to check `console:hadKeyPressed` first")
         end
-        get_key_pressed!(engine).push(engine)
+        get_key_pressed!(engine).onto(stack)
       end
 
       # TODO: this should be removed, this is a hack to get
@@ -211,10 +211,10 @@ module Novika::Features
       ( Kq -- B ): leaves Boolean for whether Key quote is
        considered a single-character key.
       END
-      ) do |engine|
-        key = engine.stack.drop.assert(engine, Quote)
+      ) do |engine, stack|
+        key = stack.drop.assert(engine, Quote)
 
-        is_key_char?(engine, key).push(engine)
+        is_key_char?(engine, key).onto(stack)
       end
 
       # this should be console:echo I guess...
@@ -226,18 +226,18 @@ module Novika::Features
        colors set by `console:setPrimary`, at an X and Y position
        (in columns and rows correspondingly).
       END
-      ) do |engine|
-        y = engine.stack.drop.assert(engine, Decimal)
-        x = engine.stack.drop.assert(engine, Decimal)
-        q = engine.stack.drop.assert(engine, Quote)
+      ) do |engine, stack|
+        y = stack.drop.assert(engine, Decimal)
+        x = stack.drop.assert(engine, Decimal)
+        q = stack.drop.assert(engine, Quote)
         print(engine, x, y, fg, bg, q)
       end
 
-      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine|
+      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine, stack|
         present(engine)
       end
 
-      target.at("console:clear", "( -- ): clears console with primary colors") do |engine|
+      target.at("console:clear", "( -- ): clears console with primary colors") do |engine, stack|
         clear(engine, fg, bg)
       end
     end

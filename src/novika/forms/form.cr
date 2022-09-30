@@ -42,17 +42,12 @@ module Novika
 
     # Reacts to this form's enclosing block being opened in *engine*.
     def opened(engine : Engine) : self
-      push(engine)
+      onto(engine.stack)
     end
 
     # Adds this form to *block*.
-    def push(block : Block) : self
+    def onto(block : Block) : self
       tap { block.add(self) }
-    end
-
-    # Pushes this form onto *engine*'s active stack.
-    def push(engine : Engine) : self
-      push(engine.stack)
     end
 
     # Returns the result of opening this form with *engine*.

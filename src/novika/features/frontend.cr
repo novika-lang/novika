@@ -24,7 +24,7 @@ module Novika::Features
       target.at("novika:version", <<-END
       ( -- Vq ): leaves Version of the frontend as a quote.
       END
-      ) { |engine| version(engine).push(engine) }
+      ) { |engine, stack| version(engine).onto(stack) }
 
       target.at("novika:features", <<-END
       ( -- Fb ): lists the ids of features provided by the
@@ -33,7 +33,7 @@ module Novika::Features
       >>> novika:features
       === [ 'essential' 'colors' 'console' | ] (yours may differ)
       END
-      ) { |engine| features(engine).push(engine) }
+      ) { |engine, stack| features(engine).onto(stack) }
     end
   end
 end
