@@ -48,27 +48,27 @@ module Novika::Features
       ( C -- ): pushes Color form onto the echo foreground
        color stack.
       END
-      ) do |engine|
-        fg << engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        fg << stack.drop.assert(engine, Color)
       end
 
       target.at("withEchoBg", <<-END
       ( C -- ): pushes Color form onto the echo background
        color stack.
       END
-      ) do |engine|
-        bg << engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        bg << stack.drop.assert(engine, Color)
       end
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo foreground color stack.
       END
-      ) { |engine| fg.pop? }
+      ) { |engine, stack| fg.pop? }
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo background color stack.
       END
-      ) { |engine| bg.pop? }
+      ) { |engine, stack| bg.pop? }
 
       target.at("withColorAppendEcho", <<-END
       ( F -- ): appends Form with last color from the echo
@@ -85,8 +85,8 @@ module Novika::Features
       If you want more cross-platform control over colors (and
       pretty much everything else), take a look at feature console.
       END
-      ) do |engine|
-        form = engine.stack.drop
+      ) do |engine, stack|
+        form = stack.drop
 
         if enabled? && (fg.last? || bg.last?)
           # If color output is enabled and either foreground

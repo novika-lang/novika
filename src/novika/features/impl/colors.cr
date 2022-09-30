@@ -22,11 +22,11 @@ module Novika::Features::Impl
       >>> 36 255 255 rgb
       === rgb(36, 255 ,255)
       END
-      ) do |engine|
-        b = engine.stack.drop.assert(engine, Decimal).in(0..255).posint
-        g = engine.stack.drop.assert(engine, Decimal).in(0..255).posint
-        r = engine.stack.drop.assert(engine, Decimal).in(0..255).posint
-        Color.rgb(r, g, b).push(engine)
+      ) do |engine, stack|
+        b = stack.drop.assert(engine, Decimal).in(0..255).posint
+        g = stack.drop.assert(engine, Decimal).in(0..255).posint
+        r = stack.drop.assert(engine, Decimal).in(0..255).posint
+        Color.rgb(r, g, b).onto(stack)
       end
 
       target.at("getRGB", <<-END
@@ -38,12 +38,12 @@ module Novika::Features::Impl
       >>> getRGB
       === 0 25 3
       END
-      ) do |engine|
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        color = stack.drop.assert(engine, Color)
         r, g, b = color.rgb
-        r.push(engine)
-        g.push(engine)
-        b.push(engine)
+        r.onto(stack)
+        g.onto(stack)
+        b.onto(stack)
       end
 
       target.at("hsl", <<-END
@@ -57,11 +57,11 @@ module Novika::Features::Impl
       >>> 206 35 46 hsl
       === rgb(76, 123, 158)
       END
-      ) do |engine|
-        l = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
-        s = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
-        h = engine.stack.drop.assert(engine, Decimal).in(0..360).posint
-        Color.hsl(h, s, l).push(engine)
+      ) do |engine, stack|
+        l = stack.drop.assert(engine, Decimal).in(0..100).posint
+        s = stack.drop.assert(engine, Decimal).in(0..100).posint
+        h = stack.drop.assert(engine, Decimal).in(0..360).posint
+        Color.hsl(h, s, l).onto(stack)
       end
 
       target.at("getHSL", <<-END
@@ -73,12 +73,12 @@ module Novika::Features::Impl
       >>> getHSL
       === 206 35 46
       END
-      ) do |engine|
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        color = stack.drop.assert(engine, Color)
         h, s, l = color.hsl
-        h.push(engine)
-        s.push(engine)
-        l.push(engine)
+        h.onto(stack)
+        s.onto(stack)
+        l.onto(stack)
       end
 
       target.at("hsv", <<-END
@@ -92,11 +92,11 @@ module Novika::Features::Impl
       >>> 120 100 100 hsv
       === rgb(0, 255, 0)
       END
-      ) do |engine|
-        v = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
-        s = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
-        h = engine.stack.drop.assert(engine, Decimal).in(0..360).posint
-        Color.hsv(h, s, v).push(engine)
+      ) do |engine, stack|
+        v = stack.drop.assert(engine, Decimal).in(0..100).posint
+        s = stack.drop.assert(engine, Decimal).in(0..100).posint
+        h = stack.drop.assert(engine, Decimal).in(0..360).posint
+        Color.hsv(h, s, v).onto(stack)
       end
 
       target.at("getHSV", <<-END
@@ -108,12 +108,12 @@ module Novika::Features::Impl
       >>> getHSV
       === 180 100 50
       END
-      ) do |engine|
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        color = stack.drop.assert(engine, Color)
         h, s, v = color.hsv
-        h.push(engine)
-        s.push(engine)
-        v.push(engine)
+        h.onto(stack)
+        s.onto(stack)
+        v.onto(stack)
       end
 
       target.at("lch", <<-END
@@ -174,11 +174,11 @@ module Novika::Features::Impl
       that the conversion method used by this word and `getLCH`
       is lossy sometimes.
       END
-      ) do |engine|
-        h = engine.stack.drop.assert(engine, Decimal).in(0..360).posint
-        c = engine.stack.drop.assert(engine, Decimal).in(0..132).posint
-        l = engine.stack.drop.assert(engine, Decimal).in(0..100).posint
-        Color.lch(l, c, h).push(engine)
+      ) do |engine, stack|
+        h = stack.drop.assert(engine, Decimal).in(0..360).posint
+        c = stack.drop.assert(engine, Decimal).in(0..132).posint
+        l = stack.drop.assert(engine, Decimal).in(0..100).posint
+        Color.lch(l, c, h).onto(stack)
       end
 
       target.at("getLCH", <<-END
@@ -198,12 +198,12 @@ module Novika::Features::Impl
        shift on chroma changes, 26 -> 25"
       === 74 41 25
       END
-      ) do |engine|
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        color = stack.drop.assert(engine, Color)
         l, c, h = color.lch
-        l.push(engine)
-        c.push(engine)
-        h.push(engine)
+        l.onto(stack)
+        c.onto(stack)
+        h.onto(stack)
       end
 
       target.at("withAlpha", <<-END
@@ -215,11 +215,11 @@ module Novika::Features::Impl
       >>> 100 withAlpha
       === rgba(0, 25, 3, 100)
       END
-      ) do |engine|
-        alpha = engine.stack.drop.assert(engine, Decimal).in(0..255).posint
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        alpha = stack.drop.assert(engine, Decimal).in(0..255).posint
+        color = stack.drop.assert(engine, Color)
         color.a = alpha
-        color.push(engine)
+        color.onto(stack)
       end
 
       target.at("getAlpha", <<-END
@@ -237,9 +237,9 @@ module Novika::Features::Impl
       >>> getAlpha
       === 100
       END
-      ) do |engine|
-        color = engine.stack.drop.assert(engine, Color)
-        color.a.push(engine)
+      ) do |engine, stack|
+        color = stack.drop.assert(engine, Color)
+        color.a.onto(stack)
       end
 
       target.at("fromPalette", <<-END
@@ -263,16 +263,16 @@ module Novika::Features::Impl
       >>> 74 20 140 rgb pal fromPalette "very dark purple"
       === rgb(255, 0, 0)
       END
-      ) do |engine|
-        palette = engine.stack.drop.assert(engine, Block)
-        color = engine.stack.drop.assert(engine, Color)
+      ) do |engine, stack|
+        palette = stack.drop.assert(engine, Block)
+        color = stack.drop.assert(engine, Color)
 
         colors = [] of Color
         palette.each do |pcolor|
           colors << pcolor.assert(engine, Color)
         end
 
-        color.closest(colors).push(engine)
+        color.closest(colors).onto(stack)
       end
     end
   end

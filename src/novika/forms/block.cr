@@ -274,12 +274,12 @@ module Novika
 
     # Makes an `OpenEntry` called *name* for *code* wrapped
     # in `Builtin`.
-    def at(name : Word, desc = "a builtin", &code : Engine ->) : self
+    def at(name : Word, desc = "a builtin", &code : Engine, Block ->) : self
       at name, OpenEntry.new Builtin.new(desc, code)
     end
 
     # :ditto:
-    def at(name : String, desc = "a builtin", &code : Engine ->) : self
+    def at(name : String, desc = "a builtin", &code : Engine, Block ->) : self
       at Word.new(name), OpenEntry.new Builtin.new(desc, code)
     end
 

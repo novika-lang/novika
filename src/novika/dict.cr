@@ -93,7 +93,9 @@ module Novika
     end
 
     # See the same method in `Form`.
-    delegate :push, to: form
+    def onto(block : Block)
+      form.onto(block)
+    end
 
     # Works just like `open`, but returns the result immediately.
     #
@@ -105,7 +107,7 @@ module Novika
 
     # :ditto:
     def open(engine : Engine) : Nil
-      push(engine)
+      onto(engine.stack)
 
       nil
     end

@@ -46,7 +46,7 @@ module Novika::Features
       ( F -- ): enquotes and appends Form to the standard
        output stream.
       END
-      ) { |engine| append_echo(engine, engine.stack.drop) }
+      ) { |engine, stack| append_echo(engine, stack.drop) }
 
       target.at("readLine", <<-END
       ( Pf -- Aq Sb ): enquotes and prints Prompt form to the
@@ -60,10 +60,10 @@ module Novika::Features
       What is your name? John Doe ⏎
       John Doe
       END
-      ) do |engine|
-        answer, status = readline(engine, engine.stack.drop)
-        answer.push(engine)
-        status.push(engine)
+      ) do |engine, stack|
+        answer, status = readline(engine, stack.drop)
+        answer.onto(stack)
+        status.onto(stack)
       end
 
       target.at("reportError", <<-END
@@ -73,8 +73,8 @@ module Novika::Features
       You can obtain an error object by, e.g., catching it
       in `*died`.
       END
-      ) do |engine|
-        error = engine.stack.drop.assert(engine, Died)
+      ) do |engine, stack|
+        error = stack.drop.assert(engine, Died)
 
         report_error(engine, error)
       end
@@ -97,13 +97,13 @@ module Novika::Features
       >>> end start -
       === 20 (approximately)
       END
-      ) { |engine| monotonic(engine).push(engine) }
+      ) { |engine, stack| monotonic(engine).onto(stack) }
 
       target.at("nap", <<-END
       ( Nms -- ): sleeps for N decimal milliseconds.
       END
-      ) do |engine|
-        millis = engine.stack.drop.assert(engine, Decimal)
+      ) do |engine, stack|
+        millis = stack.drop.assert(engine, Decimal)
 
         nap(engine, millis)
       end

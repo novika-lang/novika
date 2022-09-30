@@ -114,7 +114,7 @@ module Novika
     end
 
     def val(engine : Engine? = nil, stack : Block? = nil)
-      peel.push(stack || Block.new)
+      peel.onto(stack || Block.new)
     end
 
     # Converts this quoted word to `Word`.
@@ -123,7 +123,7 @@ module Novika
     end
 
     def opened(engine) : self
-      tap { peel.push(engine) }
+      tap { peel.onto(engine.stack) }
     end
 
     def to_s(io)
