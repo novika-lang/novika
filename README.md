@@ -199,8 +199,6 @@ Wondering about the `-D`s?
 
 ## How can I play with Novika?
 
-Hint: look into the world directory. It works only with outdated Novika though, beware.
-
 `examples/` directory is the best place to go. There, the best example
 is `snake.nk`. Most of the code is documented, but that documentation
 uses some Novika terms that require clarification (mainly because I'm
@@ -234,10 +232,6 @@ so here's what I can say.
 It's too early to say. Brevity? Homoiconicity squared? I. e.,
 runtime homoiconicity too? WTF?
 
-> Of interest: see the `world/` directory for a stub Novika
-> environment. In far future, Novika will look a bit like
-> what you'd see there.
->
 > Of interest: Novika seems to be one of the best languages to
 > explain continations with. But I haven't tried yet, so... :)
 
