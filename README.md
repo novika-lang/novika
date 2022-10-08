@@ -41,16 +41,16 @@ Most notable features of Novika include:
   executes what you want next. Or do something to its stack. After all, everything
   is a block.
 
-* In spirit of Forth, it can raise in level quite quickly. You start with `swap`s
+* In spirit of Forth, it can rise in level quite quickly. You start with `swap`s
   and `rot`s and `dup`s and `|to`s (read: cursor tos), and through `|slideRight`s
   (cursor slide rights) and `ahead`s and smaller infixes like `each:` and `map:`
   get to expressions like `1 to: 100 map: [ 1 + ] without: even? each: echo`, then
   find yourself writing HTML `html [ h1 [ 'Hello World!' class: 'fg-red-300' ] ]`,
   and finally arrive at translating words with Google Translate or Wiktionary,
-  exploring synonyms for when when there's no definition for the result of translation
-  — and writing code in Icelandic, Spanish, or Chinese. Remember words can parse
-  what follows — they can contextualize what follows, through parsing literally or
-  changing state.
+  exploring synonyms for when there's no definition for the result of translation
+  — and writing code in Icelandic, Spanish, Chinese, or Ithkuil. Remember words can
+  parse what follows — they can contextualize what follows, through parsing literally
+  or changing state.
 
 Yup. It's damn hard to even introduce.
 
