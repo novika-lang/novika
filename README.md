@@ -48,7 +48,7 @@ Yup. It's damn hard to even introduce.
 Sieve of Eratosthenes: prints prime numbers in [2; 120].
 
 ```novika
-2 to: 120 ||-> [ $: n stack without: [ n /? ] cover n ] each: echo
+2 to: 120 ||-> [ $: n stack without: [ n /? ] asStack n ] each: echo
 ```
 
 First 100 Fizz buzz rounds:

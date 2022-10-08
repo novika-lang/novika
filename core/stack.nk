@@ -80,9 +80,9 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 
 [ "( B -- ): replaces current stack with Block in-place. Cursor
-   position is saved (clamped to end if Block is smaller)"
+   position is saved (clamped to Block end if Block is smaller)"
   stack resub
-] @: cover
+] @: asStack
 
 
 [ """( ... T dip: F -- ... F' -- ... F' T ): opens Form behind ToS.
