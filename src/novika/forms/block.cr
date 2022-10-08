@@ -295,8 +295,6 @@ module Novika
     #     (3) and (4) are repeated on the block's parent.
     #
     # If no entry is found after (4), this method returns nil.
-    #
-    # Steps (3-4) are disabled when *friends* is disabled (false).
     def at?(name : Form, _visited = nil) : Entry?
       # (1-2) Traverse myself and my parents and flat-at
       # them for *name*.
