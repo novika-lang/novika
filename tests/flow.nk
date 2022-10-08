@@ -1,0 +1,7 @@
+describe 'obj' [
+  in lang
+
+  it should 'leave object immediately' [
+    [ [ 100 $: x 200 $: y ] obj bi: [ .x ] [ .y ] ] vals [ 100 200 ] assert=
+  ]
+]

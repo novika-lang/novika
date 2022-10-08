@@ -25,6 +25,18 @@
 ] @: thruVals
 
 
+[ """( B -- I ): like `do`, but leaves the resulting Block
+   instance. Equivalent to `[ <block content> this ] do`
+
+  >>> [ 100 $: x 200 $: y ] obj
+  === [ 100 $: x 200 $: y | . x y ]+
+  >>> bi: [ .x ] [ .y ]
+  === 100 200
+  """
+  orphan swap new dup dip: hydrate!
+] @: obj
+
+
 [ "( D br: T F -- ? ): infix version of `br`."
   ahead thruBlock "T"
   ahead thruBlock "F"
