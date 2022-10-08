@@ -11,6 +11,14 @@ module Novika
     def initialize(@substrate : Substrate(T) = Substrate(T)[], @cursor = substrate.count)
     end
 
+    # Creates a tape from an existing array of *elements*, which
+    # would be used as the underlying container for `Substrate`.
+    # This means that all mutations of substrate will reflect on
+    # *elements*, and vice versa.
+    def self.for(elements : Array(T))
+      Tape.new(Substrate.for(elements))
+    end
+
     # Initializes a tape with *elements*.
     def self.[](*elements)
       Tape.new(Substrate[*elements])

@@ -1082,6 +1082,83 @@ module Novika::Features::Impl
         child.parent = parent
       end
 
+      target.at("befriend", <<-END
+      ( B F -- ): adds Friend to Block's friend list.
+
+      Friends are asked for word entries after parents, grandparents
+      etc. have failed to retrieve them. This recurses, e.g. friends
+      ask their own friends and so on, until the entry is found.
+
+      >>> [ 100 $: x this ] open $: a
+      >>> [ 200 $: y this ] open $: b
+      >>> a b befriend
+      >>> b a befriend
+      >>> a.x echo
+      100
+      >>> a.y echo
+      200
+      >>> b.x echo
+      100
+      >>> b.y echo
+      200
+      >>> a #x [ 'I've changed!' echo ] opens
+      >>> a.x
+      I've changed!
+      >>> b.x
+      I've changed!
+      END
+      ) do |engine, stack|
+        friend = stack.drop.assert(engine, Block)
+        block = stack.drop.assert(engine, Block)
+        block.befriend(friend)
+      end
+
+      target.at("unfriend", <<-END
+      ( B F -- ): removes Friend from Block's friend list. Does
+       nothing if Friend is not in the friend list. See `befriend`.
+
+      >>> [ 100 $: x this ] open $: a
+      >>> [ 200 $: y this ] open $: b
+      >>> a b befriend
+      >>> a.x echo
+      100
+      >>> a.y echo
+      200
+      >>> a b unfriend
+      >>> a.x echo
+      100
+      >>> a.y echo
+      Sorry: undefined dictionary property: y.
+      END
+      ) do |engine, stack|
+        friend = stack.drop.assert(engine, Block)
+        source = stack.drop.assert(engine, Block)
+        source.unfriend(friend)
+      end
+
+      target.at("friends", <<-END
+      ( B -- Lf ): leaves a List of Block's friends. See `befriend`.
+
+      >>> [ 100 $: x this ] open $: a
+      >>> [ 200 $: y this ] open $: b
+      >>> a b befriend
+      >>> a friends count echo
+      1
+      >>> a friends first b same? echo
+      true
+      >>> a.y echo
+      200
+      >>> a friends [ drop ] hydrate
+      >>> a friends count echo
+      0
+      >>> a.y echo
+      Sorry: undefined dictionary property: y.
+      END
+      ) do |engine, stack|
+        source = stack.drop.assert(engine, Block)
+        Block.for(source.friends).onto(stack)
+      end
+
       target.at("slurp", <<-END
       ( B Q -- B ): parses Quote and adds all forms from Quote
        to Block.

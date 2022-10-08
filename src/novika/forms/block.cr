@@ -58,6 +58,15 @@ module Novika
     # Returns the dictionary of this block.
     protected property dict : IDict = Dict.new
 
+    # Holds this block's friends. Friends provide an alternative
+    # lookup pathway: when parent hierarchy fails to find an entry
+    # matching some name, friends are asked for that entry.
+    #
+    # Traversal and lookup is performed in reverse insertion
+    # order. Therefore, MRO is parent followed by friends from
+    # latest friend to oldest friend.
+    getter friends : Array(Form) { [] of Form }
+
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
     property! parent : Block?
@@ -70,7 +79,7 @@ module Novika
     # this block does.
     @comment : String?
 
-    def initialize(@parent : Block? = nil, @prototype = self, @dict = Dict.new)
+    def initialize(@parent : Block? = nil, @prototype = self, @tape = Tape(Form).new, @dict = Dict.new)
     end
 
     protected def initialize(*,
@@ -79,6 +88,12 @@ module Novika
                              @dict = Dict.new,
                              @prototype = self,
                              @leaf = true)
+    end
+
+    # Creates an orphan block with *array* being its tape
+    # substrate's container. See `Tape.for`.
+    def self.for(array : Array(Form))
+      Block.new(tape: Tape.for(array))
     end
 
     def desc(io : IO)
@@ -187,6 +202,32 @@ module Novika
       self
     end
 
+    # Yields friends of this block. Asserts each is a block,
+    # otherwise, dies (e.g. the user may have mistakenly
+    # added some other form).
+    def each_friend
+      return unless @friends
+
+      friends.reverse_each do |friend|
+        unless friend.is_a?(Block)
+          die("expected a block, got #{friend.class.typedesc} for a friend")
+        end
+        yield friend
+      end
+    end
+
+    # Adds *other* to the friendlist of this block.
+    def befriend(other : Block)
+      friends << other
+    end
+
+    # Removes *other* from the friendlist of this block.
+    def unfriend(other : Block)
+      return unless @friends
+
+      friends.delete(other)
+    end
+
     # Lists all name forms in this block's dictionary.
     def ls : Array(Form)
       dict.names
@@ -235,8 +276,49 @@ module Novika
     end
 
     # Returns the dictionary entry corresponding to *name*.
-    def at?(name : Form) : Entry?
-      dict.get(name) { parent?.try &.at?(name) }
+    #
+    # Traverses the block hierarchy in the following order:
+    #
+    # (1) First, this block's dictionary is asked for the entry
+    #     corresponding to *name*. If unsuccessful,
+    #
+    # (2) The parent block's dictionary is asked for the entry
+    #     corresponding to *name*. If unsuccessful, the process
+    #     is repeated on the parent of parent, etc., until there
+    #     is no parent block. If entry is still not found,
+    #
+    # (3) Friends of this block are asked for the entry corresponding
+    #     to *name*. For each friend, the same process starting from
+    #     (1) is repeated.
+    #
+    # (4) If none of this block's friends have an entry for *name*,
+    #     (3) and (4) are repeated on the block's parent.
+    #
+    # If no entry is found after (4), this method returns nil.
+    def at?(name : Form, _visited = nil) : Entry?
+      # (1-2) Traverse myself and my parents and flat-at
+      # them for *name*.
+      block = self
+      while block
+        block.flat_at?(name).try { |entry| return entry }
+        block = block.parent?
+      end
+
+      # (3-4) Recurse on my friends, and on my parent's friends, etc.
+      block = self
+      _visited ||= [] of Block
+      while block
+        unless block.in?(_visited)
+          _visited << block
+          block.each_friend do |friend|
+            next if friend.in?(_visited)
+            if entry = friend.at?(name, _visited)
+              return entry
+            end
+          end
+        end
+        block = block.parent?
+      end
     end
 
     # Returns the dictionary entry corresponding to *name*.

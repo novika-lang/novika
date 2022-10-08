@@ -1,0 +1,101 @@
+describe 'block friends' [
+  in lang
+
+  it should 'befriend and unfriend' [
+    [ 0 $: x this 'hello' $: bar ] open $: a
+    [ 1 $: y this ] open $: b
+    [ 3 $: z this ] open $: c
+    [ 3 $: x this ] open $: d
+
+    [ [ bar ' from foo' ] ~* $: bar this ] $: foo
+    foo a befriend
+    foo b befriend
+    foo c befriend
+    foo d befriend
+
+    foo open $: fooI
+    fooI.x 3 assert=
+    fooI.y 1 assert=
+    fooI.z 3 assert=
+    fooI.bar 'hello from foo' assert=
+
+    foo c unfriend
+
+    foo open $: fooI
+    fooI.x 3 assert=
+    fooI.y 1 assert=
+    [ fooI.z ] 'undefined dictionary property: z' assertDies
+
+    foo a unfriend
+    foo #open 2enclose this reparent
+    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ demonic crap related to
+      *died precedence. Maybe fixable, maybe not."
+      'undefined dictionary property: bar' assertDies
+  ]
+
+  it should 'support direct modification of friends' [
+    [ 100 $: foo this ] open $: x
+    [ 200 $: bar this ] open $: y
+
+    x friends count 0 assert=
+    y friends count 0 assert=
+
+    x friends y shove
+    x.foo 100 assert=
+    x.bar 200 assert=
+
+    x friends [ dup.bar 100 = => drop ] hydrate
+    x.bar 200 assert=
+
+    x friends [ dup.bar 200 = => drop ] hydrate
+    x.foo 100 assert=
+    [ x.bar ] 'undefined dictionary property: bar' assertDies
+    x friends count 0 assert=
+  ]
+
+  it should 'ignore immediate recursion' [
+    [ [ ] dup dup befriend . x ] 'undefined dictionary property: x' assertDies
+  ]
+
+  it should 'ignore deep recursion' [
+    [ 100 $: a this ] open $: x
+    [ 200 $: b this ] open $: y
+    [ 300 $: c this ] open $: z
+
+    y x befriend
+
+    z x befriend
+    z y befriend
+
+    y.a 100 assert=
+    y.b 200 assert=
+
+    z.a 100 assert=
+    z.b 200 assert=
+    z.c 300 assert=
+    [ z.d ] 'undefined dictionary property: d' assertDies
+  ]
+
+  it should 'support mutual friendship' [
+    [ 100 $: x this ] open $: a
+    [ 200 $: y this ] open $: b
+
+    a b befriend
+    b a befriend
+
+    a.x 100 assert=
+    a.y 200 assert=
+    b.x 100 assert=
+    b.y 200 assert=
+
+    a #x [ 'I\'ve ' 'changed!' ~ ] opens
+    a.x 'I\'ve changed!' assert=
+    b.x 'I\'ve changed!' assert=
+  ]
+
+  it should 'die when an invalid friend form is added' [
+    [ this ] open $: boo
+    boo friends 100 shove
+    [ boo.explode! ] 'expected a block, got decimal for a friend' assertDies
+  ]
+]
