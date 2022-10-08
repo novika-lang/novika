@@ -287,16 +287,16 @@ module Novika
     #     is repeated on the parent of parent, etc., until there
     #     is no parent block. If entry is still not found,
     #
-    # (3) The delegates of this block are asked for the entry
-    #     corresponding to *name*. For each delegate, the
-    #     process starting from (1) repeats.
+    # (3) Friends of this block are asked for the entry corresponding
+    #     to *name*. For each friend, the same process starting from
+    #     (1) is repeated.
     #
-    # (4) If none of this block's delegates have an entry for
-    #     *name*, (3) and (4) are repeated on the block's parent.
+    # (4) If none of this block's friends have an entry for *name*,
+    #     (3) and (4) are repeated on the block's parent.
     #
     # If no entry is found after (4), this method returns nil.
     #
-    # Steps (3-4) are disabled when *friends* is false.
+    # Steps (3-4) are disabled when *friends* is disabled (false).
     def at?(name : Form, _visited = nil) : Entry?
       # (1-2) Traverse myself and my parents and flat-at
       # them for *name*.
@@ -306,7 +306,7 @@ module Novika
         block = block.parent?
       end
 
-      # (3-4) Recurse on my delegates, and on my parent's delegates.
+      # (3-4) Recurse on my friends, and on my parent's friends, etc.
       block = self
       _visited ||= [] of Block
       while block
