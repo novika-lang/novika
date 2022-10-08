@@ -9,7 +9,12 @@ module Novika
 
     # Initializes a substrate with *elements*.
     def self.[](*elements)
-      RealSubstrate.new(elements.to_a)
+      for(elements.to_a)
+    end
+
+    # Initializes a substrate with *elements* as the underlying array.
+    def self.for(elements : Array(T))
+      RealSubstrate.new(elements)
     end
 
     # Same as `Array#each`.

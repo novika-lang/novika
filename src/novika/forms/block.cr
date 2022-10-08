@@ -70,7 +70,7 @@ module Novika
     # this block does.
     @comment : String?
 
-    def initialize(@parent : Block? = nil, @prototype = self, @dict = Dict.new)
+    def initialize(@parent : Block? = nil, @prototype = self, @tape = Tape(Form).new, @dict = Dict.new)
     end
 
     protected def initialize(*,
@@ -79,6 +79,12 @@ module Novika
                              @dict = Dict.new,
                              @prototype = self,
                              @leaf = true)
+    end
+
+    # Creates an orphan block with *array* being its tape
+    # substrate's container. See `Tape.for`.
+    def self.for(array : Array(Form))
+      Block.new(tape: Tape.for(array))
     end
 
     def desc(io : IO)
