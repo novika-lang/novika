@@ -115,7 +115,8 @@ I agree).
 ] @: definfix
 
 
-[
+[ $: block
+
   0 $: _SUM
   1 $: _FACTOR
   2 $: _POWER
@@ -138,7 +139,8 @@ I agree).
   #/  _FACTOR [ 2val _/  ] _ctx definfix
   #**  _POWER [ 2val _** ] _ctx definfix
 
-  this reparent
+  this block parent befriend
+  block this reparent
 ] @: withInfixMath
 
 
