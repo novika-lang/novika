@@ -1,0 +1,11 @@
+describe '$( )' [
+  in lang
+
+  it should 'define multiple pushers in this' [
+    100 200 $( x y )
+    x 100 assert=
+    y 200 assert=
+
+    100 200 [ $( x y ) this ] open -> [ x y ] [ 100 200 ] assert=
+  ]
+]
