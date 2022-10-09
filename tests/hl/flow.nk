@@ -1,0 +1,63 @@
+describe 'choose' [
+  in lang
+
+  it should 'pass through if no cases' [
+    [ 100 [ ] choose ] vals [ 100 ] assert=
+  ]
+
+  it should 'die when uneven case count' [
+    [ 123 [ 1 ] choose ] 'for pairs to work, there should be an even count of items in block' assertDies
+  ]
+
+  it should 'pass through if case does not match, else case\'s value' [
+    100 [
+      100 'Hi!'
+      200 'Bye!'
+    ] choose 'Hi!' assert=
+
+    100 [
+      1 2
+      3 4
+    ] choose 100 assert=
+  ]
+
+  it should 'evaluate cond if it is a block' [
+    2 [
+      [ even? ] 100
+      [ odd? ] 200
+    ] choose 100 assert=
+  ]
+
+  it should 'evaluate cond if it is a word' [
+    2 [
+      even? 100
+      odd? 200
+    ] choose 100 assert=
+  ]
+
+  it should 'evaluate body if it is a block with caller stack' [
+    1 2 3 [
+      even? [ stack shallowCopy [ 1 2 3 ] assert= 1 + ]
+      odd?  [ stack shallowCopy [ 1 2 3 ] assert= 5 + ]
+    ] choose 8 assert=
+  ]
+
+  it should 'evaluate body if it is a word with caller stack' [
+    [ 1 2 3 ] $: fuBu
+    [ stack shallowCopy [ 1 2 4 ] assert= * ] @: duFu
+
+    [
+      1 2 3 [
+        even? duFu
+        odd?  fuBu
+      ] choose [ 1 2 3 ] assert=
+    ] do
+
+    [
+      1 2 4 [
+        even? duFu
+        odd?  fuBu
+      ] choose 8 assert=
+    ] do
+  ]
+]

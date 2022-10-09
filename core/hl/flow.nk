@@ -13,13 +13,25 @@
   ]
   ```
   """
-  $: block $: form
+  dup empty? => [ drop ^ ]
 
-  block pairs: [
-    $: body
-    $: cond
-    form enclose cond there cherry => [ body =: form break ]
+  $: block
+  $: form
+  #nil $: chose
+
+  ahead $: caller
+
+  block pairs: [ $: body $: cond
+    cond word? => [ caller child cond << =: cond ]
+    cond block? not => [ [ cond #= ] here =: cond ]
+    form enclose cond there cherry => [
+      body word? => [ body enclose caller reparent =: body ]
+      body =: chose
+      break
+    ]
   ]
 
-  form open
+  chose #nil = => [ form ^ ]
+  chose block? => [ form chose open ^ ]
+  chose
 ] @: choose
