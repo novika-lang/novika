@@ -1138,7 +1138,7 @@
 
 
 [ "( Fl sepBy:/join: S -- Q ): infix version of `sepBy`."
-  ahead thruBlock sepBy
+  ahead thruVal sepBy
 ] dup @: sepBy:
       @: join:
 
