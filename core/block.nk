@@ -163,6 +163,14 @@
 ] @: child
 
 
+[ dup block? not => [ entry:fetch ^ ]
+
+  swap $: container
+
+  map: [ container swap _arrowFetchImpl ]
+] @: _arrowFetchImpl
+
+
 [ """( T -> N -- F ): infix for `entry:fetch`.
 
   >>> [ 200 $: x
@@ -179,8 +187,17 @@
   === 200 100 [ x y + ]
   >>> open
   === 200 100 300 (note: [ x y + ] block is a closure)
+
+  Accesses multiple entries when Name is a block, preserves
+  block shape:
+
+  >>> [ 100 $: x 200 $: y ] obj -> [ x y ]
+  === [ 100 200 ]
+
+  >>> [ 100 $: x 200 $: y ] obj -> [ [ [ x ] ] y ]
+  === [ [ [ 100 ] ] 200 ]
   """
-  ahead thru entry:fetch
+  ahead thru _arrowFetchImpl
 ] @: ->
 
 
