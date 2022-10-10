@@ -103,19 +103,6 @@
 ] @: dropContinuationsUntil
 
 
-[ "( B -- ): closes blocks all the way up to, but not
-   including, Block."
-  $: block
-
-  [
-    dup getContBlock block same?
-      [ ]
-      [ drop rec ]
-    br
-  ] dup @: rec continues
-] @: resume
-
-
 [ "( -- ): closes blocks all the way up to, and including,
    its *opener's parent*."
   ahead prototype parent $: above

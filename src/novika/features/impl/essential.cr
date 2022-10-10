@@ -109,6 +109,25 @@ module Novika::Features::Impl
         ahead.onto(stack)
       end
 
+      target.at("resume", <<-END
+      ( B -- ): closes blocks all the way up to, but not
+       including, Block.
+      END
+      ) do |engine, stack|
+        block = stack.drop.assert(engine, Block)
+        conts = engine.conts
+        found = false
+
+        # This can be and probably should be a count decrement,
+        # not tens of sequential drops. But we don't have that
+        # level of control currently.
+        until conts.count.zero? || (found = block.same?(engine.block))
+          conts.drop
+        end
+
+        block.die("resume: no such block in continuations") unless found
+      end
+
       # TODO: example
       target.at("dup", <<-END
       ( F -- F F ): duplicates the Form before cursor.
