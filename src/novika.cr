@@ -51,9 +51,9 @@ module Novika
 
       #{" Switches            ".colorize.reverse.bold}
 
-        -p        \twrites dense (callers are recorded) profiling data to 'prof.novika.csv'
-        -ps       \twrites sparse profiling data to 'prof.novika.csv'
-        -h, --help\tprints this message
+        -p                    \twrites dense (callers are recorded) profiling data to 'prof.novika.csv'
+        -ps                   \twrites sparse profiling data to 'prof.novika.csv'
+        -h, --help, h, help, ?\tprints this message
 
       #{" Runnables           ".colorize.reverse.bold}
 
@@ -87,19 +87,30 @@ module Novika
       #{" Standard library    ".colorize.reverse.bold}
 
       Most Novika code depends on 'core', which is the language's standard library, so you'd
-      almost always use the following command:
+      almost always use the following command (assuming 'core' exists in your working directory):
 
         $ novika core path/to/the/file/you/want/to/run.nk
 
-      #{" Examples            ".colorize.reverse.bold}
+      #{" Usage examples      ".colorize.reverse.bold}
 
       $ novika core repl.nk
                ---- -------
-               std  file
+               (1)    (2)
+
+      Here is what it does. First,
+
+      (1) enables the standard library, then
+      (2) runs the file called 'repl.nk', found in the working directory.
 
       $ novika core console examples/snake.nk
                ---- ------- -----------------
-               std  feature file
+               (1)    (2)         (3)
+
+      Here is what it does. First,
+
+      (1) enables the standard library, then
+      (2) enables the console feature (it's off by default), then
+      (3) runs the file called 'snake.nk', found in directory 'examples'.
 
       If you're having any issues, head out to https://github.com/novika-lang/novika/issues,
       and click "New issue".
