@@ -5,56 +5,6 @@
 Novika is a novel interpreted programming language, somewhat related
 to Forth, Red/Rebol, Self, and Lisp.
 
-> Novika [organizes](doc/BlockOrg.pdf) and evaluates forms.
-
-This branch is the most recent (10th) prototype implementation of Novika.
-
-Most notable features of Novika include:
-
-* It's weird, one of the weirdest languages you'd find. Brainfuck was a joke,
-  but Novika isn't. Novika seems simple to explain (speaking from personal
-  experience here), but in reality, it damn isn't. At the extremes, simplicity
-  comes at a cost.
-
-* Almost no syntax: Novika is tokenized, but there is not much syntax to talk
-  about. There is only one kind of syntax error, missing closing bracket.
-
-* Small amount of core *forms*: blocks, decimals (aka numbers), quotes (aka strings), booleans, and
-  a few more. *Block* is something you are going to see a lot in Novika.
-
-* Code is data, and data is code. Homoiconicity is a polluted term, but you knew
-  this would be coming in such kind of language didn't you? :)
-
-* As data, blocks can be arrays, or stacks with an insertion point, or dictionaries
-  (ordered hash maps mapping form to form), or anything in-between. Blocks also
-  hold continuations. Individual continuations are blocks as well. Each consists
-  of two sub-blocks: the stack block (a block used as a stack), and a code block
-  (the block whose contents is executed). See, blocks are everywhere.
-
-* Blocks are also objects in Self sense of the word, if you manage to capture them.
-  And at runtime, they may act as symbol tables for code in them. If seen as symbol
-  tables, blocks are lexical in terms of hierarchy, but dynamic in terms of scope
-  contents. In other words, the content of scopes does not get captured; instead,
-  their hierarchy does and is exactly the *block hierarchy*.
-
-* Runtime macros: you can access your caller and (literally) modify it so that it
-  executes what you want next. Or do something to its stack. After all, everything
-  is a block.
-
-* In spirit of Forth, it can rise in level quite quickly. You start with `swap`s
-  and `rot`s and `dup`s and `|to`s (read: cursor tos), and through `|slideRight`s
-  (cursor slide rights) and `ahead`s and smaller infixes like `each:` and `map:`
-  get to expressions like `1 to: 100 map: [ 1 + ] without: even? each: echo`, then
-  find yourself writing HTML `html [ h1 [ 'Hello World!' class: 'fg-red-300' ] ]`,
-  and finally arrive at translating words with Google Translate and exploring synonyms
-  for similarity with words already in the Novika dictionary using Wiktionary — and
-  writing code in Icelandic, Spanish, Chinese, or Ithkuil. Words can parse and/or
-  interpret all words that follow — they can contextualize what follows, through
-  parsing literally or changing state, and such contextualization may or may not
-  be deterministic.
-
-Yup. It's damn hard to even introduce.
-
 ## Examples
 
 Sieve of Eratosthenes: prints prime numbers in [2; 120].
@@ -163,6 +113,58 @@ I agree).
 "Euclidean distance between A and B:"
 [ [B.x - A.x] ** 2 + [B.y - A.y] ** 2 ] withInfixMath val sqrt echo "STDOUT: 250⏎"
 ```
+
+## Introduction
+
+> Novika [organizes](doc/BlockOrg.pdf) and evaluates forms.
+
+This branch is the most recent (10th) prototype implementation of Novika.
+
+Most notable features of Novika include:
+
+* It's weird, one of the weirdest languages you'd find. Brainfuck was a joke,
+  but Novika isn't. Novika seems simple to explain (speaking from personal
+  experience here), but in reality, it damn isn't. At the extremes, simplicity
+  comes at a cost.
+
+* Almost no syntax: Novika is tokenized, but there is not much syntax to talk
+  about. There is only one kind of syntax error, missing closing bracket.
+
+* Small amount of core *forms*: blocks, decimals (aka numbers), quotes (aka strings), booleans, and
+  a few more. *Block* is something you are going to see a lot in Novika.
+
+* Code is data, and data is code. Homoiconicity is a polluted term, but you knew
+  this would be coming in such kind of language didn't you? :)
+
+* As data, blocks can be arrays, or stacks with an insertion point, or dictionaries
+  (ordered hash maps mapping form to form), or anything in-between. Blocks also
+  hold continuations. Individual continuations are blocks as well. Each consists
+  of two sub-blocks: the stack block (a block used as a stack), and a code block
+  (the block whose contents is executed). See, blocks are everywhere.
+
+* Blocks are also objects in Self sense of the word, if you manage to capture them.
+  And at runtime, they may act as symbol tables for code in them. If seen as symbol
+  tables, blocks are lexical in terms of hierarchy, but dynamic in terms of scope
+  contents. In other words, the content of scopes does not get captured; instead,
+  their hierarchy does and is exactly the *block hierarchy*.
+
+* Runtime macros: you can access your caller and (literally) modify it so that it
+  executes what you want next. Or do something to its stack. After all, everything
+  is a block.
+
+* In spirit of Forth, it can rise in level quite quickly. You start with `swap`s
+  and `rot`s and `dup`s and `|to`s (read: cursor tos), and through `|slideRight`s
+  (cursor slide rights) and `ahead`s and smaller infixes like `each:` and `map:`
+  get to expressions like `1 to: 100 map: [ 1 + ] without: even? each: echo`, then
+  find yourself writing HTML `html [ h1 [ 'Hello World!' class: 'fg-red-300' ] ]`,
+  and finally arrive at translating words with Google Translate and exploring synonyms
+  for similarity with words already in the Novika dictionary using Wiktionary — and
+  writing code in Icelandic, Spanish, Chinese, or Ithkuil. Words can parse and/or
+  interpret all words that follow — they can contextualize what follows, through
+  parsing literally or changing state, and such contextualization may or may not
+  be deterministic.
+
+Yup. It's damn hard to even introduce.
 
 ## Stability and progress
 
