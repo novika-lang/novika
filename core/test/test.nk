@@ -42,7 +42,7 @@ orphan $: _groups
   "Fetch the test group. If none, die out of this word. Else,
    put it under `group` for use later on."
   _groups groupName entry:fetch? not =>
-    [ 'no such test group: ' groupName toQuote stitch die ]
+    [ 'no such test group: ' groupName 2die ]
   $: group
 
   [ ] $: failedCases

@@ -8,7 +8,6 @@
 'expected attribute to be a quote, got: '           $: HTML_ATTR_ERR
 'expected value of argument to be a quote, got: '   $: HTML_VAL_ERR
 
-[ toQuote stitch die ] @: 2die
 [ [ ' ' swap ] |slideLeft join ] @: prefixedByWs
 
 [ $: htmlBlock

@@ -5,7 +5,7 @@
   path . available? $: available?
 
   [ available? not ] [ path . file? ] or not
-    => [ 'File needs a file path, but got: ' path toQuote stitch die ]
+    => [ 'File needs a file path, but got: ' path 2die ]
 
   [ "( -- Pq ): leaves the Path quote."
     path . pathQuote
