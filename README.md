@@ -164,6 +164,28 @@ I agree).
 [ [B.x - A.x] ** 2 + [B.y - A.y] ** 2 ] withInfixMath val sqrt echo "STDOUT: 250⏎"
 ```
 
+## Stability and progress
+
+Almost every commit *could or could not* break something. If there was
+that something, of course: since the language isn't used anywhere other
+than in examples and tests, this isn't a problem *right now*. At this
+point, though, I won't recommend depending on Novika or writing code that
+is important to you in any way, because the next day, you wake up and
+it doesn't work (or does!).
+
+Changes in Novika are incorporated rather rapidly. Monthly releases are
+therefore very outdated, and I'm too inexperienced to set up some nightly
+building infrastructure. If you want the freshest experience, clone and
+build Novika yourself (see below). If you want a working Windows or Linux
+executable *right now*, and don't have the will or capabilities to build,
+then use the [latest release](https://github.com/novika-lang/novika/releases/latest).
+
+I'm working on features that'd allow to browse the environment. Writing
+changelogs is unfortunately just *too* much work for me. The bigger the
+project becomes... You know how it goes. It's overwhelming.
+
+And there's still no docs and no website!
+
 ## Using Novika as a library
 
 I don't know why you would need that, but there is some API and if you don't inject the
@@ -227,10 +249,10 @@ You can run REPL with: `novika core repl.nk`
 
 > Docs are in progress, but not really.
 
-I don't know if you should, but you can contact me at `homonoidian@yandex.ru`
-and maybe, just maybe, we'll take a look. I won't be able to handle a lot of
-people because I'm a hardcore text message introvert whose "battery" discharges
-quite quickly, but there is a slight chance.
+Check out the Wiki page at GitHub. Build and run Novika, open the REPL,
+type `?`, and look at how you can explore the environment. All I can say
+right now, really. Currently, there are no language docs. The closest to
+that would be `crystal docs`.
 
 ## Syntax highlighting
 
@@ -288,6 +310,27 @@ runtime homoiconicity too? WTF?
 **Remember these are the language's cons**. If you want an objective
 critique of the language, you'd need to take these into account. But
 don't be toxic taking criticism as specification.
+
+## Performance
+
+TLDR: It's slow, very-very-very slow.
+
+A prototype shoudn't necessarily be fast, however. And this particular
+implementation is a prototype. It's written up to the point that it works,
+and can be supported and updated rather easily.
+
+The code is naïve. No compilation. No fancy-shmancy JIT -- all that would
+require rewriting the thing in C or even assembly (not because Crystal is
+slow, but because C and assembly *force* you to write fast and/or optimizable
+code, and Crystal does not).
+
+> Performance would require knowledge and experience that I sadly do not posess
+> at the moment. Performance would slow down the tempo. Performance would interfere
+> with the artistic aspect -- and I think of Novika more as a piece of art
+> (however good or bad it may be) than an industrial-strength programming
+> lanugage. Novika does, however subtly, represent my personality.
+>
+> **Perhaps it will represent yours as well.**
 
 ## Language notes
 
