@@ -43,7 +43,7 @@ module Novika::Features
        on the disk.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         has?(engine, path).onto(stack)
       end
 
@@ -52,7 +52,7 @@ module Novika::Features
        and is readable.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         can_read?(engine, path).onto(stack)
       end
 
@@ -61,7 +61,7 @@ module Novika::Features
        and points to a directory.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         has_dir?(engine, path).onto(stack)
       end
 
@@ -70,7 +70,7 @@ module Novika::Features
        and points to a file.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         has_file?(engine, path).onto(stack)
       end
 
@@ -79,7 +79,7 @@ module Novika::Features
        and points to a symlink.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         has_symlink?(engine, path).onto(stack)
       end
 
@@ -88,7 +88,7 @@ module Novika::Features
        if Path already exists.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         touch(engine, path)
       end
 
@@ -97,7 +97,7 @@ module Novika::Features
        if there is no File.
       END
       ) do |engine, stack|
-        path = stack.drop.assert(Quote)
+        path = stack.drop.a(Quote)
         path.die("no file at path") unless contents = read?(engine, path)
         contents.onto(stack)
       end

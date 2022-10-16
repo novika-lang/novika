@@ -215,17 +215,17 @@ module Novika
 
     # Returns the active continuation.
     def cont
-      conts.top.assert(Block)
+      conts.top.a(Block)
     end
 
     # Returns the block of the active continuation.
     def block
-      cont.at(C_BLOCK_AT).assert(Block)
+      cont.at(C_BLOCK_AT).a(Block)
     end
 
     # Returns the stack block of the active continuation.
     def stack
-      cont.at(C_STACK_AT).assert(Block)
+      cont.at(C_STACK_AT).a(Block)
     end
 
     # See `Form#die`.

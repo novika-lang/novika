@@ -52,7 +52,7 @@ module Novika
 
     # Asserts that this form is of the given *type*. Dies if
     # it's not.
-    def assert(type : T.class) : T forall T
+    def a(type : T.class) : T forall T
       is_a?(T) ? self : afail(T)
     end
 

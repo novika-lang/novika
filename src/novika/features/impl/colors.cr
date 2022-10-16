@@ -23,9 +23,9 @@ module Novika::Features::Impl
       === rgb(36, 255 ,255)
       END
       ) do |engine, stack|
-        b = stack.drop.assert(Decimal).in(0..255).posint
-        g = stack.drop.assert(Decimal).in(0..255).posint
-        r = stack.drop.assert(Decimal).in(0..255).posint
+        b = stack.drop.a(Decimal).in(0..255).posint
+        g = stack.drop.a(Decimal).in(0..255).posint
+        r = stack.drop.a(Decimal).in(0..255).posint
         Color.rgb(r, g, b).onto(stack)
       end
 
@@ -39,7 +39,7 @@ module Novika::Features::Impl
       === 0 25 3
       END
       ) do |engine, stack|
-        color = stack.drop.assert(Color)
+        color = stack.drop.a(Color)
         r, g, b = color.rgb
         r.onto(stack)
         g.onto(stack)
@@ -58,9 +58,9 @@ module Novika::Features::Impl
       === rgb(76, 123, 158)
       END
       ) do |engine, stack|
-        l = stack.drop.assert(Decimal).in(0..100).posint
-        s = stack.drop.assert(Decimal).in(0..100).posint
-        h = stack.drop.assert(Decimal).in(0..360).posint
+        l = stack.drop.a(Decimal).in(0..100).posint
+        s = stack.drop.a(Decimal).in(0..100).posint
+        h = stack.drop.a(Decimal).in(0..360).posint
         Color.hsl(h, s, l).onto(stack)
       end
 
@@ -74,7 +74,7 @@ module Novika::Features::Impl
       === 206 35 46
       END
       ) do |engine, stack|
-        color = stack.drop.assert(Color)
+        color = stack.drop.a(Color)
         h, s, l = color.hsl
         h.onto(stack)
         s.onto(stack)
@@ -93,9 +93,9 @@ module Novika::Features::Impl
       === rgb(0, 255, 0)
       END
       ) do |engine, stack|
-        v = stack.drop.assert(Decimal).in(0..100).posint
-        s = stack.drop.assert(Decimal).in(0..100).posint
-        h = stack.drop.assert(Decimal).in(0..360).posint
+        v = stack.drop.a(Decimal).in(0..100).posint
+        s = stack.drop.a(Decimal).in(0..100).posint
+        h = stack.drop.a(Decimal).in(0..360).posint
         Color.hsv(h, s, v).onto(stack)
       end
 
@@ -109,7 +109,7 @@ module Novika::Features::Impl
       === 180 100 50
       END
       ) do |engine, stack|
-        color = stack.drop.assert(Color)
+        color = stack.drop.a(Color)
         h, s, v = color.hsv
         h.onto(stack)
         s.onto(stack)
@@ -175,9 +175,9 @@ module Novika::Features::Impl
       is lossy sometimes.
       END
       ) do |engine, stack|
-        h = stack.drop.assert(Decimal).in(0..360).posint
-        c = stack.drop.assert(Decimal).in(0..132).posint
-        l = stack.drop.assert(Decimal).in(0..100).posint
+        h = stack.drop.a(Decimal).in(0..360).posint
+        c = stack.drop.a(Decimal).in(0..132).posint
+        l = stack.drop.a(Decimal).in(0..100).posint
         Color.lch(l, c, h).onto(stack)
       end
 
@@ -199,7 +199,7 @@ module Novika::Features::Impl
       === 74 41 25
       END
       ) do |engine, stack|
-        color = stack.drop.assert(Color)
+        color = stack.drop.a(Color)
         l, c, h = color.lch
         l.onto(stack)
         c.onto(stack)
@@ -216,8 +216,8 @@ module Novika::Features::Impl
       === rgba(0, 25, 3, 100)
       END
       ) do |engine, stack|
-        alpha = stack.drop.assert(Decimal).in(0..255).posint
-        color = stack.drop.assert(Color)
+        alpha = stack.drop.a(Decimal).in(0..255).posint
+        color = stack.drop.a(Color)
         color.a = alpha
         color.onto(stack)
       end
@@ -238,7 +238,7 @@ module Novika::Features::Impl
       === 100
       END
       ) do |engine, stack|
-        color = stack.drop.assert(Color)
+        color = stack.drop.a(Color)
         color.a.onto(stack)
       end
 
@@ -264,12 +264,12 @@ module Novika::Features::Impl
       === rgb(255, 0, 0)
       END
       ) do |engine, stack|
-        palette = stack.drop.assert(Block)
-        color = stack.drop.assert(Color)
+        palette = stack.drop.a(Block)
+        color = stack.drop.a(Color)
 
         colors = [] of Color
         palette.each do |pcolor|
-          colors << pcolor.assert(Color)
+          colors << pcolor.a(Color)
         end
 
         color.closest(colors).onto(stack)

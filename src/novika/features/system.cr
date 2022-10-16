@@ -74,7 +74,7 @@ module Novika::Features
       in `*died`.
       END
       ) do |engine, stack|
-        error = stack.drop.assert(Died)
+        error = stack.drop.a(Died)
 
         report_error(engine, error)
       end
@@ -103,7 +103,7 @@ module Novika::Features
       ( Nms -- ): sleeps for N decimal milliseconds.
       END
       ) do |engine, stack|
-        millis = stack.drop.assert(Decimal)
+        millis = stack.drop.a(Decimal)
 
         nap(engine, millis)
       end

@@ -487,32 +487,30 @@ module Novika
 
     # Assert through the result of running *name*'s value in
     # this block's dictionary.
-    private def assert?(name : Form, type : T.class) : T? forall T
+    private def a?(name : Form, type : T.class) : T? forall T
       entry = dict.get(name) { return }
       result = Engine.exhaust(entry, Block.new.add(self)).top
-      unless result.is_a?(Block) && same?(result)
-        result.assert(T)
-      end
+      result.a(T) unless result.is_a?(Block) && same?(result)
     end
 
     # Converts this block into the given *type*. Code execution
     # may be required, hence the need for *engine*. If failed,
-    # same as `Form#assert`.
-    def assert(type : T.class) : T forall T
+    # same as `Form#a`.
+    def a(type : T.class) : T forall T
       return self if is_a?(T)
 
       case T
-      when Decimal.class    then assert?(AS_DECIMAL, type)
-      when Quote.class      then assert?(AS_QUOTE, type)
-      when Word.class       then assert?(AS_WORD, type)
-      when Color.class      then assert?(AS_COLOR, type)
-      when Boolean.class    then assert?(AS_BOOLEAN, type)
-      when QuotedWord.class then assert?(AS_QUOTED_WORD, type)
+      when Decimal.class    then a?(AS_DECIMAL, type)
+      when Quote.class      then a?(AS_QUOTE, type)
+      when Word.class       then a?(AS_WORD, type)
+      when Color.class      then a?(AS_COLOR, type)
+      when Boolean.class    then a?(AS_BOOLEAN, type)
+      when QuotedWord.class then a?(AS_QUOTED_WORD, type)
       end || afail(T)
     end
 
     # Returns whether this block implements hook(s) needed
-    # for behaving like *type*. See also: `assert(type)`.
+    # for behaving like *type*. See also: `a(type)`.
     def can_be?(type : T.class) forall T
       return true if is_a?(T)
 
@@ -529,7 +527,7 @@ module Novika
     end
 
     def to_quote : Quote
-      assert?(AS_QUOTE, Quote) || super
+      a?(AS_QUOTE, Quote) || super
     end
 
     # Appends a string representation of this block to *io* in
