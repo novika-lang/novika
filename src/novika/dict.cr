@@ -98,7 +98,7 @@ module Novika
     end
 
     # :ditto:
-    def open(engine : Engine) : Nil
+    def on_open(engine : Engine) : Nil
       onto(engine.stack)
 
       nil
@@ -116,6 +116,6 @@ module Novika
   # value form.
   class OpenEntry < Entry
     # See the same method in `Form`.
-    delegate :open, to: form
+    delegate :on_open, to: form
   end
 end

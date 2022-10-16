@@ -56,15 +56,15 @@ module Novika
   # Once all is set up, one can exhaust the engine. `Engine#exhaust`
   # finds the top (see `Block#top`) continuation block, slides
   # its code block's cursor to the right until the end, and
-  # calls `Form#on_open` on every form, passing itself as the
-  # argument (letting the form decide what to do next).
+  # calls `Form#on_parent_open` on every form, passing itself
+  # as the argument (letting the form decide what to do next).
   #
   # After the cursor hits the block's end, `Engine` drops
   # (see `Block#drop`) the continuation block (thereby *closing*
   # the code block).
   #
-  # Some forms (e.g. words) may end up scheduling continuation
-  # blocks `on_open`, making the engine go through them first.
+  # Some forms (e.g. words) may end up scheduling continuation blocks
+  # `on_parent_open`, making the engine go through them first.
   #
   # Successful calls to `Engine#exhaust` leave the continuations
   # block empty. This is why the method is called "exhaust".
@@ -133,11 +133,7 @@ module Novika
     # profiling data makes Engine slower (sometimes a lot), but it
     # will allow you to analyze the resulting `prof` `Stat`s which
     # are fairly detailed. See `Stat`.
-    def initialize(profile = false)
-      initialize(0, profile)
-    end
-
-    protected def initialize(@profile : Bool)
+    def initialize(@profile = false)
       Engine.count += 1
 
       if profile
@@ -273,7 +269,7 @@ module Novika
         schedule! Engine.cont(Block.new.add(form), stack)
       end
 
-      form.open(self)
+      form.on_open(self)
     end
 
     # Same as `schedule(form, stack)`.
@@ -351,7 +347,7 @@ module Novika
         begin
           while form = (scheduler = block).next?
             begin
-              form.opened(self)
+              form.on_parent_open(self)
               if @profile
                 schproto = scheduler.prototype
                 scheeproto = block.prototype
@@ -374,7 +370,7 @@ module Novika
               if handler
                 stack.add(e)
                 begin
-                  handler.open(self)
+                  handler.on_open(self)
                   next
                 rescue e : Died
                   puts "DEATH HANDLER DIED".colorize.yellow.bold

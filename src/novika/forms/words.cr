@@ -37,11 +37,11 @@ module Novika
       "word"
     end
 
-    def opened(engine : Engine) : self
+    def on_parent_open(engine : Engine) : self
       if entry = engine.block.at?(self)
         # An entry exists for this word in the current block
         # or in its parents.
-        entry.open(engine)
+        entry.on_open(engine)
         return self
       end
 
@@ -62,7 +62,7 @@ module Novika
         end
 
         engine.stack.add Word.new(id)
-        trap.open(engine)
+        trap.on_open(engine)
 
         return self
       end
@@ -118,7 +118,7 @@ module Novika
       Word.new(id.lstrip('#'))
     end
 
-    def opened(engine) : self
+    def on_parent_open(engine) : self
       tap { peel.onto(engine.stack) }
     end
 

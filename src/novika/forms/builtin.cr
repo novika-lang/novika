@@ -18,7 +18,7 @@ module Novika
       "builtin"
     end
 
-    def open(engine : Engine)
+    def on_open(engine : Engine)
       code.call(engine, engine.stack)
     end
 

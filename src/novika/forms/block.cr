@@ -414,7 +414,7 @@ module Novika
     # safe scheduling method (see `Engine#schedule`). Optionally,
     # a *stack* block may be provided (otherwise, the *engine*'s
     # current stack is used).
-    def open(engine : Engine, stack : Block = engine.stack) : self
+    def on_open(engine : Engine, stack : Block = engine.stack) : self
       tap { engine.schedule(self, stack) }
     end
 

@@ -35,13 +35,13 @@ module Novika
       a
     end
 
-    # Reacts to this form being opened in *engine*.
-    def open(engine : Engine) : self
-      opened(engine)
+    # Reacts to this form being opened with *engine*.
+    def on_open(engine : Engine) : self
+      on_parent_open(engine)
     end
 
-    # Reacts to this form's enclosing block being opened in *engine*.
-    def opened(engine : Engine) : self
+    # Reacts to this form's enclosing block being opened with *engine*.
+    def on_parent_open(engine : Engine) : self
       onto(engine.stack)
     end
 
