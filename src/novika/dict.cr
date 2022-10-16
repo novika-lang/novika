@@ -97,14 +97,6 @@ module Novika
       form.onto(block)
     end
 
-    # Works just like `open`, but returns the result immediately.
-    #
-    # For details on the difference between `open` and `val`,
-    # see `Form#val`.
-    def val(engine : Engine? = nil, stack : Block = nil)
-      form
-    end
-
     # :ditto:
     def open(engine : Engine) : Nil
       onto(engine.stack)
@@ -124,6 +116,6 @@ module Novika
   # value form.
   class OpenEntry < Entry
     # See the same method in `Form`.
-    delegate :open, :val, to: form
+    delegate :open, to: form
   end
 end

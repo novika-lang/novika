@@ -136,10 +136,8 @@ module Novika
   # after the engine is exhausted. Returns *toplevel*.
   def run(engine : Engine, toplevel : Block, path : Path) : Block
     source = File.read(path)
-    stack = Block.new
     block = Block.new(toplevel).slurp(source)
-    engine.conts.add Engine.cont(block.to(0), stack)
-    engine.exhaust
+    Engine.exhaust!(block)
     toplevel.import!(from: block)
   end
 

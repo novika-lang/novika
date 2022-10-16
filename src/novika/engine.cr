@@ -25,32 +25,79 @@ module Novika
     end
   end
 
-  # An engine object holds a reference to a block called the
-  # *continuations block* (`conts`) (there is one continuations
-  # block per one engine at all times).
+  # An engine object is responsible for managing its own
+  # *continuations block*.
   #
-  # Engine objects are designed to `exhaust` this continuations
-  # block, which means to bring its size to zero (it being longer
-  # than zero at first, of course). This is done via evaluation
-  # (which is mostly known as *opening* in Novika).
+  # Continuations block consists of *continuatio**n** blocks*.
   #
-  # Forms decide how they want to be opened by implementing
-  # `Form#open`/`Form#opened`, which accepts an instance of
-  # Engine. The default approach for opening a form is to
-  # push it onto the active stack. Forms like `Word`s use
-  # `schedule` to schedule blocks for evaluation. When the
-  # `opened` call finishes, Engine will start to execute the
-  # last scheduled block (last scheduled continuation) and
-  # so on, up until there are no scheduled blocks
-  # (continuations) left.
-  struct Engine
+  # Canonical continuation blocks themselves contain two blocks
+  # (see `Engine.cont`):
+  #
+  # - *Code block*, more commonly known as simply the block
+  #   (and as *active* block when its continuation is active,
+  #    i.e., when it's being evaluated),
+  #
+  # - *Stack block*, more commonly known as simply the stack
+  #   (and as *active* stack when its continuation is active,
+  #    i.e., when it's being evaluated).
+  #
+  # `Engine#schedule` is used to create a continuation block
+  # from a `Form` and a stack block, and then add it to the
+  # continuations block.
+  #
+  # If form is a block, `Engine#schedule` will instantiate
+  # it and use the instance, moving the instance's cursor
+  # to 0 (meaning before the first form, if any).
+  #
+  # `Engine#schedule!` is similar to `Engine#schedule`, with
+  # the only exception being that it doesn't create an instance
+  # if form is a block, but instead uses the block as-is.
+  #
+  # Once all is set up, one can exhaust the engine. `Engine#exhaust`
+  # finds the top (see `Block#top`) continuation block, slides
+  # its code block's cursor to the right until the end, and
+  # calls `Form#on_open` on every form, passing itself as the
+  # argument (letting the form decide what to do next).
+  #
+  # After the cursor hits the block's end, `Engine` drops
+  # (see `Block#drop`) the continuation block (thereby *closing*
+  # the code block).
+  #
+  # Some forms (e.g. words) may end up scheduling continuation
+  # blocks `on_open`, making the engine go through them first.
+  #
+  # Successful calls to `Engine#exhaust` leave the continuations
+  # block empty. This is why the method is called "exhaust".
+  #
+  # ```
+  # block = Block.new(Bundle.default.bb).slurp("1 2 +")
+  # stack = Block.new
+  #
+  # engine = Engine.new
+  # engine.schedule(block, stack)
+  # engine.exhaust
+  #
+  # puts stack # [ 3 | ]
+  #
+  # # Or, shorter:
+  #
+  # block = Block.new(Bundle.default.bb).slurp("1 2 +")
+  #
+  # puts Engine.exhaust(block) # [ 3 | ]
+  # ```
+  class Engine
     # Maximum amount of scheduled continuations in `conts`. After
     # passing this number, `Died` is raised to bring attention
     # to such dangerous depth.
     MAX_CONTS = 1024
 
-    # Maximum allowed engine nesting.
-    MAX_ENGINE_NESTING = 1024
+    # Maximum number of engines that can be created.
+    #
+    # This is for safety reasons only, particularly to prevent
+    # infinite recursion in e.g. asserts which are called from
+    # Crystal rather than Novika, thereby circumventing `MAX_CONTS`
+    # checks. See `Engine.count`.
+    MAX_ENGINES = 1024
 
     # Index of the code block in a continuation block.
     C_BLOCK_AT = 0
@@ -58,23 +105,29 @@ module Novika
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
 
-    # Returns the nesting number. Normally zero, for nested
-    # engines increases with each nest. Allows us to sort of
-    # "track" Crystal's call stack and stop nesting when it's
-    # becoming dangerously deep.
-    private getter nesting : Int32
+    # Holds the amount of living Engines. When an `Engine` is
+    # created, this number is increased. When an `Engine` is
+    # collected by the GC (finalized), this number is decreased.
+    class_getter count = 0
 
-    # A mapping of blocks to their IDs. Nil if profiling is disabled.
+    # :ditto:
+    protected def self.count=(other)
+      unless other.in?(0..MAX_ENGINES)
+        raise Died.new("bad engine count: maybe deep recursion in *as...?")
+      end
+      @@count = other
+    end
+
+    # Maps blocks to their IDs. Nil if profiling is disabled.
     getter! bids : Hash(Block, Int32)?
 
-    # A mapping of block IDs to their `Stat` objects. Nil if
-    # profiling is disabled.
+    # Maps block IDs to `Stat` objects. Nil if profiling is disabled.
     getter! prof : Hash(Int32, Stat)?
 
     # Returns the continuations block (aka continuations stack).
     getter conts = Block.new
 
-    # Creates a new engine.
+    # Creates an engine.
     #
     # *profile* can be set to `true` to enable profiling. Collecting
     # profiling data makes Engine slower (sometimes a lot), but it
@@ -84,51 +137,99 @@ module Novika
       initialize(0, profile)
     end
 
-    protected def initialize(@nesting, @profile : Bool)
+    protected def initialize(@profile : Bool)
+      Engine.count += 1
+
       if profile
         @bids = {} of Block => Int32
         @prof = {} of Int32 => Stat
       end
     end
 
-    # Creates a conventional continuation `Block`.
-    #
-    # A conventional continuation block consists of two blocks:
-    # a code block (aka simply the block), and a stack block
-    # (aka simply the stack).
-    def self.cont(block, stack)
-      Block.new.add(block).add(stack)
+    def finalize
+      Engine.count -= 1
     end
 
-    # Creates and returns an offspring engine. Use this if
-    # you want stack overflow handling instead of segfault.
+    # Creates and returns a canonical continuation block.
     #
-    # There are no speed implications, the only inconvenience
-    # is the need to have a parent engine to begin with.
-    def child
-      nesting = @nesting + 1
+    # A continuation block must include two blocks: the first
+    # is called the *code* block (found at `C_BLOCK_AT`), the
+    # second is called the *stack* block (found at `C_STACK_AT`).
+    def self.cont(code, stack)
+      Block[code, stack]
+    end
 
-      if nesting > MAX_ENGINE_NESTING
-        raise Died.new("recursion or block open is too deep (> #{MAX_ENGINE_NESTING})")
-      end
+    # Schedules and executes *form* immediately. Returns the
+    # resulting *stack* (creates one if `nil`).
+    #
+    # See `Engine#schedule!` for information on how *form*
+    # is evaluated.
+    #
+    # Useful for when you need the result of *form* immediately,
+    # especially from Crystal.
+    def self.exhaust!(form, stack = nil) : Block
+      stack ||= Block.new
+      engine = Engine.new
+      engine.schedule!(form, stack)
+      engine.exhaust
+      stack
+    end
 
-      Engine.new(nesting, @profile)
+    # :ditto:
+    def self.exhaust!(entry : OpenEntry, stack = nil) : Block
+      exhaust!(entry.form, stack)
+    end
+
+    # :ditto:
+    def self.exhaust!(entry : Entry, stack = nil) : Block
+      stack ||= Block.new
+      entry.onto(stack)
+      stack
+    end
+
+    # Schedules and executes *form* immediately. Returns the
+    # resulting *stack* (creates one if `nil`).
+    #
+    # See `Engine#schedule` for information on how *form*
+    # is evaluated.
+    #
+    # Useful for when you need the result of *form* immediately,
+    # especially from Crystal.
+    def self.exhaust(form, stack = nil) : Block
+      stack ||= Block.new
+      engine = Engine.new
+      engine.schedule(form, stack)
+      engine.exhaust
+      stack
+    end
+
+    # :ditto:
+    def self.exhaust(form entry : OpenEntry, stack = nil) : Block
+      exhaust(entry.form, stack)
+    end
+
+    # :ditto:
+    def self.exhaust(form entry : Entry, stack = nil) : Block
+      exhaust!(entry, stack)
     end
 
     # Returns the active continuation.
     def cont
-      conts.top.assert(self, Block)
+      conts.top.assert(Block)
     end
 
     # Returns the block of the active continuation.
     def block
-      cont.at(C_BLOCK_AT).assert(self, Block)
+      cont.at(C_BLOCK_AT).assert(Block)
     end
 
     # Returns the stack block of the active continuation.
     def stack
-      cont.at(C_STACK_AT).assert(self, Block)
+      cont.at(C_STACK_AT).assert(Block)
     end
+
+    # See `Form#die`.
+    delegate :die, to: block
 
     # Focal authorized point for adding continuations unsafely.
     # Returns self.
@@ -140,7 +241,7 @@ module Novika
     # a memory usage explosion.
     def schedule!(other : Block)
       if conts.count > MAX_CONTS
-        raise Died.new("recursion or block open is too deep (> #{MAX_CONTS})")
+        die("recursion or block open is too deep (> #{MAX_CONTS})")
       end
 
       tap { conts.add(other) }

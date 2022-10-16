@@ -90,10 +90,16 @@ module Novika
                              @leaf = true)
     end
 
-    # Creates an orphan block with *array* being its tape
-    # substrate's container. See `Tape.for`.
-    def self.for(array : Array(Form))
+    # Creates and returns an orphan block with *array* being
+    # its tape substrate's container. See `Tape.for`.
+    def self.with(array : Array(Form))
       Block.new(tape: Tape.for(array))
+    end
+
+    # Creates and returns an orphan block whose tape will
+    # contain *forms*.
+    def self.[](*forms : Form)
+      self.with(forms.map(&.as(Form)).to_a)
     end
 
     def desc(io : IO)
@@ -412,14 +418,6 @@ module Novika
       tap { engine.schedule(self, stack) }
     end
 
-    def val(engine : Engine? = nil, stack : Block? = nil)
-      stack ||= Block.new
-      engine ||= Engine.new
-      engine.schedule(self, stack)
-      engine.exhaust
-      stack.drop
-    end
-
     # Returns a shallow copy of this block.
     def shallow : Block
       self.class.new(parent: parent?, tape: tape.copy, dict: dict.copy, prototype: prototype)
@@ -489,33 +487,32 @@ module Novika
 
     # Assert through the result of running *name*'s value in
     # this block's dictionary.
-    private def assert?(engine : Engine, name : Form, type : T.class) : T? forall T
+    private def assert?(name : Form, type : T.class) : T? forall T
       entry = dict.get(name) { return }
-      child = engine.child
-      result = entry.val(child, Block.new.add(self))
+      result = Engine.exhaust(entry, Block.new.add(self)).top
       unless result.is_a?(Block) && same?(result)
-        result.assert(child, T)
+        result.assert(T)
       end
     end
 
     # Converts this block into the given *type*. Code execution
     # may be required, hence the need for *engine*. If failed,
     # same as `Form#assert`.
-    def assert(engine : Engine, type : T.class) : T forall T
+    def assert(type : T.class) : T forall T
       return self if is_a?(T)
 
       case T
-      when Decimal.class    then assert?(engine, AS_DECIMAL, type)
-      when Quote.class      then assert?(engine, AS_QUOTE, type)
-      when Word.class       then assert?(engine, AS_WORD, type)
-      when Color.class      then assert?(engine, AS_COLOR, type)
-      when Boolean.class    then assert?(engine, AS_BOOLEAN, type)
-      when QuotedWord.class then assert?(engine, AS_QUOTED_WORD, type)
+      when Decimal.class    then assert?(AS_DECIMAL, type)
+      when Quote.class      then assert?(AS_QUOTE, type)
+      when Word.class       then assert?(AS_WORD, type)
+      when Color.class      then assert?(AS_COLOR, type)
+      when Boolean.class    then assert?(AS_BOOLEAN, type)
+      when QuotedWord.class then assert?(AS_QUOTED_WORD, type)
       end || afail(T)
     end
 
     # Returns whether this block implements hook(s) needed
-    # for behaving like *type*. See also: `assert(engine, type)`.
+    # for behaving like *type*. See also: `assert(type)`.
     def can_be?(type : T.class) forall T
       return true if is_a?(T)
 
@@ -531,8 +528,8 @@ module Novika
       end
     end
 
-    def to_quote(engine : Engine) : Quote
-      assert?(engine, AS_QUOTE, Quote) || super
+    def to_quote : Quote
+      assert?(AS_QUOTE, Quote) || super
     end
 
     # Appends a string representation of this block to *io* in

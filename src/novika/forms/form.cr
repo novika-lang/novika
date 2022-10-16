@@ -50,32 +50,14 @@ module Novika
       tap { block.add(self) }
     end
 
-    # Returns the result of opening this form with *engine*.
-    # Resembles Novika's own `F val`.
-    #
-    # Note: `val` is different from `open` in that it opens
-    # this form with *engine* and retruns the result of opening
-    # *immediately*, while `open` and friends only *schedule*
-    # it for execution, making the result un-obtainable for
-    # the Crystal code.
-    #
-    # In general, the purpose of `val` is to have a convenient
-    # interface to call blocks from Crystal, which may be
-    # especially useful for uses where very high performance
-    # is desired.
-    def val(engine : Engine? = nil, stack : Block? = nil)
-      self
-    end
-
     # Asserts that this form is of the given *type*. Dies if
     # it's not.
-    def assert(engine : Engine, type : T.class) : T forall T
+    def assert(type : T.class) : T forall T
       is_a?(T) ? self : afail(T)
     end
 
-    # Returns this form's quote representation. May run Novika,
-    # hence the need for *engine*.
-    def to_quote(engine : Engine) : Quote
+    # Returns this form's quote representation.
+    def to_quote : Quote
       Quote.new(to_s)
     end
   end

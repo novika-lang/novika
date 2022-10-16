@@ -44,16 +44,18 @@ module Novika
   # Usage example:
   #
   # ```
+  # # (!) Compile with -Dnovika_console
+  #
   # bundle = Bundle.new
   #
   # # Add feature classes (feature implementations):
-  # bundle << Features::Essential
+  # bundle << Features::Impl::Essential
   # bundle << Features::Impl::System
   # bundle << Features::Impl::Console
   #
-  # # Enable features. At this point you kinda don't know which
-  # # implementation are used under the hood, so you need to refer
-  # # to the features by their ids.
+  # # Enable features. At this point you kinda don't know
+  # # which implementation is used under the hood, so you
+  # # need to refer to the feature by its ID.
   # bundle.enable("essential")
   # bundle.enable("system")
   # bundle.enable("console")
@@ -61,9 +63,7 @@ module Novika
   # block = Block.new(bundle.bb)
   # block.slurp("console:on 1000 nap console:off")
   #
-  # engine = Engine.new
-  # engine.schedule(stack: Block.new, form: block)
-  # engine.exhaust
+  # Engine.exhaust(block)
   # ```
   class Bundle
     # Returns the bundle block: a block managed by this bundle,
@@ -130,6 +130,19 @@ module Novika
     # Adds a feature class to this bundle.
     def <<(feature : IFeatureClass)
       @classes[feature.id] = feature
+    end
+
+    # Creates a bundle, adds and enables features that are on
+    # by default. Returns the resulting bundle.
+    def self.default
+      bundle = Bundle.new
+      features.each do |feature|
+        if feature.on_by_default?
+          bundle << feature
+        end
+      end
+      bundle.enable_default
+      bundle
     end
 
     # Lists *all* registered (available) feature classes.

@@ -9,11 +9,11 @@
 module Novika::Features::Impl
   class System < ISystem
     def append_echo(engine, form : Form)
-      print form.to_quote(engine).string
+      print form.to_quote.string
     end
 
     def readline(engine, prompt : Form) : {Quote, Boolean}
-      string = prompt.to_quote(engine).string
+      string = prompt.to_quote.string
       answer = nil
       {% if flag?(:novika_readline) %}
         buffer = Linenoise.linenoise(string.to_unsafe)

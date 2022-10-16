@@ -113,10 +113,6 @@ module Novika
       id.prefixed_by?('#') ? QuotedWord.new(id.lchop) : Word.new(id)
     end
 
-    def val(engine : Engine? = nil, stack : Block? = nil)
-      peel.onto(stack || Block.new)
-    end
-
     # Converts this quoted word to `Word`.
     def to_word : Word
       Word.new(id.lstrip('#'))

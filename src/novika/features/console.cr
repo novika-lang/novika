@@ -138,8 +138,8 @@ module Novika::Features
        will be cleared with these colors.
       END
       ) do |engine, stack|
-        self.bg = stack.drop.assert(engine, Color)
-        self.fg = stack.drop.assert(engine, Color)
+        self.bg = stack.drop.assert(Color)
+        self.fg = stack.drop.assert(Color)
       end
 
       target.at("console:width", "( -- W ): leaves console width (in columns)") do |engine, stack|
@@ -163,7 +163,7 @@ module Novika::Features
          during the timeout window.
       END
       ) do |engine, stack|
-        @timeout = stack.drop.assert(engine, Decimal)
+        @timeout = stack.drop.assert(Decimal)
       end
 
       target.at("console:peek", <<-END
@@ -212,7 +212,7 @@ module Novika::Features
        considered a single-character key.
       END
       ) do |engine, stack|
-        key = stack.drop.assert(engine, Quote)
+        key = stack.drop.assert(Quote)
 
         is_key_char?(engine, key).onto(stack)
       end
@@ -227,9 +227,9 @@ module Novika::Features
        (in columns and rows correspondingly).
       END
       ) do |engine, stack|
-        y = stack.drop.assert(engine, Decimal)
-        x = stack.drop.assert(engine, Decimal)
-        q = stack.drop.assert(engine, Quote)
+        y = stack.drop.assert(Decimal)
+        x = stack.drop.assert(Decimal)
+        q = stack.drop.assert(Quote)
         print(engine, x, y, fg, bg, q)
       end
 

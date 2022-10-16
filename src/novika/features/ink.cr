@@ -49,7 +49,7 @@ module Novika::Features
        color stack.
       END
       ) do |engine, stack|
-        fg << stack.drop.assert(engine, Color)
+        fg << stack.drop.assert(Color)
       end
 
       target.at("withEchoBg", <<-END
@@ -57,7 +57,7 @@ module Novika::Features
        color stack.
       END
       ) do |engine, stack|
-        bg << stack.drop.assert(engine, Color)
+        bg << stack.drop.assert(Color)
       end
 
       target.at("dropEchoFg", <<-END

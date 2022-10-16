@@ -22,7 +22,7 @@ module Novika::Features::Impl
     }
 
     def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
-      string = form.to_quote(engine).string
+      string = form.to_quote.string
 
       colorful = string.colorize
       colorful = colorful.fore(COMPAT[fg.closest(COMPAT.keys)]) if fg
