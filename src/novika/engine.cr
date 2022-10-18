@@ -340,6 +340,24 @@ module Novika
         .copy_with(cumul: endtime - starttime)
     end
 
+    # Returns nearest death handler, or nil.
+    #
+    # Tries to find a block with a death handler in `conts`
+    # by asking each continuation's code block whether it
+    # can lookup the death handler.
+    #
+    # Drops continuations that fail to lookup. Drops the
+    # continuation that succeeded in looking up a death
+    # handler. Returns the death handler.
+    def drop_for_death_handler?
+      handler = nil
+      until conts.count.zero?
+        handler = block.at?(Word::DIED)
+        conts.drop
+        return handler if handler
+      end
+    end
+
     # Exhausts all scheduled continuations, starting from the
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
@@ -355,28 +373,21 @@ module Novika
 
                 start_prof_for(form, scheeproto, scheduled_by: schproto)
               end
-            rescue e : Died
-              e.conts = conts.instance
-
-              # Try to find a block with a death handler by reverse-
-              # iterating through the continuations block.
-              handler = nil
-              until conts.count.zero?
-                handler = block.at?(Word::DIED)
-                conts.drop
-                break if handler
+            rescue error : Died
+              error.conts = conts.instance
+              unless handler = drop_for_death_handler?
+                # No death handler was found in block relatives
+                # nor in any continuation's code block. Convert
+                # non-fatal Died to fatal EngineFailure.
+                raise EngineFailure.new(error)
               end
-
-              if handler
-                stack.add(e)
-                begin
-                  handler.on_open(self)
-                  next
-                rescue e : Died
-                  puts "DEATH HANDLER DIED".colorize.yellow.bold
-                end
+              unless handler.is_a?(OpenEntry) && handler.form.is_a?(Block)
+                die("cannot use literals for death handler: use blocks and 'opens'")
               end
-              raise EngineFailure.new(e)
+              # Errors are also forms. They are rarely seen
+              # and used as such, but they are.
+              stack.add(error)
+              schedule(handler.form, stack)
             end
           end
 

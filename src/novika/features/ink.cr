@@ -48,7 +48,7 @@ module Novika::Features
       ( C -- ): pushes Color form onto the echo foreground
        color stack.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         fg << stack.drop.a(Color)
       end
 
@@ -56,19 +56,19 @@ module Novika::Features
       ( C -- ): pushes Color form onto the echo background
        color stack.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         bg << stack.drop.a(Color)
       end
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo foreground color stack.
       END
-      ) { |engine, stack| fg.pop? }
+      ) { fg.pop? }
 
       target.at("dropEchoFg", <<-END
       ( -- ): drops a color from the echo background color stack.
       END
-      ) { |engine, stack| bg.pop? }
+      ) { bg.pop? }
 
       target.at("withColorAppendEcho", <<-END
       ( F -- ): appends Form with last color from the echo

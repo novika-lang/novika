@@ -102,15 +102,15 @@ module Novika::Features
     @timeout = Decimal.new(-1)
 
     def inject(into target)
-      target.at("console:on", "( -- ): enables the Console API.") { |engine, stack| on(engine) }
-      target.at("console:off", "( -- ): disables the Console API.") { |engine, stack| off(engine) }
+      target.at("console:on", "( -- ): enables the Console API.") { |engine| on(engine) }
+      target.at("console:off", "( -- ): disables the Console API.") { |engine| off(engine) }
 
       target.at("console:compat", <<-END
       ( -- ): enables the compatibility color output mode. In
        this mode, only 8 colors are available. All RGB colors
        are automatically reduced to one of those 8 colors.
       END
-      ) { |engine, stack| colors_compat(engine) }
+      ) { |engine| colors_compat(engine) }
       # TODO: self.palette = MyOwnCustomAwesome8ColorPalette.new
 
       target.at("console:256", <<-END
@@ -118,14 +118,14 @@ module Novika::Features
        256 colors are available. All RGB colors are automatically
        reduced to one of those 256 colors.
       END
-      ) { |engine, stack| colors_256(engine) }
+      ) { |engine| colors_256(engine) }
 
       target.at("console:truecolor", <<-END
       ( -- ): enables the truecolor output mode. In this mode,
       all colors are available and are passed to the console
       as-is.
       END
-      ) { |engine, stack| colors_truecolor(engine) }
+      ) { |engine| colors_truecolor(engine) }
 
       # TODO: This one should work the same as in Colors, where
       # we have withEchoFg and withEchoBg that push onto a
@@ -137,7 +137,7 @@ module Novika::Features
        these colors. But after you `console:clear`, the whole console
        will be cleared with these colors.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         self.bg = stack.drop.a(Color)
         self.fg = stack.drop.a(Color)
       end
@@ -162,7 +162,7 @@ module Novika::Features
        * If Timeout is positive, `console:peek` will peek
          during the timeout window.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         @timeout = stack.drop.a(Decimal)
       end
 
@@ -171,7 +171,7 @@ module Novika::Features
        the input state. Use `console:hadKeyPressed` and friends to explore
        the input state afterwards.
       END
-      ) { |engine, stack| peek(engine, @timeout) }
+      ) { |engine| peek(engine, @timeout) }
 
       # TODO: instead of this, have
       #
@@ -233,11 +233,11 @@ module Novika::Features
         print(engine, x, y, fg, bg, q)
       end
 
-      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine, stack|
+      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine|
         present(engine)
       end
 
-      target.at("console:clear", "( -- ): clears console with primary colors") do |engine, stack|
+      target.at("console:clear", "( -- ): clears console with primary colors") do |engine|
         clear(engine, fg, bg)
       end
     end

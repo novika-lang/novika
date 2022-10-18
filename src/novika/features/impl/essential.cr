@@ -22,7 +22,7 @@ module Novika::Features::Impl
       target.at("prototype", <<-END
       ( B -- P ): leaves the Prototype of Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         block.prototype.onto(stack)
       end
@@ -31,7 +31,7 @@ module Novika::Features::Impl
       target.at("parent", <<-END
       ( B -- P ): leaves the Parent of Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         block.parent.onto(stack)
       end
@@ -49,7 +49,7 @@ module Novika::Features::Impl
       ( S B -- C ): creates a Continuation from a Stack and
        a Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         new_stack = stack.drop.a(Block)
         Engine.cont(block, new_stack).onto(stack)
@@ -58,7 +58,7 @@ module Novika::Features::Impl
       target.at("getContBlock", <<-END
       ( C -- cB ): leaves the continuation Block of a Continuation.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         cont = stack.drop.a(Block)
         cont.at(Engine::C_BLOCK_AT).onto(stack)
       end
@@ -66,7 +66,7 @@ module Novika::Features::Impl
       target.at("getContStack", <<-END
       ( C -- cS ): leaves the continuation Stack of a Continuation.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         cont = stack.drop.a(Block)
         cont.at(Engine::C_STACK_AT).onto(stack)
       end
@@ -91,7 +91,7 @@ module Novika::Features::Impl
       >>> 'foo' <<
       === [a reflection] 'foo'
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         stack.onto(stack)
       end
 
@@ -132,25 +132,19 @@ module Novika::Features::Impl
       target.at("dup", <<-END
       ( F -- F F ): duplicates the Form before cursor.
       END
-      ) do |engine, stack|
-        stack.dupe
-      end
+      ) { |_, stack| stack.dupe }
 
       # TODO: example
       target.at("drop", <<-END
       ( F -- ): drops the Form before cursor.
       END
-      ) do |engine, stack|
-        stack.drop
-      end
+      ) { |_, stack| stack.drop }
 
       # TODO: example
       target.at("swap", <<-END
       ( A B -- B A ): swaps two Forms before cursor.
       END
-      ) do |engine, stack|
-        stack.swap
-      end
+      ) { |_, stack| stack.swap }
 
       # TODO: example
       target.at("hydrate", <<-END
@@ -216,16 +210,16 @@ module Novika::Features::Impl
         engine.schedule(form, Block.new)
       end
 
-      target.at("new", "( B -- I ): leaves an Instance of a Block.") do |engine, stack|
+      target.at("new", "( B -- I ): leaves an Instance of a Block.") do |_, stack|
         block = stack.drop.a(Block)
         block.instance.onto(stack)
       end
 
       target.at("sel", <<-END
-    ( D A B -- A/B ): selects A (Determiner is truthy) or B
-     (Determiner is falsey)
-    END
-      ) do |engine, stack|
+      ( D A B -- A/B ): selects A (Determiner is truthy) or B
+       (Determiner is falsey)
+      END
+      ) do |_, stack|
         b = stack.drop
         a = stack.drop
         det = stack.drop
@@ -246,7 +240,7 @@ module Novika::Features::Impl
       target.at("<", <<-END
       ( A B -- S ): leaves whether A is smaller than (less than) B.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         Boolean[a < b].onto(stack)
@@ -257,7 +251,7 @@ module Novika::Features::Impl
       ( F1 F2 -- true/false ): leaves whether two Forms are the
        same (by reference for block, by value  for any other form).
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         b = stack.drop
         a = stack.drop
         Boolean.same?(a, b).onto(stack)
@@ -269,7 +263,7 @@ module Novika::Features::Impl
        (they may or may not be same forms, i.e., those for which
        `same?` would leave true).
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         b = stack.drop
         a = stack.drop
         Boolean[a == b].onto(stack)
@@ -280,7 +274,7 @@ module Novika::Features::Impl
       ( Q -- true/false ): leaves whether Quote consists of only
        uppercase characters. If Quote is empty, leaves false.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         quote = stack.drop.a(Quote)
         s = quote.string
         Boolean[!s.empty? && ((s.size == 1 && s[0].uppercase?) || s.each_char.all?(&.uppercase?))].onto(stack)
@@ -292,7 +286,7 @@ module Novika::Features::Impl
        to Uppercase. If Quote is empty, leaves empty quote.
        Behaves a bit like `uppercase?`.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         quote = stack.drop.a(Quote)
         Quote.new(quote.string.upcase).onto(stack)
       end
@@ -301,7 +295,7 @@ module Novika::Features::Impl
       target.at("block?", <<-END
       ( F -- true/false ): leaves whether Form is a block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         Boolean[stack.drop.is_a?(Block)].onto(stack)
       end
 
@@ -316,9 +310,7 @@ module Novika::Features::Impl
       >>> [] asBlock
       === [] (the same block)
       END
-      ) do |engine, stack|
-        stack.top.a(Block)
-      end
+      ) { |_, stack| stack.top.a(Block) }
 
       target.at("word?", <<-END
       ( F -- true/false ): leaves whether Form is a word form,
@@ -330,7 +322,7 @@ module Novika::Features::Impl
       >>> [ #foo $: *asWord this ] open word?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(Word) || (form.is_a?(Block) && form.can_be?(Word))].onto(stack)
       end
@@ -342,7 +334,7 @@ module Novika::Features::Impl
            Unicode whitespace characters or is itself empty.
         3. If Form is a quoted word, peels off **all** quoting
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         case form
         when Word       then form.onto(stack)
@@ -382,9 +374,7 @@ module Novika::Features::Impl
       >>> #boo a a asWord
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(Word)
-      end
+      ) { |_, stack| stack.top.a(Word) }
 
       target.at("quotedWord?", <<-END
       ( F -- true/false ): leaves whether Form is a quoted word
@@ -396,7 +386,7 @@ module Novika::Features::Impl
       >>> [ ##foo $: *asQuotedWord this ] open quotedWord?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(QuotedWord) || (form.is_a?(Block) && form.can_be?(QuotedWord))].onto(stack)
       end
@@ -423,9 +413,7 @@ module Novika::Features::Impl
       >>> ##boo a a asQuotedWord
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(QuotedWord)
-      end
+      ) { |_, stack| stack.top.a(QuotedWord) }
 
       target.at("decimal?", <<-END
       ( F -- true/false ): leaves whether Form is a decimal form,
@@ -437,7 +425,7 @@ module Novika::Features::Impl
       >>> [ 123 $: *asDecimal this ] open decimal?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(Decimal) || (form.is_a?(Block) && form.can_be?(Decimal))].onto(stack)
       end
@@ -464,9 +452,7 @@ module Novika::Features::Impl
       >>> 200 a a asDecimal
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(Decimal)
-      end
+      ) { |_, stack| stack.top.a(Decimal) }
 
       target.at("quote?", <<-END
       ( F -- true/false ): leaves whether Form is a quote form,
@@ -478,7 +464,7 @@ module Novika::Features::Impl
       >>> [ 'foo' $: *asQuote this ] open quote?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(Quote) || (form.is_a?(Block) && form.can_be?(Quote))].onto(stack)
       end
@@ -505,9 +491,7 @@ module Novika::Features::Impl
       >>> 'boo' a a asQuote
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(Quote)
-      end
+      ) { |_, stack| stack.top.a(Quote) }
 
       target.at("boolean?", <<-END
       ( F -- true/false ): leaves whether Form is a boolean form,
@@ -519,7 +503,7 @@ module Novika::Features::Impl
       >>> [ true $: *asBoolean this ] open boolean?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(Boolean) || (form.is_a?(Block) && form.can_be?(Boolean))].onto(stack)
       end
@@ -548,11 +532,9 @@ module Novika::Features::Impl
       >>> true a a asBoolean
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(Boolean)
-      end
+      ) { |_, stack| stack.top.a(Boolean) }
 
-      target.at("builtin?", "( F -- true/false ): leaves whether Form is a builtin form.") do |engine, stack|
+      target.at("builtin?", "( F -- true/false ): leaves whether Form is a builtin form.") do |_, stack|
         Boolean[stack.drop.is_a?(Builtin)].onto(stack)
       end
 
@@ -567,9 +549,7 @@ module Novika::Features::Impl
       >>> #+ here asBuiltin
       === [native code]
       END
-      ) do |engine, stack|
-        stack.top.a(Builtin)
-      end
+      ) { |_, stack| stack.top.a(Builtin) }
 
       target.at("color?", <<-END
       ( F -- true/false ): leaves whether Form is a color form,
@@ -581,7 +561,7 @@ module Novika::Features::Impl
       >>> [ 0 0 0 rgb $: *asColor this ] open color?
       === true
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         Boolean[form.is_a?(Color) || (form.is_a?(Block) && form.can_be?(Color))].onto(stack)
       end
@@ -608,15 +588,13 @@ module Novika::Features::Impl
       >>> 0 0 0 rgb a a asColor
       === instance of a
       END
-      ) do |engine, stack|
-        stack.top.a(Color)
-      end
+      ) { |_, stack| stack.top.a(Color) }
 
       target.at("pushes", <<-END
       ( B N F -- ): creates a definition for Name in Block that
        pushes Form when resolved there.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         name = stack.drop
         block = stack.drop.a(Block)
@@ -627,7 +605,7 @@ module Novika::Features::Impl
       ( B N F -- ): creates a definition for Name in Block that
        opens Form when resolved there.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         name = stack.drop
         block = stack.drop.a(Block)
@@ -639,7 +617,7 @@ module Novika::Features::Impl
        of Name in Block to Form, but keeps its resolution action
        (open/push).
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         name = stack.drop
         block = stack.drop.a(Block)
@@ -653,7 +631,7 @@ module Novika::Features::Impl
       ( D N -- true/false ): leaves whether Dictionary can fetch
        value for Name.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
         Boolean[block.has?(name)].onto(stack)
@@ -663,7 +641,7 @@ module Novika::Features::Impl
       ( B N -- F ): leaves the value Form under Name in Block's
        dictionary. Does not open the value form.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
         block.at(name).onto(stack)
@@ -682,7 +660,7 @@ module Novika::Features::Impl
       >>> a #y entry:fetch?
       === false
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
         if form = block.at?(name)
@@ -697,7 +675,7 @@ module Novika::Features::Impl
        if no such entry is in Block. Block hierarchy is not
        traversed (only the Block's own table is looked at).
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
         if form = block.flat_at?(name)
@@ -710,7 +688,7 @@ module Novika::Features::Impl
       ( B N -- true/false ): leaves whether an entry called Name
        in Block is an open entry.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
         Boolean[block.at(name).is_a?(OpenEntry)].onto(stack)
@@ -730,7 +708,7 @@ module Novika::Features::Impl
       [ 1 2 3 | . x ]
       [ 1 2 3 1 | . y ]
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         stack.drop.a(Block).shallow.onto(stack)
       end
 
@@ -762,7 +740,7 @@ module Novika::Features::Impl
       >>> b echo
       [ 1 | 2 3 . x ]
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         other = stack.drop.a(Block)
         block.resub(other)
@@ -775,7 +753,7 @@ module Novika::Features::Impl
       >>> [ 1 2 3 ] 0 fromLeft
       === 1
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         index = stack.drop.a(Decimal)
         form = stack.drop
 
@@ -787,39 +765,39 @@ module Novika::Features::Impl
         end
       end
 
-      target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |engine, stack|
+      target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         stack.add(a + b)
       end
 
-      target.at("-", "( A B -- D ): leaves the Difference of two decimals.") do |engine, stack|
+      target.at("-", "( A B -- D ): leaves the Difference of two decimals.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         stack.add(a - b)
       end
 
-      target.at("*", "( A B -- P ): leaves the Product of two decimals.") do |engine, stack|
+      target.at("*", "( A B -- P ): leaves the Product of two decimals.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         stack.add(a * b)
       end
 
-      target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |engine, stack|
+      target.at("/", "( A B -- Q ): leaves the Quotient of two decimals.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         b.die("division by zero") if b.zero?
         stack.add(a / b)
       end
 
-      target.at("mod", "( A B -- M ): leaves the Modulo of two decimals.") do |engine, stack|
+      target.at("mod", "( A B -- M ): leaves the Modulo of two decimals.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         b.die("modulo by zero") if b.zero?
         stack.add(a % b)
       end
 
-      target.at("**", "( A B -- R ): raises A to the power B, leaves Result.") do |engine, stack|
+      target.at("**", "( A B -- R ): raises A to the power B, leaves Result.") do |_, stack|
         b = stack.drop.a(Decimal)
         a = stack.drop.a(Decimal)
         stack.add(a ** b)
@@ -845,7 +823,7 @@ module Novika::Features::Impl
       >>> 2.5 round
       === 2 "rounds towards the even neighbor"
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         decimal = stack.drop.a(Decimal)
         decimal.round.onto(stack)
       end
@@ -865,17 +843,17 @@ module Novika::Features::Impl
       >>> 2.5 trunc
       === 2
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         decimal = stack.drop.a(Decimal)
         decimal.trunc.onto(stack)
       end
 
-      target.at("sqrt", "( D -- R ): leaves the square Root of Decimal.") do |engine, stack|
+      target.at("sqrt", "( D -- R ): leaves the square Root of Decimal.") do |_, stack|
         decimal = stack.drop.a(Decimal)
         decimal.sqrt.onto(stack)
       end
 
-      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |engine, stack|
+      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |_, stack|
         Decimal.new(rand).onto(stack)
       end
 
@@ -886,7 +864,7 @@ module Novika::Features::Impl
       >>> 'hello world' 2 sliceQuoteAt
       === 'he' 'llo world'
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         spt = stack.drop.a(Decimal)
         quote = stack.drop.a(Quote)
         qpre, qpost = quote.slice_at(spt.to_i)
@@ -898,7 +876,7 @@ module Novika::Features::Impl
       ( B/Q -- N ): leaves N, the amount of elements (graphemes)
        in Block (Quote).
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         case form
         when Block, Quote
@@ -908,23 +886,23 @@ module Novika::Features::Impl
         end
       end
 
-      target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |engine, stack|
+      target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |_, stack|
         block = stack.drop.a(Block)
         cursor = Decimal.new(block.cursor)
         cursor.onto(stack)
       end
 
-      target.at("|to", "( B N -- ): moves the cursor in Block to N.") do |engine, stack|
+      target.at("|to", "( B N -- ): moves the cursor in Block to N.") do |_, stack|
         cursor = stack.drop.a(Decimal)
         block = stack.drop.a(Block)
         block.to(cursor.to_i)
       end
 
-      target.at("<|", "( -- ): moves stack cursor once to the left.") do |engine, stack|
+      target.at("<|", "( -- ): moves stack cursor once to the left.") do |_, stack|
         stack.to(stack.cursor - 1)
       end
 
-      target.at("|>", "( -- ): moves stack cursor once to the left.") do |engine, stack|
+      target.at("|>", "( -- ): moves stack cursor once to the left.") do |_, stack|
         stack.to(stack.cursor + 1)
       end
 
@@ -932,7 +910,7 @@ module Novika::Features::Impl
       ( B -- Lh Rh ): slices Block at cursor, leaves Left,
        Right halves.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         lhs, rhs = block.slice
         lhs.onto(stack)
@@ -944,7 +922,7 @@ module Novika::Features::Impl
        and Element before cursor in Block (and moves cursor back
        once), leaves Element.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         stack.drop.a(Block).drop.onto(stack)
       end
 
@@ -953,7 +931,7 @@ module Novika::Features::Impl
        before cursor in Block (and moves cursor forward once),
        drops both.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         stack.drop.onto(stack.drop.a(Block))
       end
 
@@ -961,7 +939,7 @@ module Novika::Features::Impl
       ( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
        leaves the Form after cursor in Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         form = block.eject
         form.onto(stack)
@@ -971,7 +949,7 @@ module Novika::Features::Impl
       ( B F -- ): inserts Form to Block: adds Form to Block,
        and moves cursor back again.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop
         block = stack.drop.a(Block)
         block.inject(form)
@@ -991,7 +969,7 @@ module Novika::Features::Impl
       still, there are ways to overcome the problems from not
       `ahead eject`ing.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         block.thru.onto(stack)
       end
@@ -1002,7 +980,7 @@ module Novika::Features::Impl
        a Value form, then it is enclosed in a new block whose
        parent is Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         form = block.thru
         if form.is_a?(Block)
@@ -1014,7 +992,7 @@ module Novika::Features::Impl
         end
       end
 
-      target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |engine, stack|
+      target.at("top", "( [ ... F | ... ]B -- F ): leaves the top Form in Block.") do |_, stack|
         block = stack.drop.a(Block)
         block.top.onto(stack)
       end
@@ -1036,7 +1014,7 @@ module Novika::Features::Impl
       >>> b
       === [ . y x ]
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         donor = stack.drop.a(Block)
         recpt = stack.drop.a(Block)
         recpt.import!(from: donor)
@@ -1046,12 +1024,12 @@ module Novika::Features::Impl
       ( Eo -- Dq ): leaves Details quote containing error details
        of an Error object.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         error = stack.drop.a(Died)
         Quote.new(error.details).onto(stack)
       end
 
-      target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |engine, stack|
+      target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |_, stack|
         stack.drop.to_quote.onto(stack)
       end
 
@@ -1059,7 +1037,7 @@ module Novika::Features::Impl
         raise engine.die(stack.drop.a(Quote).string)
       end
 
-      target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |engine, stack|
+      target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |_, stack|
         b = stack.drop.a(Quote)
         a = stack.drop.a(Quote)
         stack.add a.stitch(b)
@@ -1069,7 +1047,7 @@ module Novika::Features::Impl
       ( B -- Nb ): gathers all dictionary entry names into
        Name block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         block = stack.drop.a(Block)
         result = Block.new
         block.ls.each do |form|
@@ -1083,7 +1061,7 @@ module Novika::Features::Impl
        for cycles which can hang the interpreter, therefore is
        O(N) where N is the amount of Parent's ancestors.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         parent = stack.drop.a(Block)
         child = stack.top.a(Block)
 
@@ -1126,7 +1104,7 @@ module Novika::Features::Impl
       >>> b.x
       I've changed!
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         friend = stack.drop.a(Block)
         block = stack.drop.a(Block)
         block.befriend(friend)
@@ -1149,7 +1127,7 @@ module Novika::Features::Impl
       >>> a.y echo
       Sorry: undefined dictionary property: y.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         friend = stack.drop.a(Block)
         source = stack.drop.a(Block)
         source.unfriend(friend)
@@ -1173,7 +1151,7 @@ module Novika::Features::Impl
       >>> a.y echo
       Sorry: undefined dictionary property: y.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         source = stack.drop.a(Block)
         Block.with(source.friends).onto(stack)
       end
@@ -1182,17 +1160,17 @@ module Novika::Features::Impl
       ( B Q -- B ): parses Quote and adds all forms from Quote
        to Block.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         source = stack.drop.a(Quote)
         block = stack.top.a(Block)
         block.slurp(source.string)
       end
 
-      target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |engine, stack|
+      target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |_, stack|
         Block.new.onto(stack)
       end
 
-      target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |engine, stack|
+      target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |_, stack|
         Boolean[!stack.drop.a(Block).parent?].onto(stack)
       end
 
@@ -1209,7 +1187,7 @@ module Novika::Features::Impl
       >>> . x
       Sorry: undefined dictionary property: x.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         stack.top.a(Block).parent = nil
       end
 
@@ -1231,7 +1209,7 @@ module Novika::Features::Impl
       >>> true desc
       === 'boolean true'
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         quote = Quote.new(stack.drop.desc)
         quote.onto(stack)
       end
@@ -1255,7 +1233,7 @@ module Novika::Features::Impl
       >>> true typedesc
       === 'boolean'
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         quote = Quote.new(stack.drop.class.typedesc)
         quote.onto(stack)
       end

@@ -155,7 +155,6 @@ module Novika
         Quote.new(string[slicept..], count: size - slicept, ascii: true),
       } if ascii_only?
 
-      lhs = uninitialized String
       rhs = uninitialized String
       lhs_ascii_only = true
       rhs_ascii_only = true

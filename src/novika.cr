@@ -24,6 +24,60 @@ module Novika
   # `core`), and paths for all other `files` (if any).
   record Folder, entry : Path? = nil, files = [] of Path
 
+  # Recursively visits directories starting at, and including,
+  # *root*, and creates `Folder`s for their corresponding paths
+  # in *folders*.
+  def collect(folders : Hash(Path, Folder), root : Path)
+    if File.file?(entry = root / "#{root.stem}.nk")
+      folders[root] = folder = Folder.new(entry)
+    else
+      folders[root] = folder = Folder.new
+    end
+
+    Dir.glob(root / "*.nk") do |path|
+      unless (path = Path[path]) == entry
+        folder.files << path
+      end
+    end
+
+    Dir.glob(root / "*/") do |path|
+      collect(folders, Path[path])
+    end
+  end
+
+  # Runs the file at *path* using *engine*. A new block is
+  # created for *path* as a child of *toplevel*.
+  #
+  # Words from the new block are imported into *toplevel*
+  # after the engine successfully exhausts it.
+  #
+  # Returns *toplevel*.
+  def run(engine : Engine, toplevel : Block, path : Path) : Block
+    source = File.read(path)
+    block = Block.new(toplevel).slurp(source)
+    Engine.exhaust!(block)
+    toplevel.import!(from: block)
+  end
+
+  # Runs *folder*. First, its entry file is run (if any). Then,
+  # all other files are run.
+  def run(engine : Engine, toplevel : Block, folder : Folder)
+    if entry = folder.entry
+      run(engine, toplevel, entry)
+    end
+    run(engine, toplevel, folder.files)
+  end
+
+  # Runs an array of *paths* (each is assumed to be a file).
+  def run(engine : Engine, toplevel : Block, paths : Array(Path))
+    paths.each { |path| run(engine, toplevel, path) }
+  end
+
+  # Runs an array of *folders*.
+  def run(engine : Engine, toplevel : Block, folders : Array(Folder))
+    folders.each { |folder| run(engine, toplevel, folder) }
+  end
+
   # Returns whether the output of Novika should be colorful.
   #
   # Whether this will be respected by general Novika code cannot
@@ -33,8 +87,8 @@ module Novika
     STDOUT.tty? && STDERR.tty? && ENV["TERM"]? != "dumb" && !ENV.has_key?("NO_COLOR")
   end
 
-  # Appends help message to *io*.
-  def help(io)
+  # Appends the CLI help message to *io*.
+  private def help(io)
     Colorize.enabled = Colorize.enabled?.tap do
       # Contextually enable/disable colors depending on whether
       # the user wants them.
@@ -119,58 +173,53 @@ module Novika
     end
   end
 
-  # Recursively visits directories starting at, and including,
-  # *root*, and creates `Folder`s for their corresponding paths
-  # in *folders*.
-  def collect(folders : Hash(Path, Folder), root : Path)
-    if File.file?(entry = root / "#{root.stem}.nk")
-      folders[root] = folder = Folder.new(entry)
-    else
-      folders[root] = folder = Folder.new
-    end
+  # Writes recent profiling information for *engine* to *filename*
+  # using the CSV format.
+  private def dump_profile(engine : Engine, filename, small = false)
+    result = CSV.build do |csv|
+      csv.row "Block ID", "Pseudonym(s)", "Scheduler ID", "Amt of schedules", "Cumulative time (ms)", "Representation"
 
-    Dir.glob(root / "*.nk") do |path|
-      unless (path = Path[path]) == entry
-        folder.files << path
+      engine.prof.each_value do |stat|
+        total_count = stat.scheduled_by.each_value.sum(&.count)
+        total_cumul = stat.scheduled_by.each_value.compact_map(&.cumul).sum(&.total_milliseconds)
+        csv.row stat.id, stat.words.join(' '), "*", total_count, total_cumul, stat.block.to_s
+        next if small
+
+        stat.scheduled_by.each do |sched_id, sched|
+          csv.row "", "", sched_id, sched.count, sched.cumul.try &.total_milliseconds || "-", ""
+        end
       end
     end
 
-    Dir.glob(root / "/*/") do |path|
-      collect(folders, Path[path])
-    end
-  end
-
-  # Runs the file at *path* using *engine*. A new block is
-  # created for *path*; this block inherits *toplevel*.
-  #
-  # Words from the new block are imported into *toplevel*
-  # after the engine is exhausted. Returns *toplevel*.
-  def run(engine : Engine, toplevel : Block, path : Path) : Block
-    source = File.read(path)
-    block = Block.new(toplevel).slurp(source)
-    Engine.exhaust!(block)
-    toplevel.import!(from: block)
+    File.write(filename, result)
   end
 
   # Novika command-line frontend entry point.
-  def frontend(args : Array(String), cwd = Path[FileUtils.pwd])
+  def cli(args : Array(String), cwd = Path[FileUtils.pwd])
     if ARGV.empty? || ARGV.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
-      help(STDERR)
-      exit(1)
+      help(STDOUT)
+      exit(0)
     end
 
-    bundle = Bundle.new
-    Bundle.features.each { |feature| bundle << feature }
-
-    bundle.enable_default
-
+    # Files the user specified.
     files = [] of Path
+    # Folders the user specified.
     folders = {} of Path => Folder
 
+    # Whether to profile at all.
     profile = false
+    # Whether to profile sparsely.
     profile_small = false
 
+    bundle = Bundle.new
     toplevel = Block.new(bundle.bb)
+
+    # Populate the bundle with all features. We'll then enable
+    # those we want.
+    Bundle.features.each { |feature| bundle << feature }
+
+    # Enable on-by-default features.
+    bundle.enable_default
 
     args.each do |arg|
       if bundle.includes?(arg)
@@ -202,40 +251,12 @@ module Novika
     end
 
     engine = Engine.new(profile)
-
-    # Evaluate each folder's entry (if any), then its *.nk files.
-    folders.each_value do |folder|
-      if entry = folder.entry
-        run(engine, toplevel, entry)
-      end
-      folder.files.each do |file|
-        run(engine, toplevel, file)
-      end
-    end
-
-    # Evaluate the user's files.
-    files.each { |file| run(engine, toplevel, file) }
+    run(engine, toplevel, folders.values)
+    run(engine, toplevel, files)
 
     if profile
       puts "Done! Writing profiling results to prof.novika.csv..."
-
-      # Print profiling info if profiling was enabled.
-      result = CSV.build do |csv|
-        csv.row "Block ID", "Pseudonym(s)", "Scheduler ID", "Amt of schedules", "Cumulative time (ms)", "Representation"
-
-        engine.prof.each_value do |stat|
-          total_count = stat.scheduled_by.each_value.sum(&.count)
-          total_cumul = stat.scheduled_by.each_value.compact_map(&.cumul).sum(&.total_milliseconds)
-          csv.row stat.id, stat.words.join(' '), "*", total_count, total_cumul, stat.block.to_s
-          next if profile_small
-
-          stat.scheduled_by.each do |sched_id, sched|
-            csv.row "", "", sched_id, sched.count, sched.cumul.try &.total_milliseconds || "-", ""
-          end
-        end
-      end
-
-      File.write("prof.novika.csv", result)
+      dump_profile(engine, "prof.novika.csv", small: profile_small)
     end
   rescue e : EngineFailure
     e.report(STDERR)
@@ -243,5 +264,5 @@ module Novika
 end
 
 {% if flag?(:novika_frontend) %}
-  Novika.frontend(ARGV)
+  Novika.cli(ARGV)
 {% end %}

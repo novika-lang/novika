@@ -22,7 +22,7 @@ module Novika::Features::Impl
       >>> 36 255 255 rgb
       === rgb(36, 255 ,255)
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         b = stack.drop.a(Decimal).in(0..255).posint
         g = stack.drop.a(Decimal).in(0..255).posint
         r = stack.drop.a(Decimal).in(0..255).posint
@@ -38,7 +38,7 @@ module Novika::Features::Impl
       >>> getRGB
       === 0 25 3
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         color = stack.drop.a(Color)
         r, g, b = color.rgb
         r.onto(stack)
@@ -57,7 +57,7 @@ module Novika::Features::Impl
       >>> 206 35 46 hsl
       === rgb(76, 123, 158)
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         l = stack.drop.a(Decimal).in(0..100).posint
         s = stack.drop.a(Decimal).in(0..100).posint
         h = stack.drop.a(Decimal).in(0..360).posint
@@ -73,7 +73,7 @@ module Novika::Features::Impl
       >>> getHSL
       === 206 35 46
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         color = stack.drop.a(Color)
         h, s, l = color.hsl
         h.onto(stack)
@@ -92,7 +92,7 @@ module Novika::Features::Impl
       >>> 120 100 100 hsv
       === rgb(0, 255, 0)
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         v = stack.drop.a(Decimal).in(0..100).posint
         s = stack.drop.a(Decimal).in(0..100).posint
         h = stack.drop.a(Decimal).in(0..360).posint
@@ -108,7 +108,7 @@ module Novika::Features::Impl
       >>> getHSV
       === 180 100 50
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         color = stack.drop.a(Color)
         h, s, v = color.hsv
         h.onto(stack)
@@ -174,7 +174,7 @@ module Novika::Features::Impl
       that the conversion method used by this word and `getLCH`
       is lossy sometimes.
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         h = stack.drop.a(Decimal).in(0..360).posint
         c = stack.drop.a(Decimal).in(0..132).posint
         l = stack.drop.a(Decimal).in(0..100).posint
@@ -198,7 +198,7 @@ module Novika::Features::Impl
        shift on chroma changes, 26 -> 25"
       === 74 41 25
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         color = stack.drop.a(Color)
         l, c, h = color.lch
         l.onto(stack)
@@ -215,7 +215,7 @@ module Novika::Features::Impl
       >>> 100 withAlpha
       === rgba(0, 25, 3, 100)
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         alpha = stack.drop.a(Decimal).in(0..255).posint
         color = stack.drop.a(Color)
         color.a = alpha
@@ -237,7 +237,7 @@ module Novika::Features::Impl
       >>> getAlpha
       === 100
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         color = stack.drop.a(Color)
         color.a.onto(stack)
       end
@@ -263,7 +263,7 @@ module Novika::Features::Impl
       >>> 74 20 140 rgb pal fromPalette "very dark purple"
       === rgb(255, 0, 0)
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         palette = stack.drop.a(Block)
         color = stack.drop.a(Color)
 
