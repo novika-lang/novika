@@ -1,3 +1,45 @@
+describe 'essential lookup' [
+  in lang
+
+  it should 'lookup in parent(s)' [
+    'hi' $: bar
+
+    [ 1 $: x ] obj $: a
+    [ 2 $: y ] obj $: b
+    [ 3 $: z 100 $: y ] obj $: c
+
+    "c <- b <- a <- this"
+    c b reparent drop "c <- b"
+    b a reparent drop "b <- a"
+
+    [ x y z bar ] c reparent @: foo "foo <- c <- b <- a <- this"
+    [ foo ] vals [ 1 100 3 'hi' ] assert=
+  ]
+
+  it should 'allow for more complex scoping, access with \'.\'' [
+    [ $: delta
+
+      this parent $: super
+
+      [ @: block
+        [ 1 + block ] super.each
+      ] @: each
+
+      this
+    ] @: eachIncrementor
+
+    5 eachIncrementor $: inc
+
+    [ ] $: results
+
+    [ 1 2 3 ] [ 2 * results gulp ] inc.each
+
+    results [ 4 6 8 ] assert=
+  ]
+]
+
+
+
 describe 'block friends' [
   in lang
 

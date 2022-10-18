@@ -39,7 +39,7 @@ module Novika
     # Splits this substrate in two at *index*. Returns the two
     # resulting substrates.
     #
-    # This method is unsafe: it Does not check whether *index*
+    # This method is unsafe: it does not check whether *index*
     # is in bounds.
     def slice_at!(index)
       lhs = Array(T).new(index) { |i| at!(i) }
@@ -60,7 +60,7 @@ module Novika
     abstract def delete?(at index)
 
     # Decrements the amount of references to this substrate.
-    abstract def deref
+    protected abstract def deref
 
     # Returns a copy of this substrate.
     abstract def copy
@@ -96,7 +96,7 @@ module Novika
       RealSubstrate.new(array.dup)
     end
 
-    def deref
+    protected def deref
       res.refs -= 1
     end
 
@@ -148,7 +148,7 @@ module Novika
       end
     end
 
-    def deref
+    protected def deref
       self.refs -= 1
     end
 

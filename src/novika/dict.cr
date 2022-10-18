@@ -39,10 +39,10 @@ module Novika
   struct Dict
     include IDict
 
-    @store = {} of Form => Entry
-
     # :nodoc:
     def initialize
+      @store = {} of Form => Entry
+      @store.compare_by_identity
     end
 
     protected def initialize(@store)

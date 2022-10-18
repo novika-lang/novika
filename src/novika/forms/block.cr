@@ -11,7 +11,7 @@ module Novika
     |\s+
   /x
 
-  # Blocks are very fundamental to Novika.
+  # Blocks are fundamental to Novika.
   #
   # They are a kind of AST node, they hold continuations and
   # are continuations, they are arrays, stacks, and hash tables,
@@ -275,56 +275,77 @@ module Novika
       self.tape, _ = tape.thru? || die("thru out of bounds")
     end
 
-    # Returns the dictionary entry corresponding to *name*,
-    # or dies.
-    def at(name : Form) : Entry
-      at?(name) || die("undefined dictionary property: #{name}")
-    end
+    # Explores this block's relatives, i.e., its vertical
+    # (parent) and horizontal (friend) hierarchy neighbors,
+    # calls *payload* with each such relative.
+    #
+    # When *payload* returns a value of type *T* (a non-nil),
+    # exploration terminates. When *payload* returns nil,
+    # exploration continues.
+    #
+    # The order is as follows, and is exactly Novika's *lookup order*.
+    # Note that here, "yielded X" means "called *payload* with X".
+    #
+    # - First, this block is yielded.
+    # - Then, the parent blocks of this block are yielded,
+    #   starting from the immediate parent and ending with
+    #   the toplevel (god) block.
+    # - Then, this method recurses on friends of this block.
+    # - Then, this method recurses on friends of parent blocks.
+    #
+    # *skip* can be used to disable exploration of specific
+    # blocks, together with their (unexplored) vertical and
+    # horizontal hierarchy.
+    def each_relative(payload : Block -> T?, skip : Set(Block)? = nil) forall T
+      return if skip && in?(skip)
 
-    # Returns the dictionary entry corresponding to *name*.
-    #
-    # Traverses the block hierarchy in the following order:
-    #
-    # (1) First, this block's dictionary is asked for the entry
-    #     corresponding to *name*. If unsuccessful,
-    #
-    # (2) The parent block's dictionary is asked for the entry
-    #     corresponding to *name*. If unsuccessful, the process
-    #     is repeated on the parent of parent, etc., until there
-    #     is no parent block. If entry is still not found,
-    #
-    # (3) Friends of this block are asked for the entry corresponding
-    #     to *name*. For each friend, the same process starting from
-    #     (1) is repeated.
-    #
-    # (4) If none of this block's friends have an entry for *name*,
-    #     (3) and (4) are repeated on the block's parent.
-    #
-    # If no entry is found after (4), this method returns nil.
-    def at?(name : Form, _visited = nil) : Entry?
-      # (1-2) Traverse myself and my parents and flat-at
-      # them for *name*.
       block = self
       while block
-        block.flat_at?(name).try { |entry| return entry }
+        break if skip && block.in?(skip)
+
+        if value = payload.call(block)
+          return value
+        end
+
         block = block.parent?
       end
 
-      # (3-4) Recurse on my friends, and on my parent's friends, etc.
       block = self
-      _visited ||= [] of Block
+      skip ||= Set(Block).new
       while block
-        unless block.in?(_visited)
-          _visited << block
+        unless block.in?(skip)
+          skip << block
           block.each_friend do |friend|
-            next if friend.in?(_visited)
-            if entry = friend.at?(name, _visited)
-              return entry
-            end
+            return friend.each_relative(payload, skip) || next
           end
         end
         block = block.parent?
       end
+    end
+
+    # :ditto:
+    def each_relative(skip = nil, &payload : Block -> T?) forall T
+      each_relative(payload, skip)
+    end
+
+    # Returns the dictionary entry corresponding to *name*,
+    # or dies. See `each_relative` for a detailed description
+    # of lookup order.
+    def at(name : Form, skip = nil) : Entry
+      at?(name, skip) || die("undefined dictionary property: #{name}")
+    end
+
+    # Returns the dictionary entry corresponding to *name*,
+    # or nil. See `each_relative` for a detailed description
+    # of lookup order.
+    def at?(name : Form, skip = nil) : Entry?
+      each_relative skip, &.flat_at?(name)
+    end
+
+    # Returns whether this block can look up an entry corresponding
+    # to *name*.
+    def has?(name : Form, skip = nil)
+      !!each_relative(skip) { |block| block.flat_has?(name) || nil }
     end
 
     # Returns the dictionary entry corresponding to *name*.
@@ -333,10 +354,10 @@ module Novika
       dict.get(name) { }
     end
 
-    # Returns whether this dictionary has an entry corresponding
-    # to *name*.
-    def has?(name : Form)
-      !!at?(name)
+    # Returns whether this block's (and this block's only)
+    # dictionary has an entry corresponding to *name*.
+    def flat_has?(name : Form) : Bool
+      dict.has?(name)
     end
 
     # Returns the form at *index* in the tape. Dies if *index*
@@ -348,11 +369,6 @@ module Novika
     # Binds *name* to *entry* in this block's dictionary.
     def at(name : Form, entry : Entry) : self
       tap { dict.set(name, entry) }
-    end
-
-    # Dies: mutable keys disallowed.
-    def at(name : Block, entry) : self
-      die("mutable keys are disallowed, and block is mutable")
     end
 
     # Binds *name* to *form* in this block's dictionary.
