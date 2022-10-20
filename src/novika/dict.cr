@@ -36,23 +36,41 @@ module Novika
 
   # Default dictionary protocol implementation: default block
   # dictionary implementation. Uses a hash map for storage.
+  #
+  # Note: setting or getting with blocks as keys performs a
+  # linear scan for now. The semantics for this is unstable.
   struct Dict
     include IDict
 
     # :nodoc:
     def initialize
       @store = {} of Form => Entry
-      @store.compare_by_identity
     end
 
     protected def initialize(@store)
     end
 
     def set(name : Form, entry : Entry) : Entry
+      if name.is_a?(Block)
+        @store.each do |k, v|
+          next unless k == name
+          @store[k] = entry
+          return entry
+        end
+      end
+
       @store[name] = entry
     end
 
     def get(name : Form) : Entry?
+      if name.is_a?(Block)
+        @store.each do |k, v|
+          next unless k == name
+          return v
+        end
+        return yield name
+      end
+
       @store.fetch(name) { yield name }
     end
 
@@ -62,7 +80,7 @@ module Novika
 
     def import!(donor : IDict)
       donor.each do |k, v|
-        @store[k] = v unless k.is_a?(Word) && k.id.prefixed_by?("_")
+        set(k, v) unless k.is_a?(Word) && k.id.prefixed_by?("_")
       end
     end
 
