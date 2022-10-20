@@ -53,10 +53,10 @@ module Novika
     protected property? leaf = true
 
     # Returns the tape of this block.
-    protected property tape = Tape(Form).new
+    property tape = Tape(Form).new
 
     # Returns the dictionary of this block.
-    protected property dict : IDict = Dict.new
+    property dict : IDict = Dict.new
 
     # Holds this block's friends. Friends provide an alternative
     # lookup pathway: when parent hierarchy fails to find an entry

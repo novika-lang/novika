@@ -673,7 +673,7 @@ module Novika::Features::Impl
       ( B N -- F true / false ): leaves the value Form under
        Name in Block's dictionary followed by `true`, or `false`
        if no such entry is in Block. Block hierarchy is not
-       traversed (only the Block's own table is looked at).
+       traversed (only the Block's own dictionary is looked at).
       END
       ) do |_, stack|
         name = stack.drop
