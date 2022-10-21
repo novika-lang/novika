@@ -60,5 +60,24 @@ module Novika
     def to_quote : Quote
       Quote.new(to_s)
     end
+
+    # Generates and returns a description for the stack effect
+    # of this form.
+    #
+    # For all forms except blocks and builtins, simply returns
+    # their string representation.
+    #
+    # For blocks and builtins, tries to extract a `( ... -- ... )`
+    # (but see `EFFECT_PATTERN`) from their corresponding
+    # comment. If could not extract or no comment, returns
+    # 'a block' for blocks and 'native code' for builtins.
+    def effect(io)
+      to_s(io)
+    end
+
+    # :ditto:
+    def effect
+      String.build { |io| effect(io) }
+    end
   end
 end

@@ -11,6 +11,10 @@ module Novika
     |\s+
   /x
 
+  # Regex that can be used to search for a pattern in `Block`
+  # comments. Perfer `Form#effect` over matching by hand.
+  EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
+
   # Blocks are fundamental to Novika.
   #
   # They are a kind of AST node, they hold continuations and
@@ -545,6 +549,10 @@ module Novika
 
     def to_quote : Quote
       a?(AS_QUOTE, Quote) || super
+    end
+
+    def effect(io)
+      io << (prototype.comment? =~ EFFECT_PATTERN ? $1 : "a block")
     end
 
     # Appends a string representation of this block to *io* in

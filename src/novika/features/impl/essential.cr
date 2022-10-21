@@ -1033,6 +1033,43 @@ module Novika::Features::Impl
         stack.drop.to_quote.onto(stack)
       end
 
+      target.at("effect", <<-END
+      ( F -- Eq ): leaves Effect quote for Form.
+
+      If Form is not a block nor a builtin, it is simply converted
+      to quote in the same way as `toQuote`.
+
+      If Form is a block or a builtin, an attempt is made at
+      extracting a stack effect expression from its comment.
+      If the attempt fails, Form's description is left. If the
+      attempt was successful, the extracted stack effect quote
+      is added onto the stack as Effect quote.
+
+      >>> 100 effect
+      === '100'
+
+      >>> true effect
+      === 'true'
+
+      >>> #+ here effect
+      === '( A B -- S )' "Note: yours may differ"
+
+      >>> [] effect
+      === 'a block'
+
+      >>> [ "Hello World" ] effect
+      === 'a block'
+
+      >>> [ "( -- ) "] effect
+      === '( -- )'
+
+      >>> #map: here effect
+      === '( Lb B -- MLb )'
+      END
+      ) do |_, stack|
+        Quote.new(stack.drop.effect).onto(stack)
+      end
+
       target.at("die", "( D -- ): dies with Details quote.") do |engine, stack|
         raise engine.die(stack.drop.a(Quote).string)
       end
