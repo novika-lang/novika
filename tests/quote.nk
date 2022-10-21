@@ -54,7 +54,7 @@ describe '~' [
   it should 'enquote and concat' [
     100 200 ~ '100200' assert=
     'hello' 'world' ~ 'helloworld' assert=
-    [ 100 ] [ 200 ] ~ '[ 100 | ]+[ 200 | ]+' assert=
+    [ 100 ] [ 200 ] ~ '[ 100 ][ 200 ]' assert=
   ]
 ]
 
@@ -74,9 +74,9 @@ describe '~*' [
 
   it should 'join forms in blocks into quote non recursively' [
     [ 1 2 3 ] ~* '123' assert=
-    [ [ 'A' true ] true ] ~* '[ \'A\' #true | ]+true' assert=
+    [ [ 'A' true ] true ] ~* '[ \'A\' #true ]true' assert=
     100 $: x
     200 $: y
-    [ [ x y ] ' :: ' x ' @ ' y ] ~* '[ x y | ]+ :: 100 @ 200' assert=
+    [ [ x y ] ' :: ' x ' @ ' y ] ~* '[ x y ] :: 100 @ 200' assert=
   ]
 ]

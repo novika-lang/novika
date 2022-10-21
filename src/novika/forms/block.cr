@@ -487,12 +487,14 @@ module Novika
       #
       #   >>> [ ] $: a
       #   >>> a a <<
-      #   === [ [a reflection] ]
+      #   === [ ⭮ ]
       #   >>> new
       #
       # ... should create a *copy* of `a`, then go thru its
       # child blocks depth first (`__tr` boards `instance`
       # to do that) and replace all reflections with the copy.
+      #
+      #   === [ ⭮ ]
       #
       # Therefore, the fact that they are reflections of the
       # parent is maintained.
@@ -587,36 +589,35 @@ module Novika
       io << " ]"
     end
 
-    def to_s(io, nested = false)
-      # junk todo
-      executed = true
-
-      contents = String.build do |conio|
-        executed = exec_recursive(:to_s) do
-          if count > (nested ? MAX_NESTED_COUNT_TO_S : MAX_COUNT_TO_S)
-            conio << "… " << count << " forms here …"
-          else
-            tape.each
-              .map { |form| form.is_a?(Block) ? String.build { |str| form.to_s(str, nested: true) } : form.to_s }.to_a
-              .insert(cursor, "|")
-              .join(conio, ' ')
-          end
-        end
-      end
-
-      if executed
-        io << "[ " << contents
-      else
-        io << "[a reflection]"
+    def to_s(io)
+      if repr = a?(AS_QUOTE, Quote)
+        # Block represents itself in some other way, respect
+        # that here.
+        io << repr.string
         return
       end
 
-      unless dict.empty?
-        io << " . "; ls.join(io, ' ')
+      executed = exec_recursive(:to_s) do
+        io << "["
+        unless tape.empty?
+          (0...cursor).each { |index| io << " " << at(index) }
+          unless cursor == count
+            io << " |"
+            (cursor...count).each { |index| io << " " << at(index) }
+          end
+        end
+        unless dict.empty?
+          io << " ·"
+          dict.each do |name, entry|
+            io << " " << (entry.is_a?(OpenEntry) ? "@" : "$") << "{" << name << " :: "
+            entry.effect(io)
+            io << "}"
+          end
+        end
+        io << " ]"
       end
 
-      io << " ]"
-      io << "+" unless same?(prototype)
+      io << "⭮" unless executed
     end
   end
 end

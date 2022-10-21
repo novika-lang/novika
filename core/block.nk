@@ -7,7 +7,7 @@
   === 2 true
 
   >>> [ 1 2 3 ]
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   >>> peek?
   === false
   """
@@ -20,7 +20,7 @@
    cursor back N times in Block.
 
   >>> [ 1 2 3 ]
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   >>> 2 |-
   === [ 1 | 2 3 ]
   """
@@ -42,11 +42,11 @@
    cursor forward N times in Block.
 
   >>> [ 1 2 3 ]
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   >>> 2 |-
   === [ 1 | 2 3 ]
   >>> 2 |+
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   """
   2enclose [ over |at + |to ] hydrate
 ] @: |+
@@ -56,7 +56,7 @@
    to Block, and drops both.
 
   >>> 3 [ 1 2 ] gulp
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   """
   swap shove
 ] @: gulp
@@ -66,7 +66,7 @@
    from Block onto stack, before Block. Inverse of `gulp`.
 
   >>> [ 1 2 3 ] spit
-  === 3 [ 1 2 | ]
+  === 3 [ 1 2 ]
   """
   dup cherry swap
 ] @: spit
@@ -76,7 +76,7 @@
     the given Block.
 
   >>> [ 1 2 ] 3 <<
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   """
   over gulp
 ] @: <<
@@ -86,7 +86,7 @@
    block. Inverse of `<<`.
 
   >>> [ 1 2 3 ] >>
-  === [ 1 2 | ] 3
+  === [ 1 2 ] 3
   """
   dup cherry
 ] @: >>
@@ -95,7 +95,7 @@
 [ """( F -- [ F ] ): encloses Form in a block.
 
   >>> 'Hi!' enclose
-  === [ 'Hi!' | ]
+  === [ 'Hi!' ]
   """
   orphan swap <<
 ] @: enclose
@@ -104,7 +104,7 @@
 [ """( F1 F2 -- [ F1 F2 ] ): encloses a pair of Forms in a block.
 
   >>> 'Hello' 'World' 2enclose
-  === [ 'Hello' 'World' | ]
+  === [ 'Hello' 'World' ]
   """
   swap
 
@@ -178,11 +178,11 @@
         [ x y + ] @: sum
         this
       ] open
-  === [ | . x y sum ]
+  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ]
   >>> dup -> x
-  === [ | . x y sum ] 200
+  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200
   >>> over -> y
-  === [ | . x y sum ] 200 100
+  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200 100
   >>> rot -> sum
   === 200 100 [ x y + ]
   >>> open
@@ -222,9 +222,9 @@
         [ x y + ] @: sum
         this
       ] open
-  === [ | . x y sum ]
+  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ]
   >>> dup . x over . y
-  === [ | . x y sum ] 200 100
+  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200 100
   >>> rot . sum
   === 200 100 300
 
@@ -244,12 +244,12 @@
         this
       ] @: foo
   >>> true foo
-  === [ | . bar ]
+  === [ · @{bar: :: a block} ]
   >>> . bar: 100
   STDOUT: 100
   ===
   >>> false foo
-  === [ | . bar ]
+  === [ · @{bar: :: a block } ]
   >>> . bar: 100
   ===
   """
@@ -265,12 +265,12 @@
   ===
 
   >>> [ 100 $: x 200 $: y this ] open
-  === [ | . x y ]
+  === [ · ${x :: 100} {y :: 200} ]
   >>> dup #x fetch: [ echo ]
   STDOUT: 100
-  === [ | . x y ]
+  === [ · ${x :: 100} {y :: 200} ]
   >>> dup #undefinedThing fetch: [ echo ]
-  === [ | . x y ]
+  === [ · ${x :: 100} {y :: 200} ]
   """
   ahead thruBlock @: block
 
@@ -293,12 +293,12 @@
    +------+-------+-------------+
    | #    | form  |    list     |
    +======+=======+=============+
-   | 0    |       | [ 1 2 3 | ] |
+   | 0    |       | [ 1 2 3 ]   |
    | 1    | 1 |to | [ 1 | 2 3 ] |
    | *    |       | [ 1 2 | 3 ] |
    | 3+   |    +  | [ 3 | 3 ]   |
-   | *    |       | [ 3 3 | ]   |
-   | 5+   |    +  | [ 6 | ]     |
+   | *    |       | [ 3 3 ]     |
+   | 5+   |    +  | [ 6 ]       |
    +------+-------+-------------+
 
   === [ 6 ]
@@ -500,14 +500,14 @@
    Modified version of List block. `break` and `next` are available.
 
   >>> [ 1 2 3 ] [ 1 + ] map
-  === [ 2 3 4 | ] (a different block!)
+  === [ 2 3 4 ] (a different block!)
 
   >>> [ 1 2 3 ] $: a
   >>> a [ 1 + ] map
-  === [ 2 3 4 | ] (a different block!)
+  === [ 2 3 4 ] (a different block!)
 
   >>> a
-  === [ 1 2 3 | ]
+  === [ 1 2 3 ]
   """
   $: block $: list [ ] $: result
 
@@ -528,7 +528,7 @@
 ] @: map
 
 
-[ """( Lb B -- MLb ): infix version of `map`.
+[ """( Lb map: B -- MLb ): infix version of `map`.
 
   >>> [ 1 2 3 ] map: [ 1 + ]
   """
@@ -542,13 +542,13 @@
    and `next` are available.
 
   >>> [ ] [ 100 > ] only
-  === [ | ] (a different block!)
+  === [ ] (a different block!)
 
   >>> [ 1 2 3 ] [ ] only
-  === [ 1 2 3 | ] (a different block!)
+  === [ 1 2 3 ] (a different block!)
 
   >>> [ 1 100 2 300 4 600 10 ] [ 100 > ] only
-  === [ 300 600 | ]
+  === [ 300 600 ]
   """
   $: block $: list [ ] $: result
 
@@ -577,7 +577,7 @@
 [ """( Lb only: B -- Rb ): infix version of `only`.
 
   >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
-  === [ 300 600 | ]
+  === [ 300 600 ]
   """
   ahead thruBlock only
 ] @: only:
@@ -745,10 +745,10 @@
 [ """( A B -- Z ): leaves Zipped A, B.
 
   >>> [ ] [ ] zip
-  === [ | ]
+  === [ ]
 
   >>> [ 1 2 ] [ 3 4 ] zip
-  === [ [ 1 3 | ] [ 2 4 | ] | ]
+  === [ [ 1 3 ] [ 2 4 ] ]
 
   >>> [ 1 2 ] [ 3 ] zip
   [dies]
@@ -773,16 +773,16 @@
    the given Default form.
 
   >>> [ ] [ ] #hole zipWithDefault
-  === [ | ]
+  === [ ]
 
   >>> [ 1 2 ] [ 3 4 ] #hole zipWithDefault
-  === [ [ 1 3 | ] [ 2 4 | ] | ]
+  === [ [ 1 3 ] [ 2 4 ] ]
 
   >>> [ 1 2 ] [ 3 ] #hole zipWithDefault
-  === [ [ 1 3 | ] [ 2 hole | ] | ]
+  === [ [ 1 3 ] [ 2 hole ] ]
 
   >>> [ 1 ] [ 3 4 ] #hole zipWithDefault
-  === [ [ 1 3 | ] [ hole 4 | ] | ]
+  === [ [ 1 3 ] [ hole 4 ] ]
   """
   $: default
 
@@ -817,7 +817,7 @@
 
   >>> 1 $: x  2 $: y  #+ $: plus
   >>> this [ x y plus #dup plus [ ##foo #echo ] #open ] conjure
-  === [ 1 2 + dup + [ #foo echo | ] #open | ]
+  === [ 1 2 + dup + [ #foo echo ] #open ]
   >>> open
   STDOUT: foo
   === 6
@@ -837,7 +837,7 @@
 
   >>> 1 $: x  2 $: y  #+ $: plus
   >>> [ x y plus #dup plus [ ##foo #echo ] #open ] here
-  === [ 1 2 + dup + [ #foo echo | ] #open | ]
+  === [ 1 2 + dup + [ #foo echo ] #open ]
   >>> open
   STDOUT: foo
   === 6
@@ -1087,13 +1087,13 @@
    [E; B] if  E < B.
 
   >>> 1 100 range
-  === [ 1 2 3 ... 98 99 100 | ]
+  === [ 1 2 3 ... 98 99 100 ]
 
   >>> -10 10 range
-  === [ -10 -9 -8 ... 8 9 10 | ]
+  === [ -10 -9 -8 ... 8 9 10 ]
 
   >>> 10 0 range
-  === [ 10 9 8 ... 0 | ]
+  === [ 10 9 8 ... 0 ]
   """
   $: e $: b
 
@@ -1107,10 +1107,10 @@
 [ """( B to: E -- Rb ): infix version of `range`.
 
   >>> 1 to: 100
-  === [ 1 2 3 ... 98 99 100 | ]
+  === [ 1 2 3 ... 98 99 100 ]
 
   >>> 10 to: 0
-  === [ 10 9 8 ... 0 | ]
+  === [ 10 9 8 ... 0 ]
   """
   ahead thruVal range
 ] @: to:
@@ -1211,8 +1211,8 @@
   >>> [ 1 2 3 ] $: a
   >>> a #x 0 pushes
   >>> a a toTape 2echo
-  [ 1 2 3 | . x ]
-  [ 1 2 3 | ]
+  [ 1 2 3 · ${x :: 0} ]
+  [ 1 2 3 ]
   """
   new toOrphan
 ] @: toTape
@@ -1278,7 +1278,7 @@
   >>> a
   === [ 1 | 2 3 4 5 6 ]
   >>> 4 |after!
-  === [ 2 3 | ]
+  === [ 2 3 ]
   >>> a echo
   [ 1 2 3 4 | 5 6 ]
   >>> a 'doesn\'t exist' |after!
@@ -1319,7 +1319,7 @@
   >>> a
   === [ 1 | 2 3 4 5 6 ]
   >>> 4 |before?
-  === [ 2 3 | ]
+  === [ 2 3 ]
   >>> a echo
   [ 1 2 3 | 4 5 6 ]
          ~^~ note the cursor position
@@ -1346,7 +1346,7 @@
   >>> a
   === [ 1 | 2 3 4 5 6 ]
   >>> 4 |before!
-  === [ 2 3 | ]
+  === [ 2 3 ]
   >>> a echo
   [ 1 2 3 | 4 5 6 ]
          ~^~ note the cursor position

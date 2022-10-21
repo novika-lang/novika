@@ -75,4 +75,4 @@ block new orphan reparent [
 
 vals echo "should be: [ x y + Algebraic stuff test huh? ]"
 
-stack echo "should be [ | ]"
+stack echo "should be [ ]"

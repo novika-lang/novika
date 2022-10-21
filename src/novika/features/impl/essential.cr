@@ -75,7 +75,7 @@ module Novika::Features::Impl
       ( -- B ): pushes a reflection of the block it's opened in.
 
       >>> [ this ] open
-      === [ this ]+ (instance of `[ this ]`)
+      === [ this ] (instance of `[ this ]`)
       >>> prototype
       === [ this ] (I told you!)
       END
@@ -87,9 +87,9 @@ module Novika::Features::Impl
       ( -- S ): pushes the Stack it's opened in.
 
       >>> stack
-      === [a reflection]
+      === ⭮
       >>> 'foo' <<
-      === [a reflection] 'foo'
+      === ⭮ 'foo'
       END
       ) do |_, stack|
         stack.onto(stack)
@@ -705,8 +705,8 @@ module Novika::Features::Impl
       >>> b #y 1 pushes
       >>> b 1 shove
       >>> a b 2echo
-      [ 1 2 3 | . x ]
-      [ 1 2 3 1 | . y ]
+      [ 1 2 3 · ${x :: 0} ]
+      [ 1 2 3 1 · ${y :: 1} ]
       END
       ) do |_, stack|
         stack.drop.a(Block).shallow.onto(stack)
@@ -721,24 +721,24 @@ module Novika::Features::Impl
       >>> [ 'a' 'b' 'c' ] $: b
       >>> b #x 0 pushes
       >>> b echo
-      [ 'a' 'b' 'c' | . x ]
+      [ 'a' 'b' 'c' · ${x :: 0} ]
       >>> a b resub
       >>> b
-      === [ 1 2 3 | . x ]
+      === [ 1 2 3 · ${x :: 0} ]
 
       Note that since *substrate* is replaced, not *tape*, the
       cursor position is saved:
 
       >>> a b 2echo
-      [ 1 2 3 | ]
-      [ 'a' 'b' 'c' | . x ]
+      [ 1 2 3 ]
+      [ 'a' 'b' 'c' · ${x :: 0} ]
       >>> b 2 |-
       >>> a b 2echo
-      [ 1 2 3 | ]
-      [ 'a' | 'b' 'c' . x ]
+      [ 1 2 3 ]
+      [ 'a' | 'b' 'c' · ${x :: 0} ]
       >>> a b resub
       >>> b echo
-      [ 1 | 2 3 . x ]
+      [ 1 | 2 3 · ${x :: 0} ]
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -1009,10 +1009,10 @@ module Novika::Features::Impl
       >>> [ ] $: b
       >>> b #y 200 pushes
       >>> b a
-      === [ | . y ] [ | . x _private ]
+      === [ · ${y :: 200} ] [ · ${x :: 100} ${_private :: 'Fool!'} ]
       >>> mergeDicts
       >>> b
-      === [ . y x ]
+      === [ · ${y :: 200} ${x :: 100} ]
       END
       ) do |_, stack|
         donor = stack.drop.a(Block)
@@ -1220,7 +1220,7 @@ module Novika::Features::Impl
       >>> b . x echo
       0
       >>> b toOrphan
-      === [ | ]
+      === [ ]
       >>> . x
       Sorry: undefined dictionary property: x.
       END

@@ -77,13 +77,13 @@ module Novika
   # engine.schedule(block, stack)
   # engine.exhaust
   #
-  # puts stack # [ 3 | ]
+  # puts stack # [ 3 ]
   #
   # # Or, shorter:
   #
   # block = Block.new(Bundle.default.bb).slurp("1 2 +")
   #
-  # puts Engine.exhaust(block) # [ 3 | ]
+  # puts Engine.exhaust(block) # [ 3 ]
   # ```
   class Engine
     # Maximum amount of scheduled continuations in `conts`. After
