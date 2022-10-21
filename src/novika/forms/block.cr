@@ -193,7 +193,7 @@ module Novika
             .gsub(/\\\\/, '\\')
           block.add Quote.new(match)
         elsif match = $~["comment"]?
-          if block.count.zero?
+          if block.tape.empty?
             match = match
               .gsub(/(?<!\\)\\"/, '"')
               .gsub(/\\\\/, '\\')

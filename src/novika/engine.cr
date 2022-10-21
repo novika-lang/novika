@@ -351,7 +351,7 @@ module Novika
     # handler. Returns the death handler.
     def drop_for_death_handler?
       handler = nil
-      until conts.count.zero?
+      until conts.tape.empty?
         handler = block.at?(Word::DIED)
         conts.drop
         return handler if handler
@@ -361,7 +361,7 @@ module Novika
     # Exhausts all scheduled continuations, starting from the
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
-      until conts.count.zero?
+      until conts.tape.empty?
         begin
           while form = (scheduler = block).next?
             begin

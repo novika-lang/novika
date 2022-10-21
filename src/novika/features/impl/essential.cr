@@ -121,7 +121,7 @@ module Novika::Features::Impl
         # This can be and probably should be a count decrement,
         # not tens of sequential drops. But we don't have that
         # level of control currently.
-        until conts.count.zero? || (found = block.same?(engine.block))
+        until conts.tape.empty? || (found = block.same?(engine.block))
           conts.drop
         end
 
