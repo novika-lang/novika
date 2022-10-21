@@ -33,7 +33,8 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
-        block.parent.onto(stack)
+        block.die("no parent for block") unless parent = block.parent?
+        parent.onto(stack)
       end
 
       target.at("conts", "( -- Cs ): pushes the Continuations block.") do |engine, stack|
