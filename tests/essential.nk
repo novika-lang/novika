@@ -475,6 +475,29 @@ describe 'toQuote block' [
   "todo more tests"
 ]
 
+describe 'effect' [
+  in lang
+
+  it should 'work for forms other than block & builtin' [
+    100 effect '100' assert=
+    true effect 'true' assert=
+    'hello \n world' effect '\'hello \\n world\'' assert=
+  ]
+
+  it should 'work for builtins' [
+    #+ here effect '( A B -- S )' assert=
+  ]
+
+  it should 'work for blocks' [
+    [] effect 'a block' assert=
+    [ "Hello World" ] effect 'a block' assert=
+    [ "( -- )"] effect 'a block' assert=
+    [ "( -- ) fooBoo"] effect 'a block' assert=
+    [ "( -- ): hello world"] effect '( -- )' assert=
+    #map: here effect '( Lb map: B -- MLb )' assert=
+  ]
+]
+
 describe 'builtin?' [
   in lang
 
