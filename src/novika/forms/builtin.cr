@@ -22,6 +22,10 @@ module Novika
       code.call(engine, engine.stack)
     end
 
+    def effect(io)
+      @desc =~ EFFECT_PATTERN ? (io << $1) : "native code"
+    end
+
     def to_s(io)
       io << "[native code]"
     end

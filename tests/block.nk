@@ -1348,7 +1348,7 @@ describe 'join' [
   ]
 
   it should 'enquote non-quotes' [
-    [ [ 1 2 3 ] 'foo' 100 bar #baz ##boo ] join '[ 1 2 3 | ]+foo100bar#baz##boo' assert=
+    [ [ 1 2 3 ] 'foo' 100 bar #baz ##boo ] join '[ 1 2 3 ]foo100bar#baz##boo' assert=
   ]
 ]
 
@@ -1429,7 +1429,7 @@ describe 'toTape' [
     [ 1 2 3 ] $: a
     a #x 0 pushes
 
-    a toQuote '[ 1 2 3 | . x ]+' assert=
+    a toQuote '[ 1 2 3 · ${x :: 0} ]' assert=
 
     a toTape $: aTape
     aTape [ 1 2 3 ] assert=
@@ -1469,7 +1469,7 @@ describe '|after/|after!/|after?' [
 
     [ 1 2 3 4 5 6 7 ] $: a
     a 1 |to
-    [ a [ 8 = ] |after! ] 'expected ｢[ 8 = | ]+｣ to match, but reached end of block' assertDies
+    [ a [ 8 = ] |after! ] 'expected ｢[ 8 = ]｣ to match, but reached end of block' assertDies
     [ a 8 |after! ] 'expected ｢8｣ to match, but reached end of block' assertDies
   ]
 ]

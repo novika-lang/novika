@@ -392,8 +392,6 @@ describe 'asBlock' [
 describe 'toQuote' [
   in lang
 
-  "TODO: enquote block. It needs a pretty large set of tests
-   for itself."
   it should 'enquote boolean true' [ true toQuote 'true' assert= ]
   it should 'enquote boolean false' [ false toQuote 'false' assert= ]
   it should 'enquote builtin' [ #+ here toQuote '[native code]' assert= ]
@@ -403,6 +401,101 @@ describe 'toQuote' [
   it should 'enquote quote' [ 'hello world' toQuote 'hello world' assert= ]
   it should 'enquote word' [ #hello toQuote 'hello' assert= ]
   it should 'enquote quoted word' [ ##hello toQuote '#hello' assert= ]
+]
+
+describe 'toQuote block' [
+  in lang
+
+  it should 'enquote empty block' [
+    orphan toQuote '[ ]' assert=
+    [ ] toQuote '[ ]' assert=
+  ]
+
+  it should 'enquote small block' [
+    [ 1 2 3 ] toQuote '[ 1 2 3 ]' assert=
+    [ 1 2 3 ] dup 0 |to toQuote '[ | 1 2 3 ]' assert=
+    [ 1 2 3 ] dup 1 |to toQuote '[ 1 | 2 3 ]' assert=
+    [ 'hello world' 1 2 3 ] toQuote '[ \'hello world\' 1 2 3 ]' assert=
+  ]
+
+  it should 'enquote nested blocks' [
+    [ [ 1 2 3 ] [ x y z ] ] toQuote '[ [ 1 2 3 ] [ x y z ] ]' assert=
+    [ [ 1 2 3 ] [ x [] z ] ] toQuote '[ [ 1 2 3 ] [ x [ ] z ] ]' assert=
+  ]
+
+  it should 'enquote dict blocks' [
+    orphan $: dict
+    dict #x 100 pushes
+    dict #y 200 pushes
+    dict #z [ 1 2 3 ] pushes
+    dict #inc [ "( N -- N' ): does fancy stuff. Does ( a lot - of - Fancy stuff): see?" 1 + ] opens
+    dict #foo #+ here pushes
+    dict toQuote '[ · ${x :: 100} ${y :: 200} ${z :: a block} @{inc :: ( N -- N\' )} ${foo :: ( A B -- S )} ]' assert=
+  ]
+
+  it should 'enquote list+dict blocks' [
+    [ 100 $: x 200 $: y ] obj $: foo
+    foo toQuote '[ 100 $: x 200 $: y · x -> 100, y -> 200 ]'
+  ]
+
+  it should 'enquote reflections' [
+    [ ] $: a
+    a a shove
+    a toQuote '[ ⭮ ]' assert=
+
+    [ 1 2 3 ] $: b
+    b b shove
+    b toQuote '[ 1 2 3 ⭮ ]' assert=
+
+    [ 1 2 3 ] $: c
+    c 1 |to
+    c toQuote '[ 1 | 2 3 ]' assert=
+
+    c c shove
+    c toQuote '[ 1 ⭮ | 2 3 ]' assert=
+  ]
+
+  it should 'respect quote reprs' [
+    [ 'fooBar' $: *asQuote ] obj $: x
+    x toQuote 'fooBar' assert=
+  ]
+
+  it should 'enquote reflection keys' [
+    orphan $: x
+    x x 100 pushes
+    x x 200 pushes
+    x toQuote '[ · ${⭮ :: 200} ]' assert=
+    orphan $: y
+    y x y pushes
+    x y x pushes
+    x toQuote '[ · ${⭮ :: 200} ${[ · ${⭮ :: a block} ] :: a block} ]' assert=
+    y toQuote '[ · ${[ · ${⭮ :: 200} ${⭮ :: a block} ] :: a block} ]' assert=
+  ]
+
+  "todo more tests"
+]
+
+describe 'effect' [
+  in lang
+
+  it should 'work for forms other than block & builtin' [
+    100 effect '100' assert=
+    true effect 'true' assert=
+    'hello \n world' effect '\'hello \\n world\'' assert=
+  ]
+
+  it should 'work for builtins' [
+    #+ here effect '( A B -- S )' assert=
+  ]
+
+  it should 'work for blocks' [
+    [] effect 'a block' assert=
+    [ "Hello World" ] effect 'a block' assert=
+    [ "( -- )"] effect 'a block' assert=
+    [ "( -- ) fooBoo"] effect 'a block' assert=
+    [ "( -- ): hello world"] effect '( -- )' assert=
+    #map: here effect '( Lb map: B -- MLb )' assert=
+  ]
 ]
 
 describe 'builtin?' [

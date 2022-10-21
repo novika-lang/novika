@@ -380,7 +380,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
   stack block may be specified.
 
     ```novika
-    [ ] [ 1 2 + ] there echo "[ 3 | ]"
+    [ ] [ 1 2 + ] there echo "[ 3 ]"
     ```
 
 * Blocks need to be opened explicitly unless they are under a word/
@@ -404,7 +404,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
   ] @: newPoint
 
   1 2 newPoint $: pt
-  pt echo "[ | . x y ]"
+  pt echo "[ · x y ]"
   pt -> x echo "1"
   pt -> y echo "2"
   ```
@@ -415,7 +415,7 @@ Forms are *enclosed* in blocks by being surrounded with `[]`s:
 Working with the insertion point:
 
 ```novika
-  [ 1 2 3 ] "[ 1 2 3 | ]"
+  [ 1 2 3 ] "[ 1 2 3 ]"
   [ 1 2 3 ] [ <| ] there "[ 1 2 | 3 ]
   [ + ] there  "[ 3 | 3 ]"
   [ echo ] there "Prints 3 ;; [ | 3]"

@@ -31,7 +31,7 @@ module Novika::Features
        frontend in Feature block.
 
       >>> novika:features
-      === [ 'essential' 'colors' 'console' | ] (yours may differ)
+      === [ 'essential' 'colors' 'console' ] (yours may differ)
       END
       ) { |engine, stack| features(engine).onto(stack) }
     end

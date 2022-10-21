@@ -27,6 +27,11 @@ module Novika
     # See the same method in `Substrate`.
     delegate :at?, :each, :count, to: substrate
 
+    # Returns whether this tape is empty (has no elements).
+    def empty?
+      count.zero?
+    end
+
     # Returns the element before the cursor.
     def top?
       at?(cursor - 1)

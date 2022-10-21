@@ -110,6 +110,9 @@ module Novika
     def initialize(@form)
     end
 
+    # See `Form#effect`, `Form#effect(io)`.
+    delegate :effect, to: form
+
     # See the same method in `Form`.
     def onto(block : Block)
       form.onto(block)
