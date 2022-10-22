@@ -613,7 +613,7 @@ module Novika::Features::Impl
         block.at name, OpenEntry.new(form)
       end
 
-      target.at("submit", <<-END
+      target.at("entry:submit", <<-END
       ( B N F -- ): changes the value form of an existing definition
        of Name in Block to Form, but keeps its resolution action
        (open/push).
@@ -623,7 +623,7 @@ module Novika::Features::Impl
         name = stack.drop
         block = stack.drop.a(Block)
         unless entry = block.at?(name)
-          name.die("cannot #submit forms to an entry that does not exist")
+          name.die("entry:submit: entry does not exist in enclosing block(s)")
         end
         entry.submit(form)
       end

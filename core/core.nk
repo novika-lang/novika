@@ -31,7 +31,7 @@ _root #@: [
 
 [ "( V =: N -- ): submits Value to an already defined entry
    under the specified Name."
-  ahead swap ahead thru swap submit
+  ahead swap ahead thru swap entry:submit
 ] @: =:
 
 
