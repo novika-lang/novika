@@ -284,7 +284,7 @@ module Novika
     end
 
     def to_s(io)
-      io << "'" << grapheme << "'"
+      io << "'"; grapheme.to_s.dump_unquoted(io); io << "'"
     end
   end
 end
