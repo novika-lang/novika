@@ -208,7 +208,7 @@ module Novika
         start += $0.size
       end
 
-      die("missing closing bracket") unless same?(block)
+      block.die("missing closing bracket") unless same?(block)
 
       self
     end

@@ -1,24 +1,19 @@
 module Novika
-  # Represents failure during execution in the `Engine`.
+  # Holds and accepts information about an error.
   #
-  # There are two Novika-related exceptions: `Died`, which is
-  # normally caused *explicitly* by the user (e.g., by adding
-  # a number to a string)), and `EngineFailure`, which is raised
-  # when `Engine` can't continue executing. Engine failures
-  # are impossible to catch from inside Novika, because to
-  # catch them would require an engine.
-  class EngineFailure < Exception
-    def initialize(@e : Died)
-    end
-
-    # See `Died#report`.
-    def report(io : IO)
-      @e.report(io)
-    end
-  end
-
-  # Raised when a form dies.
-  class Died < Exception
+  # Errors are raised when a certain case is undesired, unhandleable,
+  # or otherwise inappropriate to some form of computation.
+  #
+  # Errors can be *handled* and *unhandled*. *Unhandled* errors
+  # generate an error `report` (generally to STDERR, but this
+  # depends on the frontend). They are fatal for the program
+  # they occur in.
+  #
+  # *Death handlers*, or *death traps*, when set up in code blocks
+  # and/or their relatives, allow errors to be *handled*. For this
+  # reason, errors are Novika `Form`s, and can be manipulated,
+  # reported, and inspected from Novika.
+  class Error < Exception
     include Form
 
     # How many trace entries to display at max.
@@ -42,7 +37,11 @@ module Novika
       "error"
     end
 
-    # Appends a report about this error to *io*.
+    # Reports about this error to *io*.
+    #
+    # Note: Colorize is used for colors and emphasis. If you
+    # do not want Colorize in *io*, you can temporarily disable
+    # it by setting `Colorize.enabled = false`.
     def report(io : IO)
       if conts = self.conts
         b = Math.max(0, conts.count - MAX_TRACE)

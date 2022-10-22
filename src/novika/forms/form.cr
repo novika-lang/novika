@@ -7,9 +7,9 @@ module Novika
   # Make sure to override `self.typedesc` to avoid weird unrelated
   # Crystal errors. Crystal breaks at class-level inheritance.
   module Form
-    # Raises `Died` providing *details*.
+    # Raises an `Error` providing *details*.
     def die(details : String)
-      raise Died.new(details)
+      raise Error.new(details)
     end
 
     # :nodoc:

@@ -1026,7 +1026,7 @@ module Novika::Features::Impl
        of an Error object.
       END
       ) do |_, stack|
-        error = stack.drop.a(Died)
+        error = stack.drop.a(Error)
         Quote.new(error.details).onto(stack)
       end
 

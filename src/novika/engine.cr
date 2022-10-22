@@ -87,7 +87,7 @@ module Novika
   # ```
   class Engine
     # Maximum amount of scheduled continuations in `conts`. After
-    # passing this number, `Died` is raised to bring attention
+    # passing this number, `Error` is raised to bring attention
     # to such dangerous depth.
     MAX_CONTS = 1024
 
@@ -113,7 +113,7 @@ module Novika
     # :ditto:
     protected def self.count=(other)
       unless other.in?(0..MAX_ENGINES)
-        raise Died.new("bad engine count: maybe deep recursion in *as...?")
+        raise Error.new("bad engine count: maybe deep recursion in *as...?")
       end
       @@count = other
     end
@@ -362,44 +362,40 @@ module Novika
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
       until conts.tape.empty?
-        begin
-          while form = (scheduler = block).next?
-            begin
-              form.on_parent_open(self)
-              if @profile
-                schproto = scheduler.prototype
-                scheeproto = block.prototype
-                next if schproto.same?(scheeproto)
+        while form = (scheduler = block).next?
+          begin
+            form.on_parent_open(self)
+            if @profile
+              schproto = scheduler.prototype
+              scheeproto = block.prototype
+              next if schproto.same?(scheeproto)
 
-                start_prof_for(form, scheeproto, scheduled_by: schproto)
-              end
-            rescue error : Died
-              error.conts = conts.instance
-              unless handler = drop_for_death_handler?
-                # No death handler was found in block relatives
-                # nor in any continuation's code block. Convert
-                # non-fatal Died to fatal EngineFailure.
-                raise EngineFailure.new(error)
-              end
-              unless handler.is_a?(OpenEntry) && handler.form.is_a?(Block)
-                die("cannot use literals for death handler: use blocks and 'opens'")
-              end
-              # Errors are also forms. They are rarely seen
-              # and used as such, but they are.
-              stack.add(error)
-              schedule(handler.form, stack)
+              start_prof_for(form, scheeproto, scheduled_by: schproto)
             end
+          rescue error : Error
+            error.conts = conts.instance
+            # Re-raise if no user-defined death handler ANYWHERE.
+            # Death handler lookup is the broadest kind of lookup
+            # in Novika, it traverses *all* running blocks and
+            # their relatives.
+            unless handler = drop_for_death_handler?
+              raise error
+            end
+            unless handler.is_a?(OpenEntry) && handler.form.is_a?(Block)
+              die("cannot use literals for death handler: use blocks and 'opens'")
+            end
+            # Errors are also forms. They are rarely seen
+            # and used as such, but they are.
+            stack.add(error)
+            schedule(handler.form, stack)
           end
-
-          next conts.drop unless @profile
-
-          dropped_cont = conts.drop.as(Block)
-          dropped_cont_block = dropped_cont.at(C_BLOCK_AT).as(Block)
-          end_prof_for(dropped_cont_block.prototype)
-        rescue e : Died
-          puts "ERROR IN THE INTERPRETER LOOP".colorize.yellow.bold
-          raise EngineFailure.new(e)
         end
+
+        next conts.drop unless @profile
+
+        dropped_cont = conts.drop.as(Block)
+        dropped_cont_block = dropped_cont.at(C_BLOCK_AT).as(Block)
+        end_prof_for(dropped_cont_block.prototype)
       end
     end
   end

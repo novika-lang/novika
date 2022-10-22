@@ -5,7 +5,7 @@ require "file_utils"
 
 # Order is important!
 require "./novika/forms/form"
-require "./novika/errors"
+require "./novika/error"
 require "./novika/tape"
 require "./novika/dict"
 require "./novika/forms/*"
@@ -258,7 +258,7 @@ module Novika
       puts "Done! Writing profiling results to prof.novika.csv..."
       dump_profile(engine, "prof.novika.csv", small: profile_small)
     end
-  rescue e : EngineFailure
+  rescue e : Error
     e.report(STDERR)
   end
 end

@@ -28,7 +28,7 @@ module Novika::Features::Impl
       {Quote.new(answer || ""), Boolean[!!answer]}
     end
 
-    def report_error(engine, error : Died)
+    def report_error(engine, error : Error)
       error.report(STDERR)
     end
 

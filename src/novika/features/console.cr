@@ -199,7 +199,7 @@ module Novika::Features
       END
       ) do |engine, stack|
         unless had_key_pressed?(engine)
-          raise Died.new("no key pressed: make sure to check `console:hadKeyPressed` first")
+          engine.die("no key pressed: make sure to check `console:hadKeyPressed` first")
         end
         get_key_pressed!(engine).onto(stack)
       end

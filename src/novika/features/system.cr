@@ -33,7 +33,7 @@ module Novika::Features
     abstract def readline(engine, prompt : Form) : {Quote, Boolean}
 
     # Reports abound an *error* to the standard error stream.
-    abstract def report_error(engine, error : Died)
+    abstract def report_error(engine, error : Error)
 
     # Sleeps for the given amount of *millis*econds.
     abstract def nap(engine, millis : Decimal)
@@ -74,7 +74,7 @@ module Novika::Features
       in `*died`.
       END
       ) do |engine, stack|
-        error = stack.drop.a(Died)
+        error = stack.drop.a(Error)
 
         report_error(engine, error)
       end
