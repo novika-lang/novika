@@ -742,6 +742,24 @@
 ] @: any?
 
 
+[ """( F anyof: B -- true/false ): infix version of `anyof?`.
+
+  >>> 100 anyof: [ 1 2 3 ]
+  === false
+
+  >>> #foo anyof: [ foo bar ]
+  === true
+
+  >>> [ 1 2 3 ] $: x
+  >>> 1 anyof: x
+  === true
+  >>> #foo anyof: x
+  === false
+  """
+  ahead thruLitBlock anyof?
+] @: anyof:
+
+
 [ """( A B -- Z ): leaves Zipped A, B.
 
   >>> [ ] [ ] zip

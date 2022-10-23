@@ -471,6 +471,14 @@ module Novika
       executed && result
     end
 
+    # Returns whether the tape of this block includes *other*,
+    # as per loose equality `==(other)`.
+    def includes?(other : Form)
+      tape.each { |form| return true if other == form }
+
+      false
+    end
+
     # Creates and returns an instance of this block, under the
     # given *parent*.)
     def instance(parent reparent : Block = self, __tr = nil) : Block

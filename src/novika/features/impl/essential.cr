@@ -270,6 +270,25 @@ module Novika::Features::Impl
         Boolean[a == b].onto(stack)
       end
 
+      target.at("anyof?", <<-END
+      ( F B -- true/false ): leaves whether any form in Block is
+       equal (via `=`) to Form.
+
+      >>> 1 [ 1 2 3 ] anyof?
+      === true
+
+      >>> 'hello' [ 'hello' 'world' 1 ] anyof?
+      === true
+
+      >>> 'hello' [ 1 2 3 ] anyof?
+      === false
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        form = stack.drop
+        Boolean[form.in?(block)].onto(stack)
+      end
+
       # TODO: example
       target.at("uppercase?", <<-END
       ( Q -- true/false ): leaves whether Quote consists of only

@@ -1,3 +1,34 @@
+describe 'anyof:' [
+  in lang
+
+  it should 'support basic use with block literal as arg' [
+    100 anyof: [ 1 2 3 ] false assert=
+    #foo anyof: [ foo bar ] true assert=
+  ]
+
+  it should 'support use with word as arg' [
+    [ 1 2 3 ] $: x
+    1 anyof: x true assert=
+    #foo anyof: x false assert=
+
+    [ 1 $: n [ n 1 + n 2 + n 3 + ] vals ] @: duFu
+
+    2 anyof: duFu true assert=
+    3 anyof: duFu true assert=
+    4 anyof: duFu true assert=
+    5 anyof: duFu false assert=
+  ]
+
+  it should 'die when result is not a block' [
+    'hello' $: x
+    [ 1 2 3 ] @: y
+
+    [ 1 anyof: 123 ] 'bad type: decimal, expected: a block' assertDies
+    [ 1 anyof: x ] 'bad type: quote, expected: a block' assertDies
+    [ 1 anyof: y ] 'bad type: decimal, expected: a block' assertDies
+  ]
+]
+
 describe 'peek?' [
   in lang
 

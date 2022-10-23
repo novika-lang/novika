@@ -1,3 +1,74 @@
+describe 'anyof?' [
+  in lang
+
+  it should 'leave false for empty block' [
+    [ ] [ ] anyof? false assert=
+    123 [ ] anyof? false assert=
+    false [ ] anyof? false assert=
+    "..etc"
+  ]
+
+  it should 'check for booleans' [
+    true [ true false false ] anyof? false assert= "because true/false is a word"
+    #true [ true false false ] anyof? true assert= "as you can see here"
+
+    true [ true false false ] vals anyof? true assert=
+    false [ true true ] vals anyof? false assert=
+  ]
+
+  it should 'check for decimals' [
+    1 [ 1 2 3 ] anyof? true assert=
+  ]
+
+  it should 'check for words and qwords' [
+    #hello [ 1 hello 2 3 ] anyof? true assert=
+    #hello [ 1 2 3 ] anyof? false assert=
+    ##hello [ 1 #hello 2 3 ] anyof? true assert=
+    ##hello [ 1 hello 2 3 ] anyof? false assert=
+    ###hello [ 1 ##hello 2 3 ] anyof? true assert=
+    ##hello [ 1 2 3 #hElLo ] anyof? false assert=
+    ##hello [ 1 2 3 ] anyof? false assert=
+  ]
+
+  it should 'check for quotes' [
+    '' [ 'hello' false 0 -100 true ] anyof? false assert=
+    '' [ 'hello' '' false 0 -100 true ] anyof? true assert=
+    'hello world' [ 'hello' 'world' ] anyof? false assert=
+    'hello world' [ 'hello world' 1 2 'hello world' ] anyof? true assert=
+  ]
+
+  it should 'check for colors' [
+    [ 0 0 0 rgb
+      100 201 201 rgb
+    ] vals $: colors
+
+    0 0 0 rgb colors anyof? true assert=
+    0 1 0 rgb colors anyof? false assert=
+
+    100 201 201 rgb getHSL hsl colors anyof? true assert=
+  ]
+
+  it should 'check for builtins' [
+    [ #+ here #- here #* here #/ here ] vals $: bins
+
+    #+ here bins anyof? true assert=
+    #/ here bins anyof? true assert=
+    #** here bins anyof? false assert=
+  ]
+
+  it should 'check for blocks' [
+    [ [ 1 2 3 ] [ 4 5 6 ] ] $: b
+
+    [ 1 2 3 ] b anyof? true assert=
+    [ 4 5 6 ] b anyof? true assert=
+    [ 1 3 2 ] b anyof? false assert=
+    [ 4 5 '6' ] b anyof? false assert=
+    b new first b anyof? true assert=
+    b first shallowCopy b anyof? true assert=
+  ]
+]
+
+
 describe 'toOrphan' [
   in lang
 

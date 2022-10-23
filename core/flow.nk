@@ -15,12 +15,21 @@
 ] @: 2val
 
 
+[ "( B -- Lb ): leaves Literal block after cursor in Block. If
+   form after cursor isn't a block, encloses it and opens it with
+   an empty stack, Block being the enclosing block's parent, and
+   finally asserts the resulting form is a block."
+  "TODO: maybe just fetch?"
+  dup thru dup block? br: nip [ enclose swap reparent val asBlock ]
+] @: thruLitBlock
+
+
 [ "( B -- F' ): same as `thruBlock val`."
   thruBlock val
 ] @: thruVal
 
 
-[ "( B -- ): same as `thruBlock vals`."
+[ "( B -- [ ... F' ... ] ): same as `thruBlock vals`."
   thruBlock vals
 ] @: thruVals
 
