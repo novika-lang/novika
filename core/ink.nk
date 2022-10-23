@@ -1,4 +1,16 @@
-[ "( F -- ): same as `withColorAppendEcho`, but also appends
-   a newline to the end."
+[ "( F -- ): same as `withColorAppendEcho`, but follows the
+   echo with a newline character."
   withColorAppendEcho '\n' appendEcho
 ] @: withColorEcho
+
+
+[ "( F -- ): same as `withEmphasisAppendEcho`, but follows
+   the echo with a newline character."
+  withEmphasisAppendEcho '\n' appendEcho
+] @: withEmphasisEcho
+
+
+[ "( F -- ): same as `withReverseAppendEcho`, but follows
+   the echo with a newline character."
+  withReverseAppendEcho '\n' appendEcho
+] @: withReverseEcho

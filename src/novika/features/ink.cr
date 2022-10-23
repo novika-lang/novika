@@ -1,5 +1,5 @@
 module Novika::Features
-  # Enables colorful output using `withColorEcho` and friends.
+  # Enables colorful output using `withColorAppendEcho` and friends.
   #
   # Exposed vocabulary:
   #
@@ -7,11 +7,14 @@ module Novika::Features
   # * `withEchoBg`, generic implementation
   # * `dropEchoFg`, generic implementation
   # * `dropEchoBg`, generic implementation
-  # * `withColorEcho`, implemented by `with_color_echo`
+  # * `withColorAppendEcho`, implemented by `with_color_append_echo`
+  # * `withEmphasisAppendEcho`, implemented by `with_emphasis_append_echo`
+  # * `withReverseAppendEcho`, generic implementation; when no
+  #   colors given by the use, `with_reverse_append_echo` is used.
   abstract class IInk
     include Feature
 
-    NO_SYSTEM_ECHO_ERROR = "withColorEcho requires 'echo' from feature system, " \
+    NO_SYSTEM_ECHO_ERROR = "with...Echo words need 'echo' from feature system, " \
                            "but no instance of feature system was found"
 
     def self.id : String
@@ -19,7 +22,7 @@ module Novika::Features
     end
 
     def self.purpose : String
-      "enables colorful output using 'withColorEcho' and friends"
+      "enables colorful output using 'withColorAppendEcho' and friends"
     end
 
     def self.on_by_default? : Bool
@@ -41,6 +44,18 @@ module Novika::Features
     # *bg* background color (if any) to the standard output
     # stream. One of *fg*, *bg* is guaranteed to be non-nil.
     abstract def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
+
+    # Appends *form* with foreground and background colors swapped
+    # with each other.
+    abstract def with_emphasis_append_echo(engine, form : Form)
+
+    # Appends *form* with inverse style (background color is
+    # set to foreground color, and vice versa).
+    #
+    # Note: if both foreground and background colors are set
+    # by the user, `with_color_append_echo` is preferred over
+    # this method.
+    abstract def with_reverse_append_echo(engine, form : Form)
 
     # Injects the colors vocabulary into *target*.
     def inject(into target)
@@ -70,14 +85,43 @@ module Novika::Features
       END
       ) { bg.pop? }
 
+      target.at("withReverseAppendEcho", <<-END
+      ( F -- ): appends Form with foreground and background
+       colors swapped with each other (background color is set
+       to foreground color, and vice versa).
+
+      Note: if unsupported by the output stream, will print
+      Form as-is.
+      END
+      ) do |engine, stack|
+        form = stack.drop
+        if enabled? && (fg.last? && bg.last?)
+          with_color_append_echo(engine, bg.last, fg.last, form)
+        else
+          with_reverse_append_echo(engine, form)
+        end
+      end
+
+      target.at("withEmphasisAppendEcho", <<-END
+      ( F -- ): appends emphasized echo of Form. Typically bold
+       style is used for emphasis, italic is allowed as well.
+      END
+      ) do |engine, stack|
+        form = stack.drop
+        if enabled?
+          with_emphasis_append_echo(engine, form)
+        elsif system = bundle[ISystem]?
+          system.append_echo(engine, form)
+        else
+          form.die(NO_SYSTEM_ECHO_ERROR)
+        end
+      end
+
       target.at("withColorAppendEcho", <<-END
       ( F -- ): appends Form with last color from the echo
        foreground color stack set as foreground color, and
        the last as color from the echo background stack set
        as background color, to the standard output stream.
-
-      Requires the system feature, but it's on by default so you
-      normally don't need to worry about this.
 
       Note: some implementations (particularly the Novika's default
       one) choose to snap foreground and background colors to
