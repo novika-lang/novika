@@ -1529,3 +1529,97 @@ describe '|before/|before?||before!' [
     avg 2 assert=
   ]
 ]
+
+
+describe 'tally' [
+  in lang
+
+  it should 'do nothing when block is empty' [
+    false $: did
+    [ ] [ true =: did ] tally [ ] assert=
+    did false assert=
+  ]
+
+  it should 'count and open with occurence pairs' [
+    [ 1 2 2 3 3 2 1 ] [ ] tally [
+      1 "=>" 2
+      2 "=>" 3
+      3 "=>" 2
+    ] assert=
+  ]
+
+  it should 'leave stack block' [
+    [ 1 2 2 3 3 2 1 ] [ even? ] tally [
+      1 "=> 2" true
+      2 "=> 3" false
+      3 "=> 2" true
+    ] vals assert=
+  ]
+
+  it should 'allow to drop form/count in block' [
+    [ 1 2 2 3 3 2 1 ] [ drop ] tally [ 1 2 3 ] assert=
+    [ 1 2 2 3 3 2 1 ] [ nip ] tally [ 2 3 2 ] assert=
+    [ 1 2 2 3 3 2 1 ] [ 2drop ] tally [ ] assert=
+  ]
+
+  it should 'count blocks correctly' [
+    [ [ 1 2 ] [ 3 4 ] [ 3 4 ] [ 1 2 ] [ 5 6 ] ] $: b
+
+    b [ ] tally [
+      [ 1 2 ] 2
+      [ 3 4 ] 2
+      [ 5 6 ] 1
+    ] assert=
+  ]
+
+  it should 'count nested blocks correctly' [
+    [ [ 1 2 ] [ 3 [ 4 5 ] ] [ 3 [ 4 5 ] ] [ 3 [ 4 6 ] ] [ 1 2 ] [ 4 5 ] [ 4 6 ] ] $: b
+
+    b [ ] tally [
+      [ 1 2 ] 2
+      [ 3 [ 4 5 ] ] 2
+      [ 3 [ 4 6 ] ] 1
+      [ 4 5 ] 1
+      [ 4 6 ] 1
+    ] assert=
+  ]
+
+  it should 'count with reflections' [
+    [ ] $: b
+    3 times: [ b b shove ]
+    b 1 shove
+    b [ b ] here shove
+    b [ ] tally [
+      b 3
+      1 1
+      [ b ] 1
+    ] here assert=
+  ]
+]
+
+
+describe 'tally:' [
+  in lang
+
+  it should 'function in the same way as \'tally\'' [
+    false $: did
+
+    [ ] tally: [ true =: did ] [ ] assert=
+    did false assert=
+
+    [ 1 2 2 3 3 2 1 ] tally: even?
+      [
+        1 "=> 2" true
+        2 "=> 3" false
+        3 "=> 2" true
+      ] vals assert=
+
+    [ 1 2 2 3 3 2 1 ] tally: [ drop ] [ 1 2 3 ] assert=
+    [ 1 2 2 3 3 2 1 ] tally: [ nip ] [ 2 3 2 ] assert=
+    [ 1 2 2 3 3 2 1 ] tally: [ 2drop ] [ ] assert=
+
+    [ 1 2 2 3 3 2 1 ] tally: drop [ 1 2 3 ] assert=
+    [ 1 2 2 3 3 2 1 ] tally: nip [ 2 3 2 ] assert=
+    [ 1 2 2 3 3 2 1 ] tally: 2drop [ ] assert=
+  ]
+]

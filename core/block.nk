@@ -1390,3 +1390,36 @@
 [ "( Lb |before!: C -- S ): infix version of `|before!`."
   ahead thru |before!
 ] @: |before!:
+
+
+[ """( L B -- S ): opens Block with each `form count` pair,
+   preceded by previous results of Block (if any), as the
+   active Stack. Forms are taken from List block. Resulting
+   Stack is left.
+
+  >>> [ 1 2 2 3 3 2 1 ] [ 2echo ] tally
+  STDOUT: 1 \"two ones\"
+  STDOUT: 2
+  STDOUT: 2 \"three twos\"
+  STDOUT: 3
+  STDOUT: 3 \"two threes\"
+  STDOUT: 2
+  === [ ] \"all were consumed by 2echo\"
+  """
+  over empty? => [ 2drop orphan ^ ]
+
+  asBlock @: body
+
+  orphan $: bag
+  each: [ $: item
+    bag item entry:flatFetch? br: [ 1 + ] 1
+    bag item rot pushes
+  ]
+
+  bag ls ||-> [ bag over entry:fetch body ]
+] @: tally
+
+
+[ "( L tally: B -- ): infix version of `tally`."
+  ahead thruBlock tally
+] @: tally:
