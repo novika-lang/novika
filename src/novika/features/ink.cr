@@ -45,9 +45,10 @@ module Novika::Features
     # stream. One of *fg*, *bg* is guaranteed to be non-nil.
     abstract def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
 
-    # Appends *form* with foreground and background colors swapped
-    # with each other.
-    abstract def with_emphasis_append_echo(engine, form : Form)
+    # Same as `with_color_append_echo`, but also emphasizes
+    # echo of *form*. Bold style is used by default, but
+    # feature implementors may choose e.g .italic.
+    abstract def with_emphasis_append_echo(engine, fg : Color?, bg : Color?, form : Form)
 
     # Appends *form* with inverse style (background color is
     # set to foreground color, and vice versa).
@@ -103,13 +104,14 @@ module Novika::Features
       end
 
       target.at("withEmphasisAppendEcho", <<-END
-      ( F -- ): appends emphasized echo of Form. Typically bold
-       style is used for emphasis, italic is allowed as well.
+      ( F -- ): same as withColorAppendEcho, but also emphasizes
+       echo of Form. Bold style is used by default, but feature
+       implementors may choose e.g .italic.
       END
       ) do |engine, stack|
         form = stack.drop
         if enabled?
-          with_emphasis_append_echo(engine, form)
+          with_emphasis_append_echo(engine, fg.last?, bg.last?, form)
         elsif system = bundle[ISystem]?
           system.append_echo(engine, form)
         else

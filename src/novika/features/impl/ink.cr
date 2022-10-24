@@ -27,8 +27,12 @@ module Novika::Features::Impl
       system.append_echo(engine, Quote.new(object.to_s))
     end
 
-    def with_emphasis_append_echo(engine, form : Form)
-      append_echo(engine, form.to_quote.string.colorize.bold)
+    def with_emphasis_append_echo(engine, fg : Color?, bg : Color?, form : Form)
+      string = form.to_quote.string
+      colorful = string.colorize.bold
+      colorful = colorful.fore(COMPAT[fg.closest(COMPAT.keys)]) if fg
+      colorful = colorful.back(COMPAT[bg.closest(COMPAT.keys)]) if bg
+      append_echo(engine, colorful)
     end
 
     def with_reverse_append_echo(engine, form : Form)
@@ -37,11 +41,9 @@ module Novika::Features::Impl
 
     def with_color_append_echo(engine, fg : Color?, bg : Color?, form : Form)
       string = form.to_quote.string
-
       colorful = string.colorize
       colorful = colorful.fore(COMPAT[fg.closest(COMPAT.keys)]) if fg
       colorful = colorful.back(COMPAT[bg.closest(COMPAT.keys)]) if bg
-
       append_echo(engine, colorful)
     end
   end
