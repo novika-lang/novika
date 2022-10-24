@@ -61,20 +61,20 @@ _pgRoot #? [
  command is only available in the REPL, similarly to `?`
  word you\'ve entered to see this message.
 
-  >>> la
-  startSession a block
-  there ( S B -- S )
-  @: a block
-  $: ( F $: N -- )
-  =: ( V =: N -- )
-  2die ( Q F -- )
-  needsFeature: ( needsFeature: Id -- )
-  withColorEcho ( F -- )
-  ...
+   >>> la
+   startSession a block
+   there ( S B -- S )
+   @: a block
+   $: ( F $: N -- )
+   =: ( V =: N -- )
+   2die ( Q F -- )
+   needsFeature: ( needsFeature: Id -- )
+   withColorEcho ( F -- )
+   ...
 
-  >>> help help
-  ( help F -- ): echoes help for Form. If form is a word,
-   fetches it in caller first.
+   >>> help help
+   ( help F -- ): echoes help for Form. If form is a word,
+    fetches it in caller first.
 ' echo
 
 ' Documentation often contains examples. You can try typing
@@ -89,9 +89,9 @@ _pgRoot #? [
 
 '§4. Have any issues?' withEmphasisEcho
 '
-Visit https://github.com/novika-lang/novika for more Novika content.
-Create an issue at https://github.com/novika-lang/novika/issues if
-you need help.
+ Visit https://github.com/novika-lang/novika for more Novika content.
+ Create an issue at https://github.com/novika-lang/novika/issues if
+ you need help.
 ' echo
 ] opens
 
