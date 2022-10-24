@@ -9,7 +9,7 @@ module Novika
   module Form
     # Raises an `Error` providing *details*.
     def die(details : String)
-      raise Error.new(details)
+      raise Error.new(details, form: self)
     end
 
     # :nodoc:

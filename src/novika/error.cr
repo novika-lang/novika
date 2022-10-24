@@ -19,14 +19,17 @@ module Novika
     # How many trace entries to display at max.
     MAX_TRACE = 64
 
-    # Returns a string describing the reasons of this death.
+    # Returns a string describing the reasons of this error.
     getter details : String
+
+    # Returns the form that (speculatively) caused this error.
+    getter! form : Form
 
     # Holds a reference to the continuations block at the time
     # of death.
     property conts : Block?
 
-    def initialize(@details)
+    def initialize(@details, @form = nil)
     end
 
     def desc(io : IO)
@@ -69,6 +72,13 @@ module Novika
           io.puts
         end
       end
+
+      if form?
+        io.puts "  ╿ this form is invalid, and is the cause of death:"
+        io << "  │  " << form
+        io.puts
+      end
+
       io << "Sorry: ".colorize.red.bold << details << "."
       io.puts
     end
