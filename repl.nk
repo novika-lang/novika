@@ -1,18 +1,11 @@
 """
-This is a prototype of a Novika REPL. You can run it from
-the terminal or from a viewer such as one found in `world/`
-or the upcoming Novika Sketchbook.
+This is a prototype of a Novika REPL. Currently, you can
+only run it from the terminal. Assuming 'core' (Novika's
+standard library directory) and 'repl.nk' exist in the
+working directory, run the following command in your
+favorite shell:
 
-To start it up, run the following command from the Novika
-repo directory:
-
-  >>> ./bin/novika core repl.nk
-
-The REPL could be somewhat buggy because it uses some of the
-more obscure features of Novika, and interfaces with the guts
-of the language more intimately than most other Novika code.
-Considering the language is currently entirely untested (meaning
-no automatic tests, of course), to reiterate, bugs are expected.
+ >>> ./bin/novika core repl.nk
 """
 
 "REPL root block, also persisted for the entire REPL session.
@@ -21,57 +14,81 @@ no automatic tests, of course), to reiterate, bugs are expected.
 this child $: _pgRoot
 
 
-_pgRoot #? [
-'
-Welcome to Novika, and thanks for trying it out!
+_pgRoot #la [
+  "Outputs all words defined and accessible at this point."
+  "TODO: use _pgRoot and parents instead of ls*"
+  ls* each: [ $: word
+    this word entry:fetch effect $: eff
+    word withEmphasisAppendEcho
+    ' ' appendEcho
+    eff echo
+  ]
+] opens
 
-Typing `help <word>` prints help for the specified word. For example:
+
+_pgRoot #? [
+'§1. Hi!' withEmphasisEcho
+'
+ Welcome to Novika, and thanks for trying it out! Getting
+ around the language and the environment may feel daunting --
+ and it is, for the language is being actively developed, and
+ its pros & cons are getting discovered, explored & patched
+ up on the go. Play, quit, play some more -- this is the zen
+ at the moment. Have fun!
+' echo
+
+'§2. Introduction' withEmphasisEcho
+'
+ If we were to look at all Novika code that was ever written,
+ most of it will be *words*. There are brick-level-words
+ (*builtins*), house-level- words, street-level-words,
+ city-level, region-level, and so on, up to infinity. Before
+ "bricks" comes native code; each next level is built out of
+ previous ones, and with enough care could even make use of
+ the next levels. This analogy helps to understand *words*,
+ and *forms* in general -- they are abstract building blocks,
+ sometimes "bricks", sometimes "houses", sometimes "streets"
+ and so on. *Blocks* are used to "glue" forms together.
+ Blocks are forms as well, so you can "glue" one block to
+ another as well as one form to another.
+' echo
+
+'§3. Finding new words' withEmphasisEcho
+
+'
+ Typing the following command will output all available
+ words, together with their stack effect. Note that this
+ command is only available in the REPL, similarly to `?`
+ word you\'ve entered to see this message.
+
+  >>> la
+  startSession a block
+  there ( S B -- S )
+  @: a block
+  $: ( F $: N -- )
+  =: ( V =: N -- )
+  2die ( Q F -- )
+  needsFeature: ( needsFeature: Id -- )
+  withColorEcho ( F -- )
+  ...
 
   >>> help help
   ( help F -- ): echoes help for Form. If form is a word,
-  fetches it in caller first.
-  …
+   fetches it in caller first.
+' echo
 
-  >>> help +
-  ( A B -- S ): leaves the Sum of two decimals.
-  …
+' Documentation often contains examples. You can try typing
+ some in, playing with forms in them, and orchestrating
+ multiple examples so they perform one "song". This is one
+ of the best ways to learn new words, both in natural and
+ comuter languages.
 
-To list all available words, use the following script:
+ Note: I\'m using the word *command* here, but `la` and `help`
+ are normal Novika words, just like `echo` and `swap` are.
+' echo
 
-  >>> ls* sepBy: \' \' echo
-  ? _pgRoot startSession there @: $: =: 2die needsFeature: withColorEcho …
-
-... then you can start exploring:
-
-  >>> help there
-  ( S B -- S ): opens Block in Stack, leaves Stack. Ahead
-  is transferred to block.
-  …
-
-  (your output may differ)
-
-To list words followed by their descriptions, use:
-
-  >>> ls* map: [ dup here desc stack sepBy: \'\\n\' ] sepBy: \'\\n\\n\' echo
-  …
-  ls
-  ( B -- Nb ): gathers all dictionary entry names into Name block.
-
-  reparent
-  ( C P -- C ): changes the parent of Child to Parent. Checks
-  for cycles which can hang the interpreter, therefore is
-  O(N) where N is the amount of Parent\'s ancestors.
-
-  slurp
-  ( B Q -- B ): parses Quote and adds all forms from Quote
-  to Block.
-  …
-
-  (your output may differ)
-
-Help messages often contain examples. You can try typing some
-in and playing with stuff.
-
+'§4. Have any issues?' withEmphasisEcho
+'
 Visit https://github.com/novika-lang/novika for more Novika content.
 Create an issue at https://github.com/novika-lang/novika/issues if
 you need help.
