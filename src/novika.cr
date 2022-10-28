@@ -55,7 +55,8 @@ module Novika
   def run(engine : Engine, toplevel : Block, path : Path) : Block
     source = File.read(path)
     block = Block.new(toplevel).slurp(source)
-    Engine.exhaust!(block)
+    engine.schedule!(block, stack: Block.new)
+    engine.exhaust
     toplevel.import!(from: block)
   end
 
