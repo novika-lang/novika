@@ -312,3 +312,25 @@ orphan $: _groups
   _describeBody #in in opens
   _describeBody do
 ] @: describe
+
+
+[ """( ... leaves: B -- ... ): compares active stack with
+   Block: noop if equal via `=`, otherwise, dies. Note that
+   only N last items in active stack are compared with Block,
+   where N is the amount of items in Block.
+
+      100 leaves: [ 100 ] \"Stack has 100 now.\"
+      200 leaves: [ 100 200 ] \"Stack has 100 and 200.\"
+      300 leaves: [ 300 ] \"Stack has 100 and 200 and 300\"
+  """
+  stack shallowCopy $: actual
+  ahead thruBlock $: expected
+
+  [ [ actual ' did not match ' expected ] ~* die ] @: fail
+
+  actual count expected count < => fail
+
+  expected eachWithIndex: [ $: form $: index
+    form actual expected count 1 - index - fromRight = not => fail
+  ]
+] @: leaves:
