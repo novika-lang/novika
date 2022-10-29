@@ -2,12 +2,12 @@ class String
   # Returns whether this string starts with *prefix* but also
   # has other characters after it.
   def prefixed_by?(prefix : String) : Bool
-    starts_with?(prefix) && size > prefix.size
+    size > prefix.size && starts_with?(prefix)
   end
 
   # :ditto:
   def prefixed_by?(prefix : Char) : Bool
-    starts_with?(prefix) && size > 1
+    size > 1 && starts_with?(prefix)
   end
 end
 
@@ -35,6 +35,10 @@ module Novika
 
     def self.typedesc
       "word"
+    end
+
+    def private?
+      id.prefixed_by?('_')
     end
 
     def on_parent_open(engine : Engine) : self

@@ -227,6 +227,18 @@ describe 'word?' [
   ]
 ]
 
+
+describe 'private?' [
+  in lang
+
+  it should 'leave whether a word is private' [
+    #_ private? false assert=
+    #hello private? false assert=
+    #_hello private? true assert=
+  ]
+]
+
+
 describe 'quotedWord?' [
   in lang
 

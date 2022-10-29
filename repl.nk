@@ -18,6 +18,8 @@ _pgRoot #la [
   "Outputs all words defined and accessible at this point."
   "TODO: use _pgRoot and parents instead of ls*"
   ls* each: [ $: word
+    word private? => next
+
     this word entry:fetch effect $: eff
     word withEmphasisAppendEcho
     ' ' appendEcho

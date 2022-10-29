@@ -1,0 +1,71 @@
+"Outputs to STDOUT JSON documentation for all toplevel entries
+ defined at the time of running this script."
+
+"Do these before everything else so that the 'ls*' result
+ doesn't include the JSON generation words."
+this $: _toplevel
+ ls* $: _toplevelWords
+
+
+[ "( Q -- Js ): leaves a JSON string literal for Quote.
+   Use for properties with string values."
+  asQuote
+    '\n'   '\\n' replaceAll
+    '\t'   '\\t' replaceAll
+    '"'    '\\"' replaceAll
+    '\\\'' '\''  replaceAll
+  $: quote
+
+  [ '"' quote '"' ] ~*
+] @: string
+
+
+[ "( D -- Jn ): leaves a JSON number literal for Decimal.
+   Use for properties with numeric values."
+  asDecimal toQuote
+] @: number
+
+
+[ "( K V -- Jp ): leaves JSON property with the given Key
+   and Value quotes."
+  asQuote $: value
+  asQuote $: key
+
+  [ '"' key '": ' value ] ~*
+] @: property
+
+
+[ "( Mq -- Jo ): leaves JSON object with the given Member
+   quotes, i.e., results of running `property`."
+  asBlock vals $: members
+
+  [ '{ ' members sepBy: ', ' ' }' ] vals join
+] @: object
+
+
+[ "( Iq -- Ja ): leaves JSON array with the given Item
+   quotes, i.e., results of running `object`, `string`,
+   `decimal`, or `array`."
+  asBlock vals $: items
+
+  [ '[ ' items sepBy: ', ' ' ]' ] vals join
+] @: array
+
+
+[
+  'words'
+    _toplevelWords map: [ $: word
+      "Guess we'll have to do this in ls* sometime in
+       the future."
+      word private? => next
+
+      _toplevel word entry:fetch $: form
+
+      [
+        'name' word toQuote string property
+        'desc' form desc string property
+      ] object
+    ] array property
+] object
+
+echo

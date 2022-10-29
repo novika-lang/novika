@@ -1145,7 +1145,7 @@
   >>> [ x '; ' y ] here join
   === '1; 2'
   """
-  [ toQuote stitch ] '' reduce
+  asBlock [ toQuote stitch ] '' reduce
 ] @: join
 
 
@@ -1299,7 +1299,7 @@
   === [ 2 3 ]
   >>> a echo
   [ 1 2 3 4 | 5 6 ]
-  >>> a 'doesn\'t exist' |after!
+  >>> a 'doesn\\\'t exist' |after!
   Sorry: expected ｢doesn't exist｣ to match, but reached end of block.
   """
   dup $: cond

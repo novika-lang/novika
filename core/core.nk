@@ -19,7 +19,7 @@ _root #there [
 
 
 _root #@: [
-  "( F @: N ): makes an opener entry called Name for Form."
+  "( F @: N -- ): makes an opener entry called Name for Form."
   ahead swap ahead thru swap opens
 ] opens
 

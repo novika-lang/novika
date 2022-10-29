@@ -347,6 +347,23 @@ module Novika::Features::Impl
         Boolean[form.is_a?(Word) || (form.is_a?(Block) && form.can_be?(Word))].onto(stack)
       end
 
+      target.at("private?", <<-END
+      ( W -- ): leaves whether a word is prefixed by one or more
+       '_', meaning it is conventionally considered private.
+
+      >>> #hello private?
+      === false
+
+      >>> #_hello private?
+      === true
+
+      >>> #_ private?
+      === false "BEWARE!"
+      END
+      ) do |_, stack|
+        Boolean[stack.drop.a(Word).private?].onto(stack)
+      end
+
       target.at("toWord", <<-END
       ( F -- W ): converts Form into Word.
         1. If Form is a word, behaves as noop
@@ -1051,6 +1068,20 @@ module Novika::Features::Impl
 
       target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |_, stack|
         stack.drop.to_quote.onto(stack)
+      end
+
+      target.at("replaceAll", <<-END
+      ( Sq Pq Q -- Rq ): replaces all instances of Pattern quote
+       in Source quote with Quote. Leaves the Resulting quote.
+
+      >>> 'hello' 'l' 'y' replaceAll
+      === 'heyyo'
+      END
+      ) do |_, stack|
+        repl = stack.drop.a(Quote)
+        pattern = stack.drop.a(Quote)
+        quote = stack.drop.a(Quote)
+        quote.replace_all(pattern, repl).onto(stack)
       end
 
       target.at("effect", <<-END

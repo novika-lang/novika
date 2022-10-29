@@ -58,6 +58,10 @@ module Novika
     # Returns whether this quote is empty.
     abstract def empty? : Bool
 
+    # Replaces instances of *pattern* with *repl*. Returns
+    # the resulting quote.
+    abstract def replace_all(pattern : Quote, repl : Quote) : Quote
+
     # Slices this quote variant at *slicept*.
     #
     # *size* is the `count` of this quote.
@@ -218,6 +222,10 @@ module Novika
       other.is_a?(StringQuote) && string == other.string
     end
 
+    def replace_all(pattern : Quote, repl : Quote) : Quote
+      Quote.new(string.gsub(pattern.string, repl.string))
+    end
+
     def to_s(io)
       io << "'"; string.dump_unquoted(io); io << "'"
     end
@@ -281,6 +289,10 @@ module Novika
     # Anything else is out of bounds. Hence grapheme quotes
     # always return nil.
     protected def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
+    end
+
+    def replace_all(pattern : Quote, repl : Quote) : Quote
+      self == pattern ? repl : self
     end
 
     def to_s(io)
