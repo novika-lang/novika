@@ -1,5 +1,5 @@
-[ "( Q -- Qc ): capitalizes Quote: transforms the first letter of
-   Quote to uppercase."
+[ "( Q -- Q' ): capitalizes Quote: transforms the first
+   letter of Quote to uppercase."
   $: qq
 
   qq quote? not => [
@@ -18,37 +18,42 @@
 ] @: toCapitalized
 
 
-[ """( F1 F2 -- Q ): similar to `stitch`: stitches two Forms,
-   enquotes if necessary.
+[ """( A B -- Q ): obtains Quote by stitching (and
+   enquoting, if necessary) two forms, A and B.
 
-  >>> 100 200 ~
-  === '100200'
-
-  >>> 'hello' 'world' ~
-  === 'helloworld'
+  ```
+  100 200 ~ leaves: '100200'
+  'hello' 'world' ~ leaves: 'helloworld'
+  ```
   """
   bi@: toQuote stitch
 ] @: ~
 
 
-[ """( F -- Q ): similar to `here join` (but faster and not
-   recursive), if Form is a block. Else, same as `toQuote`.
+[ """( F -- Q ): like `here join`, but faster and not
+   recursive in case Form is a block. Else, same as
+   `toQuote`. Leaves the resulting Quote.
 
-  >>> 123 ~*
-  === '123'
+  ```
+  123 ~* leaves: '123'
+  [ 1 2 3 ] ~* leaves: '123'
 
-  >>> [ 1 2 3 ] ~*
-  === '123'
+  'John' $: name
+  [ 'My name is ' name '!' ] ~* leaves: 'My name is John!'
+  ```
 
-  >>> 'John' $: name
-  >>> [ 'My name is ' name '!' ] ~*
-  === 'My name is John!'
+  Beware that the referenced entries are only resolved. They
+  are not opened. Consider using `vals join` if you want to
+  stitch results instead.
 
-  Beware:
+  ```
+  [ 1 2 + ] @: foo
 
-  >>> [ 1 2 + ] @: foo
-  >>> [ 'foo = ' foo ] ~*
-  === 'foo = [ 1 2 + ]'
+  [ 'foo = ' foo ] ~* leaves: 'foo = [ 1 2 + ]'
+
+  \"You can use this if you want to evaluate first:\"
+  [ 'foo = ' foo ] vals join leaves: 'foo = 3'
+  ```
   """
   dup block? not => [ toQuote ^ ]
 

@@ -4,49 +4,112 @@ We need to quickly go from low-level and playground-ish to
 high-level and serious. Novika core is all about that.
 """
 
-"First, we take hold of the current block (the block associated
-with this file), and call it `_root`. With an underscore,
-because that's our root, not their root."
+this #there [
+  """( S B -- S ): opens Block with Stack set as the active
+   stack. Leaves Stack. Ahead is transferred to block.
 
-cont getContBlock dup #_root swap pushes
-
-
-_root #there [
-  "( S B -- S ): opens Block in Stack, leaves Stack. Ahead
-   is transferred to block."
+  ```
+  [ 1 2 ] [ + ] there leaves: [ [ 3 ] ]
+  [ 1 2 ] [ ahead thruBlock open ] + leaves: [ [ 3 ] ]
+  ```
+  """
   <| dup |> ahead #hydrate inject
 ] opens
 
 
-_root #@: [
-  "( F @: N -- ): makes an opener entry called Name for Form."
+this #@: [
+  """( F @: N -- ): creates an opener entry with the given
+   Name in caller. Submits Form to the entry. Opener entries,
+   when resolved to and opened, in turn **open** their
+   corresponding Form.
+
+  ```
+  \"Blocks are evaluated (opened) when the opener entry
+  they're stored under is opened.\"
+  [ 1 2 + ] @: getThree
+  getThree leaves: [ 3 ]
+
+  \"Builtins also get opened when under an opener entry.\"
+  #+ here @: myAddAlias
+  1 2 myAddAlias leaves: [ 3 ]
+
+  \"Any other form is left as-is, even if it is a word.\"
+  3 @: litThree
+  #+ @: litPlus
+  litThree leaves: [ 3 ]
+  litPlus leaves: [ + ]
+  ```
+  """
   ahead swap ahead thru swap opens
 ] opens
 
 
-[ "( F $: N -- ): makes a pusher entry called Name for Form."
+[ """( F $: N -- ): creates a pusher entry with the given
+   Name in caller. Submits Form to the entry. Pusher entries,
+   when resolved to and opened, **push** their corresponding
+   Form onto the active stack.
+
+  ```
+  100 $: x
+  200 $: y
+
+  x leaves: 100
+  y leaves: 200
+
+  [ 1 2 + ] $: getThree
+
+  \"Nope! In this case, use `@:` if you want the block to be
+   opened (evaluated).\"
+  getThree leaves: [ 1 2 + ]
+  ```
+  """
   ahead swap ahead thru swap pushes
 ] @: $:
 
 
-[ "( V =: N -- ): submits Value to an already defined entry
-   under the specified Name."
+[ """( F =: N -- ): submits Form to an entry with the given
+   Name.
+
+  The entry must exist already, being defined by `$:`, `@:`,
+  or otherwise. Entry type is disregarded (i.e. it doesn't
+  matter whether it's an opener or a pusher entry). More
+  importantly, *entry type is preserved.*
+
+  ```
+  \"Note, by the way, that order doesn't matter. What
+   matters is for `x` to be there at the time of calling
+   `addOneToX`. In other words, `addOneToX` must be able to
+   find `x` when it's opened.\"
+
+  100 $: x
+
+  [ x 1 + =: x ] @: addOneToX
+
+  x leaves: 100
+  addOneToX
+  x leaves: 101
+  \"...\"
+  ```
+  """
   ahead swap ahead thru swap entry:submit
 ] @: =:
 
 
-[ """( Q F -- ): dies with Quote message stitched with an
-   enquoted Form.
+[ """( Qm F -- ): enquotes Form, stitches it to the end of
+   Quote message, and dies with the resulting quote set as
+   the death message.
 
-  >>> 'expected foobar, got: ' 100 2die
-  Sorry: expected foobar, got: 100.
+  ```
+  'expected foobar, got: ' 100 2die \"Sorry: expected foobar, got: 100.\"
+  ```
   """
   toQuote stitch die
 ] @: 2die
 
 
-[ "( needsFeature: Id -- ): ensures that the frontend has feature
-   with the specified Id enabled."
+[ "( needsFeature: I -- ): ensures that the frontend has
+   enabled the feature with the specified Id. Dies if such
+   a feature isn't enabled, or if Id isn't a feature at all."
   ahead thru toQuote $: featureId
 
   novika:features [ featureId = ] any? not =>

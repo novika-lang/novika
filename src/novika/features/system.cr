@@ -56,9 +56,15 @@ module Novika::Features
       If user answered with EOF, Answer quote is empty and
       Status boolean is false. Else, Status boolean is true.
 
-      >>> 'What is your name? ' readLine [ echo ] [ drop ] br
-      What is your name? John Doe ⏎
-      John Doe
+      ```
+      'What is your name? ' readLine br: echo drop
+
+      "INPUT: What is your name? John Doe⏎"
+      "STDOUT: John Doe⏎"
+
+      "INPUT: What is your name? <Ctrl-D>"
+      "[Program exits]"
+      ```
       END
       ) do |engine, stack|
         answer, status = readline(engine, stack.drop)
@@ -82,7 +88,7 @@ module Novika::Features
       # Monotonic doc is mostly "borrowed" from Crystal's.
 
       target.at("monotonic", <<-END
-      ( -- Mt ): leaves a reading from the monotonic clock to
+      ( -- R ): leaves a Reading from the monotonic clock to
        measure elapsed time, in milliseconds.
 
       Values from the monotonic clock and wall clock are not
@@ -91,16 +97,18 @@ module Novika::Features
       seconds, time zone adjustments or manual changes to the
       computer's clock.
 
-      >>> monotonic $: start
-      >>> 20 nap
-      >>> monotonic $: end
-      >>> end start -
-      === 20 (approximately)
+      ```
+      monotonic $: start
+      20 nap
+      monotonic $: end
+      end start - echo
+      "STDOUT: 20⏎ (approximately)"
+      ```
       END
       ) { |engine, stack| monotonic(engine).onto(stack) }
 
       target.at("nap", <<-END
-      ( Nms -- ): sleeps for N decimal milliseconds.
+      ( D -- ): sleeps a Duration of time, given in *milliseconds*.
       END
       ) do |engine, stack|
         millis = stack.drop.a(Decimal)

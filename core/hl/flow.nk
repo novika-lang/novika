@@ -1,6 +1,6 @@
-[ """( F Cs -- Cb' ): high-level conditional. Acts similar to `case`
+[ """( F Cl -- Cb' ): high-level conditional. Acts similar to `case`
    or `switch` in other languages. Takes a Form to match over, and
-   a list of Cases like `[ Condition Case-Body Condition Case-Body ... ]`.
+   a Case list in the form `[ Condition Case-Body Condition Case-Body ... ]`.
    Leaves the result of Case body corresponding to the condition that
    matched Form, otherwise (if no cases matched), Form itself.
 

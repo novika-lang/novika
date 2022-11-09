@@ -16,11 +16,12 @@ module Novika::Features::Impl
 
     def inject(into target : Block)
       target.at("rgb", <<-END
-      ( R G B -- C ): creates a Color form from three decimals
+      ( R G B -- Cf ): creates a Color form from three decimals
        Red (0-255), Green (0-255), and Blue (0-255).
 
-      >>> 36 255 255 rgb
-      === rgb(36, 255 ,255)
+      ```
+      36 255 255 rgb toQuote leaves: 'rgb(36, 255 ,255)'
+      ```'
       END
       ) do |_, stack|
         b = stack.drop.a(Decimal).in(0..255).posint
@@ -30,13 +31,12 @@ module Novika::Features::Impl
       end
 
       target.at("getRGB", <<-END
-      ( C -- R G B ): leaves Red, Green, Blue values for a
-       color Form.
+      ( Cf -- R G B ): leaves Red, Green, Blue values for a
+       Color form.
 
-      >>> 0 25 3 rgb
-      === rgb(0, 25, 3)
-      >>> getRGB
-      === 0 25 3
+      ```
+      0 25 3 rgb "rgb(0, 25, 3)" getRGB leaves: [ 0 25 3 ]
+      ```
       END
       ) do |_, stack|
         color = stack.drop.a(Color)
@@ -47,15 +47,16 @@ module Novika::Features::Impl
       end
 
       target.at("hsl", <<-END
-      ( H S L -- C ): creates a Color form from three decimals
+      ( H S L -- Cf ): creates a Color form from three decimals
        Hue (0-360, degrees), Saturation (0-100, percents),
        Lightness (0-100, percents).
 
       Since color forms are stored in RGB, the HSL color is
       first converted into RGB.
 
-      >>> 206 35 46 hsl
-      === rgb(76, 123, 158)
+      ```
+      206 35 46 hsl toQuote leaves: 'rgb(76, 123, 158)'
+      ```
       END
       ) do |_, stack|
         l = stack.drop.a(Decimal).in(0..100).posint
@@ -65,13 +66,12 @@ module Novika::Features::Impl
       end
 
       target.at("getHSL", <<-END
-      ( C -- H S L ): leaves Hue, Saturation, Lightness for
-       a Color Form.
+      ( Cf -- H S L ): leaves Hue, Saturation, Lightness for
+       a Color form.
 
-      >>> 206 35 46 hsl
-      === rgb(76, 123, 158)
-      >>> getHSL
-      === 206 35 46
+      ```
+      206 35 46 hsl "rgb(76, 123, 158)" getHSL leaves: [ 206 35 46 ]
+      ```
       END
       ) do |_, stack|
         color = stack.drop.a(Color)
@@ -82,15 +82,16 @@ module Novika::Features::Impl
       end
 
       target.at("hsv", <<-END
-      ( H S V -- C ): creates a Color form from three decimals
+      ( H S V -- Cf ): creates a Color form from three decimals
        Hue (0-360, degrees), Saturation (0-100, percents),
-       Lightness (0-100, percents).
+       Value (0-100, percents).
 
       Since color forms are stored in RGB, the HSV color is
       first converted into RGB.
 
-      >>> 120 100 100 hsv
-      === rgb(0, 255, 0)
+      ```
+      120 100 100 hsv toQuote leaves: 'rgb(0, 255, 0)'
+      ```
       END
       ) do |_, stack|
         v = stack.drop.a(Decimal).in(0..100).posint
@@ -100,13 +101,12 @@ module Novika::Features::Impl
       end
 
       target.at("getHSV", <<-END
-      ( C -- H S L ): leaves Hue, Saturation, Value for a
-       Color Form.
+      ( Cf -- H S V ): leaves Hue, Saturation, Value for a
+       Color form.
 
-      >>> 180 100 50 hsv
-      === rgb(0,128,128)
-      >>> getHSV
-      === 180 100 50
+      ```
+      180 100 50 hsv "rgb(0,128,128)" getHSV leaves: [ 180 100 50 ]
+      ```
       END
       ) do |_, stack|
         color = stack.drop.a(Color)
@@ -117,14 +117,14 @@ module Novika::Features::Impl
       end
 
       target.at("lch", <<-END
-      ( L C H -- C ): creates a Color form from three decimals
+      ( L C H -- Cf ): creates a Color form from three decimals
        Lightness (0-100), Chroma (0-132), Hue (0-360).
 
       Since color forms are stored as RGB, the LCH color is
       first converted into RGB.
 
-      LCH colors are *very* hard but very fun to use. That's
-      why they're in Novika.
+      LCH colors are tricky to implement but very fun to use.
+      That's why they're in Novika's standard library.
 
       CIELAB encloses more colors than sRGB, so some conversion
       imprecisions *are* to be expected because some colors just
@@ -139,40 +139,38 @@ module Novika::Features::Impl
       Here is a 'good' conversion, meaning it nicely closes
       on itself:
 
-      >>> 78 74 133 lch
-      === rgb(122, 215, 85)
-      >>> getLCH
-      === 78 74 133
-      >>> lch
-      === rgb(122, 215, 85)
-      >>> getLCH
-      === 78 74 133
-      ... and so on ...
+      ```
+      78 74 133 lch $: color
+
+      color toQuote leaves: 'rgb(122, 215, 85)'
+      color getLCH leaves: [ 78 74 133 ]
+      color getLCH lch toQuote leaves: 'rgb(122, 215, 85)''
+      "And so on..."
+      ```
 
       And here is a bad conversion. At first, though, for it
       does stabilize after a few rounds as it falls firmly
       into the sRGB color space.
 
-      >>> 74 107 26 lch
-      === rgb(255, 154, 151)
-      >>> getLCH
-      "Note how many chroma units we've lost! Plus, Lab and
+      ```
+      74 107 26 lch $: color
+      color toQuote leaves: 'rgb(255, 154, 151)'
+
+      "Note how many chroma units we lose! Plus, Lab and
        LCH have hue shift on chroma changes, hence 26 -> 25."
-      === 74 41 25
-      >>> lch
-      === rgb(255, 154, 152)
-      >>> getLCH
-      === 74 41 25
-      >>> lch
-      === rgb(255, 154, 152)
-      >>> getLCH
-      === 74 41 25
-      "... and so on, conversion stabilized ..."
+      color getLCH leaves: [ 74 41 25 ]
+
+      color getLCH lch toQuote leaves: 'rgb(255, 154, 152)'
+
+      color getLCH lch getLCH leaves: [ 74 41 25 ]
+      "... and so on, conversion had stabilized ..."
+      ```
 
       You don't necessarily have to think about this, because
-      the resulting colors do look similar enough. Just beware
-      that the conversion method used by this word and `getLCH`
-      is lossy sometimes.
+      the resulting colors do look very similar, differing in
+      points rather than magnitudes. Just be aware that the
+      conversion method used by this word and `getLCH` is lossy
+      in some cases.
       END
       ) do |_, stack|
         h = stack.drop.a(Decimal).in(0..360).posint
@@ -182,21 +180,20 @@ module Novika::Features::Impl
       end
 
       target.at("getLCH", <<-END
-      ( C -- L C H ): leaves Lightness, Chroma, Hue for a Color
+      ( Cf -- L C H ): leaves Lightness, Chroma, Hue for a Color
        form. Please read documentation for `lch` to understand
        why `a b c lch getLCH` might not leave `a b c`.
 
-      >>> 78 74 133 lch
-      === rgb(122, 215, 85)
-      >>> getLCH
-      === 78 74 133
+      ```
+      78 74 133 lch toQuote leaves: 'rgb(122, 215, 85)'
+      78 74 133 lch getLCH leaves: [ 78 74 133 ]
 
-      >>> 74 107 26 lch
-      === rgb(255, 154, 152)
-      >>> getLCH
+      74 107 26 lch toQuote leaves: 'rgb(255, 154, 152)'
+
       "Chroma lowered to fit into sRGB. Lab and LCH have hue
        shift on chroma changes, 26 -> 25"
-      === 74 41 25
+      74 107 26 lch getLCH leaves: [ 74 41 25 ]
+      ```
       END
       ) do |_, stack|
         color = stack.drop.a(Color)
@@ -207,13 +204,13 @@ module Novika::Features::Impl
       end
 
       target.at("withAlpha", <<-END
-      ( C A -- C' ): leaves Color with alpha channel set to
-       Alpha (0-255).
+      ( Cf A -- Cf' ): leaves Color form with alpha channel
+       set to Alpha (0-255).
 
-      >>> 0 25 3 rgb
-      === rgb(0, 25, 3)
-      >>> 100 withAlpha
-      === rgba(0, 25, 3, 100)
+      ```
+      0 25 3 rgb toQuote leaves: 'rgb(0, 25, 3)'
+      0 25 3 rgb 100 withAlpha toQuote leaves: 'rgba(0, 25, 3, 100)'
+      ```
       END
       ) do |_, stack|
         alpha = stack.drop.a(Decimal).in(0..255).posint
@@ -223,19 +220,12 @@ module Novika::Features::Impl
       end
 
       target.at("getAlpha", <<-END
-      ( C -- A ): leaves Alpha for the given Color form.
+      ( Cf -- A ): leaves Alpha for the given Color form.
 
-      >>> 0 25 3 rgb
-      === rgb(0, 25, 3)
-      >>> getAlpha
-      === 255
-
-      >>> 0 25 3 rgb
-      === rgb(0, 25, 3)
-      >>> 100 withAlpha
-      === rgba(0, 25, 3, 100)
-      >>> getAlpha
-      === 100
+      ```
+      0 25 3 rgb getAlpha leaves: 255 "Opaque = 255"
+      0 25 3 rgb 100 withAlpha getAlpha leaves: 100
+      ```
       END
       ) do |_, stack|
         color = stack.drop.a(Color)
@@ -243,25 +233,24 @@ module Novika::Features::Impl
       end
 
       target.at("fromPalette", <<-END
-      ( C Pb -- Cl ): leaves the Closest color form to Color from
-       a Palette block. Closeness is determined by distance: the
-       Closest color is that color in Palette block to which Color
-       has least (minimum) distance.
+      ( Cf Pb -- Cc ): leaves the Closest color form to Color from
+       a Palette block. How close the color is is determined by
+       distance: the Closest color is that color in Palette block
+       to which Color has least (minimum) distance.
 
-      >>> [ ] [ 0 0 0 rgb
-            255 0 0 rgb
-            0 255 0 rgb
-            0 0 255 rgb
-            255 255 255 rgb
-          ] there $: pal
-      >>> 0 0 0 rgb pal fromPalette
-      === rgb(0, 0, 0)
-      >>> 76 175 80 rgb pal fromPalette "greenish"
-      === rgb(0, 255, 0)
-      >>> 220 237 200 rgb pal fromPalette "very light green"
-      === rgb(255, 255, 255)
-      >>> 74 20 140 rgb pal fromPalette "very dark purple"
-      === rgb(255, 0, 0)
+      ```
+      [ 0 0 0 rgb
+        255 0 0 rgb
+        0 255 0 rgb
+        0 0 255 rgb
+        255 255 255 rgb
+      ] vals $: pal
+
+      0 0 0 rgb pal fromPalette toQuote leaves: 'rgb(0, 0, 0)'
+      76 175 80 rgb pal fromPalette "greenish" toQuote leaves: 'rgb(0, 255, 0)'
+      220 237 200 rgb pal fromPalette "very light green" toQuote leaves: 'rgb(255, 255, 255)'
+      74 20 140 rgb pal fromPalette "very dark purple" toQuote leaves: 'rgb(255, 0, 0)'
+      ```
       END
       ) do |_, stack|
         palette = stack.drop.a(Block)

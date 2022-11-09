@@ -1,34 +1,31 @@
-[ """( [ ... | F ... ]B -- F S / S ): leaves Form and/or Status
-   boolean for whether Form exists.
+[ """( [ ... | F ... ]B -- F S / S ): leaves Form and/or
+   Status boolean for whether Form exists in Block.
 
-  >>> [ 1 2 3 ] 1 |to
-  === [ 1 | 2 3 ]
-  >>> peek?
-  === 2 true
-
-  >>> [ 1 2 3 ]
-  === [ 1 2 3 ]
-  >>> peek?
-  === false
+  ```
+  [ 1 2 3 ] 1 |to \"[ 1 | 2 3 ]\" peek? leaves: [ 2 true ]
+  [ 1 2 3 ] \"[ 1 2 3 | ]\" peek? leaves: [ false ]
+  ```
   """
   dup |at over count = => [ drop false ^ ]
   dup |at fromLeft true
 ] @: peek?
 
 
-[ """( B N -- B ): decrements block cursor position: moves
+[ """( B N -- ): decrements block cursor position: moves
    cursor back N times in Block.
 
-  >>> [ 1 2 3 ]
-  === [ 1 2 3 ]
-  >>> 2 |-
-  === [ 1 | 2 3 ]
+  ```
+  \"Note: `toQuote` is simply the most compact way to
+   present the result. It doesn't do anything to the
+   cursor.\"
+  [ 1 2 3 ] \"[ 1 2 3 | \" dup 2 |- toQuote leaves: '[ 1 | 2 3 ]'
+  ```
   """
 
   "Hydrating here may seem redundant at first, but remember
    cases like:
 
-    >>> stack 1 |-
+      stack 1 |-
 
    Thanks to the custom stack created by `2enclose`, we avoid
    the problems of changing the stack at right times, since
@@ -38,73 +35,83 @@
 ] @: |-
 
 
-[ """( B N -- B ): increments block cursor position: moves
+[ """( B N -- ): increments block cursor position: moves
    cursor forward N times in Block.
 
-  >>> [ 1 2 3 ]
-  === [ 1 2 3 ]
-  >>> 2 |-
-  === [ 1 | 2 3 ]
-  >>> 2 |+
-  === [ 1 2 3 ]
+  ```
+  [ 1 2 3 ] $: block
+  block 1 |to
+  block toQuote leaves: '[ 1 | 2 3 ]'
+  block 1 |+
+  block toQuote leaves: '[ 1 2 | 3 ]'
+  block 1 |+
+  block toQuote leaves: '[ 1 2 3 ]'
+  ```
   """
   2enclose [ over |at + |to ] hydrate
 ] @: |+
 
 
-[ """( F [ ... | ... ]B -- [ ... F | ... ]B -- ): adds Form
-   to Block, and drops both.
+[ """( F B -- ): `shove`s Form into Block, drops both.
 
-  >>> 3 [ 1 2 ] gulp
-  === [ 1 2 3 ]
+  ```
+  3 [ 1 2 ] keep: gulp leaves: [ [ 1 2 3 ] ]
+  ```
   """
   swap shove
 ] @: gulp
 
 
-[ """( [ ... F | ... ]B -- F [ ... | ... ]B ] ): drops Form
-   from Block onto stack, before Block. Inverse of `gulp`.
+[ """( [ ... F | ... ]B -- F [ ... | ... ]B ] ): `cherry`s
+   Form from Block onto the active stack, placing it before
+   the Block. Inverse of `gulp`.
 
-  >>> [ 1 2 3 ] spit
-  === 3 [ 1 2 ]
+  ```
+  [ 1 2 3 ] spit leaves: [ 3 [ 1 2 ] ]
+  ```
   """
   dup cherry swap
 ] @: spit
 
 
-[ """( [ ... | ... ]B F -- [ ... F | ... ]B ): adds Form into
-    the given Block.
+[ """( [ ... | ... ]B F -- [ ... F | ... ]B ): `shove`s Form
+   into Block, leaves only Block.
 
-  >>> [ 1 2 ] 3 <<
-  === [ 1 2 3 ]
+  ```
+  [ 1 2 ] 3 << leaves: [ [ 1 2 3 ] ]
+  ```
   """
   over gulp
 ] @: <<
 
 
-[ """( [ ... F | ... ]B -- [ ... | ... ]B F ): drops Form from
-   block. Inverse of `<<`.
+[ """( [ ... F | ... ]B -- [ ... | ... ]B F ): `cherry`s
+   Form from Block, leaves both. Inverse of `<<`.
 
-  >>> [ 1 2 3 ] >>
-  === [ 1 2 ] 3
+  ```
+  [ 1 2 3 ] >> leaves: [ [ 1 2 ] 3 ]
+  ```
   """
   dup cherry
 ] @: >>
 
 
-[ """( F -- [ F ] ): encloses Form in a block.
+[ """( F -- [ F ]B ): encloses Form in a new, orphan Block.
 
-  >>> 'Hi!' enclose
-  === [ 'Hi!' ]
+  ```
+  'Hi!' enclose leaves: [ [ 'Hi!' ] ]
+  ```
   """
   orphan swap <<
 ] @: enclose
 
 
-[ """( F1 F2 -- [ F1 F2 ] ): encloses a pair of Forms in a block.
+[ """( X Y -- [ X Y ]B ): encloses X and Y, a pair of forms,
+   in a new, orphan Block.
 
-  >>> 'Hello' 'World' 2enclose
-  === [ 'Hello' 'World' ]
+  ```
+  'Hello' 'World' 2enclose leaves: [ [ 'Hello' 'World' ] ]
+  ```
   """
   swap
 
@@ -115,50 +122,43 @@
 
 [ """( B I -- F ): leaves Index-th Form from right in Block.
 
-  >>> [ 1 2 3 ] 0 fromRight
-  === 3
-
-  >>> [ 1 2 3 ] 1 fromRight
-  === 2
-
-  >>> [ 1 2 3 ] 2 fromRight
-  === 1
+  ```
+  [ 1 2 3 ] 0 fromRight leaves: 3
+  [ 1 2 3 ] 1 fromRight leaves: 2
+  [ 1 2 3 ] 2 fromRight leaves: 1
+  ```
   """
   over count 1 - swap - fromLeft
 ] @: fromRight
 
 
-[ """( B -- F ): leaves first Form in Block.
+[ """( B -- F ): leaves first Form in Block. Dies if Block
+   is empty.
 
-  >>> [ ] first
-  [dies]
-
-  >>> [ 0 ] first
-  === 0
-
-  >>> [ 1 2 3 ] first
-  === 1
+  ```
+  [ 0 ] first leaves: 0
+  [ 1 2 3 ] first leaves: 1
+  ```
   """
   0 fromLeft
 ] @: first
 
 
-[ """( B -- F ): leaves last Form in Block.
+[ """( B -- F ): leaves last Form in Block. Dies if Block
+   is empty.
 
-  >>> [ ] last
-  [dies]
-
-  >>> [ 0 ] last
-  === 0
-
-  >>> [ 1 2 3 ] last
-  === 3
+  ```
+  [ 0 ] last leaves: 0
+  [ 1 2 3 ] last leaves: 3
+  ```
   """
   0 fromRight
 ] @: last
 
 
-[ "( B -- Bc ): leaves an empty Block child."
+[ "( B -- Cb ): leaves an empty Child block for Block. Very
+   much like `new`, but doesn't copy the tape and therefore may
+   be faster in certain circumstances."
   orphan swap reparent
 ] @: child
 
@@ -171,38 +171,39 @@
 ] @: _arrowFetchImpl
 
 
-[ """( T -> N -- F ): infix for `entry:fetch`.
+[ """( Db -> N -- F ): Resolves Name, a word, using the
+   given Dictionary block (block with a dictionary and/or
+   relatives, therefore, simply any block). Does not
+   distinguish between entry types (i.e., it doesn't matter
+   whether Name resolves to an opener or a pusher entry):
+   its value Form is always *pushed* onto the active stack.
 
-  >>> [ 200 $: x
-        100 $: y
-        [ x y + ] @: sum
-        this
-      ] open
-  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ]
-  >>> dup -> x
-  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200
-  >>> over -> y
-  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200 100
-  >>> rot -> sum
-  === 200 100 [ x y + ]
-  >>> open
-  === 200 100 300 (note: [ x y + ] block is a closure)
+  ```
+  [ 100 $: x 200 $: y [ x y + ] @: sum ] obj $: point
 
-  Accesses multiple entries when Name is a block, preserves
-  block shape:
+  point -> x leaves: 100
+  point -> y leaves: 200
+  point -> sum leaves: [ [ x y + ] ] \"Beware!\"
 
-  >>> [ 100 $: x 200 $: y ] obj -> [ x y ]
-  === [ 100 200 ]
+  \"Note that we still can open it and get the result:\"
+  open leaves: 300
+  ```
 
-  >>> [ 100 $: x 200 $: y ] obj -> [ [ [ x ] ] y ]
-  === [ [ [ 100 ] ] 200 ]
+  It is possible to access multiple entries when Name is a
+  block, *preserving block structure*:
+
+  ```
+  [ 100 $: x 200 $: y ] obj -> [ x y ] leaves: [ [ 100 200 ] ]
+  [ 100 $: x 200 $: y ] obj -> [ [ [ x ] ] y ] leaves: [ [ [ [ 100 ] ] 200 ] ]
+  ```
   """
   ahead thru _arrowFetchImpl
 ] @: ->
 
 
-[ "( T C N -- F ): postfix version of `.`. See `.` for usage
-   examples. Caller block is assumed."
+[ "( Db C N -- ... ): resolves Name in Dictionary block and
+   *opens* it, assuming Caller to be the caller block.
+   Postfix version of `.`. See `.` for usage examples."
   $: name $: caller
 
   "( T )" dup name entry:fetch $: form
@@ -214,63 +215,54 @@
 ] @: entry:open
 
 
-[ """( T . N -- F ): same as `entry:fetch`, but adds `open`
-   ahead if the entry is an open(er) entry.
+[ """( Db . N -- ... ): resolves Name in Dictionary block and
+   *opens* it. Infix version of `entry:open`.
 
-  >>> [ 200 $: x
-        100 $: y
-        [ x y + ] @: sum
-        this
-      ] open
-  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ]
-  >>> dup . x over . y
-  === [ · ${x :: 200} ${y :: 100} @{sum :: a block} ] 200 100
-  >>> rot . sum
-  === 200 100 300
+  `.` is the only word that gets special treatment in
+  Novika, in that it does not need to be surrounded with
+  whitespace when other words must be.
+
+  ```
+  [ 100 $: x 200 $: y [ x y + ] @: sum ] obj $: point
+
+  point.x leaves: 100
+  point.y leaves: 200
+  point.sum leaves: 300
+  ```
 
   Preserves (carries through) `ahead`, but makes the caller
   block's instance dirty (which should not cause any trouble
   from the user's perspective).
 
-  >>> [ $: bool
+  ```
+  [ $: double?
 
-        [ ahead thru
-            bool
-              [ echo ]
-              [ drop ]
-            br
-        ] @: bar:
+    [ ahead thru double? => [ 2 * ] ] @: bar:
 
-        this
-      ] @: foo
-  >>> true foo
-  === [ · @{bar: :: a block} ]
-  >>> . bar: 100
-  STDOUT: 100
-  ===
-  >>> false foo
-  === [ · @{bar: :: a block } ]
-  >>> . bar: 100
-  ===
+    this
+  ] @: foo
+
+  true foo.bar: 100 leaves: [ 200 ]
+  false foo.bar: 100 leaves: [ 100 ]
+  ```
   """
   ahead dup thru entry:open
 ] @: .
 
 
-[ """( D N fetch: B -- ): looks up under Name in Dictionary
-   block, and opens Block with that on ToS (on caller stack).
-   If not found (or D is not block), does nothing.
+[ """( Db N fetch: B -- ): resolves Name using Dictionary
+   block, and opens Block with the resolved entry's value
+   form *on top of the caller stack.* If Name could not be
+   resolved using the dictionary block, or if the dictionary
+   block  is something other than block, does nothing.
+   Itself, leaves nothing (unless Block is empty: in that
+   case, leaves the value form if resolved successfully).
 
-  >>> 'This is not a block!' #x fetch: [ echo ]
-  ===
-
-  >>> [ 100 $: x 200 $: y this ] open
-  === [ · ${x :: 100} {y :: 200} ]
-  >>> dup #x fetch: [ echo ]
-  STDOUT: 100
-  === [ · ${x :: 100} {y :: 200} ]
-  >>> dup #undefinedThing fetch: [ echo ]
-  === [ · ${x :: 100} {y :: 200} ]
+  ```
+  'This is not a block!' #x fetch: [ 1 + ] leaves: [ ]
+  [ 100 $: x ] obj #x fetch: [ 1 + ] leaves: [ 101 ]
+  [ 100 $: x ] obj #undefinedThing fetch: [ 1 + ] leaves: [ ]
+  ```
   """
   ahead thruBlock @: block
 
@@ -281,15 +273,19 @@
 ] @: fetch:
 
 
-[ """( Lb B -- Lb ): slides cursor in List block from left to right,
-   in steps of one. Opens Block with List block as the stack *after*
-   each step. Leaves List block. `break` and `next` are available.
+[ """( Lb B -- Lb ): slides cursor in List block from left
+   to right, in steps of one. Opens Block with List block as
+   the stack *after* each step. Leaves List block. `break`
+   and `next` are available.
 
-  >>> [ 1 2 3 ] dup 1 |to [ + ] |slideRight
+  ```
+  [ 1 2 3 ] dup 1 |to [ + ] |slideRight leaves: [ [ 6 ] ]
+  ```
 
-  ! Sliding step is marked with '*', block iteration postfixed
-    by a '+'.
+  In the table below, sliding step is marked with '*', and
+  block iteration is postfixed by a '+'.
 
+  ```text
    +------+-------+-------------+
    | #    | form  |    list     |
    +======+=======+=============+
@@ -300,8 +296,7 @@
    | *    |       | [ 3 3 ]     |
    | 5+   |    +  | [ 6 ]       |
    +------+-------+-------------+
-
-  === [ 6 ]
+  ```
   """
   $: body $: list
 
@@ -320,8 +315,15 @@
 ] @: |->
 
 
-[ "( Lb ||-> B -- Lb ): same as `|->`, but moves the cursor
-   to the start of List block first."
+[ """( Lb ||-> B -- Lb ): same as `|->`, but moves the cursor
+   to the start of List block first, then executes Block and
+   so on. See `|->` and especially `|slideRight` for more
+   information on what all of this means.
+
+  ```
+  [ 1 2 3 ] ||-> [ 2 * ] leaves: [ [ 2 4 6 ] ]
+  ```
+  """
   dup 0 |to ahead thruBlock |slideRight
 ] @: ||->
 
@@ -355,13 +357,16 @@
 
 
 [ """( Lb B -- ): opens Block with each item of List block on
-   top of a new stack, and its index below. List block is unchanged.
-   `break` and `next` are available.
+   top of a new stack, and its index below (that is, `Index
+   Item`). List block is unchanged. `break` and `next` are
+   available.
 
-  >>> [ 1 2 3 ] [ 2echo ] eachWithIndex
-  STDOUT: 0 1
-  STDOUT: 1 2
-  STDOUT: 2 3
+  ```
+  [ 1 2 3 ] [ 2echo ] eachWithIndex
+  \"STDOUT: 0 1⏎\"
+  \"STDOUT: 1 2⏎\"
+  \"STDOUT: 2 3⏎\"
+  ```
   """
   $: body $: list 0 $: index
 
@@ -376,10 +381,12 @@
    top of a new stack. List block is unchanged. `break` and
    `next` are available.
 
-  >>> [ 1 2 3 ] [ echo ] each
-  STDOUT: 1
-  STDOUT: 2
-  STDOUT: 3
+  ```
+  [ 1 2 3 ] [ echo ] each
+  \"STDOUT: 1⏎\"
+  \"STDOUT: 2⏎\"
+  \"STDOUT: 3⏎\"
+  ```
   """
   $: body $: list 0 $: index
 
@@ -392,10 +399,12 @@
 
 [ """( Lb each: B -- ): infix version of `each`.
 
-  >>> [ 1 2 3 ] each: [ echo ]
-  STDOUT: 1
-  STDOUT: 2
-  STDOUT: 3
+  ```
+  [ 1 2 3 ] each: [ echo ]
+  \"STDOUT: 1⏎\"
+  \"STDOUT: 2⏎\"
+  \"STDOUT: 3⏎\"
+  ```
   """
   ahead thruBlock each
 ] @: each:
@@ -403,28 +412,27 @@
 
 [ """( Lb eachWithIndex: B -- ): infix version of `eachWithIndex`.
 
-  >>> [ 1 2 3 ] eachWithIndex: [ 2echo ]
-  STDOUT: 0 1
-  STDOUT: 1 2
-  STDOUT: 2 3
+  ```
+  [ 1 2 3 ] eachWithIndex: [ 2echo ]
+  \"STDOUT: 0 1⏎\"
+  \"STDOUT: 1 2⏎\"
+  \"STDOUT: 2 3⏎\"
+  ```
   """
   ahead thruBlock eachWithIndex
 ] @: eachWithIndex:
 
 
-[ """( Lb B -- ): opens Block with pairs of items from List block
-   on top of an empty stack. `break` and `next` are available.
+[ """( Lb B -- ): opens Block with pairs of items from
+   List block on top of an empty stack. `break` and `next`
+   are available. Does nothing if List block is empty. Dies
+   if List block has an odd number of forms.
 
-  >>> [ ] [ + echo ] pairs
-  [Does nothing]
-
-  >>> [ 1 ] [ + echo ] pairs
-  >>> [ 1 2 3 ] [ + echo ] pairs
-  [Dies: odd count]
-
-  >>> [ 1 2 3 4 ] [ + echo ] pairs
-  STDOUT: 3 (i.e., 1 + 2)
-  STDOUT: 7 (i.e., 3 + 4)
+  ```
+  [ 1 2 3 4 ] [ + echo ] pairs
+  \"STDOUT: 3⏎ (i.e., 1 + 2)\"
+  \"STDOUT: 7⏎ (i.e., 3 + 4)\"
+  ```
   """
   $: block
 
@@ -445,9 +453,11 @@
 
 [ """( Lb pairs: B -- ): infix version of `pairs`.
 
-  >>> [ 1 2 3 4 ] pairs: [ + echo ]
-  STDOUT: 3
-  STDOUT: 7
+  ```
+  [ 1 2 3 4 ] pairs: [ + echo ]
+  \"STDOUT: 3⏎\"
+  \"STDOUT: 7⏎\"
+  ```
   """
   ahead thruBlock pairs
 ] @: pairs:
@@ -457,16 +467,18 @@
    from List block on top of an empty stack. `break` and `next`
    are available.
 
-  >>> [ ] [ + echo ] consPairs
-  >>> [ 1 ] [ + echo ] consPairs
-  [Does nothing]
+  ```
+  [ ] [ + echo ] consPairs
+  [ 1 ] [ + echo ] consPairs
+  \"Both do nothing!\"
 
-  >>> [ 1 2 ] [ + echo ] consPairs
-  STDOUT: 3 (i.e, 1 + 2)
+  [ 1 2 ] [ + echo ] consPairs
+  \"STDOUT: 3⏎ (i.e, 1 + 2)\"
 
-  >>> [ 1 2 3 ] [ + echo ] consPairs
-  STDOUT: 3 (i.e., 1 + 2)
-  STDOUT: 5 (i.e., 2 + 3)
+  [ 1 2 3 ] [ + echo ] consPairs
+  \"STDOUT: 3⏎ (i.e., 1 + 2)\"
+  \"STDOUT: 5⏎ (i.e., 2 + 3)\"
+  ```
   """
   $: block
 
@@ -486,9 +498,11 @@
 
 [ """( Lb B -- ): infix version of `consPairs`.
 
-  >>> [ 1 2 3 ] consPairs: [ + echo ]
-  STDOUT: 3
-  STDOUT: 5
+  ```
+  [ 1 2 3 ] consPairs: [ + echo ]
+  \"STDOUT: 3⏎\"
+  \"STDOUT: 5⏎\"
+  ```
   """
   ahead thruBlock consPairs
 ] @: consPairs:
@@ -497,17 +511,15 @@
 [ """( Lb B -- Mlb ): opens Block with each item of List block
    on top of an empty stack. Replaces item in List block with
    Block's stack top after opening it. Leaves the resulting
-   Modified version of List block. `break` and `next` are available.
+   Modified list block. `break` and `next` are available.
 
-  >>> [ 1 2 3 ] [ 1 + ] map
-  === [ 2 3 4 ] (a different block!)
+  ```
+  [ 1 2 3 ] [ 1 + ] map leaves: [ [ 2 3 4 ] ] \"(a different block!)\"
 
-  >>> [ 1 2 3 ] $: a
-  >>> a [ 1 + ] map
-  === [ 2 3 4 ] (a different block!)
-
-  >>> a
-  === [ 1 2 3 ]
+  [ 1 2 3 ] $: a
+  a [ 1 + ] map leaves: [ [ 2 3 4 ] ] \"(a different block!)\"
+  a leaves: [ [ 1 2 3 ] ]
+  ```
   """
   $: block $: list [ ] $: result
 
@@ -530,7 +542,9 @@
 
 [ """( Lb map: B -- MLb ): infix version of `map`.
 
-  >>> [ 1 2 3 ] map: [ 1 + ]
+  ```
+  [ 1 2 3 ] map: [ 1 + ] leaves: [ 2 3 4 ]
+  ```
   """
   ahead thruBlock map
 ] @: map:
@@ -541,14 +555,16 @@
    if Block's stack top is false after it was opened. `break`
    and `next` are available.
 
-  >>> [ ] [ 100 > ] only
-  === [ ] (a different block!)
+  ```
+  [ ] [ 100 > ] only
+    leaves: [ [ ] ] \"(a different block!)\"
 
-  >>> [ 1 2 3 ] [ ] only
-  === [ 1 2 3 ] (a different block!)
+  [ 1 2 3 ] [ ] only
+    leaves: [ [ 1 2 3 ] ] \"(a different block!)\"
 
-  >>> [ 1 100 2 300 4 600 10 ] [ 100 > ] only
-  === [ 300 600 ]
+  [ 1 100 2 300 4 600 10 ] [ 100 > ] only
+    leaves: [ [ 300 600 ] ]
+  ```
   """
   $: block $: list [ ] $: result
 
@@ -576,8 +592,10 @@
 
 [ """( Lb only: B -- Rb ): infix version of `only`.
 
-  >>> [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
-  === [ 300 600 ]
+  ```
+  [ 1 100 2 300 4 600 10 ] only: [ 100 > ]
+    leaves: [ [ 300 600 ] ]
+  ```
   """
   ahead thruBlock only
 ] @: only:
@@ -585,8 +603,10 @@
 
 [ """( Lb without: B -- MLb ): infix version of `without`.
 
-  >>> [ 1 100 2 300 4 600 10 ] without: [ 100 > ]
-  === [ 1 100 2 4 10 ]
+  ```
+  [ 1 100 2 300 4 600 10 ] without: [ 100 > ]
+    leaves: [ [ 1 100 2 4 10 ] ]
+  ```
   """
   ahead thruBlock without
 ] @: without:
@@ -597,24 +617,26 @@
    Memo is updated to Block's value after Block is opened.
    `break` and `next` are available.
 
-  >>> [ ] [ + ] 0 reduce
-  === 0
+  ```
+  [ ] [ + ] 0 reduce
+    leaves:  0
 
-  >>> [ 1 ] [ + ] 0 reduce
-  === 1 (i.e., 0 + 1)
+  [ 1 ] [ + ] 0 reduce
+    leaves: 1 \"(i.e., 0 + 1)\"
 
-  >>> [ 1 2 3 ] [ + ] 0 reduce
-  === 6
+  [ 1 2 3 ] [ + ] 0 reduce
+    leaves: 6
 
-  >>> [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce
-  === 'Hellope, Europe! Huh?'
+  [ 'Hellope, ' 'Europe!' ' ' 'Huh?' ] [ stitch ] '' reduce
+    leaves: 'Hellope, Europe! Huh?'
+  ```
 
   Supports stack reduction:
 
-  >>> '1' '2' '3'
-  === '1' '2' '3'
-  >>> stack [ stitch ] '' reduce
-  === '123'
+  ```
+  '1' '2' '3' stack [ stitch ] '' reduce
+    leaves: '123'
+  ```
   """
   $: memo $: block $: list
 
@@ -653,17 +675,15 @@
 
 
 [ """( Lb B -- A ): leaves the Amount of items for which Block,
-   when opened with an item on top of an empty stack, leaves
-   a truthy form. `break` and `next` are available.
+   when opened with an item from List block on top of an
+   empty stack, leaves a truthy form. `break` and `next` are
+   available.
 
-  >>> [ 1 2 3 ] [ 2 > ] amount
-  === 1 (i.e., 3)
-
-  >>> [ 1 2 3 ] [ 100 > ] amount
-  === 0
-
-  >>> [ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount
-  === 4 (i.e., 1, 2, 1, 100)
+  ```
+  [ 1 2 3 ] [ 2 > ] amount leaves: 1
+  [ 1 2 3 ] [ 100 > ] amount leaves: 0
+  [ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount
+    leaves: 4 \"(i.e., 1, 2, 1, 100)\"
   """
   $: block $: list
 
@@ -686,8 +706,9 @@
 
 [ """( Lb B -- A ): infix version of `amount`.
 
-  >>> [ 1 2 3 ] # [ 2 > ]
-  === 1
+  ```
+  [ 1 2 3 ] # [ 2 > ] leaves: 1
+  ```
   """
   ahead thruBlock amount
 ] @: #
@@ -697,14 +718,12 @@
    items in List block, when opened with each item on top of
    an empty stack.
 
-  >>> [ ] [ 100 < ] all?
-  === true (BEWARE)
-
-  >>> [ 1 2 3 ] [ 100 < ] all?
-  === true
-
-  >>> [ 101 2 3 4 ] [ 100 < ] all?
-  === false (i.e., because of 101)
+  ```
+  [ ] [ 100 < ] all? leaves: true \"BEWARE!\"
+  [ 1 2 3 ] [ 100 < ] all? leaves: true
+  [ 101 2 3 4 ] [ 100 < ] all?
+    leaves: false \"(i.e., because of 101)\"
+  ```
   """
   @: block true $: status
 
@@ -720,17 +739,12 @@
    item in List block, when opened with each item on top of an
    empty stack.
 
-  >>> [ ] [ 100 < ] any?
-  === false (BEWARE)
-
-  >>> [ 1 2 3 ] [ 3 = ] any?
-  === true
-
-  === [ 101 3 2000 ] [ 100 < ] any?
-  === true (i.e., because of 3)
-
-  >>> [ 1002 350 2000 ] [ 100 < ] any?
-  === false
+  ```
+  [ ] [ 100 < ] any? leaves: false \"BEWARE!\"
+  [ 1 2 3 ] [ 3 = ] any? leaves: true
+  [ 101 3 2000 ] [ 100 < ] any? leaves: true
+  [ 1002 350 2000 ] [ 100 < ] any? leaves: false
+  ```
   """
   @: block false $: status
 
@@ -744,32 +758,26 @@
 
 [ """( F anyof: B -- true/false ): infix version of `anyof?`.
 
-  >>> 100 anyof: [ 1 2 3 ]
-  === false
+  ```
+  100 anyof: [ 1 2 3 ] leaves: false
+  #foo anyof: [ foo bar ] leaves: true
 
-  >>> #foo anyof: [ foo bar ]
-  === true
-
-  >>> [ 1 2 3 ] $: x
-  >>> 1 anyof: x
-  === true
-  >>> #foo anyof: x
-  === false
+  [ 1 2 3 ] $: x
+  1 anyof: x leaves: true
+  #foo anyof: x leaves: false
+  ```
   """
   ahead thruLitBlock anyof?
 ] @: anyof:
 
 
-[ """( A B -- Z ): leaves Zipped A, B.
+[ """( A B -- Z ): leaves Zip block A, B. Dies if there is a
+   different amount of items in A and B.
 
-  >>> [ ] [ ] zip
-  === [ ]
-
-  >>> [ 1 2 ] [ 3 4 ] zip
-  === [ [ 1 3 ] [ 2 4 ] ]
-
-  >>> [ 1 2 ] [ 3 ] zip
-  [dies]
+  ```
+  [ ] [ ] zip leaves: [ [ ] ]
+  [ 1 2 ] [ 3 4 ] zip leaves: [ [ [ 1 3 ] [ 2 4 ] ] ]
+  ```
   """
   $: b $: a a count $: aCount
 
@@ -787,20 +795,20 @@
 ] @: zip
 
 
-[ """( A B D -- Z ): leaves Zipped A, B with holes filled by
-   the given Default form.
+[ """( A B D -- Zb ): leaves Zip block A, B with holes
+   filled by the given Default form.
 
-  >>> [ ] [ ] #hole zipWithDefault
-  === [ ]
+  ```
+  [ ] [ ] #hole zipWithDefault leaves: [ [ ] ]
 
-  >>> [ 1 2 ] [ 3 4 ] #hole zipWithDefault
-  === [ [ 1 3 ] [ 2 4 ] ]
+  [ 1 2 ] [ 3 4 ] #hole zipWithDefault
+    leaves: [ [ [ 1 3 ] [ 2 4 ] ] ]
 
-  >>> [ 1 2 ] [ 3 ] #hole zipWithDefault
-  === [ [ 1 3 ] [ 2 hole ] ]
+  [ 1 2 ] [ 3 ] #hole zipWithDefault
+    leaves: [ [ [ 1 3 ] [ 2 hole ] ] ]
 
-  >>> [ 1 ] [ 3 4 ] #hole zipWithDefault
-  === [ [ 1 3 ] [ hole 4 ] ]
+  [ 1 ] [ 3 4 ] #hole zipWithDefault
+    leaves: [ [ [ 1 3 ] [ hole 4 ] ] ]
   """
   $: default
 
@@ -827,18 +835,24 @@
 ] @: zipWithDefault
 
 
-[ """( S D -- Di ): given a Source block and a Destination
-   block, leaves an instance of Destination block with all
-   words (see `word?`) replaced with entry values from dictionary
-   of Source (they are **not** opened), and all quoted words
-   unquoted (see `quotedWord?`). Recurses on sub-blocks.
+[ """( S D -- I ): given a Source block and a Destination
+   block, leaves an Instance of Destination block with all
+   words (see `word?`) replaced with entry values from
+   dictionary of Source (they are **not** opened), and all
+   quoted words unquoted (see `quotedWord?`). Recurses on
+   sub-blocks.
 
-  >>> 1 $: x  2 $: y  #+ $: plus
-  >>> this [ x y plus #dup plus [ ##foo #echo ] #open ] conjure
-  === [ 1 2 + dup + [ #foo echo ] #open ]
-  >>> open
-  STDOUT: foo
-  === 6
+  ```
+  1 $: x
+  2 $: y
+  #+ $: plus
+
+  this [ x y plus #dup plus [ ##foo #echo ] #open ] conjure
+    leaves: [ [ 1 2 + dup + [ #foo echo ] #open ] ]
+
+  open leaves: 6
+  \"STDOUT: foo⏎\"
+  ```
   """
   swap $: source
 
@@ -851,14 +865,18 @@
 ] @: conjure
 
 
-[ """( B -- Bi ): `conjure` with Source block set to caller.
+[ """( B -- I ): `conjure` with Source block set to caller.
 
-  >>> 1 $: x  2 $: y  #+ $: plus
-  >>> [ x y plus #dup plus [ ##foo #echo ] #open ] here
-  === [ 1 2 + dup + [ #foo echo ] #open ]
-  >>> open
-  STDOUT: foo
-  === 6
+  ```
+  1 $: x
+  2 $: y
+  #+ $: plus
+
+  [ x y plus #dup plus [ ##foo #echo ] #open ] here
+    leaves: [ [ 1 2 + dup + [ #foo echo ] #open ] ]
+
+  open leaves: 6 \"STDOUT: foo⏎\"
+  ```
   """
   ahead swap conjure
 ] @: here
@@ -869,8 +887,9 @@
    always) contain solely decimals. If an empty block is given,
    dies, so make sure to handle that yourself.
 
-  >>> [ 1 2 3 ] minmax
-  === 1 3
+  ```
+  [ 1 2 3 ] minmax leaves: [ 1 3 ]
+  ```
   """
 
   "NOTE: this is separate from minmaxBy for performance reasons only;
@@ -891,54 +910,51 @@
 ] @: minmax
 
 
-[ """( Lb -- Min ): leaves decimal minimum. See `minmax`.
+[ """( Lb -- Min ): leaves decimal minimum in List block.
+   See `minmax`.
 
-  >>> [ 1 2 3 ] min
-  === 1
+  ```
+  [ 1 2 3 ] min leaves: 1
+  ```
   """
   minmax drop
 ] @: min
 
 
-[ """( Lb -- Max ): leaves decimal maximum. See `minmax`.
+[ """( Lb -- Max ): leaves decimal maximum in List block.
+   See `minmax`.
 
-  >>> [ 1 2 3 ] max
-  === 3
+  ```
+  [ 1 2 3 ] max leaves: 3
+  ```
   """
   minmax nip
 ] @: max
 
 
 [ """( Lb -- Sum ): leaves decimal sum of List block elements.
-   For more control (or if not always decimal), use sumBy.
+   For more control (or if not always decimal), use `sumBy`.
 
-  >>> [ ] sum
-  === 0
-
-  >>> [ 1 ] sum
-  === 1
-
-  >>> [ 1 2 3 ] sum
-  === 6
+  ```
+  [ ] sum leaves: 0
+  [ 1 ] sum leaves: 1
+  [ 1 2 3 ] sum leaves: 6
+  ```
   """
   [ + ] 0 reduce
 ] @: sum
 
 
-[ """( Lb T -- Min Max ): leaves the minimum and maximum values
-   in List block. Decimal values are obtained via the Transformation
-   block, which is opened with each element of List block on top
-   of an empty stack. If List block is empty, dies, so make sure
-   to handle that yourself.
+[ """( Lb Tb -- Min Max ): leaves the minimum and maximum
+   values in List block. Decimal values are obtained via the
+   Transformation block, which is opened with each element
+   of List block on top of an empty stack. If List block is
+   empty, dies, so make sure to handle that yourself.
 
-  >>> [ ] [ ] minmaxBy
-  === [dies]
-
-  >>> [ 1 2 3 ] [ ] minmaxBy
-  === 1 3
-
-  >>> [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ count ] minmax
-  === 'A short string' 'Veeeeeeeeeeery long string'
+  ```
+  [ 1 2 3 ] [ ] minmaxBy leaves: [ 1 3 ]
+  [ 'A short quote' 'A loooonger quote' 'Veeeeeeeeeeery long quote' ] [ count ] minmaxBy
+    leaves: [ 'A short quote' 'Veeeeeeeeeeery long quote' ]
   """
   dup empty? => [ drop minmax ^ ] $: transformer
   dup empty? => [ 'Cannot minmax an empty block' die ]
@@ -960,33 +976,37 @@
 ] @: minmaxBy
 
 
-[ """( Lb T -- Min ): leaves the minimum value in List block. Each
-   element of List block is transformed using Transformation
-   block. See `minmaxBy`.
+[ """( Lb Tb -- Min ): leaves the minimum value in List
+   block. Each element of List block is transformed using
+   Transformation block. See `minmaxBy`.
 
-  >>> [ 1 2 3 ] [ ] minBy
-  === 1
+  ```
+  [ 1 2 3 ] [ ] minBy leaves: 1
+  ```
   """
   minmaxBy drop
 ] @: minBy
 
 
-[ """( Lb T -- Max ): leaves the maximum value in List block. Each
-   element of List block is transformed using Transformation
-   block. See `minmaxBy`.
+[ """( Lb Tb -- Max ): leaves the maximum value in List
+   block. Each element of List block is transformed using
+   Transformation block. See `minmaxBy`.
 
-  >>> [ 1 2 3 ] [ ] maxBy
-  === 3
+  ```
+  [ 1 2 3 ] [ ] maxBy leaves: 3
+  ```
   """
   minmaxBy nip
 ] @: maxBy
 
 
-[ """( Lb T -- Sum ): leaves Sum of List block elements transformed
-   into decimals by Transformation block. Similar to `minmaxBy`.
+[ """( Lb Tb -- Sum ): leaves Sum of List block elements
+   transformed into decimals by Transformation block.
+   Similar to `minmaxBy`.
 
-  >>> [ 'a' 'aaa' 'aa' ] [ count ] sumBy
-  === 6
+  ```
+  [ 'a' 'aaa' 'aa' ] [ count ] sumBy leaves: 6
+  ```
   """
   $: transformer
 
@@ -994,24 +1014,30 @@
 ] @: sumBy
 
 
-[ """( Lb sumBy: T -- Sum ): infix version of `sumBy`.
-  >>> [ 'a' 'aaa' 'aa' ] sumBy: count
-  === 6
+[ """( Lb sumBy: Tb -- Sum ): infix version of `sumBy`.
+
+  ```
+  [ 'a' 'aaa' 'aa' ] sumBy: count leaves: 6
+  ```
   """
   ahead thruBlock sumBy
 ] @: sumBy:
 
 
-[ """( N B -- Lb ): leaves a List block with N results of opening
-   Block with the current N. Basically a combo of `times` and `map`.
-   `break` and `next` are available. The current result is skipped
-   if stack is empty after opening Block.
+[ """( N B -- Lb ): leaves a List block with N results of
+   opening Block with the current N. Basically a combo of
+   `times` and `map`. `break` and `next` are available. The
+   current result is skipped if stack is empty after opening
+   Block.
 
-  >>> 3 [ readLine [ stack swap slurp ] [ drop 0 ] br ] collect
+  ```
+  3 [ readLine br: [ stack swap slurp ] [ drop 0 ] ] collect
   INPUT: 0 3
   INPUT: 1 5
   INPUT: 2 12
-  === [ 3 5 12 ]
+
+  leaves: [ [ 3 5 12 ] ]
+  ```
   """
   $: block $: max [ ] $: result
 
@@ -1035,29 +1061,31 @@
 ] @: collect:
 
 
-[ """( B G -- Lg ): groups forms in Block according to Grouper
-   block. Leaves a List of groups. Grouper block is opened
-   with consequent items on top of an empty stack. Grouper
-   block can leave any form except block. Order of groups
-   in List of groups is the same as in Block, i.e., if the
-   first item in Block is is in group G1, then the first group
-   in List of groups will be G1.
+[ """( B Gb -- Gl ): groups forms in Block according to
+   Grouper block. Leaves a Group list. Grouper block is
+   opened with consequent items on top of an empty stack.
+   Grouper block can leave any form except block. Order of
+   groups in Group list is the same as in Block, i.e., if
+   the first item in Block is is in group G1, then the first
+   group in Group list will be G1.
 
-  If necessary, the form Group left for a particular group
-  can be accessed with `.id`. Group members do not have access
-  to their group block's `id`.
+  If necessary, the form Grouper block leaves for a particular
+  group can be accessed with `.id` on each group block in
+  Group list.
 
-  >>> [ 1 2 3 ] [ 1 > ] groupBy
-  === [ [ 1 ] [ 2 3 ] ]
+  Note though, that Group members do not have access to
+  their Grouper block's `id`.
 
-  >>> [ 1 2 3 ] [ 1 <= ] groupBy
-  === [ [ 1 ] [ 2 3 ] ]
+  ```
+  [ 1 2 3 ] [ 1 > ] groupBy leaves: [ [ [ 1 ] [ 2 3 ] ] ]
+  [ 1 2 3 ] [ 1 <= ] groupBy leaves: [ [ [ 1 ] [ 2 3 ] ] ]
 
-  >>> [ 1 2 3 ] [ 1 <= ] groupBy [ .id ] map
-  === [ true false ]
+  [ 1 2 3 ] [ 1 <= ] groupBy [ .id ] map
+    leaves: [ [ true false ] ] \"The two groups, true and false\".
 
-  >>> [ 1 2 3 ] [ 1 <= 'foo' 'bar' sel ] groupBy [ dup .id 2enclose ] map
-  === [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ]
+  [ 1 2 3 ] [ 1 <= 'foo' 'bar' sel ] groupBy [ dup .id 2enclose ] map
+    leaves: [ [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ] ]
+  ```
   """
   asBlock $: grouper asBlock $: block
 
@@ -1081,20 +1109,19 @@
 ] @: groupBy
 
 
-[ """( B G -- Lg ): infix version of `groupBy`. See `groupBy`
-   for information on what this word does.
+[ """( B Gb -- Gl ): infix version of `groupBy`. See
+   `groupBy` for information.
 
-  >>> [ 1 2 3 ] groupBy: [ 1 > ]
-  === [ [ 1 ] [ 2 3 ] ]
+  ```
+  [ 1 2 3 ] groupBy: [ 1 > ] leaves: [ [ [ 1 ] [ 2 3 ] ] ]
+  [ 1 2 3 ] groupBy: [ 1 <= ] leaves: [ [ [ 1 ] [ 2 3 ] ] ]
 
-  >>> [ 1 2 3 ] groupBy: [ 1 <= ]
-  === [ [ 1 ] [ 2 3 ] ]
+  [ 1 2 3 ] groupBy: [ 1 <= ] map: [ .id ]
+    leaves: [ [ true false ] ]
 
-  >>> [ 1 2 3 ] groupBy: [ 1 <= ] map: [ .id ]
-  === [ true false ]
-
-  >>> [ 1 2 3 ] groupBy: [ 1 <= 'foo' 'bar' sel ] map: [ dup .id 2enclose ]
-  === [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ]
+  [ 1 2 3 ] groupBy: [ 1 <= 'foo' 'bar' sel ] map: [ dup .id 2enclose ]
+    leaves: [ [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ] ]
+  ```
   """
   ahead thruBlock groupBy
 ] @: groupBy:
@@ -1104,14 +1131,14 @@
    between the given Begin, End decimal boundaries: [B; E],
    [E; B] if  E < B.
 
-  >>> 1 100 range
-  === [ 1 2 3 ... 98 99 100 ]
+  ```
+  \"Note: `...` means there's more. These 'leaves:'
+   expressions won't run right away.\"
 
-  >>> -10 10 range
-  === [ -10 -9 -8 ... 8 9 10 ]
-
-  >>> 10 0 range
-  === [ 10 9 8 ... 0 ]
+  1 100 range leaves: [ 1 2 3 \"...\" 98 99 100 ]
+  -10 10 range leaves: [ -10 -9 -8 \"...\" 8 9 10 ]
+  10 0 range leaves: [ 10 9 8 \"...\" 0 ]
+  ```
   """
   $: e $: b
 
@@ -1124,37 +1151,40 @@
 
 [ """( B to: E -- Rb ): infix version of `range`.
 
-  >>> 1 to: 100
-  === [ 1 2 3 ... 98 99 100 ]
+  ```
+  \"Note: `...` means there's more. These 'leaves:'
+   expressions won't run right away.\"
 
-  >>> 10 to: 0
-  === [ 10 9 8 ... 0 ]
+  1 to: 100 leaves: [ 1 2 3 \"...\" 98 99 100 ]
+  10 to: 0 leaves: [ 10 9 8 \"...\" 0 ]
+  ```
   """
   ahead thruVal range
 ] @: to:
 
 
-[ """( Fl -- Q ): stitches enquoted forms from Form list
-   into Quote.
+[ """( Fl -- Q ): stitches enquoted forms from Form list and
+   leaves the resulting Quote.
 
-  >>> [ 'A' 'B' 'C' ] join
-  === 'ABC'
+  ```
+  [ 'A' 'B' 'C' ] join leaves: 'ABC'
 
-  >>> 1 $: x
-  >>> 2 $: y
-  >>> [ x '; ' y ] here join
-  === '1; 2'
+  1 $: x
+  2 $: y
+  [ x '; ' y ] here join leaves: '1; 2'
+  ```
   """
   asBlock [ toQuote stitch ] '' reduce
 ] @: join
 
 
-[ """( Fl S -- Q ): stitches enquoted forms from Form list
-   into Quote, inserting enquoted Separator in the middle
-   of pairs.
+[ """( Fl Df -- Q ): stitches enquoted forms from Form
+   list and leaves the resulting Quote. Enquotes and
+   inserts Delimiter form between the pairs.
 
-  >>> [ 'a' 'b' '=' 1 ] ' ' sepBy
-  === 'a b = 1'
+  ```
+  [ 'a' 'b' '=' 1 ] ' ' sepBy leaves: 'a b = 1'
+  ```
   """
   toQuote $: sep
   asBlock $: formList
@@ -1172,7 +1202,7 @@
 ] @: sepBy
 
 
-[ "( Fl sepBy:/join: S -- Q ): infix version of `sepBy`."
+[ "( Fl sepBy:/join: D -- Q ): infix version of `sepBy`."
   ahead thruVal sepBy
 ] dup @: sepBy:
       @: join:
@@ -1180,8 +1210,10 @@
 
 [ """( B1 B2 -- B1 ): adds elements from B2 into B1.
 
-  >>> [ 1 2 3 ] [ 4 5 6 ] concat!
-  === [ 1 2 3 4 5 6 ]
+  ```
+  [ 1 2 3 ] [ 4 5 6 ] concat!
+    leaves: [ [ 1 2 3 4 5 6 ] ]
+  ```
   """
   [ << ] rot reduce
 ] @: concat!
@@ -1189,23 +1221,27 @@
 
 [ """( B1 B2 -- Br ): concatenates two Blocks.
 
-  >>> [ 1 2 3 ] [ 4 5 6 ]
-  === [ 1 2 3 4 5 6 ] (a new block!)
+  ```
+  [ 1 2 3 ] [ 4 5 6 ] concat
+    leaves: [ [ 1 2 3 4 5 6 ] \"(a new block!)\" ]
+  ```
   """
   <| shallowCopy |> concat!
 ] @: concat
 
 
-[ """( -- Lw ): leaves a List of words which are defined in
-   caller. Recurses to caller's parents while there are any.
+[ """( -- Wl ): leaves Word list block that contains words
+   defined (*resolvable*) in caller and in its relatives.
 
-  >>> 0 $: y [ 1 $: x ls* ] open
-  === [ ... y x ]
+  ```
+  0 $: y [ 1 $: x ls* ] open leaves: [ [ \"...\" y x ] ]
+  ```
 
   As opposed to `ls`, which leaves only block's own words:
 
-  >>> 0 $: y [ 1 $: x this ls ] open
-  === [ x ]
+  ```
+  0 $: y [ 1 $: x this ls ] open leaves: [ [ x ] ]
+  ```
   """
   [ ] $: result
   [
@@ -1226,11 +1262,13 @@
 
   Lookup hierarchy is destroyed: Tape block is an orphan.
 
-  >>> [ 1 2 3 ] $: a
-  >>> a #x 0 pushes
-  >>> a a toTape 2echo
-  [ 1 2 3 · ${x :: 0} ]
-  [ 1 2 3 ]
+  ```
+  [ 1 2 3 ] $: a
+  a #x 0 pushes
+  a a toTape 2echo
+  \"STDOUT: [ 1 2 3 · ${x :: 0} ]⏎\"
+  \"STDOUT: [ 1 2 3 ]⏎\"
+  ```
   """
   new toOrphan
 ] @: toTape
@@ -1241,25 +1279,28 @@
 ] @: hasDesc?
 
 
-[ """( Lb C -- S true/false ): slides right (see `|slideRight`)
-   through List block, executes Condition block for each form
-   under cursor. Stops *|after* form if Condition block left true
-   for it. Leaves Skipped forms block. Leaves true when Condition
-   matched, false when reached the end of List block without
-   a match.
+[ """( Lb C -- Sfb true/false ): slides right (see
+   `|slideRight`) through List block, executes Condition
+   block for each form under cursor. Stops *|after* form if
+   Condition block left true for it. Leaves Skipped forms
+   block. Leaves true when Condition matched, false when
+   reached the end of List block without a match.
 
-  Note: if Condition is not a block, it is wrapped like so: `[ C = ]`.
+  Note: if Condition is not a block, it is wrapped like so:
+  `[ C = ]`.
 
   Useful for writing parsers for Novika DSLs.
 
-  >>> [ 1 2 3 4 5 6 ] $: a
-  >>> a 1 |to
-  >>> a
-  === [ 1 | 2 3 4 5 6 ]
-  >>> [ 4 = ] |after?
-  === [ 2 3 ] true
-  >>> a echo
-  [ 1 2 3 4 | 5 6 ]
+  ```
+  [ 1 2 3 4 5 6 ] $: a
+  a 1 |to
+  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
+
+  [ 4 = ] |after? leaves: [ [ 2 3 ] true ]
+
+  a echo
+  \"STDOUT: [ 1 2 3 4 | 5 6 ]⏎\"
+  ```
   """
   $: pattern ahead $: caller
 
@@ -1279,28 +1320,29 @@
 ] @: |after?
 
 
-[ "( Lb C -- S ): same as `|after?`, but disregards whether the
-   end was reached instead of Condition matching."
+[ "( Lb C -- Sfb ): same as `|after?`, but disregards
+   whether the end was reached instead of Condition
+   matching."
   |after? drop
 ] @: |after
 
 
-[ """( Lb C -- S ): same as `|after?`, but dies when reached end of
-   List block without matching.
+[ """( Lb C -- Sfb ): same as `|after?`, but dies when reached
+   end of List block without matching.
 
-  When Condition is a block, its desc, if available, is printed as
-  the thing that was expected. Otherwise, Condition itself is printed.
+  When Condition is a block, its desc, if available, is
+  displayed as the thing that was expected. Otherwise,
+  Condition itself is displayed.
 
-  >>> [ 1 2 3 4 5 6 ] $: a
-  >>> a 1 |to
-  >>> a
-  === [ 1 | 2 3 4 5 6 ]
-  >>> 4 |after!
-  === [ 2 3 ]
-  >>> a echo
-  [ 1 2 3 4 | 5 6 ]
-  >>> a 'doesn\\\'t exist' |after!
-  Sorry: expected ｢doesn't exist｣ to match, but reached end of block.
+  ```
+  [ 1 2 3 4 5 6 ] $: a
+  a 1 |to
+  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
+
+  a 4 |after! leaves: [ [ 2 3 ] ]
+  a echo
+  \"STDOUT: [ 1 2 3 4 | 5 6 ]⏎\"
+  ```
   """
   dup $: cond
 
@@ -1314,33 +1356,34 @@
 ] @: |after!
 
 
-[ "( Lb |after?: C -- S ): infix version of `|after?`."
+[ "( Lb |after?: C -- Sfb ): infix version of `|after?`."
   ahead thru |after?
 ] @: |after?:
 
 
-[ "( Lb |after: C -- S ): infix version of `|after`."
+[ "( Lb |after: C -- Sfb ): infix version of `|after`."
   ahead thru |after
 ] @: |after:
 
 
-[ "( Lb |after!: C -- S ): infix version of `|after!`."
+[ "( Lb |after!: C -- Sfb ): infix version of `|after!`."
   ahead thru |after!
 ] @: |after!:
 
 
-[ """( Lb C -- S true/false ): similar to `|after?`, but leaves
-   the cursor in List block *before* the matching item.
+[ """( Lb C -- Sfb true/false ): similar to `|after?`, but
+   leaves the cursor in List block *before* the matching
+   item.
 
-  >>> [ 1 2 3 4 5 6 ] $: a
-  >>> a 1 |to
-  >>> a
-  === [ 1 | 2 3 4 5 6 ]
-  >>> 4 |before?
-  === [ 2 3 ]
-  >>> a echo
-  [ 1 2 3 | 4 5 6 ]
-         ~^~ note the cursor position
+  ```
+  [ 1 2 3 4 5 6 ] $: a
+  a 1 |to
+  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
+
+  a 4 |before? leaves: [ [ 2 3 ] ]
+  a echo
+  \"STDOUT: [ 1 2 3 | 4 5 6 ]⏎\"
+  ```
   """
   over $: list
 
@@ -1350,24 +1393,25 @@
 ] @: |before?
 
 
-[ "( Lb C -- S ): same as `|before?`, but disregards whether the
-   end was reached instead of Condition matching."
+[ "( Lb C -- Sfb ): same as `|before?`, but disregards
+   whether the end was reached instead of Condition
+   matching."
   |before? drop
 ] @: |before
 
 
-[ """( Lb C -- S ): similar to `|before!`, but leaves the cursor
-   in List block *before* the matching item.
+[ """( Lb C -- Sfb ): similar to `|before!`, but leaves the
+   cursor in List block *before* the matching item.
 
-  >>> [ 1 2 3 4 5 6 ] $: a
-  >>> a 1 |to
-  >>> a
-  === [ 1 | 2 3 4 5 6 ]
-  >>> 4 |before!
-  === [ 2 3 ]
-  >>> a echo
-  [ 1 2 3 | 4 5 6 ]
-         ~^~ note the cursor position
+  ```
+  [ 1 2 3 4 5 6 ] $: a
+  a 1 |to
+  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
+
+  a 4 |before! leaves: [ [ 2 3 ] ]
+  a echo
+  \"STDOUT: [ 1 2 3 | 4 5 6 ]⏎\"
+  ```
   """
   over $: list
 
@@ -1377,17 +1421,17 @@
 ] @: |before!
 
 
-[ "( Lb |before?: C -- S ): infix version of `|before?`."
+[ "( Lb |before?: C -- Sfb ): infix version of `|before?`."
   ahead thru |before?
 ] @: |before?:
 
 
-[ "( Lb |before: C -- S ): infix version of `|before`."
+[ "( Lb |before: C -- Sfb ): infix version of `|before`."
   ahead thru |before
 ] @: |before:
 
 
-[ "( Lb |before!: C -- S ): infix version of `|before!`."
+[ "( Lb |before!: C -- Sfb ): infix version of `|before!`."
   ahead thru |before!
 ] @: |before!:
 
@@ -1397,14 +1441,14 @@
    active Stack. Forms are taken from List block. Resulting
    Stack is left.
 
-  >>> [ 1 2 2 3 3 2 1 ] [ 2echo ] tally
-  STDOUT: 1 \"two ones\"
-  STDOUT: 2
-  STDOUT: 2 \"three twos\"
-  STDOUT: 3
-  STDOUT: 3 \"two threes\"
-  STDOUT: 2
-  === [ ] \"all were consumed by 2echo\"
+  ```
+  [ 1 2 2 3 3 2 1 ] [ swap 2echo ] tally
+  \"STDOUT: 2⏎ 1⏎ (two ones)\"
+  \"STDOUT: 3⏎ 2⏎ (three twos\"
+  \"STDOUT: 2⏎ 3⏎ (two threes)\"
+
+  leaves: [ ] \"all were consumed by 2echo\"
+  ```
   """
   over empty? => [ 2drop orphan ^ ]
 

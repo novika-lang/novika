@@ -37,11 +37,11 @@ module Novika::Features::Impl
         parent.onto(stack)
       end
 
-      target.at("conts", "( -- Cs ): pushes the Continuations block.") do |engine, stack|
+      target.at("conts", "( -- Cb ): pushes the Continuations block.") do |engine, stack|
         engine.conts.onto(stack)
       end
 
-      target.at("cont", "( -- Cs ): pushes the Continuation block.") do |engine, stack|
+      target.at("cont", "( -- Cb ): pushes the Continuation block.") do |engine, stack|
         engine.cont.onto(stack)
       end
 
@@ -57,7 +57,7 @@ module Novika::Features::Impl
       end
 
       target.at("getContBlock", <<-END
-      ( C -- cB ): leaves the continuation Block of a Continuation.
+      ( C -- Cb ): leaves the Code block of a Continuation.
       END
       ) do |_, stack|
         cont = stack.drop.a(Block)
@@ -65,7 +65,7 @@ module Novika::Features::Impl
       end
 
       target.at("getContStack", <<-END
-      ( C -- cS ): leaves the continuation Stack of a Continuation.
+      ( C -- Sb ): leaves the Stack block of a Continuation.
       END
       ) do |_, stack|
         cont = stack.drop.a(Block)
@@ -73,12 +73,12 @@ module Novika::Features::Impl
       end
 
       target.at("this", <<-END
-      ( -- B ): pushes a reflection of the block it's opened in.
+      ( -- B ): pushes the Block it's opened in.
 
-      >>> [ this ] open
-      === [ this ] (instance of `[ this ]`)
-      >>> prototype
-      === [ this ] (I told you!)
+      ```
+      [ this ] open echo
+      "STDOUT: [ this ]⏎ (instance of `[ this ]`)"
+      ```
       END
       ) do |engine, stack|
         engine.block.onto(stack)
@@ -87,10 +87,14 @@ module Novika::Features::Impl
       target.at("stack", <<-END
       ( -- S ): pushes the Stack it's opened in.
 
-      >>> stack
-      === ⭮
-      >>> 'foo' <<
-      === ⭮ 'foo'
+      ```
+      stack dup echo
+      "STDOUT: [ ⭮ ]⏎"
+
+      'foo' <<
+      stack echo
+      "STDOUT: [ ⭮ 'foo' ]⏎"
+      ```
       END
       ) do |_, stack|
         stack.onto(stack)
@@ -100,8 +104,9 @@ module Novika::Features::Impl
       ( -- B ): leaves the block that will be executed after
        `this` finishes.
 
-      >>> 100 [ ahead 1 inject ] open +
-      === 101 (i.e. 100 1 +)
+      ```
+      100 [ ahead 1 inject ] open + leaves: 101 "(i.e. 100 1 +)"
+      ```
       END
       ) do |engine, stack|
         cont = engine.conts.at(engine.conts.count - 2)
@@ -188,11 +193,11 @@ module Novika::Features::Impl
       ( F -- F' ): opens Form in the active stack. Equivalent
        to `stack F hydrate`.
 
-      >>> 100 open
-      === 100
+      ```
+      100 open leaves: 100
 
-      >>> 1 [ 2 + ] open
-      === 3
+      1 [ 2 + ] open leaves: 3
+      ```
       END
       ) do |engine, stack|
         form = stack.drop
@@ -200,11 +205,13 @@ module Novika::Features::Impl
       end
 
       target.at("do", <<-END
-      ( F -- ): activates Form over an empty stack.
+      ( F -- ): opens Form with an empty stack activated, and
+       disposed when Form has been evaluated.
 
-      >>> [ 'Hi!' echo ] do
-      Hi!
-      ===
+      ```
+      [ 'Hi!' echo ] do
+      "STDOUT: Hi!⏎"
+      ```
       END
       ) do |engine, stack|
         form = stack.drop
@@ -274,14 +281,11 @@ module Novika::Features::Impl
       ( F B -- true/false ): leaves whether any form in Block is
        equal (via `=`) to Form.
 
-      >>> 1 [ 1 2 3 ] anyof?
-      === true
-
-      >>> 'hello' [ 'hello' 'world' 1 ] anyof?
-      === true
-
-      >>> 'hello' [ 1 2 3 ] anyof?
-      === false
+      ```
+      1 [ 1 2 3 ] anyof? leaves: true
+      'hello' [ 'hello' 'world' 1 ] anyof? leaves: true
+      'hello' [ 1 2 3 ] anyof? leaves: false
+      ```
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -302,9 +306,9 @@ module Novika::Features::Impl
 
       # TODO: example
       target.at("toUppercase", <<-END
-      (Q -- Uq): converts lowercase character(s) in Quote
-       to Uppercase. If Quote is empty, leaves empty quote.
-       Behaves a bit like `uppercase?`.
+      ( Q -- Uq ): leaves all- Uppercase quote for Quote: converts
+       lowercase character(s) in Quote to uppercase. If Quote is empty,
+       leaves empty quote.
       END
       ) do |_, stack|
         quote = stack.drop.a(Quote)
@@ -322,13 +326,17 @@ module Novika::Features::Impl
       target.at("asBlock", <<-END
       ( F -- B ): asserts that Form is a Block, dies if it's not.
 
-      >>> 100 asBlock
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asBlock
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> [] asBlock
-      === [] (the same block)
+      ```
+      [] asBlock leaves: [ [] "(the same block)" ]
+      ```
       END
       ) { |_, stack| stack.top.a(Block) }
 
@@ -336,11 +344,11 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a word form,
        or a block that implements '*asWord'.
 
-      >>> #foo word?
-      === true
+      ```
+      #foo word? leaves: true
 
-      >>> [ #foo $: *asWord this ] open word?
-      === true
+      [ #foo $: *asWord this ] open word? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -348,17 +356,14 @@ module Novika::Features::Impl
       end
 
       target.at("private?", <<-END
-      ( W -- ): leaves whether a word is prefixed by one or more
+      ( W -- ): leaves whether Word is prefixed by one or more
        '_', meaning it is conventionally considered private.
 
-      >>> #hello private?
-      === false
-
-      >>> #_hello private?
-      === true
-
-      >>> #_ private?
-      === false "BEWARE!"
+      ```
+      #hello private? leaves: false
+      #_hello private? leaves: true
+      #_ private? leaves: false "Beware!"
+      ```
       END
       ) do |_, stack|
         Boolean[stack.drop.a(Word).private?].onto(stack)
@@ -393,23 +398,27 @@ module Novika::Features::Impl
       ( F -- W ): asserts that Form is a Word form, dies if
        it's not.
 
-      >>> 100 asWord
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asWord
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> #foo asWord
-      === foo
+      ```
+      #foo asWord leaves: [ foo ]
+      ```
 
-      '*asWord' hook can make a block usable in place of a word,
+      `*asWord` hook can make a block usable in place of a word,
       provided its definition leaves a word or a block which
       implements '*asWord':
 
-      >>> [ $: x x $: *asWord this ] @: a
-      >>> #foo a asWord
-      === instance of a
-      >>> #boo a a asWord
-      === instance of a
+      ```
+      [ $: x x $: *asWord this ] @: a
+      #foo a asWord "beware: leaves instance of a"
+      #boo a a asWord "beware: leaves instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(Word) }
 
@@ -417,11 +426,10 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a quoted word
        form, or a block that implements '*asQuotedWord'.
 
-      >>> ##foo quotedWord?
-      === true
-
-      >>> [ ##foo $: *asQuotedWord this ] open quotedWord?
-      === true
+      ```
+      ##foo quotedWord? leaves: true
+      [ ##foo $: *asQuotedWord this ] open quotedWord? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -432,23 +440,27 @@ module Novika::Features::Impl
       ( F -- Qw ): asserts that Form is a Quoted word form,
        dies if it's not.
 
-      >>> 100 asQuotedWord
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asQuotedWord
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> ##foo asQuotedWord
-      === #foo
+      ```
+      ##foo asQuotedWord leaves: #foo
+      ```
 
-      '*asQuotedWord' hook can make a block usable in place of
+      `*asQuotedWord` hook can make a block usable in place of
       a quoted word, provided its definition leaves a quoted
-      word or a block that implements '*asQuotedWord':
+      word or a block that implements `*asQuotedWord`:
 
-      >>> [ $: x x $: *asQuotedWord this ] @: a
-      >>> ##foo a asQuotedWord
-      === instance of a
-      >>> ##boo a a asQuotedWord
-      === instance of a
+      ```
+      [ $: x x $: *asQuotedWord this ] @: a
+      ##foo a asQuotedWord "beware: leaves instance of a"
+      ##boo a a asQuotedWord "beware: leaves instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(QuotedWord) }
 
@@ -456,11 +468,10 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a decimal form,
        or a block that implements '*asDecimal'.
 
-      >>> 123 decimal?
-      === true
-
-      >>> [ 123 $: *asDecimal this ] open decimal?
-      === true
+      ```
+      123 decimal? leaves: true
+      [ 123 $: *asDecimal this ] open decimal? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -471,23 +482,27 @@ module Novika::Features::Impl
       ( F -- D ): asserts that Form is a Decimal form, dies if
        it's not.
 
-      >>> 'foo' 'asDecimal
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      'foo' asDecimal
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> 100 asDecimal
-      === 100
+      ```
+      100 asDecimal leaves: 100
+      ```
 
-      '*asDecimal' hook can make a block usable in place of a
+      `*asDecimal` hook can make a block usable in place of a
       decimal, provided its definition leaves a decimal or a
-      block that implements '*asDecimal':
+      block that implements `*asDecimal`:
 
-      >>> [ $: x x $: *asDecimal this ] @: a
-      >>> 100 a asDecimal
-      === instance of a
-      >>> 200 a a asDecimal
-      === instance of a
+      ```
+      [ $: x x $: *asDecimal this ] @: a
+      100 a asDecimal "beware: leaves an instance of a"
+      200 a a asDecimal "beware: leaves an instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(Decimal) }
 
@@ -495,11 +510,10 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a quote form,
        or a block that implements '*asQuote'.
 
-      >>> 'foo' quote?
-      === true
-
-      >>> [ 'foo' $: *asQuote this ] open quote?
-      === true
+      ```
+      'foo' quote? leaves: true
+      [ 'foo' $: *asQuote this ] open quote? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -510,23 +524,27 @@ module Novika::Features::Impl
       ( F -- Q ): asserts that Form is a Quote form, dies if
        it's not.
 
-      >>> 100 asQuote
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asQuote
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> 'foo' asQuote
-      === 'foo'
+      ```
+      'foo' asQuote leaves: 'foo'
+      ```
 
-      '*asQuote' hook can make a block usable in place of a
+      `*asQuote` hook can make a block usable in place of a
       quote, provided its definition leaves a quote or a block
-      that implements '*asQuote':
+      that implements `*asQuote`:
 
-      >>> [ $: x x $: *asQuote this ] @: a
-      >>> 'foo' a asQuote
-      === instance of a
-      >>> 'boo' a a asQuote
-      === instance of a
+      ```
+      [ $: x x $: *asQuote this ] @: a
+      'foo' a asQuote "beware: leaves instance of a"
+      'boo' a a asQuote "beware: leaves instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(Quote) }
 
@@ -534,11 +552,10 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a boolean form,
        or a block that implements '*asBoolean'.
 
-      >>> true boolean?
-      === true
-
-      >>> [ true $: *asBoolean this ] open boolean?
-      === true
+      ```
+      true boolean? leaves: true
+      [ true $: *asBoolean this ] open boolean? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -549,25 +566,28 @@ module Novika::Features::Impl
       ( F -- B ): asserts that Form is a Boolean form, dies if
        it's not.
 
-      >>> 100 asWord
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asWord
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> true asBoolean
-      === true
-      >>> false asBoolean
-      === false
+      ```
+      true asBoolean leaves: true
+      false asBoolean leaves: false
+      ```
 
-      '*asBoolean' hook can make a block usable in place of a
+      `*asBoolean` hook can make a block usable in place of a
       boolean, provided its definition leaves a boolean or a
-      block that implements '*asBoolean':
+      block that implements `*asBoolean`:
 
-      >>> [ $: x x $: *asBoolean this ] @: a
-      >>> true a asBoolean
-      === instance of a
-      >>> true a a asBoolean
-      === instance of a
+      ```
+      [ $: x x $: *asBoolean this ] @: a
+      true a asBoolean "beware: leaves an instance of a"
+      true a a asBoolean "beware: leaves an instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(Boolean) }
 
@@ -578,13 +598,17 @@ module Novika::Features::Impl
       target.at("asBuiltin", <<-END
       ( F -- B ): asserts Form is a Builtin, dies if it's not.
 
-      >>> 'foo' asBuiltin
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      'foo' asBuiltin
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> #+ here asBuiltin
-      === [native code]
+      ```
+      #+ here asBuiltin toQuote leaves: '[ native code ]'
+      ```
       END
       ) { |_, stack| stack.top.a(Builtin) }
 
@@ -592,11 +616,10 @@ module Novika::Features::Impl
       ( F -- true/false ): leaves whether Form is a color form,
        or a block that implements '*asColor'.
 
-      >>> 0 0 0 rgb color?
-      === true
-
-      >>> [ 0 0 0 rgb $: *asColor this ] open color?
-      === true
+      ```
+      0 0 0 rgb color? leaves: true
+      [ 0 0 0 rgb $: *asColor this ] open color? leaves: true
+      ```
       END
       ) do |_, stack|
         form = stack.drop
@@ -607,23 +630,27 @@ module Novika::Features::Impl
       ( F -- C ): asserts that Form is a Color form, dies if
        it's not.
 
-      >>> 100 asColor
-      [dies]
+      For example, the following expression dies:
+
+      ```
+      100 asColor
+      ```
 
       Et cetera for all other forms, except:
 
-      >>> 0 0 0 rgb asColor
-      === rgb(0, 0, 0)
+      ```
+      0 0 0 rgb asColor toQuote leaves: 'rgb(0, 0, 0)'
+      ```
 
-      '*asColor' hook can make a block usable in place of a
+      `*asColor` hook can make a block usable in place of a
       color, provided its definition leaves a color or a block
-      that implements '*asColor':
+      that implements `*asColor`:
 
-      >>> [ $: x x $: *asColor this ] @: a
-      >>> 0 0 0 rgb a asColor
-      === instance of a
-      >>> 0 0 0 rgb a a asColor
-      === instance of a
+      ```
+      [ $: x x $: *asColor this ] @: a
+      0 0 0 rgb a asColor "beware: leaves an instance of a"
+      0 0 0 rgb a a asColor "beware: leaves an instance of a"
+      ```
       END
       ) { |_, stack| stack.top.a(Color) }
 
@@ -689,13 +716,13 @@ module Novika::Features::Impl
        Name in Block's dictionary followed by `true`, or `false`
        if no such entry is in Block.
 
-      >>> [ ] $: a
-      >>> a #x 100 pushes
-      >>> a #x entry:fetch?
-      === 100 true
+      ```
+      [ ] $: a
+      a #x 100 pushes
 
-      >>> a #y entry:fetch?
-      === false
+      a #x entry:fetch? leaves: [ 100 true ]
+      a #y entry:fetch? leaves: [ false ]
+      ```
       END
       ) do |_, stack|
         name = stack.drop
@@ -736,14 +763,16 @@ module Novika::Features::Impl
        of Block's tape and dictionary, and leaves a Copy block with
        the tape copy, dictionary copy set as its tape, dictionary.
 
-      >>> [ 1 2 3 ] $: a
-      >>> a shallowCopy $: b
-      >>> a #x 0 pushes
-      >>> b #y 1 pushes
-      >>> b 1 shove
-      >>> a b 2echo
-      [ 1 2 3 · ${x :: 0} ]
-      [ 1 2 3 1 · ${y :: 1} ]
+      ```
+      [ 1 2 3 ] $: a
+      a shallowCopy $: b
+      a #x 0 pushes
+      b #y 1 pushes
+      b 1 shove
+      a b 2echo
+      "STDOUT: [ 1 2 3 · ${x :: 0} ]⏎"
+      "STDOUT: [ 1 2 3 1 · ${y :: 1} ]⏎"
+      ```
       END
       ) do |_, stack|
         stack.drop.a(Block).shallow.onto(stack)
@@ -754,28 +783,35 @@ module Novika::Features::Impl
        substrate. This is useful if you want to swap Block's
        contents with Other's without changing Block's identity:
 
-      >>> [ 1 2 3 ] $: a
-      >>> [ 'a' 'b' 'c' ] $: b
-      >>> b #x 0 pushes
-      >>> b echo
-      [ 'a' 'b' 'c' · ${x :: 0} ]
-      >>> a b resub
-      >>> b
-      === [ 1 2 3 · ${x :: 0} ]
+      ```
+      [ 1 2 3 ] $: a
+      [ 'a' 'b' 'c' ] $: b
+      b #x 0 pushes
+      b echo
+      "STDOUT: [ 'a' 'b' 'c' · ${x :: 0} ]⏎"
+
+      a b resub
+      b echo
+      "STDOUT: [ 1 2 3 · ${x :: 0} ]⏎"
+      ```
 
       Note that since *substrate* is replaced, not *tape*, the
       cursor position is saved:
 
-      >>> a b 2echo
-      [ 1 2 3 ]
-      [ 'a' 'b' 'c' · ${x :: 0} ]
-      >>> b 2 |-
-      >>> a b 2echo
-      [ 1 2 3 ]
-      [ 'a' | 'b' 'c' · ${x :: 0} ]
-      >>> a b resub
-      >>> b echo
-      [ 1 | 2 3 · ${x :: 0} ]
+      ```
+      a b 2echo
+      "STDOUT: [ 1 2 3 ]⏎"
+      "STDOUT: [ 'a' 'b' 'c' · ${x :: 0} ]⏎"
+
+      b 2 |-
+      a b 2echo
+      "STDOUT: [ 1 2 3 ]⏎"
+      "STDOUT: [ 'a' | 'b' 'c' · ${x :: 0} ]⏎"
+
+      a b resub
+      b echo
+      "STDOUT: [ 1 | 2 3 · ${x :: 0} ]⏎"
+      ```
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -787,8 +823,9 @@ module Novika::Features::Impl
       ( B/Q I -- E/G ): leaves Index-th Element (Grapheme) in
        Block (Quote) from the left.
 
-      >>> [ 1 2 3 ] 0 fromLeft
-      === 1
+      ```
+      [ 1 2 3 ] 0 fromLeft leaves: 1
+      ```
       END
       ) do |_, stack|
         index = stack.drop.a(Decimal)
@@ -841,24 +878,20 @@ module Novika::Features::Impl
       end
 
       target.at("round", <<-END
-      ( D -- Dr ): rounds towards the nearest integer. If both
-       neighboring integers are equidistant, rounds towards the
-       even neighbor (Banker's rounding).
+      ( D -- Rd ): rounds Decimal towards the nearest integer,
+       leaves the corresoinding Rounded decimal. If both neighboring
+       integers are equidistant, rounds towards the even neighbor
+       (Banker's rounding).
 
-      >>> 1 round
-      === 1
+      ```
+      1 round leaves: 1
+      1.23 round leaves: 1
 
-      >>> 1.23 round
-      === 1
+      1.67 round leaves: 2
+      1.5 round leaves: 2
 
-      >>> 1.67 round
-      === 2
-
-      >>> 1.5 round
-      === 2
-
-      >>> 2.5 round
-      === 2 "rounds towards the even neighbor"
+      2.5 round leaves: 2 "rounds towards the even neighbor"
+      ```
       END
       ) do |_, stack|
         decimal = stack.drop.a(Decimal)
@@ -866,19 +899,15 @@ module Novika::Features::Impl
       end
 
       target.at("trunc", <<-END
-      ( D -- Dt ): leaves truncated Decimal (omits all past '.').
+      ( D -- Td ): omits all past the '.' in Decimal, leaves
+       the resulting Truncated decimal.
 
-      >>> 1 trunc
-      === 1
-
-      >>> 1.23 trunc
-      === 1
-
-      >>> 1.67 trunc
-      === 1
-
-      >>> 2.5 trunc
-      === 2
+      ```
+      1 trunc leaves: 1
+      1.23 trunc leaves: 1
+      1.67 trunc leaves: 1
+      2.5 trunc leaves: 2
+      ```
       END
       ) do |_, stack|
         decimal = stack.drop.a(Decimal)
@@ -890,16 +919,17 @@ module Novika::Features::Impl
         decimal.sqrt.onto(stack)
       end
 
-      target.at("rand", "( -- Rd ): random decimal between 0 and 1.") do |_, stack|
+      target.at("rand", "( -- Rd ): leaves a Random decimal between 0 and 1.") do |_, stack|
         Decimal.new(rand).onto(stack)
       end
 
       target.at("sliceQuoteAt", <<-END
-      ( Q Spt -- Qpre Qpost ): given a Quote, slices it before
-       (Qpre) and after and including (Qpost) Slice point.
+      ( Q Sp -- Pb Pa ): for the given Quote, leaves the Part
+       before and Part after Slice point.
 
-      >>> 'hello world' 2 sliceQuoteAt
-      === 'he' 'llo world'
+      ```
+      'hello world' 2 sliceQuoteAt leaves: [ 'he' 'llo world' ]
+      ```
       END
       ) do |_, stack|
         spt = stack.drop.a(Decimal)
@@ -944,8 +974,8 @@ module Novika::Features::Impl
       end
 
       target.at("|slice", <<-END
-      ( B -- Lh Rh ): slices Block at cursor, leaves Left,
-       Right halves.
+      ( B -- Lh Rh ): slices Block at cursor. Leaves Left half
+       and Right half.
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -955,7 +985,7 @@ module Novika::Features::Impl
       end
 
       target.at("cherry", <<-END
-      ( [ ... E | ... ]B -- [ ... | ... ]B -- E ): drops Block
+      ( [ ... E | ... ]B ~> [ ... | ... ]B -- E ): drops Block
        and Element before cursor in Block (and moves cursor back
        once), leaves Element.
       END
@@ -964,7 +994,7 @@ module Novika::Features::Impl
       end
 
       target.at("shove", <<-END
-      ( [ ... | ... ]B E -- [ ... E | ... ]B -- ): adds Element
+      ( [ ... | ... ]B E ~> [ ... E | ... ]B -- ): adds Element
        before cursor in Block (and moves cursor forward once),
        drops both.
       END
@@ -973,7 +1003,7 @@ module Novika::Features::Impl
       end
 
       target.at("eject", <<-END
-      ( [ ... | F ... ]B -- [ ... | ... ]B -- F ): drops and
+      ( [ ... | F ... ]B ~> [ ... | ... ]B -- F ): drops and
        leaves the Form after cursor in Block.
       END
       ) do |_, stack|
@@ -993,7 +1023,7 @@ module Novika::Features::Impl
       end
 
       target.at("thru", <<-END
-      ( [ ... | F ... ] -- [ ... F | ... ] -- F ): moves cursor
+      ( [ ... | F ... ] -> [ ... F | ... ] -- F ): moves cursor
        after Form, and leaves Form. Dies if cursor is at the end.
 
       Note: prefer `thru` to `eject` because `eject` modifies
@@ -1040,16 +1070,21 @@ module Novika::Features::Impl
        same-named entries in Recipient. Donor entries starting
        with one or more underscores are not imported.
 
-      >>> [ ] $: a
-      >>> a #x 100 pushes
-      >>> a #_private 'Fool!' pushes
-      >>> [ ] $: b
-      >>> b #y 200 pushes
-      >>> b a
-      === [ · ${y :: 200} ] [ · ${x :: 100} ${_private :: 'Fool!'} ]
-      >>> mergeDicts
-      >>> b
-      === [ · ${y :: 200} ${x :: 100} ]
+      ```
+      [ ] $: a
+      a #x 100 pushes
+      a #_private 'Fool!' pushes
+      [ ] $: b
+      b #y 200 pushes
+
+      a b 2echo
+      "STDOUT: [ · ${x :: 100} ${_private :: 'Fool!'} ]⏎"
+      "STDOUT: [ · ${y :: 200} ]⏎"
+
+      b a mergeDicts
+      b echo
+      "STDOUT: [ · ${y :: 200} ${x :: 100} ]⏎"
+      ```
       END
       ) do |_, stack|
         donor = stack.drop.a(Block)
@@ -1074,8 +1109,9 @@ module Novika::Features::Impl
       ( Sq Pq Q -- Rq ): replaces all instances of Pattern quote
        in Source quote with Quote. Leaves the Resulting quote.
 
-      >>> 'hello' 'l' 'y' replaceAll
-      === 'heyyo'
+      ```
+      'hello' 'l' 'y' replaceAll leaves: 'heyyo'
+      ```
       END
       ) do |_, stack|
         repl = stack.drop.a(Quote)
@@ -1096,26 +1132,17 @@ module Novika::Features::Impl
       attempt was successful, the extracted stack effect quote
       is added onto the stack as Effect quote.
 
-      >>> 100 effect
-      === '100'
+      ```
+      100 effect leaves: '100'
+      true effect leaves: 'true'
 
-      >>> true effect
-      === 'true'
+      [] effect leaves: 'a block'
+      [ "Hello World" ] effect leaves: 'a block'
+      [ "( -- ) "] effect leaves: '( -- )'
 
-      >>> #+ here effect
-      === '( A B -- S )' "Note: yours may differ"
-
-      >>> [] effect
-      === 'a block'
-
-      >>> [ "Hello World" ] effect
-      === 'a block'
-
-      >>> [ "( -- ) "] effect
-      === '( -- )'
-
-      >>> #map: here effect
-      === '( Lb B -- MLb )'
+      #+ here effect leaves: '( A B -- S )' "(yours may differ)"
+      #map: here effect leaves: '( Lb B -- MLb )'
+      ```
       END
       ) do |_, stack|
         Quote.new(stack.drop.effect).onto(stack)
@@ -1174,23 +1201,30 @@ module Novika::Features::Impl
       etc. have failed to retrieve them. This recurses, e.g. friends
       ask their own friends and so on, until the entry is found.
 
-      >>> [ 100 $: x this ] open $: a
-      >>> [ 200 $: y this ] open $: b
-      >>> a b befriend
-      >>> b a befriend
-      >>> a.x echo
-      100
-      >>> a.y echo
-      200
-      >>> b.x echo
-      100
-      >>> b.y echo
-      200
-      >>> a #x [ 'I've changed!' echo ] opens
-      >>> a.x
-      I've changed!
-      >>> b.x
-      I've changed!
+      ```
+      [ 100 $: x this ] open $: a
+      [ 200 $: y this ] open $: b
+      a b befriend
+      b a befriend
+      a.x echo
+      "STDOUT: 100⏎"
+
+      a.y echo
+      "STDOUT: 200⏎"
+
+      b.x echo
+      "STDOUT: 100⏎"
+
+      b.y echo
+      "STDOUT: 200⏎"
+
+      a #x [ 'I've changed!' echo ] opens
+
+      a.x
+      "STDOUT: I've changed!⏎"
+      b.x
+      "STDOUT: I've changed!⏎"
+      ```
       END
       ) do |_, stack|
         friend = stack.drop.a(Block)
@@ -1202,18 +1236,20 @@ module Novika::Features::Impl
       ( B F -- ): removes Friend from Block's friend list. Does
        nothing if Friend is not in the friend list. See `befriend`.
 
-      >>> [ 100 $: x this ] open $: a
-      >>> [ 200 $: y this ] open $: b
-      >>> a b befriend
-      >>> a.x echo
-      100
-      >>> a.y echo
-      200
-      >>> a b unfriend
-      >>> a.x echo
-      100
-      >>> a.y echo
-      Sorry: undefined dictionary property: y.
+      ```
+      [ 100 $: x this ] open $: a
+      [ 200 $: y this ] open $: b
+      a b befriend
+      a.x echo
+      "STDOUT: 100⏎"
+      a.y echo
+      "STDOUT: 200⏎"
+      a b unfriend
+      a.x echo
+      "STDOUT: 100⏎"
+      a.y echo
+      "Sorry: undefined dictionary property: y."
+      ```
       END
       ) do |_, stack|
         friend = stack.drop.a(Block)
@@ -1222,22 +1258,24 @@ module Novika::Features::Impl
       end
 
       target.at("friends", <<-END
-      ( B -- Lf ): leaves a List of Block's friends. See `befriend`.
+      ( B -- Fl ): leaves Friend list of Block. See `befriend`.
 
-      >>> [ 100 $: x this ] open $: a
-      >>> [ 200 $: y this ] open $: b
-      >>> a b befriend
-      >>> a friends count echo
-      1
-      >>> a friends first b same? echo
-      true
-      >>> a.y echo
-      200
-      >>> a friends [ drop ] hydrate
-      >>> a friends count echo
-      0
-      >>> a.y echo
-      Sorry: undefined dictionary property: y.
+      ```
+      [ 100 $: x this ] open $: a
+      [ 200 $: y this ] open $: b
+      a b befriend
+      a friends count echo
+      "STDOUT: 1⏎"
+      a friends first b same? echo
+      "STDOUT: true⏎"
+      a.y echo
+      "STDOUT: 200⏎"
+      a friends [ drop ] hydrate
+      a friends count echo
+      "STDOUT: 0⏎"
+      a.y echo
+      "Sorry: undefined dictionary property: y."
+      ```
       END
       ) do |_, stack|
         source = stack.drop.a(Block)
@@ -1266,14 +1304,16 @@ module Novika::Features::Impl
       ( B -- B ): makes Block an orphan (destroys the link with
        its parent).
 
-      >>> 0 $: x
-      >>> [ ] $: b
-      >>> b . x echo
-      0
-      >>> b toOrphan
-      === [ ]
-      >>> . x
-      Sorry: undefined dictionary property: x.
+      ```
+      0 $: x
+      [ ] $: b
+      b . x echo
+      "STDOUT: 0⏎"
+
+      b toOrphan leaves: [ [ ] ]
+      . x
+      "Sorry: undefined dictionary property: x.""
+      ```
       END
       ) do |_, stack|
         stack.top.a(Block).parent = nil
@@ -1282,20 +1322,13 @@ module Novika::Features::Impl
       target.at("desc", <<-END
       ( F -- Dq ): leaves the Description quote of the given Form.
 
-      >>> 100 desc
-      === 'decimal number 100'
-
-      >>> 'foobar' desc
-      === 'quote 'foobar''
-
-      >>> [ 1 2 3 ] desc
-      === 'a block'
-
-      >>> [ "I am a block" 1 2 3 ] desc
-      === 'I am a block'
-
-      >>> true desc
-      === 'boolean true'
+      ```
+      100 desc leaves: 'decimal number 100'
+      'foobar' desc leaves: 'quote \\\\'foobar\\\\''
+      [ 1 2 3 ] desc leaves: 'a block'
+      [ "I am a block" 1 2 3 ] desc leaves: 'I am a block'
+      true desc leaves: 'boolean true'
+      ```
       END
       ) do |_, stack|
         quote = Quote.new(stack.drop.desc)
@@ -1306,20 +1339,13 @@ module Novika::Features::Impl
       ( F -- Dq ): leaves the type Description quote of the
        given Form.
 
-      >>> 100 typedesc
-      === 'decimal'
-
-      >>> 'foobar' typedesc
-      === 'quote'
-
-      >>> [ 1 2 3 ] typedesc
-      === 'block'
-
-      >>> [ "I am a block" 1 2 3 ] typedesc
-      === 'block'
-
-      >>> true typedesc
-      === 'boolean'
+      ```
+      100 typedesc leaves: 'decimal'
+      'foobar' typedesc leaves: 'quote'
+      [ 1 2 3 ] typedesc leaves: 'block'
+      [ "I am a block" 1 2 3 ] typedesc leaves: 'block'
+      true typedesc leaves: 'boolean'
+      ```
       END
       ) do |_, stack|
         quote = Quote.new(stack.drop.class.typedesc)

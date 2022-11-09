@@ -1,16 +1,26 @@
-[ "( F -- ): same as `withColorAppendEcho`, but follows the
-   echo with a newline character."
+[ """( F -- ): echoes Form like `withColorAppendEcho`, then
+   echoes a newline character.
+
+  ```
+  0 100 0 rgb withEchoFg
+  100 0 0 rgb withEchoBg
+    'Hi!' withColorEcho
+  dropEchoBg
+    'Bye!' withColorEcho
+  dropEchoFg
+  ```
+  """
   withColorAppendEcho '\n' appendEcho
 ] @: withColorEcho
 
 
-[ "( F -- ): same as `withEmphasisAppendEcho`, but follows
-   the echo with a newline character."
+[ "( F -- ): echoes Form like `withEmphasisAppendEcho`,
+   then echoes a newline character."
   withEmphasisAppendEcho '\n' appendEcho
 ] @: withEmphasisEcho
 
 
-[ "( F -- ): same as `withReverseAppendEcho`, but follows
-   the echo with a newline character."
+[ "( F -- ): echoes Form like `withReverseAppendEcho`, then
+   echoes a newline character."
   withReverseAppendEcho '\n' appendEcho
 ] @: withReverseEcho

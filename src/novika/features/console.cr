@@ -142,25 +142,25 @@ module Novika::Features
         self.fg = stack.drop.a(Color)
       end
 
-      target.at("console:width", "( -- W ): leaves console width (in columns)") do |engine, stack|
+      target.at("console:width", "( -- Cw ): leaves Console width (in columns)") do |engine, stack|
         width(engine).onto(stack)
       end
 
-      target.at("console:height", "( -- W ): leaves console height (in rows)") do |engine, stack|
+      target.at("console:height", "( -- Ch ): leaves Console height (in rows)") do |engine, stack|
         height(engine).onto(stack)
       end
 
       target.at("console:setTimeout", <<-END
-      ( Tms -- ): sets input Timeout to the given amount of milliseconds.
+      ( D -- ): sets input timeout to Duration, given in *milliseconds*.
 
-       * If Timeout is negative, `console:peek` will wait for
+       * If Duration is negative, `console:peek` will wait for
          input indefinitely (i.e., until there is input).
 
-       * If Timeout is zero, `console:peek` won't wait for input
+       * If Duration is zero, `console:peek` won't wait for input
          at all, but make note if there is any at the moment.
 
-       * If Timeout is positive, `console:peek` will peek
-         during the timeout window.
+       * If Duration is positive, `console:peek` will peek during
+         the timeout window.
       END
       ) do |_, stack|
         @timeout = stack.drop.a(Decimal)
@@ -193,9 +193,9 @@ module Novika::Features
       ) { |engine, stack| had_key_pressed?(engine).onto(stack) }
 
       target.at("console:getKeyPressed", <<-END
-      ( -- Kq ): leaves most recent key pressed. Dies if none. You
-       can use `console:hadKeyPressed` to check whether there was
-       a key pressed before opening this word.
+      ( -- Kq ): leaves most recent key pressed, as Key quote. Dies if
+       none. You can use `console:hadKeyPressed` to check whether there
+       was a key pressed before using this word.
       END
       ) do |engine, stack|
         unless had_key_pressed?(engine)

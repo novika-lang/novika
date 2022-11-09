@@ -18,18 +18,20 @@
 ] @: 2echo
 
 
-[ "( F -- F ): echoes a Form but leaves it."
+[ "( F -- F ): echoes a Form but leaves it on the stack."
   dup echo
 ] @: p
 
 
-[ "( F1 F2 -- F1 F2 ): echoes a pair of Forms but leaves them."
+[ "( F1 F2 -- F1 F2 ): echoes a pair of Forms but leaves
+   them on the stack."
   2dup 2echo
 ] @: 2p
 
 
-[ "( B -- Mt ): leaves Monotonic time difference in milliseconds
-   for Block (leaves the time Block took to execute, in ms)."
+[ "( B -- Mt ): leaves Monotonic time difference in
+   milliseconds for Block (leaves the time Block took to
+   execute, in ms)."
   monotonic $: t1
   do
   monotonic $: t2
