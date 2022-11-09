@@ -30,8 +30,10 @@ module Novika::Features
       ( -- Fb ): lists the ids of features provided by the
        frontend in Feature block.
 
-      >>> novika:features
-      === [ 'essential' 'colors' 'console' ] (yours may differ)
+      ```
+      "Yours may differ!"
+      novika:features leaves: [ [ 'essential' 'colors' 'console' ] ]
+      ```
       END
       ) { |engine, stack| features(engine).onto(stack) }
     end

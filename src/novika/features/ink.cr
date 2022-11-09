@@ -81,7 +81,7 @@ module Novika::Features
       END
       ) { fg.pop? }
 
-      target.at("dropEchoFg", <<-END
+      target.at("dropEchoBg", <<-END
       ( -- ): drops a color from the echo background color stack.
       END
       ) { bg.pop? }
@@ -104,9 +104,9 @@ module Novika::Features
       end
 
       target.at("withEmphasisAppendEcho", <<-END
-      ( F -- ): same as withColorAppendEcho, but also emphasizes
+      ( F -- ): same as `withColorAppendEcho`, but also emphasizes
        echo of Form. Bold style is used by default, but feature
-       implementors may choose e.g .italic.
+       implementors may choose e.g. italic.
       END
       ) do |engine, stack|
         form = stack.drop
@@ -122,14 +122,15 @@ module Novika::Features
       target.at("withColorAppendEcho", <<-END
       ( F -- ): appends Form with last color from the echo
        foreground color stack set as foreground color, and
-       the last as color from the echo background stack set
-       as background color, to the standard output stream.
+       last color from the echo background stack set as background
+       color, to the standard output stream.
 
-      Note: some implementations (particularly the Novika's default
-      one) choose to snap foreground and background colors to
-      system's basic 16 colors for compatibility & portability.
-      If you want more cross-platform control over colors (and
-      pretty much everything else), take a look at feature console.
+      Note: some implementations (particularly Novika's default
+      implementation) choose to restrict foreground and background
+      colors to system's basic 16 colors for compatibility &
+      portability. If you want more cross-platform control over
+      colors (and pretty much everything else), take a look at
+      feature console.
       END
       ) do |engine, stack|
         form = stack.drop

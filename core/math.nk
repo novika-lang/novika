@@ -10,12 +10,12 @@
 ] @: 2desc
 
 
-[ "( A B -- Min ): leaves minimum of two decimals, A and B."
+[ "( A B -- M ): leaves Minimum of two decimals, A and B."
   2asc drop
 ] @: 2min
 
 
-[ "( A B -- Max ): leaves maximum of two decimals, A and B."
+[ "( A B -- M ): leaves Maximum of two decimals, A and B."
   2desc drop
 ] @: 2max
 

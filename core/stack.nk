@@ -7,10 +7,9 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B -- ): drops a pair of forms.
 
-  >>> 1 2
-  === 1 2
-  >>> 2drop
-  ===
+  ```
+  1 2 2drop leaves: [ ]
+  ```
   """
   drop drop
 ] @: 2drop
@@ -18,10 +17,9 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B -- B ): drops a form under the top.
 
-  >>> 1 2
-  === 1 2
-  >>> nip
-  === 2
+  ```
+  1 2 nip leaves: [ 2 ]
+  ```
   """
   swap drop
 ] @: nip
@@ -29,10 +27,9 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B -- A B A ): duplicates a form over the top.
 
-  >>> 1 2
-  === 1 2
-  >>> over
-  === 1 2 1
+  ```
+  1 2 over leaves: [ 1 2 1 ]
+  ```
   """
   <| dup |> swap
 ] @: over
@@ -40,10 +37,9 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B -- A B A B ): duplicates a pair of forms.
 
-  >>> 1 2
-  === 1 2
-  >>> 2dup
-  === 1 2 1 2
+  ```
+  1 2 2dup leaves: [ 1 2 1 2 ]
+  ```
   """
   over over
 ] @: 2dup
@@ -51,14 +47,11 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B C -- B C A ): moves thirdmost form to the top.
 
-  >>> 1 2 3
-  === 1 2 3
-  >>> rot
-  === 2 3 1
-  >>> rot
-  === 3 1 2
-  >>> rot
-  === 1 2 3
+  ```
+  1 2 3 rot leaves: [ 2 3 1 ]
+        rot leaves: [ 3 1 2 ]
+        rot leaves: [ 1 2 3 ]
+  ```
   """
   <| swap |> swap
 ] @: rot
@@ -66,14 +59,11 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 
 [ """( A B C -- C A B ): moves top form so it's thirdmost.
 
-  >>> 1 2 3
-  === 1 2 3
-  >>> -rot
-  === 3 1 2
-  >>> -rot
-  === 2 3 1
-  >>> -rot
-  === 1 2 3
+  ```
+  1 2 3 -rot leaves: [ 3 1 2 ]
+        -rot leaves: [ 2 3 1 ]
+        -rot leaves: [ 1 2 3 ]
+  ```
   """
   rot rot
 ] @: -rot
@@ -85,51 +75,51 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: asStack
 
 
-[ """( ... T dip: F -- ... F' -- ... F' T ): opens Form behind ToS.
+[ """( ... T dip: F -- ... F' T ): opens Form behind Top.
 
-  >>> 1 2 4 [ + ] dip
-  === 3 4
-
-  >>> 1 2 4 100 dip
-  === 1 2 100 4
+  ```
+  1 2 4 [ + ] dip leaves: [ 3 4 ]
+  1 2 4 100 dip leaves: [ 1 2 100 4 ]
+  ```
   """
   swap <| open |>
 ] @: dip
 
 
-[ "( ... T dip: F -- ... F' -- ... F' T ): infix version of `dip`."
+[ "( ... T dip: F -- ... F' T ): infix version of `dip`."
   ahead thruBlock dip
 ] @: dip:
 
 
-[ """( ... T F -- ... T F' -- ... F' T ): opens Form with Top
-   as ToS, restoring Top after Form is opened.
+[ """( ... T F -- ... F' T ): opens Form with
+   Top on top of the stack, restoring Top after it is opened.
 
-  >>> 1 2 4 [ + ] keep
-  === 1 6 4
-
-  >>> 1 2 4 'hello' keep
-  === 1 2 4 'hello' 4
+  ```
+  1 2 4 [ + ] keep leaves: [ 1 6 4 ]
+  1 2 4 'hello' keep leaves: [ 1 2 4 'hello' 4 ]
+  ```
   """
   swap dup <| swap open |>
 ] @: keep
 
 
-[ "( ... T keep: F -- ... T F' -- ... F' T ): infix version of `keep`."
+[ "( ... T keep: F -- ... F' T ): infix version of `keep`."
   ahead thruBlock keep
 ] @: keep:
 
 
-"Cleave combinators: they areused when you want to apply multiple
- blocks to the same set of items on the top of the stack."
+"Cleave combinators: they are used when you want to apply
+ multiple blocks to the same set of items on the top of
+ the stack."
 
 
-[ """( F B1 B2 -- F B1', B1' F B2' -- B1' B2' ): opens Blocks
-   with Form placed on top for each Block, leaves their results
-   in order.
+[ """( F A B -- A' B' ): opens two blocks, A and
+   B, with Form placed on top of the stack for each one, and
+   leaves their results in order.
 
-  >>> [ 1 2 3 ] [ sum ] [ count ] bi /
-  === 2 \"average\"
+  ```
+  [ 1 2 3 ] [ sum ] [ count ] bi / leaves: 2
+  ```
   """
   @: b2 @: b1 $: f
   f b1
@@ -137,11 +127,11 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: bi
 
 
-[ """( F bi: B1 B2 -- F B1', B1' F B2' -- B1' B2' ): infix
-   version of `bi`.
+[ """( F bi: A B -- A' B' ): infix version of `bi`.
 
-  >>> [ 1 2 3 ] bi: sum count /
-  === 2
+  ```
+  [ 1 2 3 ] bi: sum count / leaves: 2
+  ```
   """
   ahead thruBlock
   ahead thruBlock
@@ -155,15 +145,18 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
  a bit more flexibility while also expressing intent."
 
 
-[ """( F1 F2 B1 B2 -- F1 B1', B1' F2 B2' -- B1' B2' ): opens
-   two Blocks with two corresponding Forms, leaves results of
-   opening Blocks.
+[ """( Af Bf A B -- A' B' ): opens block A with A form,
+   block B with B form, and leaves the results.
 
-  >>> [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi*
-  === 1 4
+  Note: the result of opening A is available to B.
 
-  >>> [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi*
-  === 5 \"result of B1 is available to B2\"
+  ```
+  [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi* leaves: [ 1 4 ]
+
+  \"Note how we use the result of the first block in the
+   second block:\"
+  [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi* leaves: [ 5 ]
+  ```
   """
   @: b2 @: b1 $: f2 $: f1
   f1 b1
@@ -171,8 +164,7 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: bi*
 
 
-[ "( F1 F2 B1 B2 -- F1 B1', B1' F2 B2' -- B1' B2' ): infix
-   version of `bi*`."
+[ "( Af Bf bi*: A B -- A' B' ): infix version of `bi*`."
   ahead thruBlock
   ahead thruBlock
   bi*
@@ -183,11 +175,12 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
  single block to multiple items on the top of the stack."
 
 
-[ """( F1 F2 B -- (F1 B -- B'1), (F2 B -- B'2) -- B'1 B'2 ):
-   applies Block to two Forms.
+[ """( X Y B -- Bx By ): leaves the results of applying
+   Block first to X form, and then to Y form.
 
-  >>> 1 2 [ 'X =' swap ~ ] bi@
-  == 'X = 1' 'X = 2'
+  ```
+  1 2 [ 'X =' swap ~ ] bi@ leaves: [ 'X = 1' 'X = 2' ]
+  ```
   """
   @: b $: f2 $: f1
   f1 b
@@ -195,7 +188,6 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: bi@
 
 
-[ "( F1 F2 B -- (F1 B -- B'1), (F2 B -- B'2) -- B'1 B'2 ):
-   infix version of `bi@`."
+[ "( X Y bi@: B -- Bx By ): infix version of `bi@`."
   ahead thruBlock bi@
 ] @: bi@:

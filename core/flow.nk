@@ -34,13 +34,14 @@
 ] @: thruVals
 
 
-[ """( B -- I ): like `do`, but leaves the resulting Block
-   instance. Equivalent to `[ <block content> this ] do`
+[ """( B -- I ): like `do`, but leaves the resulting
+   Instance of Block. Equivalent to `[ <Block> this ] do`.
 
-  >>> [ 100 $: x 200 $: y ] obj
-  === [ 100 $: x 200 $: y · ${x :: 100} {y :: 200} ]
-  >>> bi: [ .x ] [ .y ]
-  === 100 200
+  ```
+  [ 100 $: x 200 $: y ] obj \"[ 100 $: x 200 $: y · ${x :: 100} {y :: 200} ]\"
+
+  bi: [ .x ] [ .y ] leaves: [ 100 200 ]
+  ```
   """
   orphan swap new dup dip: hydrate!
 ] @: obj
@@ -53,7 +54,8 @@
 ] @: br:
 
 
-[ "( D => T -- ? ): opens True form if Determiner is truthy."
+[ "( D => Tb -- ? ): opens True branch form if Determiner
+   is truthy."
   ahead thruBlock [ ] br
 ] @: =>
 
@@ -120,9 +122,10 @@
 ] @: ^
 
 
-[ "( Ib -- Sh Bh Ch ): takes an Iteration body block and leaves
-    three handles: one to Start the loop, one to Break the loop,
-    and one to next the loop."
+[ "( Ib -- Sh Bh Nh ): takes an Iteration body block and
+   leaves three handles: Start handle to start the loop,
+   Next handle to continue the loop, and Break handle to
+   break the loop."
   $: iterBody
 
   #nil $: breakTo
@@ -135,10 +138,11 @@
 ] @: createLoop
 
 
-[ "( Bb Ctb Cdb -- Sh ): defines `break` and `next` for a Body
+[ "( Bb C Cb -- Sh ): defines `break` and `next` for a Body
    block that is being evaluated indirectly by a Control block,
-   and only if the Condition block leaves a truthy value on top
-   of the stack it hydrated. `next` resumes the Control block."
+   and only if Condition leaves a truthy value on top of the
+   stack it hydrated. `next` resumes the Control block.
+   Leaves Start handle to start the loop."
  $: ctrl $: cond new $: bodyInstance
 
   #nil $: ctrlNow
@@ -205,8 +209,9 @@
 ] @: until:
 
 
-[ "( N B -- ): opens Block N times. Block is opened in a new
-   stack with current N. `break` and `next` available."
+[ "( C B -- ): opens Block Count times. For each iteration
+   of Block, a new stack block is activated with current Count
+   on top. `break` and `next` available."
   $: block $: max
 
   max negative? => [ 'times: cannot have negative bound' die ]
@@ -220,6 +225,6 @@
 ] @: times
 
 
-[ "( N times: B -- ): infix version of `times`."
+[ "( C times: B -- ): infix version of `times`."
   ahead thruBlock times
 ] @: times:

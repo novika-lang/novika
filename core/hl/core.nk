@@ -1,9 +1,12 @@
-[ """( $( E... ) -- ): Same as `$:` but allows to define multiple
+[ """( E... -- ): Same as `$:` but allows to define multiple
    Entries at the same time, and in the 'human-readable' order.
 
-  >>> [ $( x y ) this ] @: point
-  >>> 100 200 point -> [ x y ]
-  === [ 100 200 ]
+  ```
+  [ $( x y ) this ] @: point
+
+  100 200 point -> [ x y ]
+    leaves: [ [ 100 200 ] ]
+  ```
   """
   stack $: cStack
   ahead $: cCode

@@ -93,36 +93,42 @@ orphan $: _groups
   You can group under a different test group using `in`. The
   following describes are grouped under 'global':
 
-    describe 'Foo' [
-      it should 'work' [ … ]
-    ]
+  ```
+  describe 'Foo' [
+    it should 'work' [ \"...\" ]
+  ]
 
-    describe 'Bar' [
-      it should 'a' [ … ]
-      it should 'b' [ … ]
-    ]
+  describe 'Bar' [
+    it should 'a' [ \"...\" ]
+    it should 'b' [ \"...\" ]
+  ]
+  ```
 
   The following describes are grouped under 'foo':
 
-    describe 'Foo' [
-      in foo
+  ```
+  describe 'Foo' [
+    in foo
 
-      it should 'work' [ … ]
-    ]
+    it should 'work' [ \"...\" ]
+  ]
 
-    describe 'Bar' [
-      in foo
+  describe 'Bar' [
+    in foo
 
-      it should 'a' [ … ]
-      it should 'b' [ … ]
-    ]
+    it should 'a' [ \"...\" ]
+    it should 'b' [ \"...\" ]
+  ]
+  ```
 
   You can run a test group using the word `runTestsInGroup:`.
   It will run all tests and echo the test report to the standard
   output on the fly. With tests describes as above, you can
   run them with:
 
-  >>> runTestsInGroup: foo
+  ```
+  runTestsInGroup: foo
+  ```
   """
   ahead thru asQuote $: describeDesc
   ahead thru asBlock $: _describeBody
@@ -312,3 +318,27 @@ orphan $: _groups
   _describeBody #in in opens
   _describeBody do
 ] @: describe
+
+
+[ """( ... leaves: B -- ... ): compares active stack with
+   Block: noop if equal via `=`, otherwise, dies. Note that
+   only N last items in active stack are compared with Block,
+   where N is the amount of items in Block.
+
+  ```
+  100 leaves: [ 100 ] \"Stack has 100 now.\"
+  200 leaves: [ 100 200 ] \"Stack has 100 and 200.\"
+  300 leaves: [ 300 ] \"Stack has 100 and 200 and 300\"
+  ```
+  """
+  stack shallowCopy $: actual
+  ahead thruBlock $: expected
+
+  [ [ actual ' did not match ' expected ] ~* die ] @: fail
+
+  actual count expected count < => fail
+
+  expected eachWithIndex: [ $: form $: index
+    form actual expected count 1 - index - fromRight = not => fail
+  ]
+] @: leaves:
