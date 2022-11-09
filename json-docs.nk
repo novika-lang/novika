@@ -61,11 +61,11 @@ this $: _toplevel
 
       _toplevel word entry:fetch $: form
 
-      [
+      word toQuote [
         'name' word toQuote string property
         'desc' form desc string property
-      ] object
-    ] array property
+      ] object property
+    ] object property
 ] object
 
 echo
