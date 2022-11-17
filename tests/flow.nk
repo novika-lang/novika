@@ -18,7 +18,7 @@ describe 'thruWord:' [
   ] @: from:
 
   it should 'check for word match' [
-    [ from: 1 to: 10 ] val [ 1 2 3 4 5 6 7 8 9 10 ] assert=
+    [ from: 1 to: 10 ] vals [ [ 1 2 3 4 5 6 7 8 9 10 ] ] assert=
     [ from: 1 foo ] 'expected ｢to:｣, but got: ｢foo｣' assertDies
     [ from: 1 ] 'thru out of bounds' assertDies
   ]
