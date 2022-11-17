@@ -1,20 +1,25 @@
 needsFeature: console
 
-console:on 0 console:setTimeout
+console:on
 console:truecolor
+
+0 console:setTimeout
 
 [ 1 + ] $: goForth
 [ 1 - ] $: goBack
-[ console:setPrimary console:clear console:present ] @: erase
 
 0 $: n
 goForth @: step
 
 [
   console:peek
-  console:hadKeyPressed => [ break ]
+  console:hadKeyPressed? => break
 
-  0 0 0 rgb 60 48 n lch erase
+  60 48 n lch
+  withEchoBg
+    console:clear
+    console:present
+  dropEchoBg
 
   n 0 =   => [ goForth =: step ]
   n 360 = => [ goBack =: step ]

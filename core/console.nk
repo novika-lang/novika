@@ -1,0 +1,8 @@
+[ "( -- Cw ): leaves Console width (in columns)."
+  console:size drop
+] @: console:width
+
+
+[ "( -- Ch ): leaves Console height (in rows)."
+  console:size nip
+] @: console:height

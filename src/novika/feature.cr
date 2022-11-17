@@ -127,6 +127,16 @@ module Novika
       @objects[feature.id]?.try &.as(T)
     end
 
+    # Yields the feature instance of the given *feature* class
+    # to the block, if one can be found in this bundle.
+    #
+    # Returns the result of the block, or nil.
+    def fetch(feature : T.class, & : T -> U) : U? forall T, U
+      if impl = self[feature]?
+        yield impl
+      end
+    end
+
     # Adds a feature class to this bundle.
     def <<(feature : IFeatureClass)
       @classes[feature.id] = feature

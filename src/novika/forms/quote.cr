@@ -18,7 +18,7 @@ module Novika
   module Quote
     include Form
 
-    # Creates a quote variant from *string*.
+    # Creates a quote from *string*.
     #
     # *count* can be provided if the amount of graphemes in
     # *string* is known.
@@ -28,6 +28,16 @@ module Novika
       end
 
       StringQuote.new(string, count, ascii)
+    end
+
+    # Creates a quote from *grapheme*.
+    def self.new(grapheme : String::Grapheme)
+      GraphemeQuote.new(grapheme)
+    end
+
+    # Creates a quote from *char*.
+    def self.new(char : Char)
+      new(String::Grapheme.new(char))
     end
 
     def desc(io : IO)

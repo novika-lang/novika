@@ -37,8 +37,8 @@ needsFeature: console
     and
   ] @: equal?
 
-  [ "( Q -- ): prints Quote at the position of this vector."
-    x y console:print
+  [ "( Q -- ): appends echo of Quote at the position of this vector."
+    x y console:appendEcho
   ] @: put
 
   [ "( V -- Ob ): leaves whether other Vector is Opposite to
@@ -119,20 +119,18 @@ needsFeature: console
     "|  Apple:"   '@' apple.put
   ] @: render
 
-  [ "( K -- ): handles a Key press."
-    "It seems that this is becoming Novika's offical way of
-     writing a 'switch' statement:"
-    dup 'CTRL_C'      = => [ drop gameOver ]
-    dup 'ARROW_UP'    = => [ drop  0 -1 tvec2 setDir ^ ]
-    dup 'ARROW_DOWN'  = => [ drop  0 +1 tvec2 setDir ^ ]
-    dup 'ARROW_LEFT'  = => [ drop -1  0 tvec2 setDir ^ ]
-    dup 'ARROW_RIGHT' = => [ drop +1  0 tvec2 setDir ^ ]
-    drop
-  ] @: handleKey
+  [ "( -- ): handles a Key press."
 
-  [ "( K -- ): dispatches a key press event."
-    dup console:isKeyChar not => [ handleKey ]
-  ] @: dispatchKeyPressed
+    console:hadCtrlPressed?
+    console:getCharPressed 'c' =
+    and => gameOver
+
+    console:hadUpPressed?    => [  0 -1 tvec2 setDir ^ ]
+    console:hadDownPressed?  => [  0 +1 tvec2 setDir ^ ]
+    console:hadLeftPressed?  => [ -1  0 tvec2 setDir ^ ]
+    console:hadRightPressed? => [ +1  0 tvec2 setDir ^ ]
+
+  ] @: handleKey
 
   [ "Game's main loop. Console is assumed to be initialized
      prior to running this."
@@ -159,7 +157,7 @@ needsFeature: console
          the only thing that will change is its position."
         [ grow randomizeApple ]
 
-      console:hadKeyPressed => [ console:getKeyPressed dispatchKeyPressed ]
+      handleKey
 
       tick "Do one tick of the game. Snake moves forward."
 

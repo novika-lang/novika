@@ -1,6 +1,3 @@
-# TODO: refactor the API, it's horrible for portability and
-# general usability and exists to exist only
-
 module Novika::Features
   # Enables the console API.
   #
@@ -11,18 +8,38 @@ module Novika::Features
   # * `console:256`, implemented by `colors_256`
   # * `console:compat`, implemented by `colors_compat`
   # * `console:truecolor`, implemented by `colors_truecolor`
-  # * `console:width`, implemented by `width`
-  # * `console:height`, implemented by `height`
   # * `console:peek`, implemented by `peek`
-  # * `console:hadKeyPressed`, implemented by `had_key_pressed?`
-  # * `console:isKeyChar`, implemented by `is_key_char?`
-  # * `console:getKeyPressed`, implemented by `get_key_pressed!`
-  # * `console:print`, implemented by `print`
+  # * `console:size`, implemented by `size`
+  # * `console:hadKeyPressed?`, implemented by `had_key_pressed?`
+  # * `console:hadCtrlPressed?`, implemented by `had_ctrl_pressed?`
+  # * `console:hadAltPressed?`, implemented by `had_alt_pressed?`
+  # * `console:hadShiftPressed?`, implemented by `had_shift_pressed?`
+  # * `console:hadBackspacePressed?`, implemented by `had_backspace_pressed?`
+  # * `console:hadFnPressed?`, implemented by `had_fn_pressed?`
+  # * `console:hadInsertPressed?`, implemented by `had_insert_pressed?`
+  # * `console:hadDeletePressed?`, implemented by `had_delete_pressed?`
+  # * `console:hadHomePressed?`, implemented by `had_home_pressed?`
+  # * `console:hadEndPressed?`, implemented by `had_end_pressed?`
+  # * `console:hadPgupPressed?`, implemented by `had_pgup_pressed?`
+  # * `console:hadPgdnPressed?`, implemented by `had_pgdn_pressed?`
+  # * `console:hadLeftPressed?`, implemented by `had_left_pressed?`
+  # * `console:hadRightPressed?`, implemented by `had_right_pressed?`
+  # * `console:hadUpPressed?`, implemented by `had_up_pressed?`
+  # * `console:hadDownPressed?`, implemented by `had_down_pressed?`
+  # * `console:getCharPressed`, implemented by `get_char_pressed`
+  # * `console:appendEcho`, implemented by `append_echo`
   # * `console:present`, implemented by `present`
   # * `console:clear`, implemented by `clear`
-  # * `console:setPrimary`, implemented as setting `fg` and `bg`
   abstract class IConsole
     include Feature
+
+    # Foreground color used when there is no user-provided
+    # foreground color.
+    FG_DEFAULT = Color.new(Decimal.new(255), Decimal.new(255), Decimal.new(255))
+
+    # Background color used when there is no user-provided
+    # background color.
+    BG_DEFAULT = Color.new(Decimal.new(0), Decimal.new(0), Decimal.new(0))
 
     def self.id : String
       "console"
@@ -45,17 +62,14 @@ module Novika::Features
     # Enables the 256-color output mode.
     abstract def colors_256(engine)
 
-    # Enables the compatibility color output mode.
+    # Enables the compatibility color (8-color) output mode.
     abstract def colors_compat(engine)
 
     # Enables the truecolor output mode.
     abstract def colors_truecolor(engine)
 
-    # Returns the console width (in columns).
-    abstract def width(engine) : Decimal
-
-    # Returns the console height (in rows).
-    abstract def height(engine) : Decimal
+    # Returns the console width (in columns) and height (in rows).
+    abstract def size(engine) : {Decimal, Decimal}
 
     # Peeks or waits for input. Refreshes the input state.
     #
@@ -70,22 +84,74 @@ module Novika::Features
     #   state after receiving input.
     abstract def peek(engine, timeout : Decimal)
 
-    # Returns a boolean for whether there was a key press
-    # event registered.
+    # Returns boolean for whether any key was pressed.
     abstract def had_key_pressed?(engine) : Boolean
 
-    # Returns whether *key* quote is considered a single-
-    # character key.
-    abstract def is_key_char?(engine, key : Quote) : Boolean
+    # leaves Boolean for whether the CTRL key was pressed.
+    abstract def had_ctrl_pressed?(engine) : Boolean
 
-    # Returns the name of the key that was pressed. May be
-    # unsafe for Novika-land: `had_key_pressed?` must be
-    # checked beforehand.
-    abstract def get_key_pressed!(engine) : Quote
+    # Returns boolean for whether the ALT key was pressed.
+    abstract def had_alt_pressed?(engine) : Boolean
 
-    # Prints *quote* colorized with *fg* and *bg* colors at
-    # the given *x* and *y* position (in columns, rows).
-    abstract def print(engine, x : Decimal, y : Decimal, fg : Color, bg : Color, quote : Quote)
+    # Returns boolean for whether the SHIFT key was pressed.
+    abstract def had_shift_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the Backspace key
+    # was pressed.
+    abstract def had_backspace_pressed?(engine) : Boolean
+
+    # Returns boolean for whether one of the function
+    # keys F1-F12 was pressed.
+    abstract def had_fn_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the INSERT key was pressed.
+    abstract def had_insert_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the DELETE key was pressed.
+    abstract def had_delete_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the HOME key was pressed.
+    abstract def had_home_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the END key was pressed.
+    abstract def had_end_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the PAGE UP key was pressed.
+    abstract def had_pgup_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the PAGE DOWN key was pressed.
+    abstract def had_pgdn_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the LEFT ARROW key
+    # was pressed.
+    abstract def had_left_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the RIGHT ARROW key
+    # was pressed.
+    abstract def had_right_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the UP ARROW key
+    # was pressed.
+    abstract def had_up_pressed?(engine) : Boolean
+
+    # Returns boolean for whether the DOWN ARROW key
+    # was pressed.
+    abstract def had_down_pressed?(engine) : Boolean
+
+    # Leaves char quote for the key that was pressed.
+    # Usually a lowercase or uppercase letter; but also may
+    # look like `'\\n'` or `'\\t'`, etc.)
+    #
+    # In case the key that was pressed cannot be represented
+    # by the means of a quote, or if the user did not press
+    # any key, an empty quote is left in place of Char
+    # quote.
+    abstract def get_char_pressed(engine) : Quote
+
+    # Appends echo of *quote* colorized with *fg* and *bg*
+    # colors at the given *x* and *y* position (in columns,
+    # rows).
+    abstract def append_echo(engine, x : Decimal, y : Decimal, fg : Color, bg : Color, quote : Quote)
 
     # Syncs the internal buffer with console.
     abstract def present(engine)
@@ -93,17 +159,30 @@ module Novika::Features
     # Clears the console with *fg* and *bg* colors.
     abstract def clear(engine, fg : Color, bg : Color)
 
-    # Holds the active primary foreground color.
-    property fg : Color = Color.rgb(255, 255, 255)
-
-    # Holds the active primary background color.
-    property bg : Color = Color.rgb(0, 0, 0)
-
     @timeout = Decimal.new(-1)
 
+    # Returns the active primary foreground color.
+    def fg
+      bundle.fetch(IInk, &.fg.last?) || FG_DEFAULT
+    end
+
+    # Returns the active primary background color.
+    def bg
+      bundle.fetch(IInk, &.bg.last?) || BG_DEFAULT
+    end
+
     def inject(into target)
-      target.at("console:on", "( -- ): enables the Console API.") { |engine| on(engine) }
-      target.at("console:off", "( -- ): disables the Console API.") { |engine| off(engine) }
+      target.at("console:on", <<-END
+      ( -- ): enables the console. Must be called before using
+       any other console-related word.
+      END
+      ) { |engine| on(engine) }
+
+      target.at("console:off", <<-END
+      ( -- ): disables the console. Must be called at the end
+       of your program or when you don't need console anymore.
+      END
+      ) { |engine| off(engine) }
 
       target.at("console:compat", <<-END
       ( -- ): enables the compatibility color output mode. In
@@ -111,7 +190,6 @@ module Novika::Features
        are automatically reduced to one of those 8 colors.
       END
       ) { |engine| colors_compat(engine) }
-      # TODO: self.palette = MyOwnCustomAwesome8ColorPalette.new
 
       target.at("console:256", <<-END
       ( -- ): enables the 256-color output mode. In this mode,
@@ -127,27 +205,14 @@ module Novika::Features
       END
       ) { |engine| colors_truecolor(engine) }
 
-      # TODO: This one should work the same as in Colors, where
-      # we have withEchoFg and withEchoBg that push onto a
-      # color stack. Probably could extract that into a module
-      # and reuse here.
-      target.at("console:setPrimary", <<-END
-      ( Fc Bc -- ): set the primary Foreground and Background colors.
-       Before you `console:clear`, only `console:print` will respect
-       these colors. But after you `console:clear`, the whole console
-       will be cleared with these colors.
+      target.at("console:size", <<-END
+      ( -- Cw Ch ): leaves the Console width (in columns) and
+       Console height (in rows).
       END
-      ) do |_, stack|
-        self.bg = stack.drop.a(Color)
-        self.fg = stack.drop.a(Color)
-      end
-
-      target.at("console:width", "( -- Cw ): leaves Console width (in columns)") do |engine, stack|
-        width(engine).onto(stack)
-      end
-
-      target.at("console:height", "( -- Ch ): leaves Console height (in rows)") do |engine, stack|
-        height(engine).onto(stack)
+      ) do |engine, stack|
+        w, h = size(engine)
+        w.onto(stack)
+        h.onto(stack)
       end
 
       target.at("console:setTimeout", <<-END
@@ -167,77 +232,138 @@ module Novika::Features
       end
 
       target.at("console:peek", <<-END
-      ( -- ): peeks or waits for input. See `console:setTimeout`. Refreshes
-       the input state. Use `console:hadKeyPressed` and friends to explore
-       the input state afterwards.
+      ( -- ): peeks or waits for input. See `console:setTimeout`.
+       Refreshes the input state. Use `console:hadKeyPressed` and
+       friends to explore the input state afterwards.
       END
       ) { |engine| peek(engine, @timeout) }
 
-      # TODO: instead of this, have
-      #
-      #  * hadCtrlPressed (if possible, fallback false)
-      #  * hadAltPressed  (if possible, fallback false)
-      #  * hadCharPressed (the letters)
-      #  * hadTabPressed
-      #  * ...etc...
-      #
-      # This makes portability a bit easier and I won't have
-      # to translate the enormous Termbox struct and whatnot
-      # again...
-      target.at("console:hadKeyPressed", <<-END
-      ( -- B ): leaves Boolean for whether there was a key press
-       event registered. To get the name of the key that was pressed,
-       use `console:getKeyPressed`, *but only after making sure
-       that Boolean is true*.
+      target.at("console:hadKeyPressed?", <<-END
+      ( -- B ): leaves Boolean for whether any key was pressed.
       END
       ) { |engine, stack| had_key_pressed?(engine).onto(stack) }
 
-      target.at("console:getKeyPressed", <<-END
-      ( -- Kq ): leaves most recent key pressed, as Key quote. Dies if
-       none. You can use `console:hadKeyPressed` to check whether there
-       was a key pressed before using this word.
+      target.at("console:hadCtrlPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the CTRL key was pressed.
       END
-      ) do |engine, stack|
-        unless had_key_pressed?(engine)
-          engine.die("no key pressed: make sure to check `console:hadKeyPressed` first")
-        end
-        get_key_pressed!(engine).onto(stack)
-      end
+      ) { |engine, stack| had_ctrl_pressed?(engine).onto(stack) }
 
-      # TODO: this should be removed, this is a hack to get
-      # things to work. See TODO over `console:hadKeyPressed`
-
-      target.at("console:isKeyChar", <<-END
-      ( Kq -- B ): leaves Boolean for whether Key quote is
-       considered a single-character key.
+      target.at("console:hadAltPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the ALT key was pressed.
       END
-      ) do |engine, stack|
-        key = stack.drop.a(Quote)
+      ) { |engine, stack| had_alt_pressed?(engine).onto(stack) }
 
-        is_key_char?(engine, key).onto(stack)
-      end
+      target.at("console:hadShiftPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the SHIFT key was pressed.
+      END
+      ) { |engine, stack| had_shift_pressed?(engine).onto(stack) }
 
-      # this should be console:echo I guess...
-      #
-      # and it should use the color stack...
+      target.at("console:hadBackspacePressed?", <<-END
+      ( -- B ): leaves Boolean for whether the Backspace key
+       was pressed.
+      END
+      ) { |engine, stack| had_backspace_pressed?(engine).onto(stack) }
 
-      target.at("console:print", <<-END
-      ( Q X Y -- ): prints Quote using the foreground, background
-       colors set by `console:setPrimary`, at an X and Y position
-       (in columns and rows correspondingly).
+      target.at("console:hadFnPressed?", <<-END
+      ( -- B ): leaves Boolean for whether one of the function
+       keys F1-F12 was pressed.
+      END
+      ) { |engine, stack| had_fn_pressed?(engine).onto(stack) }
+
+      target.at("console:hadInsertPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the INSERT key was pressed.
+      END
+      ) { |engine, stack| had_insert_pressed?(engine).onto(stack) }
+
+      target.at("console:hadDeletePressed?", <<-END
+      ( -- B ): leaves Boolean for whether the DELETE key was pressed.
+      END
+      ) { |engine, stack| had_delete_pressed?(engine).onto(stack) }
+
+      target.at("console:hadHomePressed?", <<-END
+      ( -- B ): leaves Boolean for whether the HOME key was pressed.
+      END
+      ) { |engine, stack| had_home_pressed?(engine).onto(stack) }
+
+      target.at("console:hadEndPressed?", <<-DOC
+      ( -- B ): leaves Boolean for whether the END key was pressed.
+      DOC
+      ) { |engine, stack| had_end_pressed?(engine).onto(stack) }
+
+      target.at("console:hadPageUpPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the PAGE UP key was pressed.
+      END
+      ) { |engine, stack| had_pgup_pressed?(engine).onto(stack) }
+
+      target.at("console:hadPageDownPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the PAGE DOWN key was pressed.
+      END
+      ) { |engine, stack| had_pgdn_pressed?(engine).onto(stack) }
+
+      target.at("console:hadLeftPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the LEFT ARROW key
+       was pressed.
+      END
+      ) { |engine, stack| had_left_pressed?(engine).onto(stack) }
+
+      target.at("console:hadRightPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the RIGHT ARROW key
+       was pressed.
+      END
+      ) { |engine, stack| had_right_pressed?(engine).onto(stack) }
+
+      target.at("console:hadUpPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the UP ARROW key
+       was pressed.
+      END
+      ) { |engine, stack| had_up_pressed?(engine).onto(stack) }
+
+      target.at("console:hadDownPressed?", <<-END
+      ( -- B ): leaves Boolean for whether the DOWN ARROW key
+       was pressed.
+      END
+      ) { |engine, stack| had_down_pressed?(engine).onto(stack) }
+
+      target.at("console:getCharPressed", <<-END
+      ( -- Cq ): leaves Char quote for the key that was pressed.
+       Usually a lowercase or uppercase letter; but also may look
+       like `'\\n'` or `'\\t'`, etc.)
+
+      In case the key that was pressed cannot be represented
+      by the means of a quote, or if the user did not press
+      any key, an empty quote is left in place of Char quote.
+      END
+      ) { |engine, stack| get_char_pressed(engine).onto(stack) }
+
+      target.at("console:appendEcho", <<-END
+      ( F X Y -- ): appends echo of Form at an X and Y position
+       (in columns and rows correspondingly) using the foreground,
+       background colors set by ink's `withEchoFg` and `withEchoBg`.
       END
       ) do |engine, stack|
         y = stack.drop.a(Decimal)
         x = stack.drop.a(Decimal)
-        q = stack.drop.a(Quote)
-        print(engine, x, y, fg, bg, q)
+        q = stack.drop.to_quote
+        append_echo(engine, x, y, fg, bg, q)
       end
 
-      target.at("console:present", "( -- ): syncs internal buffer and console") do |engine|
+      target.at("console:withReverseAppendEcho", <<-END
+      ( F X Y -- ): appends Form with foreground and background
+       colors swapped with each other (background color is set
+       to foreground color, and vice versa).
+      END
+      ) do |engine, stack|
+        y = stack.drop.a(Decimal)
+        x = stack.drop.a(Decimal)
+        q = stack.drop.to_quote
+        append_echo(engine, x, y, bg, fg, q)
+      end
+
+      target.at("console:present", "( -- ): syncs internal buffer and console.") do |engine|
         present(engine)
       end
 
-      target.at("console:clear", "( -- ): clears console with primary colors") do |engine|
+      target.at("console:clear", "( -- ): clears console with primary colors.") do |engine|
         clear(engine, fg, bg)
       end
     end
