@@ -24,6 +24,33 @@
 ] @: thruLitBlock
 
 
+[ "( B -- W/dies ): same as `thru asWord`."
+  thru asWord
+] @: thruWord
+
+
+[ """( B W -- /dies ): same as `thruWord`, but also checks if
+   the `thru`-ed word is the same as Word.
+
+  ```
+  [ ahead thruVal $: begin
+    ahead thruWord: to:
+    ahead thruVal $: end
+
+    begin to: end
+  ] @: from:
+
+  from: 1 to: 100 leaves: [ 1 2 3 \"…\" 98 99 100 ]
+  ```
+  """
+  ahead thruWord $: exp
+
+  thruWord $: got
+
+  got exp = not => [ [ 'expected ｢' exp '｣, but got: ｢' got '｣' ] ~* die ]
+] @: thruWord:
+
+
 [ "( B -- F' ): same as `thruBlock val`."
   thruBlock val
 ] @: thruVal

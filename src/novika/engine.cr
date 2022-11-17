@@ -350,6 +350,8 @@ module Novika
     # continuation that succeeded in looking up a death
     # handler. Returns the death handler.
     def drop_for_death_handler?
+      # TODO: this sometimes prefers unintuitive death handlers
+      # to intuitive ones
       handler = nil
       until conts.tape.empty?
         handler = block.at?(Word::DIED)
