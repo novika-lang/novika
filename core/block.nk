@@ -156,6 +156,80 @@
 ] @: last
 
 
+[ """( B/Q F/Fq -- Sb ): leaves Status boolean for whether
+   Block ends with Form (as per `=`), or Quote ends with
+   Fragment quote.
+
+  Always leaves true if Form or Fragment quote is empty.
+
+  ```
+  'hello world' 'h' startsWith? leaves: true
+  'hello world' 'hello' startsWith? leaves: true
+  'hello world' 'world' startsWith? leaves: false
+
+  [ 1 2 3 ] 1 startsWith? leaves: true
+  [ 1 2 3 ] 3 startsWith? leaves: false
+  ```
+  """
+  $: frag
+  $: form
+
+  form quote? => [
+    frag quote? br:
+      [
+        form count frag count < => [ false ^ ]
+        form count frag count = => [ form frag = ^ ]
+        form frag count sliceQuoteAt drop frag =
+      ]
+      false
+    ^
+  ]
+
+  form block? => [
+    form empty? br: false [ form 0 fromLeft frag = ] ^
+  ]
+
+  '`startsWith?`: expected quote or block' die
+] @: startsWith?
+
+
+[ """( B/Q F/Fq -- Sb ): leaves Status boolean for
+   whether Block ends with Form (as per `=`), or if Quote
+   ends with Fragment quote.
+
+  Always leaves true if Form or Fragment quote is empty.
+
+  ```
+  'hello world' 'd' endsWith? leaves: true
+  'hello world' 'world' endsWith? leaves: true
+  'hello world' 'hello' endsWith? leaves: false
+
+  [ 1 2 3 ] 3 endsWith? leaves: true
+  [ 1 2 3 ] 1 endsWith? leaves: false
+  ```
+  """
+  $: frag
+  $: form
+
+  form quote? => [
+    frag quote? br:
+      [
+        form count frag count < => [ false ^ ]
+        form count frag count = => [ form frag = ^ ]
+        form form count frag count - sliceQuoteAt nip frag =
+      ]
+      false
+    ^
+  ]
+
+  form block? => [
+    form empty? br: false [ form 0 fromRight frag = ] ^
+  ]
+
+  '`endsWith?`: expected quote or block' die
+] @: endsWith?
+
+
 [ "( B -- Cb ): leaves an empty Child block for Block. Very
    much like `new`, but doesn't copy the tape and therefore may
    be faster in certain circumstances."

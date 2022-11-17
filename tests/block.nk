@@ -240,6 +240,53 @@ describe 'last' [
 ]
 
 
+describe 'startsWith?' [
+  in lang
+
+  it should 'check if block/quote starts with something' [
+    '' '' startsWith? true assert=
+    '' 'h' startsWith? false assert=
+    'h' '' startsWith? true assert=
+
+    'hello world' 'h' startsWith? true assert=
+    'hello world' 'hello' startsWith? true assert=
+    'hello world' 'world' startsWith? false assert=
+
+    [ 1 2 3 ] 1 startsWith? true assert=
+    [ 1 2 3 ] [ 1 2 ] startsWith? false assert=
+    [ [ 1 2 ] 3 ] [ 1 2 ] startsWith? true assert=
+    [ 1 2 3 ] 3 startsWith? false assert=
+
+    [ 123 456 startsWith? ] '`startsWith?`: expected quote or block' assertDies
+  ]
+]
+
+
+describe 'endsWith?' [
+  in lang
+
+  it should 'check if block/quote ends with something' [
+    '' 123 endsWith? false assert=
+    '' '' endsWith? true assert=
+    '' 'h' endsWith? false assert=
+    'h' '' endsWith? true assert=
+    'hello' 'foo' endsWith? false assert=
+    'hello' 'hello' endsWith? true assert=
+    'hello' 'world' endsWith? false assert=
+    'hello world' 'd' endsWith? true assert=
+    'hello world' 'world' endsWith? true assert=
+    'hello world' 'hello' endsWith? false assert=
+
+    [ ] 0 endsWith? false assert=
+    [ 0 ] 0 endsWith? true assert=
+    [ 0 1 2 ] [ 1 2 ] endsWith? false assert=
+    [ 0 [ 1 2 ] ] [ 1 2 ] endsWith? true assert=
+
+    [ 123 456 endsWith? ] '`endsWith?`: expected quote or block' assertDies
+  ]
+]
+
+
 describe 'child' [
   in lang
 
