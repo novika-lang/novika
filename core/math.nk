@@ -1,26 +1,71 @@
-[ "( A B -- Min Max ): sorts two decimals, A and B, in asceiding
-   (min to max) order. In case A = B, order is unchanged."
+[ """( A B -- Min Max ): sorts two decimals, A and B, in
+   ascending (min to max) order. In case A = B, order is
+   unchanged.
+
+  ```
+  1 2 2asc leaves: [ 1 2 ]
+  2 1 2asc leaves: [ 1 2 ]
+  ```
+  """
   2dup > => [ swap ]
 ] @: 2asc
 
 
-[ "( A B -- Max Min ): sorts two decimals, A and B, in descending
-   (max to min) order. In case A = B, order is unchanged."
+[ """( A B -- Max Min ): sorts two decimals, A and B, in
+   descending (max to min) order. In case A = B, order is
+   unchanged.
+
+  ```
+  1 2 2desc leaves: [ 2 1 ]
+  2 1 2desc leaves: [ 2 1 ]
+  ```
+  """
   2dup < => [ swap ]
 ] @: 2desc
 
 
-[ "( A B -- M ): leaves Minimum of two decimals, A and B."
+[ """( A B -- M ): leaves Minimum of two decimals, A and B.
+
+  ```
+  3 10 2min leaves: 3
+  ```
+  """
   2asc drop
 ] @: 2min
 
 
-[ "( A B -- M ): leaves Maximum of two decimals, A and B."
+[ """( A B -- M ): leaves Maximum of two decimals, A and B.
+
+  ```
+  3 10 2max leaves: 10
+  ```
+  """
   2desc drop
 ] @: 2max
 
 
-[ "( Min Max -- N ): generates random Number between min/max."
+[ "( L H -- N ): generates random Number between Low and
+   High, *including* both Low and High."
   "Formula: rand * (max - min) + min"
   over - + rand * trunc
 ] @: randFromTo
+
+
+[ """( N clamp: L H -- N/L/H ): clamps Number between Low and
+   High: if Number is less than Low, leaves low; if Number
+   is greater than High, leaves High.
+
+  ```
+  1 clamp: 5 10 leaves: 5
+  5 clamp: 5 10 leaves: 5
+  7 clamp: 5 10 leaves: 7
+  10 clamp: 5 10 leaves: 10
+  100 clamp: 5 10 leaves: 10
+  ```
+  """
+  ahead thruVal asDecimal $: min
+  ahead thruVal asDecimal $: max
+
+  dup min < => [ drop min ]
+  dup max > => [ drop max ]
+] @: clamp:

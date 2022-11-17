@@ -1,0 +1,44 @@
+describe '2asc' [
+  in lang
+
+  it should 'sort two decimals ascending' [
+    [ 1 2 2asc ] vals [ 1 2 ] assert=
+    [ 2 1 2asc ] vals [ 1 2 ] assert=
+  ]
+]
+
+
+describe '2desc' [
+  in lang
+
+  it should 'sort two decimals descending' [
+    [ 1 2 2desc ] vals [ 2 1 ] assert=
+    [ 2 1 2desc ] vals [ 2 1 ] assert=
+  ]
+]
+
+
+describe '2min/2max' [
+  in lang
+
+  it should 'leave minimum of two decimals: 2min' [
+    3 10 2min leaves: 3
+  ]
+
+  it should 'leave minimum of two decimals: 2max' [
+    3 10 2max leaves: 10
+  ]
+]
+
+
+describe 'clamp:' [
+  in lang
+
+  it should 'clamp N between Low and High' [
+    [ 1 clamp: 5 10 ] vals [ 5 ] assert=
+    [ 5 clamp: 5 10 ] vals [ 5 ] assert=
+    [ 7 clamp: 5 10 ] vals [ 7 ] assert=
+    [ 10 clamp: 5 10 ] vals [ 10 ] assert=
+    [ 100 clamp: 5 10 ] vals [ 10 ] assert=
+  ]
+]
