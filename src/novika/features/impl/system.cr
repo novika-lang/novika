@@ -39,5 +39,9 @@ module Novika::Features::Impl
     def nap(engine, millis : Decimal)
       sleep millis.to_i.milliseconds
     end
+
+    def bye(engine, code : Decimal)
+      exit code.to_i
+    end
   end
 end

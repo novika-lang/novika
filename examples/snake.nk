@@ -9,7 +9,7 @@ well (the amount kind of well).
 Take a good look. Then close the tab :) Or maybe try actually
 running this. Once you've got the Novika executable, run:
 
-  $ novika core console examples/snake.nk
+  $ novika console examples/snake.nk
 
 Note that the `console` feature is only available on Linux/
 UNIX/whatever.

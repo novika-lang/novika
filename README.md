@@ -223,6 +223,11 @@ Building:
     On Unix, type the following command:
     `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
+5. If you're installing Novika, you should either copy `.novika` to your user's home
+   folder, or make a link called `.novika` pointing at `.novika` in this directory. You
+   should also consider copying (or linking) the Novika binary where your system can
+   see it (e.g. `~/.local/bin`).
+
 Wondering about the `-D`s?
 
 * `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
@@ -245,7 +250,7 @@ Plus, there is a lot of implicit expectations in code (this would be
 partially resolved later with a dynamic (runtime) type check system),
 and in docs too.
 
-You can run REPL with: `novika core repl.nk`
+You can run REPL with: `novika repl`
 
 ## How can I learn Novika?
 

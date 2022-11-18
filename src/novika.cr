@@ -1,7 +1,6 @@
 require "big"
 require "csv"
 require "colorize"
-require "file_utils"
 
 # Order is important!
 require "./novika/forms/form"
@@ -22,16 +21,23 @@ module Novika
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
   # `core`), and paths for all other `files` (if any).
-  record Folder, entry : Path? = nil, files = [] of Path
+  record Folder,
+    path : Path,
+    entry : Path? = nil,
+    files = [] of Path,
+    app = false,
+    core = false
 
   # Recursively visits directories starting at, and including,
   # *root*, and creates `Folder`s for their corresponding paths
   # in *folders*.
-  def collect(folders : Hash(Path, Folder), root : Path)
+  def load(folders : Hash(Path, Folder), root : Path, app = false, core = false)
+    return if folders.has_key?(root)
+
     if File.file?(entry = root / "#{root.stem}.nk")
-      folders[root] = folder = Folder.new(entry)
+      folders[root] = folder = Folder.new(root, entry, app: app, core: core)
     else
-      folders[root] = folder = Folder.new
+      folders[root] = folder = Folder.new(root, app: app, core: core)
     end
 
     Dir.glob(root / "*.nk") do |path|
@@ -41,7 +47,7 @@ module Novika
     end
 
     Dir.glob(root / "*/") do |path|
-      collect(folders, Path[path])
+      load(folders, Path[path])
     end
   end
 
@@ -55,6 +61,8 @@ module Novika
   def run(engine : Engine, toplevel : Block, path : Path) : Block
     source = File.read(path)
     block = Block.new(toplevel).slurp(source)
+    block.at(Word.new("__path__"), Quote.new(path.parent.to_s))
+    block.at(Word.new("__file__"), Quote.new(path.to_s))
     engine.schedule!(block, stack: Block.new)
     engine.exhaust
     toplevel.import!(from: block)
@@ -139,33 +147,37 @@ module Novika
 
       io << <<-END
 
-      #{" Standard library    ".colorize.reverse.bold}
+      #{" Autoloading         ".colorize.reverse.bold}
 
-      Most Novika code depends on 'core', which is the language's standard library, so you'd
-      almost always use the following command (assuming 'core' exists in your working directory):
+      Novika autoloads (implicitly loads) the directory named 'core' in the current
+      working directory, and the directory named 'core' in '~/.novika' (assuming they
+      exist at their respective locations.)
 
-        $ novika core path/to/the/file/you/want/to/run.nk
+      #{" Home directory      ".colorize.reverse.bold}
+
+      Novika home directory, '~/.novika', is where globally accessible runnables
+      are found. When a runnable cannot be found in the current working directory,
+      '~/.novika' is searched.
 
       #{" Usage examples      ".colorize.reverse.bold}
 
-      $ novika core repl.nk
-               ---- -------
+      $ novika hello repl.nk
+               ----- -------
                (1)    (2)
 
       Here is what it does. First,
 
-      (1) enables the standard library, then
+      (1) runs the directory called 'hello', found in the working directory or in '~/.novika'; then
       (2) runs the file called 'repl.nk', found in the working directory.
 
-      $ novika core console examples/snake.nk
-               ---- ------- -----------------
-               (1)    (2)         (3)
+      $ novika console examples/snake.nk
+               ------- -----------------
+               (1)     (2)
 
       Here is what it does. First,
 
-      (1) enables the standard library, then
-      (2) enables the console feature (it's off by default), then
-      (3) runs the file called 'snake.nk', found in directory 'examples'.
+      (1) enables the console feature (it's off by default), then
+      (2) runs the file called 'snake.nk', found in directory 'examples'.
 
       If you're having any issues, head out to https://github.com/novika-lang/novika/issues,
       and click "New issue".
@@ -196,8 +208,8 @@ module Novika
   end
 
   # Novika command-line frontend entry point.
-  def cli(args : Array(String), cwd = Path[FileUtils.pwd])
-    if ARGV.empty? || ARGV.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
+  def cli(args : Array(String), cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
+    if ARGV.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
       help(STDOUT)
       exit(0)
     end
@@ -206,6 +218,33 @@ module Novika
     files = [] of Path
     # Folders the user specified.
     folders = {} of Path => Folder
+
+    # Prefer local home over global home.
+    if File.directory?(cwd / ".novika")
+      dothome = cwd / ".novika"
+    else
+      dothome = Path.home / ".novika"
+    end
+
+    # Autoload 'core' in '~/.novika', if there is any.
+    #
+    # Note that '~/.novika' is never an app.
+    if File.directory?(dothome / "core")
+      load(folders, dothome / "core", core: true)
+    end
+
+    # Autoload 'core' in current working directory, if there
+    # is any.
+    if had_cwd_core = File.directory?(cwd / "core")
+      load(folders, cwd / "core", core: true, app: File.file?(cwd / ".nk.app"))
+    end
+
+    # If haven't found core in current working directory,
+    # then the user is probably looking for help...
+    if ARGV.empty? && !had_cwd_core
+      help(STDOUT)
+      exit(0)
+    end
 
     # Whether to profile at all.
     profile = false
@@ -225,12 +264,7 @@ module Novika
     args.each do |arg|
       if bundle.includes?(arg)
         bundle.enable(arg)
-      elsif File.directory?(arg)
-        # Exists and is a directory.
-        collect(folders, Path[arg])
-      elsif File.file?(arg)
-        # Exists and is a file.
-        files << Path[arg]
+        next
       elsif arg.in?("-p", "-profile")
         profile = true
         puts <<-END
@@ -238,6 +272,7 @@ module Novika
           your programs will run a lot slower, because a lot of data
           is being collected.
         END
+        next
       elsif arg == "-ps"
         profile = true
         profile_small = true
@@ -246,9 +281,47 @@ module Novika
           your programs will run a lot slower, because a lot of data
           is being collected.
         END
-      else
-        abort "#{arg.colorize.bold} is not a file, directory, or feature avaliable in #{cwd}"
+        next
       end
+
+      # Resolve the path. Prefer current working directory
+      # over '~/.novika'.
+      if File.exists?(path = Path[arg].expand(cwd))
+        # Path exists in current working directory...
+      elsif File.exists?(path = dothome / arg)
+        # Path exists in '~/.novika'...
+      else
+        abort "#{arg.colorize.bold} is not a file, directory, or feature avaliable in #{cwd} or ~/.novika"
+      end
+
+      if File.directory?(path)
+        # Path is a directory: load it.
+        load(folders, path, app: File.file?(path / ".nk.app"))
+      elsif File.file?(path)
+        # Path is a file: add it to files array.
+        files << path
+      end
+    end
+
+    # Get all apps.
+    #
+    # Note also, that since `folders` is a hash, things like
+    # `$ novika new new` will become `$ novika new` and
+    # therefore won't participate in the size check below.
+    apps = folders.values.select(&.app)
+
+    if apps.size > 1
+      # If there is more than one app, and core is one of
+      # them, then try to save on it.
+      apps.reject!(&.core)
+
+      # ... reflect on folders as well.
+      folders.reject! { |k, v| v.app && v.core }
+    end
+
+    # If there is more than one app still, abort.
+    if apps.size > 1
+      abort "cannot run more than one app (namely: #{apps.join(", ", &.path.basename)}); aborting"
     end
 
     engine = Engine.new(profile)

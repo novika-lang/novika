@@ -1,0 +1,36 @@
+"""Scaffolds a tiny Novika app.
+
+$ novika new
+Ok  Created an empty project in current directory.
+
+$ novika
+Hello World
+"""
+
+[ "( M C -- ): logs Message emphasized, and painted with Color."
+  withEchoFg withEmphasisAppendEcho dropEchoFg
+] @: log
+
+[ "( sorry: M -- ): logs a sorry Message."
+  'Sorry  ' 255 0 0 rgb log ahead thruVal echo
+] @: sorry:
+
+[ "( ok: M -- ): logs an ok Message."
+  'Ok  ' 0 255 0 rgb log ahead thruVal echo
+] @: ok:
+
+"Get the current working directory..."
+disk:pwd $: cwd
+
+"Quit if it's not empty..."
+cwd disk:dirEmpty? not => [
+  sorry: 'Please create an empty directory for your next awesome Novika project, and \'cd\' into it!'
+  1 bye
+]
+
+"... and copy the template folder to the current working
+directory otherwise."
+__path__ 'template' disk:join '.' disk:join cwd disk:copy
+
+ok: 'Created an empty project in the current directory.'
+0 bye

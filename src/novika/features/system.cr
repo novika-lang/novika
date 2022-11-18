@@ -41,6 +41,9 @@ module Novika::Features
     # Returns a reading from the monotonic clock, in milliseconds.
     abstract def monotonic(engine) : Decimal
 
+    # Ends the program with the given exit *code*.
+    abstract def bye(engine, code : Decimal)
+
     def inject(into target : Block)
       target.at("appendEcho", <<-END
       ( F -- ): enquotes and appends Form to the standard
@@ -114,6 +117,15 @@ module Novika::Features
         millis = stack.drop.a(Decimal)
 
         nap(engine, millis)
+      end
+
+      target.at("bye", <<-END
+      ( Ec -- ): ends the program with the given decimal Exit code.
+      END
+      ) do |engine, stack|
+        code = stack.drop.a(Decimal)
+
+        bye(engine, code)
       end
     end
   end

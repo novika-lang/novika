@@ -1237,6 +1237,19 @@
 ] @: to:
 
 
+[ shallowCopy $: block
+
+  ahead thruVal $: b
+  ahead thruWord: to:
+  ahead thruVal $: e
+  block b |to
+  block |slice nip
+  dup e b - |to
+  |slice drop
+
+] @: from:
+
+
 [ """( Fl -- Q ): stitches enquoted forms from Form list and
    leaves the resulting Quote.
 
