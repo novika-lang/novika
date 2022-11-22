@@ -219,10 +219,10 @@ module Novika
     # Folders the user specified.
     folders = {} of Path => Folder
 
-    # Prefer local home over global home.
-    if File.directory?(cwd / ".novika")
-      dothome = cwd / ".novika"
-    else
+    # Prefer local home over global home. Global home can
+    # only be called '.novika'. Local home may be called
+    # either '.novika', or 'env'.
+    unless File.directory?(dothome = cwd / ".novika") || File.directory?(dothome = cwd / "env")
       dothome = Path.home / ".novika"
     end
 
