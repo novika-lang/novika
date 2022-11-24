@@ -95,7 +95,7 @@ module Novika
     # Makes a copy of the referenced substrate, and calls this
     # method on it.
     delegate :set?, :insert?, :delete?, :map!, :sort_using!, to: begin
-      res.refs -= 1
+      deref
 
       RealSubstrate.new(array.dup)
     end
