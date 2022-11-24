@@ -162,11 +162,15 @@ _pgRoot #? [
   ]
 ] @: startSession
 
+  0 87 183 rgb withEchoBg ' ' withColorAppendEcho dropEchoBg
+255 215 0 rgb withEchoBg ' ' withColorAppendEcho dropEchoBg
+
+' Help Ukraine Now: https://war.ukraine.ua/donate/' withEmphasisEcho
+'' echo
 
 [
   'Novika ' novika:version '\n'
   'Hit Ctrl-D or Ctrl-C to quit. Type "?" for more information.'
 ] vals join echo
-
 
 startSession

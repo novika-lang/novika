@@ -16,7 +16,7 @@ require "./novika/features/impl/*"
 module Novika
   extend self
 
-  VERSION = "0.0.4"
+  VERSION = "0.0.5"
 
   # Represents a folder with Novika files, containing an `entry`
   # file path (if any; e.g., `core.nk` inside a folder named
