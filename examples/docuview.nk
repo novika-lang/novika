@@ -1,0 +1,202 @@
+this $: _toplevel
+ ls* $: _toplevelWords
+
+
+[ "( Q -- Q' ): ensures Quote ends with newline. If it does
+   not, appends newline. Leaves Quote with newline at the end."
+  dup '\n' endsWith? not => [ '\n' stitch ]
+] @: ensureEndsWithNewline
+
+
+[ $( name stackEffect description )
+
+  description # [ '\n' = ] $: lineCount
+
+  [ """( TX TY MY Yo -- S ): draws this word using the focused
+     style at Top X, Top Y coordinates, taking into account the
+     given Max Height and Y offset. Leaves Self.
+
+    Self considers the following properties public:
+
+      * width
+      * height
+      * cornerX
+      * cornerY
+    """
+    $( topX topY maxH yOff )
+
+    "Current width and height:"
+    0 $: width
+    0 $: height
+
+    [ "( -- X ): Leaves rightmost X coordinate."  topX  width + ] @: cornerX
+    [ "( -- Y ): Leaves bottommost Y coordinate." topY height + ] @: cornerY
+
+    [ "Inserts a logical newline: resets width and
+       increments height."
+      topX =: width
+      height 1 + =: height
+    ] @: newline
+
+    [ "( Q appendUsing: B -- ): appends Quote using Block
+       (giving it X and Y coordinates) and increments width
+       appropriately."
+      dup enclose [ cornerX cornerY ] there "[ Q X Y ]" ahead thruBlock hydrate
+      count width + =: width
+    ] @: appendUsing:
+
+    [ "( N -- ): adds N horizontal padding cells."
+      width + =: width
+    ] @: paddingX
+
+    "Add whitespace before and after name so it looks more
+     space-y, and append it using the reverse style."
+    [ ' ' name ' ' ] ~* appendUsing: console:withReverseAppendEcho
+
+    2 paddingX
+
+    stackEffect appendUsing: console:appendEcho
+
+    newline
+    newline
+
+    0 $: lineIndex
+    0 $: lineStartIndex
+
+    "Go character-by-character through the description, but
+     pause & look & do work only at newlines."
+    description eachWithIndex: [ $: char $: charIndex
+      char '\n' = not => next
+
+      "If the line is above the user's desired Y offset,
+       skip it:"
+      lineIndex yOff < => [
+        lineIndex 1 + =: lineIndex
+        charIndex 1 + =: lineStartIndex
+        next
+      ]
+
+      "If the line is below max allowed lines, break
+       the loop:"
+      lineIndex maxH yOff + > => [
+        '…' appendUsing: console:appendEcho
+        newline break
+      ]
+
+      "Slice at line start, get the second half (i.e.
+       *everything* after line start)."
+      description lineStartIndex sliceQuoteAt nip
+
+      "Slice the 'everything after line start' at the
+       current character index (offset by the part we've
+       already sliced), which is actually the line end
+       for the current line, and line start for the next.
+       This leaves only the current line quote."
+      charIndex lineStartIndex - sliceQuoteAt drop
+
+      appendUsing: console:appendEcho
+      newline
+
+      lineIndex 1 + =: lineIndex
+      charIndex 1 + =: lineStartIndex
+    ]
+
+    newline
+
+    this
+  ] @: drawFocusedAt
+
+  [ """( TX TY -- S ): draws this word using the blurred
+    style at Top X, Top Y coordinates. Leaves Self.
+
+    Self considers the following properties public:
+
+      * cornerX
+      * cornerY
+    """
+    $: cornerY
+    $: cornerX
+
+    name cornerX cornerY console:appendEcho
+
+    cornerY 1 + =: cornerY
+
+    this
+  ] @: drawBlurredAt
+
+  this
+] @: createWord
+
+'Loading (this may take a while)...' echo
+
+"Collect all toplevel words and make word objects for each
+ one of them:"
+_toplevelWords map: [ $: form
+  "Skip private words: if form is a word, and the word is
+   private, then skip it."
+  form word?
+  form private? and => next
+
+  "Get the value form: the form which an entry refers to (or
+   holds, depending on what kind of form it is)"
+  _toplevel form entry:fetch $: value
+
+  "Create an object with the properties that are
+   interesting to us."
+
+  "Name of the form, as a quote:"
+  form toQuote $: name
+  "Get stack effect of the value form:"
+  value effect $: stackEffect
+  "Get full description of the value form:"
+  value desc ensureEndsWithNewline $: description
+
+  name stackEffect description createWord
+] $: data
+
+data 0 |to
+
+0 $: scrollY
+5 $: maxDescHeight
+
+[
+  console:clear
+
+  2 $: topX
+  1 $: topY
+
+  data 10 |around $: spotlight
+
+  spotlight eachWithIndex: [ $: datum $: index
+    topX topY
+    data |at spotlight.start index + = br:
+      [ maxDescHeight scrollY datum.drawFocusedAt ]
+      [ datum.drawBlurredAt ]
+    .cornerY =: topY
+  ]
+  console:present
+] @: draw
+
+console:on
+console:truecolor
+
+draw
+
+loop: [
+  [
+    console:readKey
+    console:hadCtrlPressed? console:getCharPressed 'c' = and => break
+    console:hadUpPressed? => [ 0 =: scrollY data dup |at 1 - clamp: 0 [ data count ] |to ^ ]
+    console:hadDownPressed? => [ 0 =: scrollY data dup |at 1 + clamp: 0 [ data count ] |to ^ ]
+    console:hadPageUpPressed? => [ 0 scrollY 1 - 2max =: scrollY ^ ]
+    console:hadPageDownPressed? => [
+        data data |at fromLeft .lineCount maxDescHeight - 1 - scrollY 1 + 2min =: scrollY
+        ^
+    ]
+  ] do
+
+  draw
+]
+
+console:off
+
