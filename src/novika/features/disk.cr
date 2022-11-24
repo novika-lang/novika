@@ -135,7 +135,7 @@ module Novika::Features
 
       ```
       'hello' 'world' disk:join leaves: 'hello/world' "On Unix"
-      'hello' 'world' disk:join leaves: 'hello\\world' "On Windows"
+      'hello' 'world' disk:join leaves: 'hello\\\\world' "On Windows"
       ```
       END
       ) do |engine, stack|
