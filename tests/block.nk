@@ -1670,3 +1670,40 @@ describe 'tally:' [
     [ 1 2 2 3 3 2 1 ] tally: 2drop [ ] assert=
   ]
 ]
+
+
+"TODO: sorts below need more tests, but probably after they're implemented
+ in Novika (basically, we're relying on Crystal's own test suite here)."
+
+describe 'sortUsing!' [
+  in lang
+
+  it should 'sort block inplace' [
+    [ 3 1 2 4 0 -3 ] [ - ] sortUsing! [ -3 0 1 2 3 4 ] assert=
+  ]
+]
+
+
+describe 'sort!' [
+  in lang
+
+  it should 'sort block of decimals' [
+    [ 3 1 2 4 0 -3 ] sort! [ -3 0 1 2 3 4 ] assert=
+    [ [ 3 'foo' 1 2 3 ] sort! ] 'bad type: quote, expected: a decimal' assertDies
+  ]
+]
+
+
+describe 'sortBy!' [
+  in lang
+
+  it should 'sort block via mapper block' [
+    [ 'hi' 'worldish' 'hi' 'foobar' ] [ count ] sortBy! [ 'hi' 'hi' 'foobar' 'worldish' ] assert=
+
+    [
+      [ 'hi' 'worldish' 'hi' 'foobar' ] [ #poop ] sortBy! [ 'hi' 'hi' 'foobar' 'worldish' ] assert=
+    ] 'bad type: word, expected: a decimal' assertDies
+  ]
+]
+
+

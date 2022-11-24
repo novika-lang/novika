@@ -69,6 +69,10 @@ module Novika
     # block. If the result is nil, leaves the original element.
     abstract def map!(& : T -> T?)
 
+    # Sorts elements of this substrate inplace, using a *cmp*
+    # comparator proc for comparing two elements.
+    abstract def sort_using!(cmp : T, T -> Int32)
+
     def ==(other)
       other.is_a?(Substrate) && array == other.array
     end
@@ -90,7 +94,7 @@ module Novika
 
     # Makes a copy of the referenced substrate, and calls this
     # method on it.
-    delegate :set?, :insert?, :delete?, :map!, to: begin
+    delegate :set?, :insert?, :delete?, :map!, :sort_using!, to: begin
       res.refs -= 1
 
       RealSubstrate.new(array.dup)
@@ -144,6 +148,14 @@ module Novika
           if element = yield element
             mutee.array.unsafe_put(index, element)
           end
+        end
+      end
+    end
+
+    def sort_using!(cmp : T, T -> Int32)
+      mutate do |mutee|
+        mutee.array.sort! do |a, b|
+          cmp.call(a, b)
         end
       end
     end

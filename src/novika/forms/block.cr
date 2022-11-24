@@ -280,6 +280,13 @@ module Novika
       self.tape, _ = tape.thru? || die("thru out of bounds")
     end
 
+    # Sorts this block's tape inplace, calls *cmp* comparator proc
+    # for each form pair for a comparison integer -1, 0, or 1.
+    def sort_using!(&cmp : Form, Form -> Int32)
+      self.tape = tape.sort_using!(cmp)
+      self
+    end
+
     # Explores this block's relatives, i.e., its vertical
     # (parent) and horizontal (friend) hierarchy neighbors,
     # calls *payload* with each such relative.
@@ -480,7 +487,7 @@ module Novika
     end
 
     # Creates and returns an instance of this block, under the
-    # given *parent*.)
+    # given *parent*.
     def instance(parent reparent : Block = self, __tr = nil) : Block
       if leaf?
         return self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)

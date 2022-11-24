@@ -95,6 +95,11 @@ module Novika
       Tape.new(substrate.map! { |form| yield form }, cursor)
     end
 
+    # See `Substrate#sort_using!`
+    def sort_using!(cmp : T, T -> Int32)
+      Tape.new(substrate.sort_using!(cmp), cursor)
+    end
+
     # Slices this tape's substrate at cursor, returns the
     # two resulting tape halves.
     def slice : {Tape(T), Tape(T)}

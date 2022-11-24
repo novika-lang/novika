@@ -1092,6 +1092,42 @@ module Novika::Features::Impl
         recpt.import!(from: donor)
       end
 
+      # FIXME!
+      #
+      # This is a stub before I can get to writing a sorting algo
+      # in Novika. E.g. one of the drawbacks is that it doens't
+      # support break and next (and it's impossible to support them
+      # without writing a ton of unidiomatic shitcode). The latter
+      # results in heaps of unelegant code, but ANYWAY ...
+
+      target.at("sortUsing!", <<-END
+      ( B Cb -- B ): leaves Block sorted inplace. Forms in Block
+       are compared using Comparator block.
+
+      Comparator block is opened with two forms on the stack; let's
+      call them A and B. If Comparator block leaves a negative decimal
+      (conventionally `-1`), then `A < B`. If Comparator block leaves
+      `0`, then `A = B`. If Comparator block leaves a positive decimal
+      (conventionally `1`), then `A > B`.
+
+      Dies if Comparator block leaves any other (kind of) form.
+
+      Ignores all forms but the topmost for Comparator block.
+
+
+      ```
+      [ 3 2 1 ] [ - ] sortUsing leaves: [ 1 2 3 ]
+      ```
+      END
+      ) do |_, stack|
+        cmp = stack.drop.a(Block)
+        block = stack.top.a(Block)
+        block.sort_using! do |a, b|
+          # Hacky hack, see the comment above.
+          Engine.exhaust(cmp, Block[a, b]).top.a(Decimal).to_i
+        end
+      end
+
       target.at("getErrorDetails", <<-END
       ( Eo -- Dq ): leaves Details quote containing error details
        of an Error object.

@@ -1554,3 +1554,51 @@
 [ "( L tally: B -- ): infix version of `tally`."
   ahead thruBlock tally
 ] @: tally:
+
+
+"TODO: implement `sortUsing!` in Novika."
+
+
+[ """( B sortUsing!: Cb -- B ): infix version of `sortUsing!`.
+  
+  ```
+  [ 3 1 2 4 0 -3 ] sortUsing!: - leaves: [ [ -3 0 1 2 3 4 ] ]
+  ```
+  """
+  ahead thruBlock sortUsing!
+] @: sortUsing!:
+
+
+[ """( Dlb -- Dlb ): inplace sort of Decimal list block.
+   Chokes on non-decimal forms.
+
+  ```
+  [ 3 1 2 4 0 -3 ] sort! leaves: [ [ -3 0 1 2 3 4 ] ]
+  ```
+  """
+  sortUsing!: -
+] @: sort!
+
+
+[ """( B Mb -- B ): inplace sort for Block using the
+   Mapper block, which must be able to map *all* forms
+   in Block to a decimal.
+
+  ```
+  [ 'hi' 'worldish' 'hi' 'foobar' ] [ count ] sortBy! leaves: [ [ 'hi' 'hi' 'foobar' 'worldish' ] ]
+  ```
+  """
+  @: mapper
+
+  sortUsing!: [ bi*: mapper mapper - ]
+] @: sortBy!
+
+
+[ """( B sortBy!: Mb -- B ): infix version of `sortBy!`.
+  
+  ```
+  [ 'hi' 'worldish' 'hi' 'foobar' ] sortBy!: count leaves: [ [ 'hi' 'hi' 'foobar' 'worldish' ] ]
+  ```
+  """
+  ahead thruBlock sortBy!
+] @: sortBy!:
