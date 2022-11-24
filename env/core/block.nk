@@ -1237,7 +1237,7 @@
 ] @: to:
 
 
-[ shallowCopy $: block
+[ toTape $: block
 
   ahead thruVal $: b
   ahead thruWord: to:
@@ -1560,7 +1560,7 @@
 
 
 [ """( B sortUsing!: Cb -- B ): infix version of `sortUsing!`.
-  
+
   ```
   [ 3 1 2 4 0 -3 ] sortUsing!: - leaves: [ [ -3 0 1 2 3 4 ] ]
   ```
@@ -1595,10 +1595,84 @@
 
 
 [ """( B sortBy!: Mb -- B ): infix version of `sortBy!`.
-  
+
   ```
   [ 'hi' 'worldish' 'hi' 'foobar' ] sortBy!: count leaves: [ [ 'hi' 'hi' 'foobar' 'worldish' ] ]
   ```
   """
   ahead thruBlock sortBy!
 ] @: sortBy!:
+
+
+[ """( L N -- Fab ): leaves a Forms around block with N/2 forms
+   before the cursor, and N/2 forms after the cursor in List.
+
+  Forms around block may consist of less than N forms, but only
+  when there are less than N forms in List (in this case, Forms
+  around block is essentially a shallow copy of List).
+
+  Forms around block is an orphan with two dictionary entries:
+  `start`, which stores the index of the first item in List,
+  and `end`, which stores the index of the last item in List.
+
+  Dies when N is zero or when List is empty, because in these
+  cases it is impossible to find the pivot form.
+
+  ```
+  [ 1 2 3 4 ] $: block
+  block 2 |to
+  block echo \"STDOUT: [ 1 2 | 3 4 ]⏎ \"
+  block 2 |around echo \"STDOUT: [ 2 3 · ${start :: 1} ${end :: 3} ]⏎ \"
+  ```
+  """
+
+  "TODO: I'm sure this thing is super slow, look into optimizing it
+   (but AFTER sort is implemented in Novika)."
+
+  asDecimal $: amount
+    asBlock $: block
+
+  block empty? => [ '|around: cannot choose pivot when given empty list' die ]
+  amount zero? => [ '|around: cannot choose pivot when amount is 0' die ]
+
+  0 $: start
+  block count $: end
+
+  end amount <= br:
+    [ block toTape ]
+    [ block |at 1 - $: pivot
+
+      "Get [ index <dist from pivot> ] for each form in the block:"
+      block count collect: [ dup pivot - abs 2enclose ] $: costmap
+
+      "Sort by cost from pivot:"
+      costmap sortBy!: last
+
+      "Get N (amount) [ index <cost from pivot> ]s:"
+      dup amount |to |slice drop toOrphan
+
+      "Sort them by index:"
+      sortBy!: first
+
+      "Get first and last item indices and save them under
+       start and end."
+      dup first first =: start
+      dup last  first =: end
+
+      0 $: cursorTo
+      0 $: index
+
+      "Fetch & leave only items at corresponding indices. Also
+       remember where pivot is and save under cursorTo."
+      ||-> [
+        dup last 0 = => [ index 1 + =: cursorTo ]
+        first block swap fromLeft
+        index 1 + =: index
+      ]
+
+      dup cursorTo |to
+    ]
+
+  dup #start start pushes
+  dup #end end pushes
+] @: |around

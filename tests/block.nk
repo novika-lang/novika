@@ -1707,3 +1707,83 @@ describe 'sortBy!' [
 ]
 
 
+describe '|around' [
+  in lang
+
+  [
+    this ahead reparent drop "hacky hack for assert="
+
+    $: aroundResult
+    $: origBlock
+
+    "Sanity check: not same as input"
+    aroundResult origBlock same? false assert=
+
+    "Has ONLY the start and end fields:"
+    aroundResult ls [ start end ] assert=
+
+    "Are orphans:"
+    aroundResult orphan? true assert=
+  ] @: sanityCheck
+
+  it should 'die when N = 0 and/or block is empty' [
+    [ [ ] 0 |around ] '|around: cannot choose pivot when given empty list' assertDies
+    [ [ 1 2 3 4 ] 0 |around ] '|around: cannot choose pivot when amount is 0' assertDies
+    [ [ ] 2 |around ] '|around: cannot choose pivot when given empty list' assertDies
+  ]
+
+  it should 'work when <= N and keep cursor' [
+    [ 1 2 3 4 ] $: b1
+    [ 1 2 3 4 ] $: b2
+    b2 2 |to
+
+    [ b1 1 |around ] vals count 1 assert=
+
+    b1 10 |around $: result1
+    b2 4 |around $: result2
+
+    b1 result1 sanityCheck
+    b2 result2 sanityCheck
+
+    result1.start 0 assert=
+    result1.end 4 assert=
+
+    result2.start 0 assert=
+    result2.end 4 assert=
+
+    "Have same tape content:"
+    result1 toTape b1 assert=
+    result2 toTape b2 assert=
+  ]
+
+  it should 'handle even N' [
+    [ 1 "|" 2 3 4 5 6 ] dup 1 |to $: b1
+    [ 1 2 3 4 5 "|" 6 ] dup 5 |to $: b2
+
+    b1 4 |around $: lhalfTest
+    b2 4 |around $: rhalfTest
+
+    "Sanity check again because this is a different branch:"
+    b1 lhalfTest sanityCheck
+    b2 rhalfTest sanityCheck
+
+    lhalfTest toTape [ 1 "|" 2 3 4 ] dup 1 |to assert=
+    rhalfTest toTape [ 3 4 5 "|" 6 ] dup 3 |to assert=
+  ]
+
+  it should 'handle odd N' [
+    [ 1 2 "|" 3 4 5 ] dup 2 |to $: b
+    b 3 |around $: result
+    b result sanityCheck
+    result toTape [ 1 2 "|" 3 ] dup 2 |to assert=
+  ]
+
+  it should 'handle cursor at the end' [
+    [ 1 2 3 4 "|" ] $: b
+    b 3 |around $: result
+    b result sanityCheck
+    result toTape [ 2 3 4 "|" ] assert=
+  ]
+
+  "TODO: this is one of the most complex words yet, needs more tests."
+]
