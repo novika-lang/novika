@@ -33,4 +33,13 @@ directory otherwise."
 __path__ 'template' disk:join '.' disk:join cwd disk:copy
 
 ok: 'Created an empty project in the current directory.'
+
+'
+  Open core/core.nk with your favorite text editor, and
+  start writing Novika!
+
+  Use the following command to run it:
+     $ novika
+' echo
+
 0 bye
