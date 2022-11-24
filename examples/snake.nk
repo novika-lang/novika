@@ -145,7 +145,7 @@ needsFeature: console
        so that others can call it and break this loop immediately."
       #break here =: gameOver
 
-      console:peek "Store input data, if any."
+      console:readKey "Store input data, if any."
 
       "This must be checked before applying input, for reasons
        very hard to explain :)"

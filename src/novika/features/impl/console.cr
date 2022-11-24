@@ -37,7 +37,7 @@ module Novika::Features::Impl
       {Decimal.new(Termbox.width), Decimal.new(Termbox.height)}
     end
 
-    def peek(engine, timeout : Decimal)
+    def read_key(engine, timeout : Decimal)
       @event = Termbox.peek?(timeout.to_i)
     end
 

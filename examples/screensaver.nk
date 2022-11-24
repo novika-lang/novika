@@ -12,7 +12,7 @@ console:truecolor
 goForth @: step
 
 [
-  console:peek
+  console:readKey
   console:hadKeyPressed? => break
 
   60 48 n lch

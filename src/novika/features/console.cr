@@ -8,7 +8,7 @@ module Novika::Features
   # * `console:256`, implemented by `colors_256`
   # * `console:compat`, implemented by `colors_compat`
   # * `console:truecolor`, implemented by `colors_truecolor`
-  # * `console:peek`, implemented by `peek`
+  # * `console:readKey`, implemented by `read_key`
   # * `console:size`, implemented by `size`
   # * `console:hadKeyPressed?`, implemented by `had_key_pressed?`
   # * `console:hadCtrlPressed?`, implemented by `had_ctrl_pressed?`
@@ -83,7 +83,7 @@ module Novika::Features
     # * Positive *timeout* must wait for input in a window
     #   *timeout* milliseconds long, and refresh the input
     #   state after receiving input.
-    abstract def peek(engine, timeout : Decimal)
+    abstract def read_key(engine, timeout : Decimal)
 
     # Returns boolean for whether any key was pressed.
     abstract def had_key_pressed?(engine) : Boolean
@@ -219,25 +219,25 @@ module Novika::Features
       target.at("console:setTimeout", <<-END
       ( D -- ): sets input timeout to Duration, given in *milliseconds*.
 
-       * If Duration is negative, `console:peek` will wait for
-         input indefinitely (i.e., until there is input).
+       * If Duration is negative, `console:readKey` will wait
+         for input indefinitely (i.e., until there is input).
 
-       * If Duration is zero, `console:peek` won't wait for input
-         at all, but make note if there is any at the moment.
+       * If Duration is zero, `console:readKey` won't wait for
+         input at all, but make note if there is any at the moment.
 
-       * If Duration is positive, `console:peek` will peek during
-         the timeout window.
+       * If Duration is positive, `console:readKey` will peek
+         during the timeout window.
       END
       ) do |_, stack|
         @timeout = stack.drop.a(Decimal)
       end
 
-      target.at("console:peek", <<-END
+      target.at("console:readKey", <<-END
       ( -- ): peeks or waits for input. See `console:setTimeout`.
        Refreshes the input state. Use `console:hadKeyPressed` and
        friends to explore the input state afterwards.
       END
-      ) { |engine| peek(engine, @timeout) }
+      ) { |engine| read_key(engine, @timeout) }
 
       target.at("console:hadKeyPressed?", <<-END
       ( -- B ): leaves Boolean for whether any key was pressed.
