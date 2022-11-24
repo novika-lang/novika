@@ -192,6 +192,15 @@ module Novika::Features::Impl
       Termbox::Color.new(*(@palette ? color.closest(@palette.not_nil!) : color).rgb.map(&.to_i))
     end
 
+    def change(engine, x : Decimal, y : Decimal, fg : Color, bg : Color)
+      fg, bg = to_tb_color(fg), to_tb_color(bg)
+      xi = x.to_i
+      yi = y.to_i
+      if xi.in?(0...Termbox.width) && yi.in?(0...Termbox.height)
+        Termbox.change(xi, yi, fg, bg)
+      end
+    end
+
     def append_echo(engine, x : Decimal, y : Decimal, fg : Color, bg : Color, quote : Quote)
       fg, bg = to_tb_color(fg), to_tb_color(bg)
       xi = x.to_i

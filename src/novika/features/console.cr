@@ -27,6 +27,7 @@ module Novika::Features
   # * `console:hadUpPressed?`, implemented by `had_up_pressed?`
   # * `console:hadDownPressed?`, implemented by `had_down_pressed?`
   # * `console:getCharPressed`, implemented by `get_char_pressed`
+  # * `console:change`, implemented by `change`
   # * `console:appendEcho`, implemented by `append_echo`
   # * `console:present`, implemented by `present`
   # * `console:clear`, implemented by `clear`
@@ -334,6 +335,17 @@ module Novika::Features
       any key, an empty quote is left in place of Char quote.
       END
       ) { |engine, stack| get_char_pressed(engine).onto(stack) }
+
+      target.at("console:change", <<-END
+      ( X Y -- ): changes the color of the cell at X, Y coordinates
+       to be the foreground, background colors set by ink's
+       `withEchoFg` and `withEchoBg`.
+      END
+      ) do |engine, stack|
+        y = stack.drop.a(Decimal)
+        x = stack.drop.a(Decimal)
+        change(engine, x, y, fg, bg)
+      end
 
       target.at("console:appendEcho", <<-END
       ( F X Y -- ): appends echo of Form at an X and Y position
