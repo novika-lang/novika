@@ -69,3 +69,27 @@
   dup min < => [ drop min ]
   dup max > => [ drop max ]
 ] @: clamp:
+
+
+[ """( N -- -N ): flips the sign of N.
+
+  ```
+  -1 flipSign leaves: 1
+  0 flipSign leaves: 0
+  1 flipSign leaves: -1
+  ```
+  """
+  -1 *
+] @: flipSign
+
+
+[ """( N -- Av ): leaves the Absolute value of N.
+  
+  ```
+  0 abs leaves: 0
+  100 abs leaves: 100
+  -100 abs leaves: 100
+  ```
+  """
+  dup negative? => flipSign
+] @: abs

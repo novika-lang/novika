@@ -42,3 +42,25 @@ describe 'clamp:' [
     [ 100 clamp: 5 10 ] vals [ 10 ] assert=
   ]
 ]
+
+
+describe 'flipSign' [
+  in lang
+
+  it should 'leave opposite number' [
+    -1 flipSign 1 assert=
+    0 flipSign 0 assert=
+    1 flipSign -1 assert=
+  ]
+]
+
+
+describe 'abs' [
+  in lang
+
+  it should 'leave absolute value' [
+    0 abs 0 assert=
+    100 abs 100 assert=
+    -100 abs 100 assert=
+  ]
+]
