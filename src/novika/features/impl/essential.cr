@@ -832,6 +832,21 @@ module Novika::Features::Impl
         form.at(index.to_i).onto(stack)
       end
 
+      target.at("fromRight", <<-END
+      ( B I -- F ): leaves Index-th Form from right in Block.
+
+      ```
+      [ 1 2 3 ] 0 fromRight leaves: 3
+      [ 1 2 3 ] 1 fromRight leaves: 2
+      [ 1 2 3 ] 2 fromRight leaves: 1
+      ```
+      END
+      ) do |_, stack|
+        index = stack.drop.a(Decimal).posint
+        form = stack.drop.a(Block | Quote)
+        form.at(form.count - index.to_i - 1).onto(stack)
+      end
+
 
         case form
         when Block, Quote

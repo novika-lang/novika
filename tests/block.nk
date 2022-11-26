@@ -200,23 +200,6 @@ describe '2enclose' [
   ]
 ]
 
-describe 'fromRight' [
-  in lang
-
-  it should 'leave nth from right' [
-    [ 1 2 3 ] 0 fromRight 3 assert=
-    [ 1 2 3 ] 1 fromRight 2 assert=
-    [ 1 2 3 ] 2 fromRight 1 assert=
-  ]
-
-  it dies 'when index is out of bounds' [
-    [ 1 2 3 ] 3 fromRight
-  ]
-
-  it dies 'when index is negative' [
-    [ 1 2 3 ] -1 fromRight
-  ]
-]
 
 describe 'first' [
   in lang

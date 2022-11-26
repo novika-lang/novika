@@ -120,18 +120,6 @@
 ] @: 2enclose
 
 
-[ """( B I -- F ): leaves Index-th Form from right in Block.
-
-  ```
-  [ 1 2 3 ] 0 fromRight leaves: 3
-  [ 1 2 3 ] 1 fromRight leaves: 2
-  [ 1 2 3 ] 2 fromRight leaves: 1
-  ```
-  """
-  over count 1 - swap - fromLeft
-] @: fromRight
-
-
 [ """( B -- F ): leaves first Form in Block. Dies if Block
    is empty.
 

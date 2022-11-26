@@ -782,6 +782,41 @@ describe 'fromLeft' [
   ]
 ]
 
+
+describe 'fromRight' [
+  in lang
+
+  it should 'leave nth from right in block/quote' [
+    [ 1 2 3 ] 0 fromRight 3 assert=
+    [ 1 2 3 ] 1 fromRight 2 assert=
+    [ 1 2 3 ] 2 fromRight 1 assert=
+    'hello world' 0 fromRight 'd' assert=
+
+    [ 123 0 fromRight ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 'he' 'llo' fromRight ] 'bad type: quote, expected: a decimal' assertDies
+  ]
+
+  it should 'index quotes correctly' [
+    '👨‍👩‍👧🍎' 0 fromRight   '🍎' assert= "family followed by apple"
+    '👨‍👩‍👧🍎' 1 fromRight '👨‍👩‍👧' assert=
+
+    'Ⓐs°Ämanчел' 9 fromRight 'Ⓐ' assert=
+    'Ⓐs°Ämanчел' 8 fromRight 's' assert=
+    'Ⓐs°Ämanчел' 7 fromRight '°' assert=
+    'Ⓐs°Ämanчел' 6 fromRight 'Ä' assert=
+    'Ⓐs°Ämanчел' 3 fromRight 'n' assert=
+    'Ⓐs°Ämanчел' 0 fromRight 'л' assert=
+  ]
+
+  it should 'die when index is invalid' [
+    [ [ ] 0 fromRight ] 'index out of bounds' assertDies
+    [ '' 0 fromRight ] 'grapheme index out of bounds' assertDies
+    [ [ 1 2 3 ] 3 fromRight ] 'index out of bounds' assertDies
+    [ [ 1 2 3 ] -1 fromRight ] 'decimal is not a positive integer: -1' assertDies
+  ]
+]
+
+
 describe 'toWord' [
   in lang
 
