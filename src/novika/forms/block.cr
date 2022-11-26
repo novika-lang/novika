@@ -378,6 +378,14 @@ module Novika
       tape.at?(index) || die("index out of bounds")
     end
 
+    # Returns a block of forms between *b* and *e*, both
+    # inclusive. Clamps *b* and *e* to bounds.
+    def at(b : Int32, e : Int32)
+      b = Math.max(b, 0)
+      e = Math.min(e, count - 1)
+      Block.with((b..e).map { |index| at(index) })
+    end
+
     # Binds *name* to *entry* in this block's dictionary.
     def at(name : Form, entry : Entry) : self
       tap { dict.set(name, entry) }

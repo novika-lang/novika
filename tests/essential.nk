@@ -817,6 +817,93 @@ describe 'fromRight' [
 ]
 
 
+describe 'fromLeft*' [
+  in lang
+
+  it should 'take n items from left in block/quote' [
+    [ 1 2 3 ] 0 fromLeft* [ ] assert=
+    [ 1 2 3 ] 1 fromLeft* [ 1 ] assert=
+    [ 1 2 3 ] 2 fromLeft* [ 1 2 ] assert=
+    [ 1 2 3 ] 3 fromLeft* [ 1 2 3 ] assert=
+    [ 1 2 3 ] 4 fromLeft* [ 1 2 3 ] assert=
+
+    [ ] 0 fromLeft* [ ] assert=
+    [ ] 123 fromLeft* [ ] assert=
+    '' 0 fromLeft* '' assert=
+    '' 123 fromLeft* '' assert=
+
+    'hello world' 0 fromLeft* '' assert=
+    'hello world' 1 fromLeft* 'h' assert=
+    'hello world' 2 fromLeft* 'he' assert=
+    'hello world' 5 fromLeft* 'hello' assert=
+    'hello world' 100 fromLeft* 'hello world' assert=
+
+    [ 123 0 fromLeft* ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 'he' 'llo' fromLeft* ] 'bad type: quote, expected: a decimal' assertDies
+  ]
+
+  it should 'index quotes correctly' [
+    '👨‍👩‍👧🍎' 1 fromLeft* '👨‍👩‍👧' assert= "family followed by apple"
+    '👨‍👩‍👧🍎' 2 fromLeft* '👨‍👩‍👧🍎' assert=
+
+    'Ⓐs°Ämanчел' 0 fromLeft* '' assert=
+    'Ⓐs°Ämanчел' 1 fromLeft* 'Ⓐ' assert=
+    'Ⓐs°Ämanчел' 2 fromLeft* 'Ⓐs' assert=
+    'Ⓐs°Ämanчел' 3 fromLeft* 'Ⓐs°' assert=
+    'Ⓐs°Ämanчел' 4 fromLeft* 'Ⓐs°Ä' assert=
+    'Ⓐs°Ämanчел' 7 fromLeft* 'Ⓐs°Äman' assert=
+    'Ⓐs°Ämanчел' 10 fromLeft* 'Ⓐs°Ämanчел' assert=
+  ]
+
+  it should 'die when index is invalid' [
+    [ [ 1 2 3 ] -1 fromLeft* ] 'decimal is not a positive integer: -1' assertDies
+  ]
+]
+
+
+describe 'fromRight' [
+  in lang
+
+  it should 'leave nth from right in block/quote' [
+    [ 1 2 3 ] 0 fromRight* [ ] assert=
+    [ 1 2 3 ] 1 fromRight* [ 3 ] assert=
+    [ 1 2 3 ] 2 fromRight* [ 2 3 ] assert=
+    [ 1 2 3 ] 3 fromRight* [ 1 2 3 ] assert=
+    [ 1 2 3 ] 4 fromRight* [ 1 2 3 ] assert=
+
+    [ ] 0 fromRight* [ ] assert=
+    [ ] 123 fromRight* [ ] assert=
+    '' 0 fromRight* '' assert=
+    '' 123 fromRight* '' assert=
+
+    'hello world' 0 fromRight* '' assert=
+    'hello world' 1 fromRight* 'd' assert=
+    'hello world' 2 fromRight* 'ld' assert=
+    'hello world' 5 fromRight* 'world' assert=
+    'hello world' 100 fromRight* 'hello world' assert=
+
+    [ 123 0 fromRight* ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 'he' 'llo' fromRight* ] 'bad type: quote, expected: a decimal' assertDies
+  ]
+
+  it should 'index quotes correctly' [
+    '👨‍👩‍👧🍎' 1 fromRight*   '🍎' assert= "family followed by apple"
+    '👨‍👩‍👧🍎' 2 fromRight*'👨‍👩‍👧🍎' assert=
+
+    'Ⓐs°Ämanчел' 10 fromRight* 'Ⓐs°Ämanчел' assert=
+    'Ⓐs°Ämanчел' 9 fromRight* 's°Ämanчел' assert=
+    'Ⓐs°Ämanчел' 8 fromRight* '°Ämanчел' assert=
+    'Ⓐs°Ämanчел' 7 fromRight* 'Ämanчел' assert=
+    'Ⓐs°Ämanчел' 4 fromRight* 'nчел' assert=
+    'Ⓐs°Ämanчел' 1 fromRight* 'л' assert=
+  ]
+
+  it should 'die when index is invalid' [
+    [ [ 1 2 3 ] -1 fromRight* ] 'decimal is not a positive integer: -1' assertDies
+  ]
+]
+
+
 describe 'toWord' [
   in lang
 

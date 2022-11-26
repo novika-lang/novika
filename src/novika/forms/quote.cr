@@ -18,6 +18,9 @@ module Novika
   module Quote
     include Form
 
+    # The empty quote.
+    EMPTY = StringQuote.new("", count: 0, ascii_only: true)
+
     # Creates a quote from *string*.
     #
     # *count* can be provided if the amount of graphemes in
@@ -53,6 +56,13 @@ module Novika
 
     # Returns the grapheme at *index* as `Quote`, or nil.
     abstract def at?(index : Int32) : Quote?
+
+    # Returns a subquote from *b* to *e*. Clamps *b* and *e*
+    # to bounds of this quote. Returns an empty quote if this
+    # quote is empty without regarding *b* and *e*.
+    #
+    # Both ends are inclusive.
+    abstract def at(b : Int32, e : Int32) : Quote
 
     # Returns whether this quote variant consists of the same
     # graphemes as *other*.
@@ -118,9 +128,9 @@ module Novika
       return unless slicept.in?(0..size)
 
       if slicept.zero?
-        {StringQuote.new("", count: 0, ascii_only: true), self}
+        {EMPTY, self}
       elsif slicept == size
-        {self, StringQuote.new("", count: 0, ascii_only: true)}
+        {self, EMPTY}
       else
         slice_at!(slicept, size)
       end
@@ -128,7 +138,7 @@ module Novika
 
     # Returns the grapheme at *index* as `Quote`, or dies.
     def at(index : Int32) : Quote
-      at?(index) || die("grapheme index out of bounds: #{index}")
+      at?(index) || die("grapheme index out of bounds")
     end
 
     def to_quote : Quote
@@ -211,6 +221,36 @@ module Novika
       end
     end
 
+    def at(b : Int32, e : Int32) : Quote
+      b = Math.max(b, 0)
+      e = Math.min(e, count - 1)
+      return self if b == 0 && e == count - 1
+      return at?(b).not_nil! if b == e
+
+      if ascii_only?
+        StringQuote.new(
+          (b..e).join do |index|
+            byte = string.byte_at?(index).not_nil!
+            byte < 0x80 ? byte.unsafe_chr : Char::REPLACEMENT
+          end,
+          count: e - b,
+          ascii_only: true
+        )
+      else
+        StringQuote.new(
+          String.build do |io|
+            string.each_grapheme.with_index do |grapheme, index|
+              next if index < b
+              break if index > e
+              io << grapheme
+            end
+          end,
+          count: e - b,
+          ascii_only: false
+        )
+      end
+    end
+
     def stitch(other : StringQuote)
       return super unless ascii_only? && other.ascii_only?
 
@@ -265,6 +305,10 @@ module Novika
 
     def at?(index : Int32) : Quote?
       self if index.zero?
+    end
+
+    def at(b : Int32, e : Int32) : Quote
+      b == e ? self : EMPTY
     end
 
     # :inherit:

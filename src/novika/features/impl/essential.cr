@@ -847,13 +847,42 @@ module Novika::Features::Impl
         form.at(form.count - index.to_i - 1).onto(stack)
       end
 
+      target.at("fromLeft*", <<-END
+      ( B/Q N -- Fb/Rq ): leaves Forms block/Result quote with
+       N forms/chars from left in Block/Quote. If N is larger
+       than Block/Quote count, it is made equal to Block/Quote
+       count. Dies if N is negative.
 
-        case form
-        when Block, Quote
-          form.at(index.to_i).onto(stack)
-        else
-          form.die("'fromLeft' expects block or quote, got: #{form}")
-        end
+      ```
+      [ 1 2 3 ] 1 fromLeft* leaves: [ [ 1 ] ]
+      [ 1 2 3 ] 2 fromLeft* leaves: [ [ 1 2 ] ]
+      [ 1 2 3 ] 3 fromLeft* leaves: [ [ 1 2 3 ] ]
+      [ 1 2 3 ] 100 fromLeft* leaves: [ [ 1 2 3 ] ]
+      'hello' 3 fromLeft* leaves: 'hel'
+      ```
+      END
+      ) do |_, stack|
+        size = stack.drop.a(Decimal).posint
+        form = stack.drop.a(Block | Quote)
+        form.at(0, size.to_i - 1).onto(stack)
+      end
+
+      target.at("fromRight*", <<-END
+      ( B N -- Fb ): leaves Forms block with N forms from right
+       in Block. If N is larger than Block count, it is made
+       equal to Block count. Dies if N is less than zero.
+
+      ```
+      [ 1 2 3 ] 1 fromRight* leaves: [ [ 3 ] ]
+      [ 1 2 3 ] 2 fromRight* leaves: [ [ 2 3 ] ]
+      [ 1 2 3 ] 3 fromRight* leaves: [ [ 1 2 3 ] ]
+      [ 1 2 3 ] 100 fromRight* leaves: [ [ 1 2 3 ] ]
+      ```
+      END
+      ) do |_, stack|
+        size = stack.drop.a(Decimal).posint
+        form = stack.drop.a(Block | Quote)
+        form.at(form.count - size.to_i, form.count - 1).onto(stack)
       end
 
       target.at("+", "( A B -- S ): leaves the Sum of two decimals.") do |_, stack|
