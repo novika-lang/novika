@@ -726,6 +726,10 @@ describe 'count' [
   it should 'count the amount of characters (graphemes) in quotes' [
     'Ⓐs°Ämanчеловек' count 14 assert=
   ]
+
+  it should 'die when invalid type' [
+    [ 123 count ] 'bad type: decimal, expected: a block or quote' assertDies
+  ]
 ]
 
 describe 'fromLeft' [
@@ -772,6 +776,10 @@ describe 'fromLeft' [
   it dies 'when quote index is out of bounds' [
     'hœllö' 5 fromLeft
   ]
+
+  it should 'die when argument is not block/quote' [
+    [ 123 0 fromLeft ] 'bad type: decimal, expected: a block or quote' assertDies
+  ]
 ]
 
 describe 'toWord' [
@@ -793,23 +801,19 @@ describe 'toWord' [
     'x👻👺🤖' toWord #x👻👺🤖 assert=
   ]
 
-  it dies 'when quote is empty' [
-    '' toWord
-  ]
-
-  it dies 'when quote is whitespace' [
-    ' ' toWord
-  ]
-
-  it dies 'when quote is newline + whitespace' [
+  it should 'die when quote is invalid' [
+    [ '' toWord ] 'toWord: quote argument is empty' assertDies
+    [ ' ' toWord ] 'toWord: quote argument contains whitespace' assertDies
+    [
     '
 
 
-    ' toWord
+    ' toWord ] 'toWord: quote argument contains whitespace' assertDies
+    [ 'hello world' toWord ] 'toWord: quote argument contains whitespace' assertDies
   ]
 
-  it dies 'when quote contains whitespace' [
-    'hello world' toWord
+  it should 'die when of invalid type' [
+    [ 123 toWord ] 'bad type: decimal, expected: a quote, quoted word, or word' assertDies
   ]
 ]
 

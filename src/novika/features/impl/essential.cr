@@ -377,11 +377,12 @@ module Novika::Features::Impl
         3. If Form is a quoted word, peels off **all** quoting
       END
       ) do |_, stack|
-        form = stack.drop
+        form = stack.drop.a(Word | QuotedWord | Quote)
+
         case form
-        when Word       then form.onto(stack)
-        when QuotedWord then form.to_word.onto(stack)
-        when Quote
+        in Word       then form.onto(stack)
+        in QuotedWord then form.to_word.onto(stack)
+        in Quote
           string = form.string
           if string.empty?
             form.die("toWord: quote argument is empty")
@@ -389,8 +390,6 @@ module Novika::Features::Impl
             form.die("toWord: quote argument contains whitespace")
           end
           Word.new(form.string).onto(stack)
-        else
-          form.die("toWord: quote must be one of: word, quote, quoted word")
         end
       end
 
@@ -828,8 +827,11 @@ module Novika::Features::Impl
       ```
       END
       ) do |_, stack|
-        index = stack.drop.a(Decimal)
-        form = stack.drop
+        index = stack.drop.a(Decimal).posint
+        form = stack.drop.a(Block | Quote)
+        form.at(index.to_i).onto(stack)
+      end
+
 
         case form
         when Block, Quote
@@ -944,13 +946,9 @@ module Novika::Features::Impl
        in Block (Quote).
       END
       ) do |_, stack|
-        form = stack.drop
-        case form
-        when Block, Quote
-          Decimal.new(form.count).onto(stack)
-        else
-          form.die("can 'count' blocks and quotes only, got: #{form}")
-        end
+        form = stack.drop.a(Block | Quote)
+
+        Decimal.new(form.count).onto(stack)
       end
 
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |_, stack|

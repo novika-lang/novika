@@ -1,3 +1,26 @@
+struct Union(*T)
+  # Joins union members' `Form#typedesc`.
+  def self.typedesc
+    String.build do |io|
+      {% begin %}
+        {% for member, index in T %}
+          io << {{member}}.typedesc
+          {% if index == T.size - 1 %}
+          {% elsif index == T.size - 2 %}
+            {% if T.size == 2 %}
+              io << " or "
+            {% else %}
+              io << ", or "
+            {% end %}
+          {% else %}
+            io << ", "
+          {% end %}
+        {% end %}
+      {% end %}
+    end
+  end
+end
+
 module Novika
   # Form is an umbrella for words and blocks. Since some words
   # (like numbers, quotes) are just too different from words as
