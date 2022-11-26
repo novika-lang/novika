@@ -35,6 +35,17 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: over
 
 
+[ """( A B - B A B ): puts a duplicate of the top form
+   before the second-from-top form.
+
+  ```
+  1 2 tuck leaves: [ 2 1 2 ]
+  ```
+  """
+  dup <| swap |>
+] @: tuck
+
+
 [ """( A B -- A B A B ): duplicates a pair of forms.
 
   ```
