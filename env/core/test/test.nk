@@ -32,8 +32,8 @@ orphan $: _groups
    and, if needed, emphasis, depending on a given Report block."
   [
     [ .ok?   ] [  _OK-COLOR withEchoFg '.' withColorAppendEcho ]
-    [ .died? ] [ _DIE-COLOR withEchoFg '.' withEmphasisAppendEcho ]
-    [        ] [ _ERR-COLOR withEchoFg '.' withEmphasisAppendEcho ]
+    [ .died? ] [ _DIE-COLOR withEchoFg 'D' withEmphasisAppendEcho ]
+    [        ] [ _ERR-COLOR withEchoFg 'X' withEmphasisAppendEcho ]
   ] choose dropEchoFg
 ] @: _appendReportDot
 
