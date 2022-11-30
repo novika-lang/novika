@@ -114,6 +114,11 @@ module Novika
       "block"
     end
 
+    # Returns whether this block has a comment.
+    def has_comment? : Bool
+      !!@comment.try { |it| !it.empty? }
+    end
+
     # Returns this block's comment, or nil if the comment was
     # not defined or is empty.
     protected def comment? : String?
