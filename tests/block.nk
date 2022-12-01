@@ -1770,3 +1770,53 @@ describe '|around' [
 
   "TODO: this is one of the most complex words yet, needs more tests."
 ]
+
+
+describe '|ring' [
+  in lang
+
+  it should 'die with N<=0 and/or empty block' [
+    [ [ ] 1 |ring ] '|ring: block cannot contain >= 1 rings' assertDies
+    [ [ 1 2 3 ] 0 |ring ] '|ring: only >= 1 rings exist' assertDies
+    [ [ 1 2 3 ] -100 |ring ] '|ring: only >= 1 rings exist' assertDies
+  ]
+
+  it should 'work at block end' [
+    [ 1 2 3 ] 1 |ring $: r1
+    r1 toTape [ 3 ] assert=
+    r1.firstAt 2 assert=
+    r1.lastAt 2 assert=
+    r1 orphan? true assert=
+    r1 toQuote '[ 3 · ${firstAt :: 2} ${lastAt :: 2} ]' assert=
+
+    [ 1 2 3 ] 2 |ring toQuote '[ 2 3 · ${firstAt :: 1} ${lastAt :: 2} ]' assert=
+    [ 1 2 3 ] 3 |ring toQuote '[ 1 2 3 · ${firstAt :: 0} ${lastAt :: 2} ]' assert=
+    [ 1 2 3 ] 4 |ring toQuote '[ 1 2 3 · ${firstAt :: 0} ${lastAt :: 2} ]' assert=
+  ]
+
+  it should 'work at block start' [
+    [ 1 2 3 ] dup 0 |to $: 0block
+
+    0block 1 |ring toQuote '[ | 1 · ${firstAt :: 0} ${lastAt :: 0} ]' assert=
+    0block 2 |ring toQuote '[ | 1 2 · ${firstAt :: 0} ${lastAt :: 1} ]' assert=
+    0block 3 |ring toQuote '[ | 1 2 3 · ${firstAt :: 0} ${lastAt :: 2} ]' assert=
+    0block 4 |ring toQuote '[ | 1 2 3 · ${firstAt :: 0} ${lastAt :: 2} ]' assert=
+  ]
+
+  it should 'work at block mid sides=' [
+    [ 1 2 3 "|" 4 5 6 ] dup 3 |to $: b
+    b 1 |ring toQuote '[ 3 | 4 · ${firstAt :: 2} ${lastAt :: 3} ]' assert=
+    b 2 |ring toQuote '[ 2 3 | 4 5 · ${firstAt :: 1} ${lastAt :: 4} ]' assert=
+    b 3 |ring toQuote '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
+    b 4 |ring toQuote '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
+  ]
+
+  it should 'work at block mid sides!=' [
+    [ 1 2 3 4 "|" 5 6 ] dup 4 |to $: b
+    b 1 |ring toQuote '[ 4 | 5 · ${firstAt :: 3} ${lastAt :: 4} ]' assert=
+    b 2 |ring toQuote '[ 3 4 | 5 6 · ${firstAt :: 2} ${lastAt :: 5} ]' assert=
+    b 3 |ring toQuote '[ 2 3 4 | 5 6 · ${firstAt :: 1} ${lastAt :: 5} ]' assert=
+    b 4 |ring toQuote '[ 1 2 3 4 | 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
+    b 5 |ring toQuote '[ 1 2 3 4 | 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
+  ]
+]

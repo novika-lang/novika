@@ -1664,3 +1664,85 @@
   dup #start start pushes
   dup #end end pushes
 ] @: |around
+
+
+[ """( B N -- Rb ): leaves a Ring block of N (if possible)
+   forms left and right of the cursor in Block. If either
+   side contains less forms than N, leaves all forms found
+   in it. Puts cursor in Ring block after last form in the
+   left-hand side of the ring.
+
+  Dies if N <= 0 (there are only >zero rings). Dies if Block
+  is empty (because it cannot contain >zero rings).
+
+  Ring block also holds Block index of where the first
+  form of the ring is (entry `firstAt`), and where the
+  last form of the ring is (entry `lastAt`).
+
+  Here is a diagram which may help you understand what a
+  ring is:
+
+  ```text
+  ┌───────────────────────┐
+  │ 3 |ring               │
+  │                       │
+  │   ┌───────────────┐   │
+  │   │ 2 |ring       │   │
+  │   │               │   │
+  │   │   ┌───────┐   │   │
+  │   │   │1 |ring│   │   │
+  │   │   │       │   │   │
+  │ 1 │ 2 │ 3 | 4 │ 5 │ 6 │
+  │   │   │       │   │   │
+  │   │   └───────┘   │   │
+  │   │               │   │
+  │   └───────────────┘   │
+  │                       │
+  └───────────────────────┘
+  ```
+
+  And in code:
+
+  ```
+  [ 1 2 3 \"|\" 4 5 6 ] dup 3 |to $: block
+
+  block 1 |ring toQuote leaves: '[ 3 | 4 · ${firstAt :: 2} ${lastAt :: 3} ]'
+  block 2 |ring toQuote leaves: '[ 2 3 | 4 5 · ${firstAt :: 1} ${lastAt :: 4} ]'
+  block 3 |ring toQuote leaves: '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]'
+  block 4 |ring toQuote leaves: '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]'
+  block 100 |ring toQuote leaves: '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]'
+  ```
+  """
+  asDecimal $: dist
+    asBlock $: block
+
+  dist 0 <= =>
+    [ '|ring: only >= 1 rings exist' die ]
+
+  block empty? =>
+    [ '|ring: block cannot contain >= 1 rings' die ]
+
+  0 $: firstAt
+
+  "Cut the block at cursor"
+  block |slice
+    bi*:
+      "For the left slice, take N items from the end (right):"
+      [ dup dist fromRight* tuck bi@: count - =: firstAt ]
+      "For the right slice, take N items from the start (left):"
+      [ dist fromLeft* ]
+    "Concat the pieces, keeping the count below:"
+    bi*: [ keep: count ] concat
+
+  "Move cursor in concatted block to the end of the
+   left piece."
+  tuck swap |to
+
+  "Compute where the last item is: we know the amount of
+   items in the ring, and where the ring starts. Rings
+   have no holes, so we can simply do the math."
+  dup count firstAt + 1 - $: lastAt
+
+  dup #firstAt firstAt pushes
+  dup #lastAt lastAt pushes
+] @: |ring
