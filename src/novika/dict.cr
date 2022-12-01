@@ -52,7 +52,7 @@ module Novika
 
     def set(name : Form, entry : Entry) : Entry
       if name.is_a?(Block)
-        @store.each do |k, v|
+        @store.each_key do |k|
           next unless k == name
           @store[k] = entry
           return entry
