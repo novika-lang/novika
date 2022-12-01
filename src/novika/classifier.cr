@@ -1,14 +1,18 @@
 # `Classifier` brings *unclassified forms* to life.
 #
-# `Classifier` assigns types to fragments of Novika code: this
-# fragment is a decimal, this one is a word, this one is a quote.
-# Fragments are given to `Classifier` by `Scissors`, a small
-# object specializing in this very thing: cutting a big blob
-# of Novika code into fragments.
+# `Classifier` assigns types to fragments of Novika code
+# conveniently called *unclassified forms*: this
+# unclassified form is a decimal, this one is a word, that
+# one is a quote.
 #
-# `Scissors` and `Classifier` are designed to work in tandem.
-# Separating one from the other is possible and will work, but
-# is not recommended unless you read the source code of both.
+# Unclassified forms are given to `Classifier` by `Scissors`,
+# an object dedicated to cutting a big blob of Novika code
+# into smaller fragments.
+#
+# `Scissors` and `Classifier` are designed to work in
+# tandem. Separating one from the other is possible and will
+# work, but is not recommended unless you read the source
+# code of both.
 struct Novika::Classifier
   # Returns the source code byte pointer used by this classifier.
   getter bytes
@@ -17,7 +21,11 @@ struct Novika::Classifier
   getter block
 
   # Initializes a classifier from the given *source* string and
-  # Novika *Block*.
+  # Novika *block*.
+  #
+  # *block* is treated as the ceiling (toplevel) block for
+  # *source*, meaning you can't close it in *source*, and
+  # it doesn't need to be open.
   def initialize(source : String, block : Novika::Block)
     initialize(source.to_unsafe, block)
   end
@@ -60,6 +68,10 @@ struct Novika::Classifier
   # Returns the resulting string.
   #
   # Assumes the quote is properly terminated.
+  #
+  # Assumes *start* points immediately after the opening
+  # `'`, and *start + count* points immediately before the
+  # closing `'`.
   private def build_quote(start, count)
     String.build do |io|
       b = start
@@ -99,6 +111,10 @@ struct Novika::Classifier
   # Similar to `build_quote` but for comments.
   #
   # Assumes the comment is properly terminated.
+  #
+  # Assumes *start* points immediately after the opening
+  # `"`, and *start + count* points immediately before the
+  # closing `"`.
   private def build_comment(start, count)
     String.build do |io|
       b = start
@@ -230,9 +246,9 @@ struct Novika::Classifier
         # Otherwise, recurse on start...I and I + 1..end. Then
         # this is the word `.`.
         #
-        # By definition, `dot` is the first dot in the unclassified
-        # form. Therefore, there is no dot left of it; so don't
-        # even bother looking there.
+        # By definition, `dot` is the first dot in the
+        # unclassified form. Therefore, there cannot be a
+        # dot to the left of it.
         classify(start, dot - start, dot: nil)
         add Novika::Word.new(".")
         classify(dot + 1, e - dot)
@@ -250,7 +266,8 @@ struct Novika::Classifier
     classify(start, count, dot)
   end
 
-  # Ends classification. Makes sure the ceiling block is closed.
+  # Ends classification. Makes sure all blocks are closed
+  # (have their corresponding `]`).
   def end
     @block.die("missing ']'") unless @ceiling.same?(@block)
   end
