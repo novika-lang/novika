@@ -38,8 +38,9 @@ orphan $: _groups
 ] @: _appendReportDot
 
 
-[ "( runTestsInGroup: G -- ): runs all test cases under Group.
-   Reports the results on-the-fly. Dies if Group doesn't exist."
+[ "( runTestsInGroup: G -- B ): runs all test cases under Group.
+   Reports the results on-the-fly. Dies if Group doesn't exist.
+   Leaves Boolean for whether all tests in Group succeeded."
   ahead thru asWord $: groupName
 
   "Fetch the test group. If none, die out of this word. Else,
@@ -81,6 +82,8 @@ orphan $: _groups
   ]
 
   '' echo
+
+  failedCases empty?
 ] @: runTestsInGroup:
 
 

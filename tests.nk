@@ -3,4 +3,4 @@ This file runs novika lang[uage] tests.
   $ novika core tests tests.nk
 """
 
-runTestsInGroup: lang
+runTestsInGroup: lang "Leaves success/failure boolean." not => [ 1 bye ]

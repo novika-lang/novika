@@ -336,6 +336,7 @@ module Novika
     end
   rescue e : Error
     e.report(STDERR)
+    exit(1)
   end
 end
 
