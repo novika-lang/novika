@@ -513,7 +513,7 @@ describe '|slideLeft' [
   ]
 
   it should 'start at cursor' [
-    [ 1 2 3 ] dup 2 |to [ 1 + ] |slideLeft [ 2 3 3 ] dup 0 |to assert=
+    [ 1 2 4 ] dup 2 |to [ 1 + ] |slideLeft [ 2 3 3 ] dup 0 |to assert=
   ]
 
   it should 'handle insertion before' [
