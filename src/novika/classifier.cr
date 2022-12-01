@@ -1,5 +1,3 @@
-# TODO: move 0xs to constants
-
 # `Classifier` brings *unclassified forms* to life.
 #
 # `Classifier` assigns types to fragments of Novika code: this
@@ -73,14 +71,14 @@ struct Novika::Classifier
         # Advance after the byte.
         b += 1
 
-        unless byte == 0x5c # '\\'
+        unless byte === '\\'
           io.write_byte(byte)
           next
         end
 
         case bytes[b]
-        when 0x5c then io << '\\'
-        when 0x27 then io << '\''
+        when '\\' then io << '\\'
+        when '\'' then io << '\''
         when 'n'  then io << '\n'
         when 't'  then io << '\t'
         when 'r'  then io << '\r'
@@ -110,14 +108,14 @@ struct Novika::Classifier
         byte = bytes[b]
         b += 1
 
-        unless byte == 0x5c # '\\'
+        unless byte === '\\'
           io.write_byte(byte)
           next
         end
 
         case bytes[b]
-        when 0x5c then io << '\\'
-        when 0x22 then io << '"'
+        when '\\' then io << '\\'
+        when '"'  then io << '"'
         else
           # Leave the "escape sequence" as-is.
           io.write_byte(byte)
@@ -132,7 +130,7 @@ struct Novika::Classifier
   # Returns whether *byte* is a decimal digit 0-9.
   @[AlwaysInline]
   private def digit?(byte : UInt8)
-    byte.in?(0x30..0x39)
+    byte.in?('0'.ord..'9'.ord)
   end
 
   # Returns whether the subrange `b..e` is an integer decimal.
@@ -152,7 +150,7 @@ struct Novika::Classifier
       when b
         # 0 : '+', '-'
         return false unless sign
-        return false unless byte.in?(0x2b, 0x2d)
+        return false unless byte === '+' || byte === '-'
 
         # For '+', '-', also make sure the following is true:
         #
@@ -161,7 +159,7 @@ struct Novika::Classifier
         return false unless index < e && digit?(@bytes[index + 1])
       when ..e - 1
         # 1..-2 : '_'
-        return false unless byte == 0x5f
+        return false unless byte === '_'
       else
         return false
       end
@@ -183,38 +181,27 @@ struct Novika::Classifier
     byte = @bytes[start]
 
     case byte
-    when 0x5b
-      # If start is '[', then this is a block open.
-      nest
-    when 0x5d
-      # If start is ']', then this is a block close.
-      unnest
-    when 0x23
-      # If start is '#', and count > 1, then this is a quoted
-      # word. Otherwise, this is the word "#".
+    when '[' then nest
+    when ']' then unnest
+    when '#'
+      # If count > 1, then this is a quoted word. Otherwise,
+      # this is the word "#".
       if count > 1
         # Omit the number/pound/whatever sign.
         add Novika::QuotedWord.new(build_raw(start + 1, count - 1))
       else
         add Novika::Word.new("#")
       end
-    when 0x27
+    when '\''
       # If start is '\'', then this is a quote. Omit the
-      # quotes though.
-      #
-      # Here we rely on Scissors' guarantee that quote is
-      # properly terminated (i.e., there is a closing ').
+      # ''s though.
       add Novika::Quote.new(build_quote(start + 1, count - 2))
-    when 0x22
+    when '"'
       # If start is '"', add a comment to the current block
       # if it is empty and doesn't already have one.
-      #
-      # Here we also rely on Scissors' guarantee that the
-      # comment is properly terminated.
       return if block.has_comment?
       return unless block.count.zero?
-
-      # Do not forget to omit the quotes.
+      # Omit the ""s.
       block.describe_with?(build_comment(start + 1, count - 2))
     else
       e = start + count - 1
@@ -233,18 +220,19 @@ struct Novika::Classifier
       end
 
       if start < dot < e && decimal?(start, dot - 1, sign: true) && decimal?(dot + 1, e)
-        # If dot = I, I.in(start..end) (since e.g. `.2`, `2.`, and
-        # derived are *invalid* decimals in Novika), start...I is an
-        # optionally signed decimal, and I + 1..end is an unsigned
-        # decimal, then this is a decimal.
+        # If dot = I, I.in(start..end) (since e.g. `.2`, `2.`,
+        # and derived are *invalid* decimals in Novika), and
+        # if start...I is an optionally signed decimal, and
+        # I + 1..end is an unsigned decimal, then this is
+        # a decimal.
         add Novika::Decimal.new(build_raw(start, count))
       else
         # Otherwise, recurse on start...I and I + 1..end. Then
         # this is the word `.`.
         #
         # By definition, `dot` is the first dot in the unclassified
-        # form. Therefore, there is no dot left of it; so don't even
-        # look there.
+        # form. Therefore, there is no dot left of it; so don't
+        # even bother looking there.
         classify(start, dot - start, dot: nil)
         add Novika::Word.new(".")
         classify(dot + 1, e - dot)
@@ -257,7 +245,7 @@ struct Novika::Classifier
   def classify(start, count)
     dot = nil
     start.upto(start + count - 1) do |index|
-      dot = index if @bytes[index] == 0x2e # '.'
+      dot = index if @bytes[index] === '.'
     end
     classify(start, count, dot)
   end
