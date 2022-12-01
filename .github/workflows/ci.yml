@@ -9,5 +9,5 @@ jobs:
         uses: actions/checkout@v3
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
-      - name: Build Novika
+      - name: Run language tests
         run: crystal run src/novika.cr -Dnovika_frontend -- tests tests.nk
