@@ -223,10 +223,9 @@ Building:
     On Unix, type the following command:
     `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
 
-5. If you're installing Novika, you should either copy `.novika` to your user's home
-   folder, or make a link called `.novika` pointing at `.novika` in this directory. You
-   should also consider copying (or linking) the Novika binary where your system can
-   see it (e.g. `~/.local/bin`).
+5. If you're installing Novika, you should either make a copy of, or a link to, the `env`
+   directory, and call it `.novika`. You should also consider copying (or linking) the
+   Novika binary where your system can see it (e.g. `~/.local/bin`).
 
 Wondering about the `-D`s?
 
