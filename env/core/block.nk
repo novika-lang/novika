@@ -218,10 +218,15 @@
 ] @: endsWith?
 
 
+[ "( P C -- C ): same as `reparent`, but in different order."
+  swap reparent
+] @: adopt
+
+
 [ "( B -- Cb ): leaves an empty Child block for Block. Very
    much like `new`, but doesn't copy the tape and therefore may
    be faster in certain circumstances."
-  orphan swap reparent
+  orphan adopt
 ] @: child
 
 

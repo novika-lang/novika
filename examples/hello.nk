@@ -63,7 +63,7 @@ consProduct echo
 
   "Make extender instance's parent = extendee's parent."
   extenderInstance extendee parent reparent
-  extendee swap reparent
+  extendee adopt
 ] @: extend
 
 [ x y + Algebraic stuff test huh? ] $: block

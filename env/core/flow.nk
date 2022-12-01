@@ -20,7 +20,7 @@
    an empty stack, Block being the enclosing block's parent, and
    finally asserts the resulting form is a block."
   "TODO: maybe just fetch?"
-  dup thru dup block? br: nip [ enclose swap reparent val asBlock ]
+  dup thru dup block? br: nip [ enclose adopt val asBlock ]
 ] @: thruLitBlock
 
 
