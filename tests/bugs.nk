@@ -34,6 +34,7 @@ describe 'Handle infinite block instantiation #22' [
   ]
 ]
 
+
 describe 'Conversion words should not be inherited #25' [
   in lang
 
@@ -65,6 +66,7 @@ describe 'Conversion words should not be inherited #25' [
   it dies 'as expected in issue example #2' [ issueEg2.x 1 +  ]
 ]
 
+
 describe 'Infinite recursion when word undefined inside word trap #8' [
   in lang
 
@@ -85,6 +87,7 @@ describe 'Infinite recursion when word undefined inside word trap #8' [
   ]
 ]
 
+
 describe 'Invalid typedesc for abstract types/modules #30' [
   in lang
 
@@ -94,6 +97,7 @@ describe 'Invalid typedesc for abstract types/modules #30' [
     [ false asQuote ] 'bad type: boolean, expected: a quote' assertDies
   ]
 ]
+
 
 describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
   in lang
@@ -118,5 +122,24 @@ describe 'Hydrate functioning as a stack push (#20) and related (#27)' [
 
   it should 'evaluate builtins when hydrating' [
     [ 1 2 ] #+ here there [ 3 ] assert=
+  ]
+]
+
+
+describe 'Correct precedence with assertDies #52' [
+  in lang
+
+  [ 'boo' die ] @: dieBoo
+
+  it should 'have correct assertDies/it should *dies precedence' [
+    [ + ] @: add
+    [ add - ] @: sub
+    [ 1 '2' add ] 'bad type: quote, expected: a decimal' assertDies
+    [ 1 2 sub  ] 'no top for block' assertDies
+    [ dieBoo ] 'boo' assertDies
+  ]
+
+  it dies 'foobar' [
+    'foobar' die
   ]
 ]

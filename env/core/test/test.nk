@@ -174,8 +174,7 @@ orphan $: _groups
     dup thru asQuote $: desc
         thru asBlock $: block
 
-    [ ":inherit:"
-      this  $: self
+    [ "( -- ): runs this it should case."
 
       "Whether this test run succeeded."
       true  $: ok?
@@ -200,8 +199,7 @@ orphan $: _groups
         >>> 1 1 assert=
         [test case succeeds]
         """
-        2dup = br:
-          [ 2drop ]
+        2dup = br: 2drop
           [ $: b $: a [ 'Assert: expected ｢' b '｣, got: ｢' a '｣' ] ~* _fail ]
       ] $: assert=
 
@@ -217,34 +215,56 @@ orphan $: _groups
         """
         $: message new $: block
 
-        this $: self 'no error' $: errorDetails
+        'no error' $: errorDetails
 
-        block #*died [
-          "Records that the subject block has died successfully,
-           and resumes (transfers control back to) assertDies."
+        [ "Records that the subject block has died successfully."
           getErrorDetails =: errorDetails
-          self resume
-        ] opens
-
-        block do
+        ] deathHandlerDo: [ block do ]
 
         errorDetails message assert= open
       ] $: assertDies
 
+      [ "A stack of death handler blocks in this test run.
+         We catch any deaths in test block, then drop and
+         open the top death handler."
+      ] $: _deathHandlers
+
+      [ "( Dhb deathHandlerDo: B -- ): runs Block with Death
+         handler block set as death handler."
+        $: deathHandler  ahead thruBlock $: body
+
+        this $: self
+
+        _deathHandlers
+          [ "Runs the user-specified death handler and transfers
+             control back to deathHandlerDo:"
+            deathHandler open
+
+            self resume
+          ] shove
+
+        "Execute the body. If `self resume` line is triggered, the
+         cursor will be positioned after `do`."
+        body do
+
+        _deathHandlers cherry drop
+      ] @: deathHandlerDo:
+
       block #*died [
-        "Records that this test run had failed unexpectedly,
-         and resumes execution of `self`."
-        getErrorDetails failures gulp
-
-        false =: ok?
-        true  =: died?
-
-        self resume
+        "Catches unhandled deaths in test block and opens the
+         top block in `_deathHandlers`."
+        _deathHandlers top open
       ] opens
 
       block #assert= assert= opens
       block #assertDies assertDies opens
-      block do
+
+      [ "Records that this test run had failed unexpectedly."
+        getErrorDetails failures gulp
+
+        false =: ok?
+        true  =: died?
+      ] deathHandlerDo: [ block do ]
 
       this
     ] @: run
