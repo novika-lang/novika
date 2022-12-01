@@ -1,0 +1,13 @@
+on:
+  push:
+    branches: [rev10]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source
+        uses: actions/checkout@v3
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+      - name: Build Novika
+        run: crystal run src/novika.cr -Dnovika_frontend -- tests tests.nk
