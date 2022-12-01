@@ -13,7 +13,6 @@ this $: _toplevel
     '\n'   '\\n' replaceAll
     '\t'   '\\t' replaceAll
     '"'    '\\"' replaceAll
-    '\\\'' '\''  replaceAll
   $: quote
 
   [ '"' quote '"' ] ~*

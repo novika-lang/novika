@@ -1,16 +1,4 @@
 module Novika
-  # The regex that splits Novika source code into morphemes.
-  MORPHEMES = /
-      (?<num> [-+]?\d(?:[\d_]*\d)?(?:\.\d(?:[\d_]*\d)?)?) (?=\.|\s+|\[|\]|$)
-    | (?<bb> \[)
-    | (?<be> \])
-    | (?<qword> \#[^"'\s\[\]]+)
-    | (?<word> [^"'\s\.\[\]]+|\.)
-    |'(?<quote> (?:[^'\\]|\\[\\ntrve'])*)'
-    |"(?<comment> (?:[^"\\]|\\.)*)"
-    |\s+
-  /x
-
   # Regex that can be used to search for a pattern in `Block`
   # comments. Perfer `Form#effect` over matching by hand.
   EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
@@ -114,6 +102,11 @@ module Novika
       "block"
     end
 
+    # Returns whether this block has a comment.
+    def has_comment? : Bool
+      !!@comment.try { |it| !it.empty? }
+    end
+
     # Returns this block's comment, or nil if the comment was
     # not defined or is empty.
     protected def comment? : String?
@@ -173,42 +166,11 @@ module Novika
     # Parses all forms in string *source*, and adds them to
     # this block.
     def slurp(source : String) : self
-      start, block = 0, self
-
-      while MORPHEMES.match(source, pos: start)
-        if match = $~["num"]?
-          block.add Decimal.new(match)
-        elsif match = $~["word"]?
-          block.add Word.new(match)
-        elsif match = $~["qword"]?
-          block.add QuotedWord.new(match.lchop)
-        elsif match = $~["quote"]?
-          match = match
-            .gsub(/(?<!\\)\\'/, '\'')
-            .gsub(/(?<!\\)\\n/, '\n')
-            .gsub(/(?<!\\)\\t/, '\t')
-            .gsub(/(?<!\\)\\r/, '\r')
-            .gsub(/(?<!\\)\\v/, '\v')
-            .gsub(/(?<!\\)\\e/, '\e')
-            .gsub(/\\\\/, '\\')
-          block.add Quote.new(match)
-        elsif match = $~["comment"]?
-          if block.tape.empty?
-            match = match
-              .gsub(/(?<!\\)\\"/, '"')
-              .gsub(/\\\\/, '\\')
-            block.describe_with?(dedent match)
-          end
-        elsif $~["bb"]?
-          block = self.class.new(block)
-        elsif $~["be"]?
-          block = block.parent.tap &.add(block)
+      Classifier.for(source, block: self) do |classifier|
+        Scissors.cut(source) do |start, count, dot|
+          classifier.classify(start, count, dot)
         end
-
-        start += $0.size
       end
-
-      block.die("missing closing bracket") unless same?(block)
 
       self
     end

@@ -4,6 +4,8 @@ require "colorize"
 
 # Order is important!
 require "./novika/forms/form"
+require "./novika/scissors"
+require "./novika/classifier"
 require "./novika/error"
 require "./novika/tape"
 require "./novika/dict"
