@@ -76,3 +76,58 @@ describe '%' [
     0 % 0 assert=
   ]
 ]
+
+
+describe 'rangesMap' [
+  in lang
+
+  it should 'map decimal from r1 to r2' [
+    [ 100  0 100  1.5 255 rangesMap ] vals [ 255 ] assert=
+
+    0  0 100  1.5 255  rangesMap 1.5 assert=
+
+    "Input below R1b:"
+    -100  0 100  1.5 255  rangesMap 1.5 assert=
+
+    "Input somewhere in the middle:"
+    50  0 100  1.5 255 rangesMap 128.25 assert=
+
+    "Input above R1e:"
+    1234  0 100  1.5 255  rangesMap 255 assert=
+
+    "Reverse range:"
+    10  0 100  100 0  rangesMap 90 assert=
+
+    "Negative numbers (I have no idea how this works)"
+     10  0 100  50 -100  rangesMap   35 assert=
+      0  0 100  50 -100  rangesMap   50 assert=
+    100  0 100  50 -100  rangesMap -100 assert=
+  ]
+]
+
+
+describe 'mapFromRange:toRange:' [
+  in lang
+
+  it should 'work the same as rangesMap' [
+
+    0 mapFromRange: 0 100 toRange: 1.5 255
+      1.5 assert=
+
+    -100 mapFromRange: 0 100 toRange: 1.5 255
+      1.5 assert=
+
+    0 $: myBestLow
+    100 $: myBestHi
+
+    10 mapFromRange: myBestLow [ myBestHi ] toRange: 50 [ myBestHi flipSign ]
+      35 assert=
+
+    [ 10 mapFromRange: ] 'thru out of bounds' assertDies
+    [ 10 mapFromRange: 1 ] 'thru out of bounds' assertDies
+    [ 10 mapFromRange: 1 2 ] 'thru out of bounds' assertDies
+    [ 10 mapFromRange: 1 2 some-weird-word ] 'expected ｢toRange:｣, but got: ｢some-weird-word｣' assertDies
+    [ 10 mapFromRange: 1 2 toRange: ] 'thru out of bounds' assertDies
+    [ 10 mapFromRange: 1 2 toRange: 1 ] 'thru out of bounds' assertDies
+  ]
+]

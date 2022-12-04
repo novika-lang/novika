@@ -107,3 +107,48 @@
   """
   dup zero? not => [ 1 swap / ]
 ] @: %
+
+
+[ """( D R1b R1e R2b R2e -- D' ): leaves Decimal in range
+   [R1b; R1e] mapped to the range [R2b; R2e].
+
+  Note: Decimal is clamped into the range [R1b; R1e].
+  Note: implementation taken from https://www.arduino.cc/reference/en/language/functions/math/map/
+
+  ```
+  100  0 100  1.5 255  rangesMap leaves: 255
+    0  0 100  1.5 255  rangesMap leaves: 1.5
+
+  \"Reverse range:\"
+
+  10  0 100  100 0  rangesMap leaves: 90
+  ```
+  """
+  $: toMax
+  $: toMin
+  $: fromMax
+  $: fromMin
+
+  clamp: fromMin fromMax $: x
+
+  x fromMin - toMax toMin - * fromMax fromMin - / toMin +
+] @: rangesMap
+
+
+[ """( D mapFromRange: R1b R1e toRange: R2b R2e -- D' ): infix
+   version of `rangesMap`.
+
+  ```
+  100 mapFromRange: 0 100 toRange: 1.5 255 leaves: [ 255 ]
+    0 mapFromRange: 0 100 toRange: 1.5 255 leaves: [ 1.5 ]
+  ```
+  """
+  ahead $: caller
+
+  caller thruVal
+  caller thruVal
+  caller thruWord: toRange:
+  caller thruVal
+  caller thruVal
+  rangesMap
+] @: mapFromRange:
