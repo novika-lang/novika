@@ -159,3 +159,32 @@ describe 'mapToRange:' [
       2 mapToRange: 0 100  100 assert=
   ]
 ]
+
+
+describe '->%:' [
+  in lang
+
+  it should 'leave percent of range' [
+  -100 %->: 0 100    0 assert=
+     0 %->: 0 100    0 assert=
+    10 %->: 0 100   10 assert=
+    25 %->: 0 100   25 assert=
+   100 %->: 0 100  100 assert=
+   200 %->: 0 100  100 assert=
+
+   30  %->:  0 10_000   3000 assert=
+   60  %->: 64    255  178.6 assert=
+  ]
+]
+
+
+describe '%->:' [
+  in lang
+
+  it should 'leave decimal in range by percent' [
+    100 ->%: 0 256 39.0625 assert=
+    39.0625 %->: 0 256 100 assert=
+    0 %->: -10 256 -10 assert=
+    100 %->: 0 256 256 assert=
+  ]
+]
