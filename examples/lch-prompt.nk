@@ -1,0 +1,387 @@
+"TODO: => ^ doesn't work but should"
+"TODO: handle death in death handler"
+"TODO: implement die with error object"
+
+needsFeature: console
+
+
+"Some constants for you to tweak:"
+
+33  33   33  rgb $: BG "console background"
+245 245  245 rgb $: FG "console foreground"
+
+
+   0 $: HUE_MIN_DEG "minimum hue in animation"
+ 360 $: HUE_MAX_DEG "maximum hue in animation"
+
+  30 $: LIGHTNESS_MIN_PERCENTS "minimum Lightness in animation"
+  88 $: LIGHTNESS_MAX_PERCENTS "maximum Lightness in animation"
+
+  60 $: FPS_CAP
+2000 $: WAIT_AFTER_ACTIVITY_MS
+1000 $: ANIMATION_DURATION_MS "duration of on + off"
+
+
+console:on
+console:truecolor
+
+0 console:setTimeout
+
+
+[ "Taken from: https://easings.net/#easeInOutCubic"
+  "TODO: core/easings.nk"
+  $: x
+
+  "x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2"
+  x 0.5 < br:
+    [ 4 "(" x 3 ** ")" * ]
+    [ 1 -2 x * 2 + 3 ** 2 / - ]
+] @: easeInOutCubic
+
+
+[ "Holds and controls the buffer content (a quote)."
+  '' $: content
+
+  "When someone wants to use `buffer` in place of a quote,
+   give them up-to-date `content`."
+  [ content ] @: *asQuote
+
+  [ "( I -- ): deletes grapheme at Index in this buffer."
+    content empty? => [ ^ ]
+
+    "'hello world'"
+    "'hel|lo world'"
+    "'hel' 'lo world'"
+    "'he|l' 'lo world'"
+    "'he' 'l' 'lo world'"
+    "'he' 'lo world'"
+    "'helo world'"
+
+    content swap sliceQuoteAt dip: [ dup count 1 - sliceQuoteAt drop ] ~ =: content
+  ] @: deleteAt
+
+  [ "( Q I -- ): inserts Quote at Index in this buffer."
+    content empty? => [ drop =: content ^ ]
+    content swap sliceQuoteAt rot swap ~ ~ =: content
+  ] @: insertAt
+
+  [ "( -- L ): leaves Length of this buffer."
+    content count
+  ] @: length
+] obj $: buffer
+
+
+[ "Holds an operates on the cursor position (a decimal)."
+  0 $: pos
+
+  "When someone wants to use `cursor` in place of a decimal,
+   give them up-to-date `pos`."
+  [ pos ] @: *asDecimal
+
+  "-*-*-*-*- Movement etc. -*-*-*-*-"
+
+  [ "( Cp -- ): set Cursor position and trigger cursor
+     activity event on the cursor view."
+    =: pos cursorView.onCursorActivity
+  ] @: setPosActively
+
+  [ "( -- Cp ): get Cursor position and trigger cursor
+     activity event on the cursor view."
+    cursorView.onCursorActivity pos
+  ] @: getPosActively
+
+  [ "( -- ): move one character to the left."
+    pos 1 - 0 2max setPosActively
+  ] @: goLeftOnce
+
+  [ "( -- ): move one character to the right."
+    pos 1 + buffer.length 2min setPosActively
+  ] @: goRightOnce
+
+  [ "( -- ): moves cursor to the start of the buffer."
+    0 setPosActively
+  ] @: goToStart
+
+  [ "( -- ): moves cursor to the end of the buffer."
+    buffer.length setPosActively
+  ] @: goToEnd
+
+  [ "( -- B ): leaves Boolean for whether the cursor is at
+     the start of the buffer."
+    getPosActively zero?
+  ] @: atStart?
+
+  [ "( -- B ): leaves Boolean for whether the cursor is at
+     the end of the buffer."
+    getPosActively buffer.length =
+  ] @: atEnd?
+] obj $: cursor
+
+
+[ "Handles the presentation of the cursor on screen."
+
+  "-*-*-*-*- Animation control -*-*-*-*-"
+
+  "Animation progress in percents (0-1)."
+  0 $: animationProgressPercent
+
+  "Animation progress in milliseconds."
+  0 $: animationProgressMs
+
+  "Duration of the whole animation in milliseconds."
+  ANIMATION_DURATION_MS $: animationDurationMs
+
+  "How much to wait before the animation starts again.
+   Frame durations are subtracted from this entry's value
+   form until it becomes 0 <=, hence the use of \"sink\".
+   NOTE: it is not reset in any way automatically."
+  0 $: sinkBeforeAnimationMs
+
+  "Increases animation progress."
+  this -> + $: advanceProgressForth
+  "Decreases animation progress."
+  this -> - $: advanceProgressBack
+
+  "Opens the current progress advancer."
+  advanceProgressForth @: progressAdvancer
+
+  "Whether we're currently advancing progress forth."
+  true $: advancingProgressForth?
+
+  [ "Swaps progress advancers: if currently advancing
+     progress forth, will do that back, and vice versa."
+    advancingProgressForth? br:
+      becomeDarkened
+      becomeIlluminated
+  ] @: swapProgressAdvancer
+
+  [ "Resets the animation to the start state."
+    0 =: animationProgressPercent
+    0 =: animationProgressMs
+    advanceProgressForth =: progressAdvancer
+    true =: advancingProgressForth?
+  ] @: becomeIlluminated
+
+  [ "Resets the animation to the end state."
+    1 =: animationProgressPercent
+    animationDurationMs =: animationProgressMs
+    advanceProgressBack =: progressAdvancer
+    false =: advancingProgressForth?
+  ] @: becomeDarkened
+
+  "-*-*-*-*- Colors -*-*-*-*-"
+
+  "Minimum/maximum lightness:"
+  LIGHTNESS_MIN_PERCENTS $: minLPercent
+  LIGHTNESS_MAX_PERCENTS $: maxLPercent
+
+  "Minimum/maximum hue:"
+  HUE_MIN_DEG $: minHDegrees
+  HUE_MAX_DEG $: maxHDegrees
+
+  [ "( P -- L ): leaves Lightness for lightness Percents (0-1)."
+    mapToRange: minLPercent maxLPercent trunc
+  ] @: mapToLightnessRange
+
+  [ "( P -- H ): leaves Hue for hue Percents (0-1)."
+    mapToRange: minHDegrees maxHDegrees trunc
+  ] @: mapToHueRange
+
+  [ "( Pb -- Cfb ): leaves a Color fetch block for Percentage
+     block, which should compute the current percentage for
+     the color of interest."
+    @: percentageComputer
+
+    [ "Fetches the current color using the percentage
+      computer block."
+      percentageComputer $: percents
+      percents mapToLightnessRange  39  percents mapToHueRange  lch
+    ]
+  ] @: createColorComputer
+
+  "Background color percentage is simply the animation percentage."
+  [   animationProgressPercent   ] createColorComputer @: bg
+
+  "Foreground color has percentage inverse of that of background."
+  [ 1 animationProgressPercent - ] createColorComputer @: fg
+
+  "-*-*-*-*- Events -*-*-*-*-"
+
+  [ "( Dt -- ): gets triggered from the main loop with Delta
+     time, on each animation cycle. Advances the animation."
+    drop "Uhmmm... perhaps use delta time ???"
+
+    sinkBeforeAnimationMs 0 > => [
+      sinkBeforeAnimationMs frameDurationMs - =: sinkBeforeAnimationMs
+      ^
+    ]
+
+    animationProgressMs frameDurationMs progressAdvancer =: animationProgressMs
+    "The animation cycle for blinking:"
+    animationProgressMs animationDurationMs / easeInOutCubic =: animationProgressPercent
+
+    "If before/after the boundary, swap advancers:"
+    animationProgressPercent 1 >=
+    animationProgressPercent 0 <=
+    or => swapProgressAdvancer
+  ] @: onAnimationCycle
+
+  [ "Triggered on activity: cursor movement, position
+     inquiry, etc. Resets the blinking cycle progress."
+    becomeIlluminated
+    WAIT_AFTER_ACTIVITY_MS =: sinkBeforeAnimationMs
+  ] @: onCursorActivity
+
+  "-*-*-*-*- Presentation -*-*-*-*-"
+
+  [ "( X Y -- ): draws the cursor offset by X, Y."
+    bg withEchoBg
+    fg withEchoFg
+      dip: [ cursor + ] console:change
+    dropEchoBg
+    dropEchoFg
+  ] @: draw
+] obj $: cursorView
+
+
+[ "Handles the presentation of the buffer on screen."
+  [ drop ] @: onAnimationCycle
+
+  [ "( X Y -- ): draws the buffer offset by X, Y."
+    buffer -rot console:appendEcho
+  ] @: draw
+] obj $: bufferView
+
+
+[ "( -- ): processes keyboard input."
+  console:hadKeyPressed? not => [ ^ ]
+
+  "Ctrl-C => quit"
+  console:hadCtrlPressed?
+  console:getCharPressed 'c' = and => [
+    false =: running? ^
+  ]
+
+  "Left/goRightOnce arrow => cursor, move goLeftOnce/goRightOnce"
+  console:hadLeftPressed? => [ cursor.goLeftOnce ^ ]
+  console:hadRightPressed? => [ cursor.goRightOnce ^ ]
+
+  "Backspace => buffer, rchop; cursor, move goLeftOnce once"
+  console:hadBackspacePressed? => [
+    cursor.atStart? => [ ^ ]
+    cursor buffer.deleteAt
+    cursor.goLeftOnce ^
+  ]
+
+  console:hadDeletePressed? => [
+    cursor.atEnd? => [ ^ ]
+    cursor 1 + buffer.deleteAt ^
+  ]
+
+  "Home => cursor, go to start"
+  console:hadHomePressed? => [ cursor.goToStart ^ ]
+
+  "End => cursor, go to end"
+  console:hadEndPressed? => [ cursor.goToEnd ^ ]
+
+  "Otherwise:"
+  console:hadCharPressed? => [
+    console:getCharPressed cursor buffer.insertAt
+    cursor.goRightOnce ^
+  ]
+] @: processKey
+
+
+[ "( X Y -- ): draws everything offset by X, Y."
+  $: y $: x
+  x y bufferView.draw
+  x y cursorView.draw
+] @: draw
+
+
+[ "( Dt -- ): sends an onAnimationCycle to everyone
+   interested, with Delta time."
+  $: delta
+
+  delta cursorView.onAnimationCycle
+  delta bufferView.onAnimationCycle
+] @: onAnimationCycle
+
+
+[ "Updates the logic."
+  "There's no logic to be updated here..."
+] @: update
+
+
+"Copy-pasted from https://stackoverflow.com/a/25627639,
+ without much understanding (of course): {"
+
+FPS_CAP $: fps
+1000 fps / $: frameDurationMs
+monotonic $: startMs
+0 $: lagMs
+
+[ "( Mlb -- ): runs Main loop block with delta time (which
+  it calculates) on top of an otherwise empty stack."
+
+  monotonic $: currentMs
+  currentMs startMs - $: elapsedMs
+  currentMs =: startMs
+  lagMs elapsedMs + =: lagMs
+
+  while: [ lagMs frameDurationMs >= ] [
+    update "Update the logic"
+    lagMs frameDurationMs - =: lagMs
+  ]
+
+  lagMs frameDurationMs / enclose swap hydrate
+
+] $: mainLoopController
+
+"}"
+
+
+"Whether the application is running."
+true $: running?
+
+[ "( B -- ): runs Block as the main loop block while the
+   application is `running?`. Opens Block with delta time
+   on top of an otherwise clean stack each loop iteration."
+  [ running? ] mainLoopController createDetachedLoop open
+] @: asMainLoop
+
+
+[ "Returns the console to normal gracefully."
+  dropEchoBg
+  dropEchoFg
+  console:off
+] @: finalize
+
+[
+  "Exit proprely upon death so if something is broken,
+   the console/error message doesn't get crazy and all
+   over the place."
+  finalize
+  reportError
+  1 bye "TODO: re-die here once the infinite loop is fixed"
+] @: *died
+
+
+BG withEchoBg
+FG withEchoFg
+
+[ $: delta
+
+  console:readKey
+    processKey
+  console:clear
+    delta onAnimationCycle
+    2 1 draw
+  console:present
+
+  "Idk whether this multiplies (or even divides!) by zero
+  everything that happens above haha"
+  13 nap
+] asMainLoop
+
+finalize
