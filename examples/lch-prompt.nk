@@ -47,7 +47,7 @@ console:truecolor
   [ content ] @: *asQuote
 
   [ "( I -- ): deletes grapheme at Index in this buffer."
-    content empty? => [ ^ ]
+    content empty? => [ drop ^ ]
 
     "'hello world'"
     "'hel|lo world'"
