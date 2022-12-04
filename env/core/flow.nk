@@ -204,7 +204,7 @@
 
 
 [ "( loop: Ib -- ): prefix version of `loop`."
-  ahead thru asBlock loop
+  ahead thruBlock loop
 ] @: loop:
 
 
