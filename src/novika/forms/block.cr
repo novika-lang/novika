@@ -118,7 +118,7 @@ module Novika
     #
     # Setting the comment can also be forced by making *force* true.
     def describe_with?(comment : String, force = false) : String?
-      @comment = comment if force || !comment?
+      @comment = dedent comment if force || !comment?
     end
 
     # See the same method in `Tape`.
