@@ -170,18 +170,25 @@
    and only if Condition leaves a truthy value on top of the
    stack it hydrated. `next` resumes the Control block.
    Leaves Start handle to start the loop."
- $: ctrl $: cond new $: bodyInstance
+  @: ctrl $: cond new $: bodyInstance
 
-  #nil $: ctrlNow
+  #nil $: blockToResume
+
+  [ ahead =: blockToResume bodyInstance open ] $: setResumableProxy
 
   [ cond val
-      [ ctrl new =: ctrlNow bodyInstance enclose ctrlNow hydrate! ]
+      [ "Give a proxy body which captures the caller, so we
+         can resume it latern under `next`."
+        setResumableProxy ctrl
+      ]
+      "Break the loop if condition is false. The definition
+       of breakLoop is brought from below!"
       breakLoop
     br
   ] createLoop drop $: breakLoop @: startLoop
 
   [ bodyInstance #break breakLoop opens
-    bodyInstance #next [ ctrlNow resume ] opens
+    bodyInstance #next [ blockToResume resume ] opens
     startLoop ]
 ] @: createDetachedLoop
 
