@@ -139,6 +139,11 @@ module Novika::Features
     # was pressed.
     abstract def had_down_pressed?(engine) : Boolean
 
+    # Returns boolean for whether EXCLUSIVELY a printable
+    # character key was pressed (no CTRL, ALT, etc.) Whether
+    # the SHIFT key was pressed or not is ignored.
+    abstract def had_char_pressed?(engine) : Boolean
+
     # Leaves char quote for the key that was pressed.
     # Usually a lowercase or uppercase letter; but also may
     # look like `'\\n'` or `'\\t'`, etc.)
@@ -324,6 +329,13 @@ module Novika::Features
        was pressed.
       END
       ) { |engine, stack| had_down_pressed?(engine).onto(stack) }
+
+      target.at("console:hadCharPressed?", <<-END
+      ( -- B ): leaves Boolean for whether EXCLUSIVELY a printable
+       character key was pressed (no CTRL, ALT, etc.) Whether the
+       SHIFT key was pressed or not is ignored.
+      END
+      ) { |engine, stack| had_char_pressed?(engine).onto(stack) }
 
       target.at("console:getCharPressed", <<-END
       ( -- Cq ): leaves Char quote for the key that was pressed.

@@ -103,6 +103,10 @@ module Novika::Features::Impl
       had_key_pressed? &.arrow_down?
     end
 
+    def had_char_pressed?(engine) : Boolean
+      Boolean[!!@event.as?(Termbox::Event::KeyEvent).try &.char.try &.printable?]
+    end
+
     def get_char_pressed(engine) : Quote
       unless event = @event.as?(Termbox::Event::KeyEvent)
         return Quote.new("")
