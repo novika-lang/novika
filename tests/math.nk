@@ -131,3 +131,31 @@ describe 'mapFromRange:toRange:' [
     [ 10 mapFromRange: 1 2 toRange: 1 ] 'thru out of bounds' assertDies
   ]
 ]
+
+
+describe 'mapToRange' [
+  in lang
+
+  it should 'map percent decimal in range' [
+    [ -100  0 100  mapToRange ] vals [ 0 ] assert=
+
+       0  0 100  mapToRange 0 assert=
+     0.1  0 100  mapToRange 10 assert=
+       1  0 100  mapToRange 100 assert=
+       2  0 100  mapToRange 100 assert=
+  ]
+]
+
+
+describe 'mapToRange:' [
+  in lang
+
+  it should 'work the same as mapToRange' [
+    [ -100 mapToRange: 0 100 ] vals [ 0 ] assert=
+
+      0 mapToRange: 0 100  0 assert=
+    0.1 mapToRange: 0 100  10 assert=
+      1 mapToRange: 0 100  100 assert=
+      2 mapToRange: 0 100  100 assert=
+  ]
+]

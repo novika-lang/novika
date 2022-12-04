@@ -152,3 +152,32 @@
   caller thruVal
   rangesMap
 ] @: mapFromRange:
+
+
+[ """( P Rb Re -- D ): leaves Decimal in range [Range begin; Range end]
+   corresponding to the given Percentage (in [0; 1]).
+
+  See `rangesMap` for more details.
+
+  ```
+  \"...etc..\"
+  -100  0 100  mapToRange leaves: 0
+     0  0 100  mapToRange leaves: 0
+   0.1  0 100  mapToRange leaves: 10
+     1  0 100  mapToRange leaves: 100
+     2  0 100  mapToRange leaves: 100
+  \"...etc..\"
+  ```
+  """
+  $: rangeEnd
+  $: rangeBegin
+
+  mapFromRange: 0 1 toRange: rangeBegin rangeEnd
+] @: mapToRange
+
+
+[ "( P mapToRange: Rb Re -- D ): infix version of `mapToRange`."
+  ahead thruVal
+  ahead thruVal
+  mapToRange
+] @: mapToRange:
