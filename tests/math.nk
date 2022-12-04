@@ -64,3 +64,15 @@ describe 'abs' [
     -100 abs 100 assert=
   ]
 ]
+
+
+describe '%' [
+  in lang
+
+  it should 'leave (approximate) reciprocal of decimal' [
+    [ 20 % ] vals [ 0.05 ] assert=
+    100 % 100 * 1 assert=
+    1.23 % 1.23 * round 1 assert= "TODO: approx="
+    0 % 0 assert=
+  ]
+]

@@ -84,7 +84,7 @@
 
 
 [ """( N -- Av ): leaves the Absolute value of N.
-  
+
   ```
   0 abs leaves: 0
   100 abs leaves: 100
@@ -93,3 +93,17 @@
   """
   dup negative? => flipSign
 ] @: abs
+
+
+[ """( D -- R ): leaves Reciprocal of Decimal (`1/D`). Leaves
+   0 if Decimal is 0. Note: as in `12 % 12 *`, this may not
+   always leave `1` because of math imprecisions.
+
+  ```
+  0 % leaves: 0
+  20 % leaves: 0.05
+  100 % 100 * leaves: 1
+  ```
+  """
+  dup zero? not => [ 1 swap / ]
+] @: %
