@@ -143,9 +143,9 @@
 
 [ "( -- ): closes blocks all the way up to, and including,
    its *opener's parent*."
-  ahead prototype parent $: above
+  ahead prototype parent prototype $: abovePrototype
 
-  [ getContBlock prototype above same? ] dropContinuationsUntil
+  [ getContBlock prototype abovePrototype same? ] dropContinuationsUntil
 ] @: ^
 
 

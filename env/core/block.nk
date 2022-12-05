@@ -1426,7 +1426,9 @@
   """
   dup $: cond
 
-  |after? => [ ^ ] drop
+  |after? => ^
+
+  drop
 
   cond dup block? =>
     [ dup hasDesc? => desc ]

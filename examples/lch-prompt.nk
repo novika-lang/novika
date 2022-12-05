@@ -252,7 +252,7 @@ console:truecolor
 
 
 [ "( -- ): processes keyboard input."
-  console:hadKeyPressed? not => [ ^ ]
+  console:hadKeyPressed? not => ^
 
   "Ctrl-C => quit"
   console:hadCtrlPressed?
@@ -266,13 +266,13 @@ console:truecolor
 
   "Backspace => buffer, rchop; cursor, move goLeftOnce once"
   console:hadBackspacePressed? => [
-    cursor.atStart? => [ ^ ]
+    cursor.atStart? => ^
     cursor buffer.deleteAt
     cursor.goLeftOnce ^
   ]
 
   console:hadDeletePressed? => [
-    cursor.atEnd? => [ ^ ]
+    cursor.atEnd? => ^
     cursor 1 + buffer.deleteAt ^
   ]
 
