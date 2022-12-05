@@ -1380,7 +1380,7 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         source = stack.drop.a(Block)
-        Block.with(source.friends).onto(stack)
+        Block.with(source.friends, leaf: source.friends.empty?).onto(stack)
       end
 
       target.at("slurp", <<-END

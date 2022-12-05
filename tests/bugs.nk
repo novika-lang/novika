@@ -314,3 +314,16 @@ describe 'Death nesting, handle death inside *died handler #58' [
     ] vals [ [ 1 ] 'definition for baz not found in the enclosing block(s)' 'definition for bar not found in the enclosing block(s)' ] assert=
   ]
 ]
+
+
+describe 'Block.with and friends properly instantiating' [
+  in lang
+
+  it should 'have Block.with and friends properly instantiating' [
+    [ ] $: xyzzy
+    [ ] $: foozy
+    xyzzy foozy befriend
+    xyzzy friends new $: newFriends
+    newFriends first foozy same? false assert=
+  ]
+]

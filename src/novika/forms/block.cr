@@ -84,14 +84,20 @@ module Novika
 
     # Creates and returns an orphan block with *array* being
     # its tape substrate's container. See `Tape.for`.
-    def self.with(array : Array(Form))
-      Block.new(tape: Tape.for(array))
+    def self.with(array : Array(Form), leaf : Bool? = nil)
+      Block.new(parent: nil, tape: Tape.for(array), leaf: leaf.nil? ? array.includes?(Block) : leaf)
     end
 
     # Creates and returns an orphan block whose tape will
     # contain *forms*.
     def self.[](*forms : Form)
-      self.with(forms.map(&.as(Form)).to_a)
+      leaf = true
+      array = forms.map do |form|
+        leaf = false if form.is_a?(Block)
+        form.as(Form)
+      end.to_a
+
+      Block.new(parent: nil, tape: Tape.for(array), leaf: leaf)
     end
 
     def desc(io : IO)
