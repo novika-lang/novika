@@ -1226,8 +1226,15 @@ module Novika::Features::Impl
         Quote.new(stack.drop.effect).onto(stack)
       end
 
-      target.at("die", "( D -- ): dies with Details quote.") do |engine, stack|
-        raise engine.die(stack.drop.a(Quote).string)
+      target.at("die", <<-END
+      ( D/Eo -- ): dies with Details quote/Error object.
+      END
+      ) do |engine, stack|
+        form = stack.drop.a(Quote | Error)
+        case form
+        in Quote then raise engine.die(form.string)
+        in Error then raise form
+        end
       end
 
       target.at("stitch", "( Q1 Q2 -- Q3 ): quote concatenation.") do |_, stack|
