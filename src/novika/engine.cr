@@ -364,7 +364,7 @@ module Novika
     #
     # If all continuations were exhausted and no `Word::DIED`
     # had been found, returns nil.
-    def find_death_handler?(avoid_prototype = nil)
+    def dig_for_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
         entry = block.at?(Word::DIED)
         conts.drop
@@ -402,7 +402,7 @@ module Novika
             #
             # Avoid current block because that would case
             # infinite death loop.
-            unless handler = find_death_handler?(avoid_prototype: block.prototype)
+            unless handler = dig_for_death_handler?(avoid_prototype: block.prototype)
               raise error
             end
 
