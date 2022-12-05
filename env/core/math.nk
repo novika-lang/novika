@@ -1,3 +1,12 @@
+"Archimedes' constant (π). Taken from Crystal's Math::PI"
+3.14159265358979323846 $: PI
+
+"PI/180 constant for deg->rad"
+PI 180 / $: PI/180
+
+"180/PI constant for rad->deg"
+180 PI / $: 180/PI
+
 "Epsilon value for `approx=` and derived, e.g. `assertApprox=`.
  Change this if you want more precision."
 0.001 $: EPSILON
@@ -220,6 +229,18 @@
 
   mapFromRange: low high toRange: 0 100
 ] @: ->%:
+
+
+[ "( Aid -- Air ): leaves Angle in radians for the given
+   Angle in degrees."
+  PI/180 *
+] @: deg->rad
+
+
+[ "( Air -- Aid ): leaves Angle in degrees for the given
+   Angle in radians."
+  180/PI *
+] @: rad->deg
 
 
 [ "( A B -- B ): leaves Boolean for whether A and B are

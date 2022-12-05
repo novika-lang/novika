@@ -91,6 +91,16 @@ module Novika
       Decimal.new(val.floor)
     end
 
+    # Treats this decimal as radians, and returns cosine.
+    def rad_cos : Decimal
+      Decimal.new(Math.cos(val))
+    end
+
+    # Treats this decimal as radians, and returns cosine.
+    def rad_sin : Decimal
+      Decimal.new(Math.sin(val))
+    end
+
     # Asserts this decimal is in *range*. Dies if it isn't.
     def in(range) : Decimal
       return self if range.includes?(val)

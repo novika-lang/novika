@@ -965,6 +965,22 @@ module Novika::Features::Impl
         decimal.sqrt.onto(stack)
       end
 
+      target.at("cos", <<-END
+      ( Air -- Dc ): leaves Decimal cosine of Angle in radians.
+      END
+      ) do |_, stack|
+        decimal = stack.drop.a(Decimal)
+        decimal.rad_cos.onto(stack)
+      end
+
+      target.at("sin", <<-END
+      ( Air -- Ds ): leaves Decimal sine of Angle in radians.
+      END
+      ) do |_, stack|
+        decimal = stack.drop.a(Decimal)
+        decimal.rad_sin.onto(stack)
+      end
+
       target.at("rand", "( -- Rd ): leaves a Random decimal between 0 and 1.") do |_, stack|
         Decimal.new(rand).onto(stack)
       end

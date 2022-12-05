@@ -149,6 +149,58 @@ describe 'trunc' [
 ]
 
 
+describe 'sin' [
+  in lang
+
+  "Copied from https://github.com/Raku/roast/blob/ed50f3c48d84972a0603a87ab4b698c642db6cb4/S32-trig/sin.t#L12"
+
+  it should 'compute sine in radians' [
+    -360 deg->rad sin 0 assertApprox=
+    135 360 - deg->rad sin 1 2 / 2 sqrt * assertApprox=
+    330 360 - deg->rad sin -0.5 assertApprox=
+    0 deg->rad sin 0 assertApprox=
+    30 deg->rad sin 0.5 assertApprox=
+    45 deg->rad sin 1 2 / 2 sqrt * assertApprox=
+    90 deg->rad sin 1 assertApprox=
+    135 deg->rad sin  1 2 / 2 sqrt * assertApprox=
+    180 deg->rad sin 0 assertApprox=
+    225 deg->rad sin 1 2 / 2 sqrt * flipSign assertApprox=
+    270 deg->rad sin -1 assertApprox=
+    315 deg->rad sin 1 2 / 2 sqrt * flipSign assertApprox=
+    360 deg->rad sin 0 assertApprox=
+    30 360 + deg->rad sin 0.5 assertApprox=
+    225 360 + deg->rad sin 1 2 / 2 sqrt * flipSign assertApprox=
+    720 deg->rad sin 0 assertApprox=
+  ]
+]
+
+
+describe 'cos' [
+  in lang
+
+  "Copied from: https://github.com/Raku/roast/blob/ed50f3c48d84972a0603a87ab4b698c642db6cb4/S32-trig/cos.t#L31"
+
+  it should 'compute cosine in radians' [
+    -360 deg->rad 90 deg->rad - cos 0 assertApprox=
+    135 360 - deg->rad 90 deg->rad - cos  1 2 / 2 sqrt * assertApprox=
+    330 360 - deg->rad 90 deg->rad - cos -0.5 assertApprox=
+    0 deg->rad 90 deg->rad - cos 0 assertApprox=
+    30 deg->rad 90 deg->rad - cos 0.5 assertApprox=
+    45 deg->rad 90 deg->rad - cos  1 2 / 2 sqrt * assertApprox=
+    90 deg->rad 90 deg->rad - cos 1 assertApprox=
+    135 deg->rad 90 deg->rad - cos  1 2 / 2 sqrt * assertApprox=
+    180 deg->rad 90 deg->rad - cos 0 assertApprox=
+    225 deg->rad 90 deg->rad - cos 1 2 / 2 sqrt * flipSign assertApprox=
+    270 deg->rad 90 deg->rad - cos -1 assertApprox=
+    315 deg->rad 90 deg->rad - cos 1 2 / 2 sqrt * flipSign assertApprox=
+    360 deg->rad 90 deg->rad - cos 0 assertApprox=
+    30 360 + deg->rad 90 deg->rad - cos 0.5 assertApprox=
+    225 360 + deg->rad 90 deg->rad - cos 1 2 / 2 sqrt * flipSign assertApprox=
+    720 deg->rad 90 deg->rad - cos 0 assertApprox=
+  ]
+]
+
+
 describe 'desc' [
   in lang
 
