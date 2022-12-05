@@ -133,6 +133,8 @@
   $: needle?
 
   [
+    stack empty? => [ 'could not find matching continuation' die ]
+
     enclose needle? there cherry
       [ ]  "Hit the needle! Don't recurse."
       rec  "Not the needle. Recurse."
