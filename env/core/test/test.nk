@@ -157,6 +157,7 @@ orphan $: _groups
 
     Exposes to the test case block the following vocabulary:
       * `assert=`
+      * `assertApprox=`
       * `assertDies`
 
     >>> it should 'do math' [ 1 2 + 3 assert= ]
@@ -202,6 +203,12 @@ orphan $: _groups
         2dup = br: 2drop
           [ $: b $: a [ 'Assert: expected ｢' b '｣, got: ｢' a '｣' ] ~* _fail ]
       ] $: assert=
+
+      [ "( A B -- ): asserts that A and B are approximately
+         equal as per `approx=`."
+        2dup approx= br: 2drop
+          [ $: b $: a [ 'Assert: expected ｢' a '｣ to be approximately equal to ｢' b '｣' ] ~* _fail ]
+      ] $: assertApprox=
 
       [ """( B M -- ): asserts that Block dies with Message
          set as the error's message (aka its details, obtained
@@ -257,6 +264,7 @@ orphan $: _groups
       ] opens
 
       block #assert= assert= opens
+      block #assertApprox= assertApprox= opens
       block #assertDies assertDies opens
 
       [ "Records that this test run had failed unexpectedly."

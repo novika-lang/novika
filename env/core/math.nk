@@ -1,3 +1,7 @@
+"Epsilon value for `approx=` and derived, e.g. `assertApprox=`.
+ Change this if you want more precision."
+0.001 $: EPSILON
+
 [ """( A B -- Min Max ): sorts two decimals, A and B, in
    ascending (min to max) order. In case A = B, order is
    unchanged.
@@ -216,3 +220,10 @@
 
   mapFromRange: low high toRange: 0 100
 ] @: ->%:
+
+
+[ "( A B -- B ): leaves Boolean for whether A and B are
+   approximately equal (their difference is less than or
+   equal to `EPSILON`)."
+  - abs EPSILON <=
+] @: approx=
