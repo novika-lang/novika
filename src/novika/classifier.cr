@@ -271,12 +271,4 @@ struct Novika::Classifier
   def end
     @block.die("missing ']'") unless @ceiling.same?(@block)
   end
-
-  # Shorthand for `initialize` followed by `end`. Yields
-  # the instance.
-  def self.for(source : String, block : Novika::Block)
-    classifier = new(source, block)
-    yield classifier
-    classifier.end
-  end
 end

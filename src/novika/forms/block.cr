@@ -166,11 +166,13 @@ module Novika
     # Parses all forms in string *source*, and adds them to
     # this block.
     def slurp(source : String) : self
-      Classifier.for(source, block: self) do |classifier|
-        Scissors.cut(source) do |start, count, dot|
-          classifier.classify(start, count, dot)
-        end
+      classifier = Classifier.new(source, block: self)
+
+      Scissors.cut(source) do |start, count, dot|
+        classifier.classify(start, count, dot)
       end
+
+      classifier.end
 
       self
     end
