@@ -18,8 +18,9 @@ module Novika
       "builtin"
     end
 
-    def on_open(engine : Engine)
+    def on_parent_open(engine : Engine) : self
       code.call(engine, engine.stack)
+      self
     end
 
     def effect(io)
