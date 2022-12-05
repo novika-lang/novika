@@ -1,6 +1,4 @@
 "TODO: => ^ doesn't work but should"
-"TODO: handle death in death handler"
-"TODO: implement die with error object"
 
 needsFeature: console
 
@@ -362,8 +360,7 @@ true $: running?
    the console/error message doesn't get crazy and all
    over the place."
   finalize
-  reportError
-  1 bye "TODO: re-die here once the infinite loop is fixed"
+  die
 ] @: *died
 
 

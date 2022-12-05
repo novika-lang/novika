@@ -340,23 +340,41 @@ module Novika
         .copy_with(cumul: endtime - starttime)
     end
 
-    # Returns nearest death handler, or nil.
+    # Converts value form of a death handler *entry* to a
+    # block, if it's not a block already. Returns the block.
+    private def entry_to_death_handler_block(entry : Entry) : Block
+      unless form = entry.form.as?(Block)
+        form = Block.new(block, prototype: block.prototype).add(entry.form)
+      end
+      form
+    end
+
+    # Returns the relevant death handler, or nil. Avoids
+    # handlers whose prototype is *avoid_prototype*.
     #
-    # Tries to find a block with a death handler in `conts`
-    # by asking each continuation's code block whether it
-    # can lookup the death handler.
+    # To find the relevant death handler, The continuations
+    # block is inspected right-to-left (back-to-front); each
+    # code block is then asked to retrieve `Word::DIED`
+    # using `Block#at?`. Regardless of the result, the
+    # continuation block is then dropped.
     #
-    # Drops continuations that fail to lookup. Drops the
-    # continuation that succeeded in looking up a death
-    # handler. Returns the death handler.
-    def drop_for_death_handler?
-      # TODO: this sometimes prefers unintuitive death handlers
-      # to intuitive ones
-      handler = nil
+    # If succeeded in retrieving `Word::DIED`, converts the
+    # resulting entry to block (does not distinguish between
+    # openers and pushers). Returns that block.
+    #
+    # If all continuations were exhausted and no `Word::DIED`
+    # had been found, returns nil.
+    def find_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
-        handler = block.at?(Word::DIED)
+        entry = block.at?(Word::DIED)
         conts.drop
-        return handler if handler
+
+        next unless entry
+
+        handler = entry_to_death_handler_block(entry)
+        unless avoid_prototype && handler.prototype.same?(avoid_prototype)
+          return handler
+        end
       end
     end
 
@@ -376,20 +394,21 @@ module Novika
             end
           rescue error : Error
             error.conts = conts.instance
+
             # Re-raise if no user-defined death handler ANYWHERE.
             # Death handler lookup is the broadest kind of lookup
             # in Novika, it traverses *all* running blocks and
             # their relatives.
-            unless handler = drop_for_death_handler?
+            #
+            # Avoid current block because that would case
+            # infinite death loop.
+            unless handler = find_death_handler?(avoid_prototype: block.prototype)
               raise error
             end
-            unless handler.is_a?(OpenEntry) && handler.form.is_a?(Block)
-              die("cannot use literals for death handler: use blocks and 'opens'")
-            end
+
             # Errors are also forms. They are rarely seen
             # and used as such, but they are.
-            stack.add(error)
-            schedule(handler.form, stack)
+            schedule(handler, conts.count.zero? ? Block[error] : stack.add(error))
           end
         end
 

@@ -143,3 +143,174 @@ describe 'Correct precedence with assertDies #52' [
     'foobar' die
   ]
 ]
+
+
+describe 'Death nesting, handle death inside *died handler #58' [
+  in lang
+
+
+  it should 'handle death handler nesting zero' [
+    false $: gotPastError?
+    false $: died?
+
+    [
+      [ true =: died? ] @: *died
+      ">>>" swap "<<< ERROR"
+
+      true =: gotPastError?
+    ] do
+
+    died? true assert=
+    gotPastError? false assert=
+  ]
+
+  it should 'handle death handler nesting' [
+    0 $: nesting
+    0 $: afterError
+
+    [
+      [ nesting 1 + =: nesting ] $: nesting++
+      [ afterError 1 + =: afterError ] @: afterError++
+
+      nesting++ @: *died
+
+      [
+        nesting++ @: *died
+
+        [
+          nesting++ @: *died
+
+          swap
+          afterError++
+        ] do
+
+        '1+' 2 +
+        afterError++
+      ] do
+
+      'bamba' die
+      afterError++
+    ] do
+
+    nesting 3 assert=
+    afterError 0 assert=
+  ]
+
+  it should 'handle nested death in proper order' [
+    [ ] $: details
+
+    [
+      [ getErrorDetails details gulp 'PERIOD' details gulp ] @: *died
+
+      [
+        [ getErrorDetails details gulp 'Boomba! 4th' die ] @: *died
+        [
+          [ getErrorDetails details gulp 'Kaboom! 3rd' die ] @: *died
+
+          [
+            [ getErrorDetails details gulp 'Bang! 2nd' die ] @: *died
+
+            'Boom! 1st' die
+          ] do
+        ] do
+      ] do
+    ] do
+
+    details [ 'Boom! 1st' 'Bang! 2nd' 'Kaboom! 3rd' 'Boomba! 4th' 'PERIOD' ] assert=
+  ]
+
+  [ I am a liar! ] @: _probe
+
+  it should 'handle re-die' [
+    #nil $: error
+    0 $: nesting
+
+    [ =: error nesting 1 + =: nesting ] @: *died
+
+    [
+      #die here @: *died
+
+      [
+        [ nesting 1 + =: nesting die ] @: *died
+
+        [
+          [ die "]] make sure that this is unreachable:" nesting 1 + =: nesting ] @: *died
+
+          _probe enclose [ open ] hydrate
+        ] do
+      ] do
+    ] do
+
+    error getErrorDetails 'definition for I not found in the enclosing block(s)' assert=
+    nesting 2 assert=
+  ]
+
+  it should 'handle env death handler shallow' [
+    false $: didGetPastVals
+
+    [
+      [
+        100 $: foo
+        200 $: bar
+        [ foo bar + ] @: baz
+      ] obj shallowCopy toOrphan "TODO: make toOrphan immutable?" $: _env
+
+      [
+        [ getErrorDetails ] @: *died
+
+        new _env reparent vals
+
+        true =: didGetPastVals
+      ] @: openInEnv
+
+      openInEnv
+    ] @: errer
+
+
+    [ ] errer [ ] assert=
+    [ foo bar baz ] errer [ 100 200 300 ] assert=
+    [ foo foo bar baz ] errer [ 100 100 200 300 ] assert=
+
+    [ foo bar boom baz ] errer 'definition for boom not found in the enclosing block(s)' assert=
+    didGetPastVals true assert=
+  ]
+
+
+  it should 'handle env death handler deep' [
+    false $: didGetPastVals
+
+    [
+      [
+        100 $: foo
+        200 $: bar
+        [ foo bar + ] @: baz
+        [ getErrorDetails ] @: *died
+      ] obj shallowCopy toOrphan "TODO: make toOrphan immutable?" $: _env
+
+      new _env reparent vals
+
+      true =: didGetPastVals
+    ] @: errer
+
+
+    [ ] errer [ ] assert=
+    [ foo bar baz ] errer [ 100 200 300 ] assert=
+    [ foo foo bar baz ] errer [ 100 100 200 300 ] assert=
+
+    [ foo bar boom baz ] errer 'definition for boom not found in the enclosing block(s)' assert=
+    didGetPastVals true assert=
+  ]
+
+  it should 'support nested *died' [
+    [
+      [
+        [ getErrorDetails
+          [ getErrorDetails ] @: *died
+          bar
+        ] @: *died
+
+        1 baz
+      ] vals
+    ] vals [ [ 1 ] 'definition for baz not found in the enclosing block(s)' 'definition for bar not found in the enclosing block(s)' ] assert=
+  ]
+]
