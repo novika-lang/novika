@@ -63,12 +63,16 @@ module Novika
 
     # Raises this decimal to the power of *other*.
     def **(other : Decimal) : Decimal
-      Decimal.new(val.to_big_f ** other.to_i)
+      if val.scale.zero? && other.val.scale.zero?
+        return Decimal.new(val ** other.val.to_i64)
+      end
+
+      Decimal.new(val.to_f64 ** other.to_f64)
     end
 
     # Returns the square root of this decimal.
     def sqrt : Decimal
-      Decimal.new(Math.sqrt(val.to_big_f))
+      Decimal.new(Math.sqrt(val))
     end
 
     # Returns whether this decimal is smaller than *other*.

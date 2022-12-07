@@ -1,0 +1,205 @@
+"""All easing functions from https://easings.net/
+
+Useful in graphics and animation.
+
+The definitions are terse, and practically unreadable. They do
+leave correct results, ± precision errors which are going to be
+fixed someday.
+
+I won't recommend changing anything here. Although all the
+code here is tested; if you're willing to experiment, go on! :)
+"""
+
+1.70158   $: _C1
+2.5949095 $: _C2
+2.70158   $: _C3
+2.0943951 $: _C4
+1.3962634 $: _C5
+
+
+7.5625 $: _N1
+2.7500 $: _D1
+
+
+[ "( X -- Xe ): eases X using easeInSine function."
+  dup [ 0 1 ] anyof? not => [ 1 swap PI * 2 / cos - ]
+] @: easeInSine
+
+
+[ "( X -- Xe ): eases X using easeOutSine function."
+  PI * 2 / sin
+] @: easeOutSine
+
+
+[ "( X -- Xe ): eases X using easeInOutSine function."
+  PI * cos 1 - flipSign 2 /
+] @: easeInOutSine
+
+
+[ "( X -- Xe ): eases X using easeInCubic function."
+  3 **
+] @: easeInCubic
+
+
+[ "( X -- Xe ): eases X using easeOutCubic function."
+  1 1 rot - 3 ** -
+] @: easeOutCubic
+
+
+[ "( X -- Xe ): eases X using easeInOutCubic function."
+  dup 0.5 < br:
+    [ 3 ** 4 * ]
+    [ 1 -2 rot * 2 + 3 ** 2 / - ]
+] @: easeInOutCubic
+
+
+[ "( X -- Xe ): eases X using easeInQuint function."
+  5 **
+] @: easeInQuint
+
+
+[ "( X -- Xe ): eases X using easeOutQuint function."
+  1 1 rot - 5 ** -
+] @: easeOutQuint
+
+
+[ "( X -- Xe ): eases X using easeInOutQuint function."
+  dup 0.5 < br:
+    [ 5 ** 16 * ]
+    [ 1 -2 rot * 2 + 5 ** 2 / - ]
+] @: easeInOutQuint
+
+
+[ "( X -- Xe ): eases X using easeInCirc function."
+  1 1 rot 2 ** - sqrt -
+] @: easeInCirc
+
+
+[ "( X -- Xe ): eases X using easeOutCirc function."
+  1 swap 1 - 2 ** - sqrt
+] @: easeOutCirc
+
+
+[ "( X -- Xe ): eases X using easeInOutCirc function."
+  $: x
+  x 0.5 < br:
+    [ 1 1 2 x * 2 ** - sqrt - 2 / ]
+    [ 1 -2 x * 2 + 2 ** - sqrt 1 + 2 / ]
+] @: easeInOutCirc
+
+
+[ "( X -- Xe ): eases X using easeInElastic function."
+  dup [ 0 1 ] anyof? not => [ $: x
+    2 10 x * 10 - ** flipSign x 10 * 10.75 - _C4 * sin *
+  ]
+] @: easeInElastic
+
+
+[ "( X -- Xe ): eases X using easeOutElastic function."
+  dup [ 0 1 ] anyof? not => [ $: x
+    2 -10 x * ** x 10 * 0.75 - _C4 * sin * 1 +
+  ]
+] @: easeOutElastic
+
+
+[ "( X -- Xe ): eases X using easeInOutElastic function."
+  dup [ 0 1 ] anyof? not => [ dup $: x
+    0.5 < br:
+      [ 2 20 x * 10 - ** 20 x * 11.125 - _C5 * sin * flipSign 2 / ]
+      [ 2 -20 x * 10 + ** 20 x * 11.125 - _C5 * sin * 2 / 1 + ]
+  ]
+] @: easeInOutElastic
+
+
+[ "( X -- Xe ): eases X using easeInQuad function."
+  dup *
+] @: easeInQuad
+
+
+[ "( X -- Xe ): eases X using easeOutQuad function."
+  1 swap - dup * 1 swap -
+] @: easeOutQuad
+
+
+[ "( X -- Xe ): eases X using easeInOutQuad function."
+  dup 0.5 < br:
+    [ dup * 2 * ]
+    [ -2 * 2 + 2 ** 2 / 1 swap -]
+] @: easeInOutQuad
+
+
+[ "( X -- Xe ): eases X using easeInQuart function."
+  4 **
+] @: easeInQuart
+
+
+[ "( X -- Xe ): eases X using easeOutQuart function."
+  1 swap - 4 ** 1 swap -
+] @: easeOutQuart
+
+
+[ "( X -- Xe ): eases X using easeInOutQuart function."
+  dup 0.5 < br:
+    [ 4 ** 8 * ]
+    [ -2 * 2 + 4 ** 2 / 1 swap -]
+] @: easeInOutQuart
+
+
+[ "( X -- Xe ): eases X using easeInExpo function."
+  dup 0 = not => [ 10 * 10 - 2 swap ** ]
+] @: easeInExpo
+
+
+[ "( X -- Xe ): eases X using easeOutExpo function."
+  dup 1 = not => [ -10 * 2 swap ** 1 swap - ]
+] @: easeOutExpo
+
+
+[ "( X -- Xe ): eases X using easeInOutExpo function."
+  dup [ 0 1 ] anyof? not => [
+    dup 0.5 < br:
+      [ 20 * 10 - 2 swap ** 2 / ]
+      [ -20 * 10 + 2 swap ** 2 swap - 2 / ]
+  ]
+] @: easeInOutExpo
+
+
+[ "( X -- Xe ): eases X using easeInBack function."
+  bi: [ 3 ** _C3 * ] [ dup * _C1 * ] -
+] @: easeInBack
+
+
+[ "( X -- Xe ): eases X using easeOutBack function."
+  1 - bi: [ 3 ** _C3 * ] [ dup * _C1 * ] + 1 +
+] @: easeOutBack
+
+
+[ "( X -- Xe ): eases X using easeInOutBack function."
+  dup $: x
+  0.5 < br:
+    [ 2 x * 2 ** _C2 1 + 2 * x * _C2 - * 2 / ]
+    [ 2 x * 2 - 2 ** _C2 1 + x 2 * 2 - * _C2 + * 2 + 2 / ]
+] @: easeInOutBack
+
+
+[ "( X -- Xe ): eases X using easeInBounce function."
+  dup [ 0 1 ] anyof? not => [ 1 swap - easeOutBounce 1 swap - ]
+] @: easeInBounce
+
+
+[ "( X -- Xe ): eases X using easeOutBounce function."
+  dup [ 0 1 ] anyof? => ^
+
+  dup    1 _D1 /  < => [ dup * _N1 * ^ ]
+  dup    2 _D1 /  < => [ 1.5 _D1 / - dup * _N1 * 0.75 + ^ ]
+  dup  2.5 _D1 /  < => [ 2.25 _D1 / - dup * _N1 * 0.9375 + ^ ]
+
+  2.625 _D1 / - dup * _N1 * 0.984375 +
+] @: easeOutBounce
+
+
+[ "( X -- Xe ): eases X using easeInOutBounce function."
+  keep: [ 2 * ] 0.5 < br:
+    [ 1 swap - easeOutBounce 1 swap - 2 / ]
+    [ 1 - easeOutBounce 1 + 2 / ]
+] @: easeInOutBounce

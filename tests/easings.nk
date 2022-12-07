@@ -1,0 +1,304 @@
+describe 'easeInSine/easeOutSine/easeInOutSine' [
+  in lang
+
+  it should 'leave correct values for easeInSine' [
+    0 easeInSine 0 assert=
+    0.5 easeInSine 0.2929 assertApprox=
+    1 easeInSine 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutSine' [
+    0 easeOutSine 0 assert=
+    0.5 easeOutSine 0.7071 assertApprox=
+    1 easeOutSine 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutSine' [
+    0 easeInOutSine 0 assert=
+    0.5 easeInOutSine 0.5 assertApprox=
+    0.8 easeInOutSine 0.904 assertApprox=
+    1 easeInOutSine 1 assert=
+  ]
+]
+
+describe 'easeInCubic/easeOutCubic/easeInOutCubic' [
+  in lang
+
+  it should 'leave correct values for easeInCubic' [
+    0 easeInCubic 0 assert=
+    0.5 easeInCubic 0.125 assert=
+    0.8 easeInCubic 0.512 assertApprox=
+    1 easeInCubic 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutCubic' [
+    0 easeOutCubic 0 assert=
+    0.5 easeOutCubic 0.875 assert=
+    0.8 easeOutCubic 0.992 assertApprox=
+    1 easeOutCubic 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutCubic' [
+    0 easeInOutCubic 0 assert=
+    0.3 easeInOutCubic 0.108 assertApprox=
+    0.5 easeInOutCubic 0.5 assert=
+    0.8 easeInOutCubic 0.968 assertApprox=
+    1 easeInOutCubic 1 assert=
+  ]
+]
+
+
+describe 'easeInQuint/easeOutQuint/easeInOutQuint' [
+  in lang
+
+  it should 'leave correct values for easeInQuint' [
+    0 easeInQuint 0 assert=
+    0.5 easeInQuint 0.03125 assert=
+    0.8 easeInQuint 0.3276 assertApprox=
+    1 easeInQuint 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutQuint' [
+    0 easeOutQuint 0 assert=
+    0.5 easeOutQuint 0.96875 assertApprox=
+    0.8 easeOutQuint 0.99968 assertApprox=
+    1 easeOutQuint 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutQuint' [
+    0 easeInOutQuint 0 assert=
+    0.3 easeInOutQuint 0.03888 assertApprox=
+    0.5 easeInOutQuint 0.5 assert=
+    0.8 easeInOutQuint 0.99488 assertApprox=
+    1 easeInOutQuint 1 assert=
+  ]
+]
+
+
+describe 'easeInCirc/easeOutCirc/easeInOutCirc' [
+  in lang
+
+  it should 'leave correct values for easeInCirc' [
+    0 easeInCirc 0 assert=
+    0.5 easeInCirc 0.134 assertApprox=
+    0.8 easeInCirc 0.4 assertApprox=
+    1 easeInCirc 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutCirc' [
+    0 easeOutCirc 0 assert=
+    0.5 easeOutCirc 0.8660 assertApprox=
+    0.8 easeOutCirc 0.9798 assertApprox=
+    1 easeOutCirc 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutCirc' [
+    0 easeInOutCirc 0 assert=
+    0.3 easeInOutCirc 0.0999 assertApprox=
+    0.5 easeInOutCirc 0.5 assert=
+    0.8 easeInOutCirc 0.9581 assertApprox=
+    1 easeInOutCirc 1 assert=
+  ]
+]
+
+
+describe 'easeInElastic/easeOutElastic/easeInOutElastic' [
+  in lang
+
+  it should 'leave correct values for easeInElastic' [
+    0 easeInElastic 0 assert=
+    0.3 easeInElastic -0.0039 assertApprox=
+    0.5 easeInElastic -0.0156 assertApprox=
+    0.8 easeInElastic -0.125 assertApprox=
+    0.95 easeInElastic 0.3536 assertApprox=
+    0.99 easeInElastic 0.9126 assertApprox=
+    1 easeInElastic 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutElastic' [
+    0 easeOutElastic 0 assert=
+    0.1 easeOutElastic 1.25 assertApprox=
+    0.2 easeOutElastic 1.125 assertApprox=
+    0.3 easeOutElastic 0.875 assert=
+    0.5 easeOutElastic 1.0156 assertApprox=
+    0.8 easeOutElastic 1.001953125 assertApprox=
+    1 easeOutElastic 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutElastic' [
+    0 easeInOutElastic 0 assert=
+    0.1 easeInOutElastic 0.00033 assertApprox=
+    0.2 easeInOutElastic -0.0039 assertApprox=
+    0.3 easeInOutElastic 0.02394 assertApprox=
+    0.5 easeInOutElastic 0.5 assert=
+    0.8 easeInOutElastic 1.00390625 assertApprox=
+    0.95 easeInOutElastic 0.9990234375 assertApprox=
+    0.99 easeInOutElastic 0.9998 assertApprox=
+    1 easeInOutElastic 1 assert=
+  ]
+]
+
+
+describe 'easeInQuad/easeOutQuad/easeInOutQuad' [
+  in lang
+
+  it should 'leave correct values for easeInQuad' [
+    0 easeInQuad 0 assert=
+    0.5 easeInQuad 0.25 assert=
+    0.8 easeInQuad 0.64 assert=
+    0.9 easeInQuad 0.81 assert=
+    1 easeInQuad 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutQuad' [
+    0 easeOutQuad 0 assert=
+    0.3 easeOutQuad 0.51 assert=
+    0.5 easeOutQuad 0.75 assert=
+    0.8 easeOutQuad 0.96 assert=
+    1 easeOutQuad 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutQuad' [
+    0 easeInOutQuad 0 assert=
+    0.3 easeInOutQuad 0.18 assert=
+    0.5 easeInOutQuad 0.5 assert=
+    0.8 easeInOutQuad 0.92 assertApprox=
+    1 easeInOutQuad 1 assert=
+  ]
+]
+
+
+describe 'easeInQuart/easeOutQuart/easeInOutQuart' [
+  in lang
+
+  it should 'leave correct values for easeInQuart' [
+    0 easeInQuart 0 assert=
+    0.5 easeInQuart 0.0625 assert=
+    0.8 easeInQuart 0.4096 assertApprox=
+    0.9 easeInQuart 0.6561 assertApprox=
+    1 easeInQuart 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutQuart' [
+    0 easeOutQuart 0 assert=
+    0.3 easeOutQuart 0.7599 assertApprox=
+    0.5 easeOutQuart 0.9375 assert=
+    0.8 easeOutQuart 0.9984 assertApprox=
+    1 easeOutQuart 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutQuart' [
+    0 easeInOutQuart 0 assert=
+    0.3 easeInOutQuart 0.0648 assert=
+    0.5 easeInOutQuart 0.5 assert=
+    0.8 easeInOutQuart 0.9872 assertApprox=
+    1 easeInOutQuart 1 assert=
+  ]
+]
+
+
+describe 'easeInExpo/easeOutExpo/easeInOutExpo' [
+  in lang
+
+  it should 'leave correct values for easeInExpo' [
+    0 easeInExpo 0 assert=
+    0.5 easeInExpo 0.03125 assert=
+    0.8 easeInExpo 0.25 assert=
+    0.9 easeInExpo 0.5 assert=
+    0.95 easeInExpo 0.7071 assertApprox=
+    1 easeInExpo 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutExpo' [
+    0 easeOutExpo 0 assert=
+    0.3 easeOutExpo 0.875 assert=
+    0.5 easeOutExpo 0.96875 assert=
+    0.8 easeOutExpo 0.99609375 assert=
+    1 easeOutExpo 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutExpo' [
+    0 easeInOutExpo 0 assert=
+    0.3 easeInOutExpo 0.03125 assert=
+    0.5 easeInOutExpo 0.5 assert=
+    0.8 easeInOutExpo 0.9921875 assert=
+    1 easeInOutExpo 1 assert=
+  ]
+]
+
+
+describe 'easeInBack/easeOutBack/easeInOutBack' [
+  in lang
+
+  it should 'leave correct values for easeInBack' [
+    0 easeInBack 0 assert=
+    0.5 easeInBack -0.08769 assertApprox=
+    0.8 easeInBack 0.2942 assertApprox=
+    0.9 easeInBack 0.5912 assertApprox=
+    0.95 easeInBack 0.7806 assertApprox=
+    1 easeInBack 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutBack' [
+    0 easeOutBack 0 assert=
+    0.3 easeOutBack 0.9071 assertApprox=
+    0.5 easeOutBack 1.0876975 assert=
+    0.8 easeOutBack 1.0465 assertApprox=
+    1 easeOutBack 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutBack' [
+    0 easeInOutBack 0 assert=
+    0.3 easeInOutBack -0.07883 assertApprox=
+    0.5 easeInOutBack 0.5 assert=
+    0.8 easeInOutBack 1.0926 assertApprox=
+    1 easeInOutBack 1 assert=
+  ]
+]
+
+
+describe 'easeInBounce/easeOutBounce/easeInOutBack' [
+  in lang
+
+  it should 'leave correct values for easeInBounce' [
+    0 easeInBounce 0 assert=
+    0.1 easeInBounce 0.0118 assertApprox=
+    0.2 easeInBounce 0.06 assertApprox=
+    0.3 easeInBounce 0.06937 assertApprox=
+    0.4 easeInBounce 0.2275 assertApprox=
+    0.5 easeInBounce 0.234375 assertApprox=
+    0.6 easeInBounce 0.09 assertApprox=
+    0.7 easeInBounce 0.3194 assertApprox=
+    0.8 easeInBounce 0.6975 assertApprox=
+    0.9 easeInBounce 0.9244 assertApprox=
+    1 easeInBounce 1 assert=
+  ]
+
+  it should 'leave correct values for easeOutBounce' [
+    0 easeOutBounce 0 assert=
+    0.1 easeOutBounce 0.0756 assertApprox=
+    0.2 easeOutBounce 0.3025 assertApprox=
+    0.3 easeOutBounce 0.6806 assertApprox=
+    0.4 easeOutBounce 0.9099 assertApprox=
+    0.5 easeOutBounce 0.765625 assertApprox=
+    0.6 easeOutBounce 0.7725 assertApprox=
+    0.7 easeOutBounce 0.930625 assertApprox=
+    0.8 easeOutBounce 0.94 assertApprox=
+    0.9 easeOutBounce 0.9881 assertApprox=
+    1 easeOutBounce 1 assert=
+  ]
+
+  it should 'leave correct values for easeInOutBounce' [
+    0 easeInOutBounce 0 assert=
+    0.1 easeInOutBounce 0.03 assertApprox=
+    0.2 easeInOutBounce 0.11375 assertApprox=
+    0.3 easeInOutBounce 0.045 assertApprox=
+    0.4 easeInOutBounce 0.34875 assertApprox=
+    0.5 easeInOutBounce 0.5 assert=
+    0.6 easeInOutBounce 0.6512 assertApprox=
+    0.7 easeInOutBounce 0.955 assertApprox=
+    0.8 easeInOutBounce 0.88625 assertApprox=
+    0.9 easeInOutBounce 0.97 assertApprox=
+    1 easeInOutBounce 1 assert=
+  ]
+]

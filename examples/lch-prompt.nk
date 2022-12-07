@@ -24,17 +24,6 @@ console:truecolor
 0 console:setTimeout
 
 
-[ "Taken from: https://easings.net/#easeInOutCubic"
-  "TODO: core/easings.nk"
-  $: x
-
-  "x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2"
-  x 0.5 < br:
-    [ 4 "(" x 3 ** ")" * ]
-    [ 1 -2 x * 2 + 3 ** 2 / - ]
-] @: easeInOutCubic
-
-
 [ "Holds and controls the buffer content (a quote)."
   '' $: content
 
