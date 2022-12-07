@@ -102,8 +102,8 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: dip:
 
 
-[ """( ... T F -- ... F' T ): opens Form with
-   Top on top of the stack, restoring Top after it is opened.
+[ """( ... T F -- ... F' T ): opens Form with Top on top
+   of the stack, restoring Top after it is opened.
 
   ```
   1 2 4 [ + ] keep leaves: [ 1 6 4 ]
