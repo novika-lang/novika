@@ -148,8 +148,8 @@ describe 'definfix example' [
     [ 2 + 3 ** 8 * 5 ] withInfixMath vals [ 32807 ] assert=
     [ 2 + 3 ** [ 8 * 5 ] ] withInfixMath vals [ 12157665459056928803 ] assert=
     [ 3 ** 8 * 5 ] withInfixMath vals [ 32805 ] assert=
-    " [ -3 ** 8 * 5 ] withInfixMath vals [ -32805 ] assert= fix **"
-    " [ -3 ** -8 * 5 ] withInfixMath vals [ -0.0007620789513793629 ] assert= fix **"
+    [ -3 ** 8 * 5 ] withInfixMath vals [ 32805 ] assert=
+    [ -3 ** -8 * 5 ] withInfixMath val 0.00076208 assertApprox=
 
     [ 1 + 2 * 3 ] withInfixMath vals [ 7 ] assert=
     [ 1 * 2 + 3 ] withInfixMath vals [ 5 ] assert=
@@ -163,6 +163,6 @@ describe 'definfix example' [
     [ -3 * 2 + [ -5 + [ 8 - 4 ] * 3 ] ] withInfixMath vals [ 1 ] assert=
 
     [ 100 + [ 1 + 250 / 100 ] ** 3 ] withInfixMath vals [ 142.875 ] assert=
-    " [ 1 + 2 * 3 / [ 6 * 6 + 5 * 44 ] ** 0.25 ] withInfixMath vals [ 2.5 ] assert= fix **"
+    [ 1 + 2 * 3 / [ 6 * 6 + 5 * 44 ] ** 0.25 ] withInfixMath vals [ 2.5 ] assert=
   ]
 ]
