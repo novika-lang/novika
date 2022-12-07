@@ -1,6 +1,9 @@
 "Archimedes' constant (π). Taken from Crystal's Math::PI"
 3.14159265358979323846 $: PI
 
+"The full circle constant (τ), equal to 2π. Taken from Crystal's Math::TAU"
+6.283185307179586476925 $: TAU
+
 "PI/180 constant for deg->rad"
 PI 180 / $: PI/180
 
