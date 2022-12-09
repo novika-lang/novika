@@ -226,8 +226,8 @@
 
 
 [ "( while: C B -- ): prefix version of `while`."
-  ahead thru
-  ahead thru
+  ahead thruBlock
+  ahead thruBlock
   while
 ] @: while:
 
@@ -239,8 +239,8 @@
 
 
 [ "( until: C B -- ): prefix version of `until`."
-  ahead thru
-  ahead thru
+  ahead thruBlock
+  ahead thruBlock
   until
 ] @: until:
 
