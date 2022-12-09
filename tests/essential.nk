@@ -1154,3 +1154,92 @@ describe '|slice' [
     [ [ 1 2 3 4 ] dup 3 |to |slice ] vals [ [ 1 2 3 ] [ 4 ] ] assert=
   ]
 ]
+
+
+describe 'slurp' [
+  in lang
+
+  it should 'handle empty quote' [
+    [ ] '' slurp [ ] assert=
+  ]
+
+  it should 'slurp words properly' [
+    [ ] 'hello-world 2boo 2.foo x.yzzy a.b.c 0. .0' slurp [ hello-world 2boo 2 . foo x . yzzy a . b . c 0 . . 0 ] assert=
+  ]
+
+  it should 'slurp grapheme cluster words properly' [
+    [ ] '👨‍👩‍👧 👨‍👨‍👦‍👦 🍏🍏🍏 🦊.Hi!.x <<🐘Bye!>>' slurp $: uniwords
+    uniwords 0 fromLeft #👨‍👩‍👧 assert=
+    uniwords 1 fromLeft #👨‍👨‍👦‍👦 assert=
+    uniwords 2 fromLeft #🍏🍏🍏 assert=
+    uniwords 5 fromRight #🦊 assert=
+    uniwords 4 fromRight #. assert=
+    uniwords 3 fromRight #Hi! assert=
+    uniwords 2 fromRight #. assert=
+    uniwords 1 fromRight #x assert=
+    uniwords 0 fromRight #<<🐘Bye!>> assert=
+  ]
+
+  it should 'slurp quoted words' [
+    [ ] '# #x #x👻👺🤖 #x.y #x.#y.#z' slurp [ # #x #x👻👺🤖 #x.y #x.#y.#z ] assert=
+    [ ] '## #x #x👻👺🤖 #x.y #x.#y.#z' slurp vals [ ## #x #x👻👺🤖 #x.y #x.#y.#z ] vals assert=
+  ]
+
+  it should 'slurp decimals properly' [
+    [ ] '123 -123 +123 1_23 1__23 -12_3 -_1 -1_ +_1 +1_ 0000 0.000 .123 123. _.123 123._ 0.1 0.23 0.23_4 0_.23_4 _0.234 0.23_ 0._23 0.123456789123456789123456789' slurp
+      [
+        123
+        -123
+        123
+        123
+        123
+        -123
+        #-_1
+        #-1_
+        #+_1
+        #+1_
+        0
+        0
+        #. 123
+        123 #.
+        #_ #. 123
+        123 #. #_
+        0.1
+        0.23
+        0.234
+        #0_ #. 234
+        #_0 #. 234
+        0 #. #23_
+        0 #. #_23
+        0.123456789123456789123456789
+      ] vals assert=
+  ]
+
+  it should 'slurp quotes correctly' [
+    [ ] '\'🐒hello 👋 \invalid \Escape \\\'world!!!\\\' \\\\n \\n \n\n 👨‍👨‍👦‍👦!🐹\'' slurp val
+    '🐒hello 👋 \invalid \Escape \'world!!!\' \\n \n \n\n 👨‍👨‍👦‍👦!🐹' assert=
+
+    [ [ ] '\'hello world!!' slurp ] 'unterminated excerpt: no matching ｢\'｣' assertDies
+    [ [ ] 'hello world!!\'' slurp ] 'unterminated excerpt: no matching ｢\'｣' assertDies
+    [ [ ] '\'\\' slurp ] 'excerpt ended suddenly: expected escape sequence, grapheme, or ｢\'｣' assertDies
+  ]
+
+  it should 'slurp comments correctly' [
+    [ ] '[ "🐒hello 👋 \invalid \Escape \"world!!!\" \\\\n \\n \n\n 👨‍👨‍👦‍👦!🐹" ]' slurp top desc
+      '🐒hello 👋 \invalid \Escape "world!!!" \\n \\n \n\n👨‍👨‍👦‍👦!🐹' assert=
+  ]
+
+  it should 'slurp block open/close brackets properly' [
+    [ ] '[]' slurp [ [ ] ] assert=
+    [ ] '[.]' slurp [ [ . ] ] assert=
+    [ ] '[ ]' slurp [ [ ] ] assert=
+    [ ] '[🐒 ]' slurp [ [ 🐒 ] ] assert=
+    [ ] '[👨‍👨‍👦‍👦]' slurp [ [ 👨‍👨‍👦‍👦 ] ] assert=
+    [ ] '[👨‍👨‍👦 👋]' slurp [ [ 👨‍👨‍👦 👋 ] ] assert=
+    [ ] '[ 👨‍👨‍👦 👋]' slurp [ [ 👨‍👨‍👦 👋 ] ] assert=
+    [ ] '[👨‍👨‍👦 👋 ]' slurp [ [ 👨‍👨‍👦 👋 ] ] assert=
+
+    [ [ ] '[' slurp ] 'missing \']\'' assertDies
+    [ [ ] ']' slurp ] 'mismatched \']\' in block' assertDies
+  ]
+]

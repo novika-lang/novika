@@ -9,24 +9,26 @@
 # Separating one from the other is possible and will work, but
 # is not recommended unless you read the source code of both.
 struct Novika::Scissors
-  private getter length = 0
+  private getter start : Int32
 
   def initialize(source : String)
-    @dot = nil
     @reader = Char::Reader.new(source)
+    @start = 0
+    @cursor = 0
   end
 
   # Introduces a cutpoint (slicepoint): resets the length.
   @[AlwaysInline]
   private def cut
     @dot = nil
-    @length = 0
+    @start = @reader.pos
+    @cursor = start
   end
 
   # Grows the length.
   @[AlwaysInline]
   private def grow
-    @length += @reader.current_char_width
+    @cursor = @reader.pos
   end
 
   # Returns whether the reader is at the end of the source code.
@@ -41,11 +43,10 @@ struct Novika::Scissors
     @reader.current_char
   end
 
-  # Returns the byte index of the current slicepoint (i. e. start
-  # of current form).
+  # Returns the length of the current fragment.
   @[AlwaysInline]
-  private def start
-    @reader.pos - length
+  private def length
+    @cursor - start
   end
 
   # Advances the reader to the next character, raises if none.
@@ -70,6 +71,10 @@ struct Novika::Scissors
   private def thru(endswith : Char, escape = '\\')
     until at_end?
       thru if chr == escape
+      if at_end?
+        # May happen in cases like '\<EOF> or "\<EOF>
+        raise Novika::Error.new("excerpt ended suddenly: expected escape sequence, grapheme, or ｢#{endswith}｣")
+      end
       thru
       if chr == endswith
         thru
@@ -87,15 +92,33 @@ struct Novika::Scissors
   # Dot byte index is yielded to save an O(N) search, which would
   # be otherwise required since '.' is handled specially by several
   # forms in Novika.
-  def each
+  def each(&)
+    # Grapheme processing is inspired by String#each_grapheme_boundary,
+    # which you can find at:
+    #
+    # https://github.com/crystal-lang/crystal/blob/2da3efc9a6af69ecf182101e24eda85479c01376/src/string/grapheme/grapheme.cr#L10
+    state = String::Grapheme::Property::Start
+    last_prop = String::Grapheme::Property::Start
+
     until at_end?
+      prop = String::Grapheme::Property.from(chr)
+      boundary, state = String::Grapheme.break?(last_prop, prop, state)
+      last_prop = prop
+
+      unless boundary
+        # Unless at grapheme boundary, simply skip the character
+        # we're looking at.
+        thru
+        next
+      end
+
       case it = chr
       when .ascii_whitespace?
         # In Novika, whitespace acts as the primary separator between
         # forms. It is otherwise skipped.
         yield start, length, @dot unless length.zero?
-        cut
         advance
+        cut
       when '\'', '"'
         # Quotes and comments act like a separator, too, mainly because
         # they can contain other separators. Note that comments are not
@@ -118,7 +141,7 @@ struct Novika::Scissors
       when '.'
         # Remember where the first dot was. This is nil-led
         # in `cut`.
-        @dot ||= @reader.pos
+        @dot ||= @cursor
         thru
       else
         # Everything else is simply skipped over, and, when a separator
@@ -128,6 +151,7 @@ struct Novika::Scissors
         thru
       end
     end
+
     yield start, length, @dot unless length.zero?
   end
 
