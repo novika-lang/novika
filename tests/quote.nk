@@ -69,7 +69,7 @@ describe '~*' [
     #true ~* '#true' assert=
     ###true ~* '##true' assert=
     0 0 0 rgb ~* 'rgb(0, 0, 0)' assert=
-    #+ here ~* '[native code]' assert=
+    #+ here ~* '[native code for: \'+\']' assert=
   ]
 
   it should 'join forms in blocks into quote non recursively' [
