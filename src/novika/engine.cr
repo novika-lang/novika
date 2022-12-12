@@ -129,8 +129,8 @@ module Novika
     # Maps block IDs to `Stat` objects. Nil if profiling is disabled.
     getter! prof : Hash(Int32, Stat)?
 
-    # Returns the continuations block (aka continuations stack).
-    getter conts = Block.new
+    # Holds the continuations block (aka continuations stack).
+    property conts = Block.new
 
     # Creates an engine.
     #
