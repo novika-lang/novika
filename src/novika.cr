@@ -3,6 +3,7 @@ require "colorize"
 
 # Order is important!
 require "./novika/forms/form"
+require "./novika/image"
 require "./novika/scissors"
 require "./novika/classifier"
 require "./novika/error"

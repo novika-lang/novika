@@ -4,6 +4,14 @@ shards:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.2.0
 
+  bindata:
+    git: https://github.com/spider-gazelle/bindata.git
+    version: 1.11.1
+
+  brotli:
+    git: https://github.com/naqvis/brotli.cr.git
+    version: 0.1.5
+
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
     version: 0.1.0+git.commit.a58fa765c5514fb6dfc2d47674a86fd5aafb7b94
