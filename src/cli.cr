@@ -1,5 +1,6 @@
 require "csv"
 require "./novika"
+require "./common"
 
 module Novika::Frontend::CLI
   extend self
@@ -151,10 +152,6 @@ module Novika::Frontend::CLI
     File.write(filename, result)
   end
 
-  private def err(message)
-    STDERR << "Sorry  ".colorize.red.bold << message
-  end
-
   # Novika command-line frontend entry point.
   def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
     if args.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
@@ -209,7 +206,7 @@ module Novika::Frontend::CLI
     # Found a bunch of apps. We don't know what to do with
     # them all.
     if resolver.apps.size > 1
-      err("cannot determine which app to run (given apps: #{resolver.apps.join(", ", &.path.basename)})")
+      Frontend.errln("cannot determine which app to run (given apps: #{resolver.apps.join(", ", &.path.basename)})")
       exit(1)
     end
 
@@ -217,7 +214,7 @@ module Novika::Frontend::CLI
     # to do with them either.
     unless resolver.unknowns.empty?
       resolver.unknowns.each do |arg|
-        err("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or feature")
+        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or feature")
       end
       exit(1)
     end
@@ -235,7 +232,7 @@ module Novika::Frontend::CLI
     resolver.apps.each { |app| run(engine, toplevel, app) }
 
     if profile
-      puts "Done! Writing profiling results to prof.novika.csv..."
+      Frontend.okln("Done! Writing profiling results to prof.novika.csv...")
       dump_profile(engine, "prof.novika.csv", small: profile_small)
     end
   rescue e : Error
