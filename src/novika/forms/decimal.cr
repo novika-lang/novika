@@ -13,7 +13,7 @@ module Novika
       initialize(object.to_big_d)
     end
 
-    delegate :to_f64, to: val
+    delegate :to_f64, :to_u8, :to_i64, to: val
 
     def desc(io : IO)
       io << "decimal number " << val
@@ -21,6 +21,11 @@ module Novika
 
     def self.typedesc
       "decimal"
+    end
+
+    # Returns whether this decimal is in the bounds of `Intr64`.
+    def i64?
+      val.scale.zero? && Int64::MIN <= val <= Int64::MAX
     end
 
     # Returns whether this decimal is zero.
