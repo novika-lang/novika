@@ -91,6 +91,12 @@ module Novika
     # the receiver quote is at least one character long.
     protected abstract def slice_at!(slicept : Int32, size : Int32) : {Quote, Quote}?
 
+    # Returns an immutable  `Byteslice` representation of
+    # this quote.
+    def to_byteslice
+      Byteslice.new(string.to_slice, mutable: false)
+    end
+
     # Stitches (concatenates) this and *other* quote variants,
     # and returns the resulting quote.
     def stitch(other : Quote) : Quote

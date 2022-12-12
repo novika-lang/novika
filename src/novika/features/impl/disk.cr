@@ -63,5 +63,15 @@ module Novika::Features::Impl
       File.write(path.string, content.string)
       true
     end
+
+    def write?(engine, content : Byteslice, path : Quote) : Bool
+      return false unless File.file?(path.string) && File.writable?(path.string)
+
+      File.open(path.string, "wb") do |handle|
+        content.write_to(handle)
+      end
+
+      true
+    end
   end
 end
