@@ -26,12 +26,12 @@ module Novika::Frontend::Nkas
     Example:
 
       $ nkas -cb:b repl repl.nki
-      Ok  Bundle <yours-may-differ>
-      Ok  Bundle <yours-may-differ>
-      Ok  Bundle <yours-may-differ>
-      Ok  Bundle <yours-may-differ>
-      Ok  Bundle <yours-may-differ>
-      Ok  Write repl.nki
+      Ok  Bundled <yours-may-differ>
+      Ok  Bundled <yours-may-differ>
+      Ok  Bundled <yours-may-differ>
+      Ok  Bundled <yours-may-differ>
+      Ok  Bundled <yours-may-differ>
+      Ok  Wrote repl.nki
 
       $ nki repl.nki
       [starts the repl]
@@ -44,10 +44,9 @@ module Novika::Frontend::Nkas
     Purpose:
 
       A handy tool for packing Novika images e.g. to transfer
-      them over the network or distribute. Novika images can
-      be unpacked by the 'nki' tool which is a bit smaller
-      than the Novika command-line frontend, if distribution
-      size is what matters for you.
+      them over the network, or distribute. Novika images can
+      be run by the 'nki' tool which is a bit smaller feature-
+      wise than the Novika command-line frontend.
 
     HELP
   end
