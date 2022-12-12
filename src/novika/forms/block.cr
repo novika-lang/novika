@@ -183,11 +183,16 @@ module Novika
       self
     end
 
+    # Returns whether this block has any friends.
+    def has_friends?
+      !!@friends && !friends.empty?
+    end
+
     # Yields friends of this block. Asserts each is a block,
     # otherwise, dies (e.g. the user may have mistakenly
     # added some other form).
     def each_friend
-      return unless @friends
+      return unless has_friends?
 
       friends.reverse_each do |friend|
         unless friend.is_a?(Block)
@@ -204,7 +209,7 @@ module Novika
 
     # Removes *other* from the friendlist of this block.
     def unfriend(other : Block)
-      return unless @friends
+      return unless has_friends?
 
       friends.delete(other)
     end
