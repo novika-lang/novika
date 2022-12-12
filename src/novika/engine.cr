@@ -70,7 +70,7 @@ module Novika
   # block empty. This is why the method is called "exhaust".
   #
   # ```
-  # block = Block.new(Bundle.default.bb).slurp("1 2 +")
+  # block = Block.new(Bundle.with_default.bb).slurp("1 2 +")
   # stack = Block.new
   #
   # engine = Engine.new
@@ -81,7 +81,7 @@ module Novika
   #
   # # Or, shorter:
   #
-  # block = Block.new(Bundle.default.bb).slurp("1 2 +")
+  # block = Block.new(Bundle.with_default.bb).slurp("1 2 +")
   #
   # puts Engine.exhaust(block) # [ 3 ]
   # ```

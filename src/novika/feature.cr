@@ -77,10 +77,16 @@ module Novika
       @objects = {} of String => Feature
     end
 
-    # Returns an array of feature classes that this bundle
-    # has enabled at the moment.
+    # Returns an array of feature classes that are enabled
+    # in this bundle at the moment.
     def enabled
       @objects.values.map(&.class)
+    end
+
+    # Returns whether this bundle has the feature class with
+    # the given *id* enabled.
+    def has_enabled?(id : String)
+      @objects.has_key?(id)
     end
 
     # Returns whether this bundle includes a feature class
@@ -116,9 +122,15 @@ module Novika
     # `IFeatureClass#on_by_default?`.
     #
     # For features that respond with false, you'll need to
-    # explicitly `enable(id)` them.
+    # target them explicitly with `enable(id)`, or use
+    # `enable_all` instead of `enable_default`.
     def enable_default
       @classes.each { |k, v| enable(k) if v.on_by_default? }
+    end
+
+    # Enables all features unconditionally.
+    def enable_all
+      @classes.each_key { |k| enable(k) }
     end
 
     # Returns the feature instance of the given *feature* class,
@@ -144,14 +156,25 @@ module Novika
 
     # Creates a bundle, adds and enables features that are on
     # by default. Returns the resulting bundle.
-    def self.default
+    def self.with_default
       bundle = Bundle.new
       features.each do |feature|
         if feature.on_by_default?
           bundle << feature
         end
       end
-      bundle.enable_default
+      bundle.enable_all
+      bundle
+    end
+
+    # Creates a bundle, adds *all* registered features (see
+    # `Bundle.features`) but doesn't enable any. Returns the
+    # resulting bundle.
+    def self.with_all
+      bundle = Bundle.new
+      features.each do |feature|
+        bundle << feature
+      end
       bundle
     end
 
