@@ -32,6 +32,10 @@ module Novika
 
     # Yields key, value forms in this dictionary.
     abstract def each(& : Form, Form ->)
+
+    # Converts this dictionary to the standard `Dict` implementation
+    # (used in e.g. serialization).
+    abstract def to_dict : Dict
   end
 
   # Default dictionary protocol implementation: default block
@@ -98,6 +102,10 @@ module Novika
 
     def each
       @store.each { |k, v| yield k, v }
+    end
+
+    def to_dict : Dict
+      self
     end
   end
 
