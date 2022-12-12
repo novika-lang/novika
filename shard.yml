@@ -7,7 +7,7 @@ authors:
 
 targets:
   novika:
-    main: src/novika.cr
+    main: src/cli.cr
 
 dependencies:
   termbox2:
