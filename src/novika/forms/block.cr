@@ -65,7 +65,7 @@ module Novika
 
     # Returns the prototype of this block. Block instances return
     # their prototype (AST) blocks, AST blocks return themselves.
-    getter! prototype : Block
+    property! prototype : Block
 
     # String comment of this block. It normally describes what
     # this block does.
