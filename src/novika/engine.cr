@@ -70,10 +70,11 @@ module Novika
   # block empty. This is why the method is called "exhaust".
   #
   # ```
-  # block = Block.new(Bundle.with_default.bb).slurp("1 2 +")
+  # bundle = Bundle.with_default.enable_all
+  # block = Block.new(bundle.bb).slurp("1 2 +")
   # stack = Block.new
   #
-  # engine = Engine.new
+  # engine = Engine.new(bundle)
   # engine.schedule(block, stack)
   # engine.exhaust
   #
@@ -81,9 +82,10 @@ module Novika
   #
   # # Or, shorter:
   #
-  # block = Block.new(Bundle.with_default.bb).slurp("1 2 +")
+  # bundle = Bundle.with_default.enable_all
+  # block = Block.new(bundle.bb).slurp("1 2 +")
   #
-  # puts Engine.exhaust(block) # [ 3 ]
+  # puts Engine.exhaust(block, bundle: bundle) # [ 3 ]
   # ```
   class Engine
     # Maximum amount of scheduled continuations in `conts`. After
@@ -118,6 +120,9 @@ module Novika
       @@count = other
     end
 
+    # Returns the feature bundle this engine is running over.
+    getter bundle : Bundle
+
     # Maps blocks to their IDs. Nil if profiling is disabled.
     getter! bids : Hash(Block, Int32)?
 
@@ -133,7 +138,7 @@ module Novika
     # profiling data makes Engine slower (sometimes a lot), but it
     # will allow you to analyze the resulting `prof` `Stat`s which
     # are fairly detailed. See `Stat`.
-    def initialize(@profile = false)
+    def initialize(@bundle : Bundle, @profile = false)
       Engine.count += 1
 
       if profile
@@ -163,21 +168,21 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust!(form, stack = nil) : Block
+    def self.exhaust!(form, stack = nil, bundle = Bundle.with_default) : Block
       stack ||= Block.new
-      engine = Engine.new
+      engine = Engine.new(bundle)
       engine.schedule!(form, stack)
       engine.exhaust
       stack
     end
 
     # :ditto:
-    def self.exhaust!(entry : OpenEntry, stack = nil) : Block
-      exhaust!(entry.form, stack)
+    def self.exhaust!(entry : OpenEntry, stack = nil, bundle = Bundle.with_default) : Block
+      exhaust!(entry.form, stack, bundle)
     end
 
     # :ditto:
-    def self.exhaust!(entry : Entry, stack = nil) : Block
+    def self.exhaust!(entry : Entry, stack = nil, bundle = nil) : Block
       stack ||= Block.new
       entry.onto(stack)
       stack
@@ -191,22 +196,22 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust(form, stack = nil) : Block
+    def self.exhaust(form, stack = nil, bundle = Bundle.with_default) : Block
       stack ||= Block.new
-      engine = Engine.new
+      engine = Engine.new(bundle)
       engine.schedule(form, stack)
       engine.exhaust
       stack
     end
 
     # :ditto:
-    def self.exhaust(form entry : OpenEntry, stack = nil) : Block
-      exhaust(entry.form, stack)
+    def self.exhaust(form entry : OpenEntry, stack = nil, bundle = Bundle.with_default) : Block
+      exhaust(entry.form, stack, bundle)
     end
 
     # :ditto:
-    def self.exhaust(form entry : Entry, stack = nil) : Block
-      exhaust!(entry, stack)
+    def self.exhaust(form entry : Entry, stack = nil, bundle = Bundle.with_default) : Block
+      exhaust!(entry, stack, bundle)
     end
 
     # Returns the active continuation.

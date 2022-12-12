@@ -63,7 +63,7 @@ module Novika
   # block = Block.new(bundle.bb)
   # block.slurp("console:on 1000 nap console:off")
   #
-  # Engine.exhaust(block)
+  # Engine.exhaust(block, bundle)
   # ```
   class Bundle
     # Returns the bundle block: a block managed by this bundle,
@@ -124,13 +124,21 @@ module Novika
     # For features that respond with false, you'll need to
     # target them explicitly with `enable(id)`, or use
     # `enable_all` instead of `enable_default`.
+    #
+    # Returns self.
     def enable_default
       @classes.each { |k, v| enable(k) if v.on_by_default? }
+
+      self
     end
 
     # Enables all features unconditionally.
+    #
+    # Returns self.
     def enable_all
       @classes.each_key { |k| enable(k) }
+
+      self
     end
 
     # Returns the feature instance of the given *feature* class,
@@ -154,8 +162,9 @@ module Novika
       @classes[feature.id] = feature
     end
 
-    # Creates a bundle, adds and enables features that are on
-    # by default. Returns the resulting bundle.
+    # Creates a bundle, and adds features that are on by
+    # default. Doesn't enable any. Returns the resulting
+    # bundle.
     def self.with_default
       bundle = Bundle.new
       features.each do |feature|
@@ -163,13 +172,12 @@ module Novika
           bundle << feature
         end
       end
-      bundle.enable_all
       bundle
     end
 
-    # Creates a bundle, adds *all* registered features (see
-    # `Bundle.features`) but doesn't enable any. Returns the
-    # resulting bundle.
+    # Creates a bundle, and adds *all* registered features
+    # (see `Bundle.features`). Doesn't enable any. Returns
+    # the resulting bundle.
     def self.with_all
       bundle = Bundle.new
       features.each do |feature|
