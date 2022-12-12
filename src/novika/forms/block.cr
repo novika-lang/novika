@@ -374,12 +374,12 @@ module Novika
     # Makes an `OpenEntry` called *name* for *code* wrapped
     # in `Builtin`.
     def at(name : Word, desc = "a builtin", &code : Engine, Block ->) : self
-      at name, OpenEntry.new Builtin.new(desc, code)
+      at name, OpenEntry.new Builtin.new(name.id, desc, code)
     end
 
     # :ditto:
     def at(name : String, desc = "a builtin", &code : Engine, Block ->) : self
-      at Word.new(name), OpenEntry.new Builtin.new(desc, code)
+      at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
     end
 
     # Adds *form* to the tape.
