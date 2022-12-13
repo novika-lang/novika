@@ -114,6 +114,57 @@ I agree).
 [ [B.x - A.x] ** 2 + [B.y - A.y] ** 2 ] withInfixMath val sqrt echo "STDOUT: 250⏎"
 ```
 
+## A short story
+
+Welcome to Novika!
+
+Since we all (surely!) hate the technical smart-speak, here's an artistic introduction to Novika.
+
+1. Imagine that Novika is a kind of plasticine. "Heat" it up a bit, and bend it to any shape you can imagine! Anything, really: a bretzel, an abstract mathematical *thing*... any... thing.
+
+2. Let's say you've decided to make a little plasticine gnome from it.
+
+3. A few days have passed, and now you're the proud owner of a plasticine gnome, George!
+
+4. Don't like George? **Hate** George? His nose is good enough, though, as well as his hat. You cut them off George and put them aside. You mold a new gnome from the plasticine, let's call him David; you then attach what remains of George -- his hat and his nose -- to David. Now they're David's.
+
+5. Want an army of gnomes now, don't you? A Gnome Army? Each one a bit different, but with the same kind of hat, and with the same kind of nose, isn't it? Sure thing!
+
+6. The plasticine kit came with a few magic boxes. They have the word *"opener*" written on all four sides.
+
+7. Make your *prototype* hat and your *prototype* nose, put them each in their own magic box, and close the lids.
+
+8. Mysteriously enough, big red buttons appear on the lids out of thin air. You can't believe your eyes!
+
+9. You press the button on the hat box, and it gives you a plasticine hat! Struck by inspiration, you forget about the magic, and mold it to your liking; some hats you leave as they were, in their *prototype* form.
+
+10. Need a nose? Press the button again, this time on the nose box. An *instance* of nose appears right in your hand! The nose looks just like the *prototype*  nose you put in the box.
+
+11. Now you can arm your gnome army with hats and noses!
+
+12. TODO
+
+13. Oh no! You forgot you've put David the Gnome on the sofa!.. Now he's gone, a blob of plasticine on your butt. You can still make a new gnome from the plasticine, though, when inspiration strikes. No David, but still. At least there's no less plasticine!
+
+14. You go to your professional friend. His beard is so long he needs to dress it in his pants. He is smart! His name is Mr. Bean.
+
+15. No plasticine toys anymore! Mr. Bean makes his living by making big statues. If you accidentally fell on one of his statues, you're the one who's going to break -- not the statue.
+
+16. Knowing that, you ask Mr. Bean, "What material do you use? What is the material that makes your statues look so grandióse, so monumental?"
+
+17. Mr. Bean says, "For these statues -- he motioned his hand -- I use C. For this one -- his eyes on the base of a statue, its top lost in the "ceiling haze" -- I used C++. For these smaller ones, I've used Java."
+18. "What if you hit the statues really-really hard," you ask Mr. Bean.
+
+19. You like breaking and fixing things to learn how they work. That's the best way to learn, isn't it?
+
+20. "Well, if they're well made, they'll withstand the hit", Mr. Bean said.
+
+21. "But if they're not?"
+
+22. "They'll shatter and crush or cut you to death."
+
+TODO
+
 ## Introduction
 
 > Novika [organizes](doc/BlockOrg.pdf) and evaluates forms.
@@ -217,21 +268,17 @@ Building:
 2. Make sure your working directory is this repo.
 3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
   (that's smart huh?).
-4. On Windows, type the following command:
-    `shards build --without-development --release --progress --no-debug -Dnovika_frontend`
+4. On Windows, type the following command (**temporarily doesn't work**):
+    `shards build --without-development --release --progress --no-debug`
 
     On Unix, type the following command:
-    `shards build --without-development --release --progress --no-debug -Dnovika_frontend -Dnovika_console -Dnovika_readline`.
+    `shards build --without-development --release --progress --no-debug -Dnovika_console -Dnovika_readline`.
 
 5. If you're installing Novika, you should either make a copy of, or a link to, the `env`
-   directory, in your user's home directory, and call it `.novika`. You should also consider copying (or linking) the
+   directory, and put it in your user's home directory, calling it `.novika`. You should also consider copying (or linking) the
    Novika binary where your system can see it (e.g. `~/.local/bin`).
 
 Wondering about the `-D`s?
-
-* `-Dnovika_frontend`: enables Novika frontend. If you run `./bin/novika`, this is the frontend
-  speaking to you, and it's the same frontend that's going to collect and feed the right files to
-  a Novika engine it created.
 
 * `-Dnovika_readline`: use linenoise instead of `gets`.
 
@@ -437,7 +484,7 @@ Theory:
 
 Practice:
 
-* `crystal run novika.cr -Dnovika_frontend -Dnovika_console -Dnovika_readline -- core file.nk`.
+* `crystal run src/cli.cr -Dnovika_console -Dnovika_readline -- file.nk`.
    Make it break. See where and why. Easy, huh? Build in release. `flamegraph` it?
 
 Seriously, this is a huge TODO.
