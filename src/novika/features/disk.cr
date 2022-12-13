@@ -68,6 +68,11 @@ module Novika::Features
     # point to a file.
     abstract def write?(engine, content : Quote, path : Quote) : Bool
 
+    # (Over)writes content of file at *path* with *content*
+    # byteslice. Returns nil if *path* doesn't exist or doesn't
+    # point to a file.
+    abstract def write?(engine, content : Byteslice, path : Quote) : Bool
+
     def inject(into target : Block)
       target.at("disk:has?", <<-END
       ( Pq -- true/false ): leaves whether Path quote exists
@@ -196,13 +201,13 @@ module Novika::Features
       end
 
       target.at("disk:write", <<-END
-      ( Cq Fp -- ): (over)writes content of file at File path
-       with Content quote. Dies if File path doesn't exist or
-       doesn't point to a file.
+      ( Cq/B Fp -- ): (over)writes content of file at File path
+       with Content quote/Byteslice. Dies if File path doesn't
+       exist or doesn't point to a file.
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)
-        content = stack.drop.a(Quote)
+        content = stack.drop.a(Quote | Byteslice)
         path.die("no file at path") unless write?(engine, content, path)
       end
     end

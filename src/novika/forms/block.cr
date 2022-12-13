@@ -3,6 +3,13 @@ module Novika
   # comments. Perfer `Form#effect` over matching by hand.
   EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
 
+  # Maps block unique identifiers (currently, object ids are used as
+  # such) to blocks they identify.
+  #
+  # Used instead of Sets for forcing identity-based lookup rather
+  # than hash-based lookup.
+  alias BlockIdMap = Hash(UInt64, Block)
+
   # Blocks are fundamental to Novika.
   #
   # They are a kind of AST node, they hold continuations and
@@ -40,6 +47,9 @@ module Novika
     # Block to quoted word hook name.
     AS_QUOTED_WORD = Word.new("*asQuotedWord")
 
+    # Block to byteslice hook name.
+    AS_BYTESLICE = Word.new("*asByteslice")
+
     # Whether this block is a leaf. A block is a leaf when
     # it has no blocks in its tape.
     protected property? leaf = true
@@ -65,7 +75,7 @@ module Novika
 
     # Returns the prototype of this block. Block instances return
     # their prototype (AST) blocks, AST blocks return themselves.
-    getter! prototype : Block
+    property! prototype : Block
 
     # String comment of this block. It normally describes what
     # this block does.
@@ -183,32 +193,6 @@ module Novika
       self
     end
 
-    # Yields friends of this block. Asserts each is a block,
-    # otherwise, dies (e.g. the user may have mistakenly
-    # added some other form).
-    def each_friend
-      return unless @friends
-
-      friends.reverse_each do |friend|
-        unless friend.is_a?(Block)
-          die("expected a block, got #{friend.class.typedesc} for a friend")
-        end
-        yield friend
-      end
-    end
-
-    # Adds *other* to the friendlist of this block.
-    def befriend(other : Block)
-      friends << other
-    end
-
-    # Removes *other* from the friendlist of this block.
-    def unfriend(other : Block)
-      return unless @friends
-
-      friends.delete(other)
-    end
-
     # Lists all name forms in this block's dictionary.
     def ls : Array(Form)
       dict.names
@@ -257,33 +241,64 @@ module Novika
       self
     end
 
-    # Explores this block's relatives, i.e., its vertical
-    # (parent) and horizontal (friend) hierarchy neighbors,
-    # calls *payload* with each such relative.
+    # Returns whether this block has any friends.
+    def has_friends?
+      !!@friends && !friends.empty?
+    end
+
+    # Yields friends of this block. Asserts each is a block,
+    # otherwise, dies (e.g. the user may have mistakenly
+    # added some other form).
+    def each_friend
+      return unless has_friends?
+
+      friends.reverse_each do |friend|
+        unless friend.is_a?(Block)
+          die("expected a block, got #{friend.class.typedesc} for a friend")
+        end
+        yield friend
+      end
+    end
+
+    # Adds *other* to the friendlist of this block.
+    def befriend(other : Block)
+      friends << other
+    end
+
+    # Removes *other* from the friendlist of this block.
+    def unfriend(other : Block)
+      return unless has_friends?
+
+      friends.delete(other)
+    end
+
+    # Explores this block's relatives, i.e., its vertical (parent) and
+    # horizontal (friend) hierarchy neighbors, calls *payload* with
+    # each such relative.
     #
     # When *payload* returns a value of type *T* (a non-nil),
-    # exploration terminates. When *payload* returns nil,
-    # exploration continues.
+    # exploration terminates. When *payload* returns nil, exploration
+    # continues.
     #
     # The order is as follows, and is exactly Novika's *lookup order*.
     # Note that here, "yielded X" means "called *payload* with X".
     #
     # - First, this block is yielded.
-    # - Then, the parent blocks of this block are yielded,
-    #   starting from the immediate parent and ending with
-    #   the toplevel (god) block.
+    # - Then, the parent blocks of this block are yielded, starting
+    #   from the immediate parent and ending with the toplevel (god)
+    #   block.
     # - Then, this method recurses on friends of this block.
     # - Then, this method recurses on friends of parent blocks.
     #
-    # *skip* can be used to disable exploration of specific
-    # blocks, together with their (unexplored) vertical and
-    # horizontal hierarchy.
-    def each_relative(payload : Block -> T?, skip : Set(Block)? = nil) forall T
-      return if skip && in?(skip)
+    # *skip* can be used to disable exploration of specific blocks,
+    # together with their (unexplored) vertical and horizontal
+    # hierarchy.
+    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil) forall T
+      return if skip.try &.has_key?(object_id)
 
       block = self
       while block
-        break if skip && block.in?(skip)
+        break if skip.try &.has_key?(block.object_id)
 
         if value = payload.call(block)
           return value
@@ -293,10 +308,10 @@ module Novika
       end
 
       block = self
-      skip ||= Set(Block).new
+      skip ||= BlockIdMap.new
       while block
-        unless block.in?(skip)
-          skip << block
+        unless skip.has_key?(block.object_id)
+          skip[block.object_id] = block
           block.each_friend do |friend|
             return friend.each_relative(payload, skip) || next
           end
@@ -308,6 +323,70 @@ module Novika
     # :ditto:
     def each_relative(skip = nil, &payload : Block -> T?) forall T
       each_relative(payload, skip)
+    end
+
+    # Explores neighbor blocks of this block, calls *payload* with
+    # each such neighbor block. Records all neighbors it visited in
+    # *visited*.
+    #
+    # *Explicitly adjacent* (marked as *ExA1-2* in the diagram below)
+    # neighbor blocks are blocks found in the dictionary and tape of
+    # this block (marked as *B* in the diagram below).
+    #
+    # *Implicitly adjacent* (marked as *ImA1-4* in the diagram below)
+    # neighbor blocks are blocks in the tapes and dictionaries of
+    # explicitly adjacent neighbor blocks, and so on, recursively.
+    #
+    # ```text
+    # ┌───────────────────────────────────────┐
+    # │ B                                     │
+    # │  ┌───────────────┐ ┌───────────────┐  │
+    # │  │ ExA1          │ │ ExA2          │  │
+    # │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
+    # │  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+    # │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
+    # │  │    ...    ... │ │    ...    ... │  │
+    # │  └───────────────┘ └───────────────┘  │
+    # │                                       │
+    # └───────────────────────────────────────┘
+    # ```
+    def each_neighbor(payload : Block -> T?, visited : BlockIdMap? = nil) forall T
+      # Iterate through the tape of this block. Recurse on every block
+      # found there.
+      each do |form|
+        # I know this one and the one below are identical pieces of code,
+        # but I refuse to factor them out!
+        next unless form.is_a?(Block)
+        next if visited.try &.has_key?(form.object_id)
+
+        visited ||= BlockIdMap.new
+        visited[form.object_id] = form
+
+        return if payload.call(form)
+
+        form.each_neighbor(payload, visited)
+      end
+
+      # Iterate through the dictionary of this block. Recurse on every block
+      # value form there.
+      dict.each do |_, entry|
+        form = entry.form
+
+        next unless form.is_a?(Block)
+        next if visited.try &.has_key?(form.object_id)
+
+        visited ||= BlockIdMap.new
+        visited[form.object_id] = form
+
+        return if payload.call(form)
+
+        form.each_neighbor(payload, visited)
+      end
+    end
+
+    # :ditto:
+    def each_neighbor(visited : BlockIdMap? = nil, &payload : Block -> T?) forall T
+      each_neighbor(payload, visited)
     end
 
     # Returns the dictionary entry corresponding to *name*,
@@ -369,12 +448,12 @@ module Novika
     # Makes an `OpenEntry` called *name* for *code* wrapped
     # in `Builtin`.
     def at(name : Word, desc = "a builtin", &code : Engine, Block ->) : self
-      at name, OpenEntry.new Builtin.new(desc, code)
+      at name, OpenEntry.new Builtin.new(name.id, desc, code)
     end
 
     # :ditto:
     def at(name : String, desc = "a builtin", &code : Engine, Block ->) : self
-      at Word.new(name), OpenEntry.new Builtin.new(desc, code)
+      at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
     end
 
     # Adds *form* to the tape.
@@ -522,6 +601,7 @@ module Novika
       when Color.class      then a?(AS_COLOR, type)
       when Boolean.class    then a?(AS_BOOLEAN, type)
       when QuotedWord.class then a?(AS_QUOTED_WORD, type)
+      when Byteslice.class  then a?(AS_BYTESLICE, type)
       end || afail(T)
     end
 
@@ -537,6 +617,7 @@ module Novika
       when Color.class      then dict.has?(AS_COLOR)
       when Boolean.class    then dict.has?(AS_BOOLEAN)
       when QuotedWord.class then dict.has?(AS_QUOTED_WORD)
+      when Byteslice.class  then dict.has?(AS_BYTESLICE)
       else
         false
       end

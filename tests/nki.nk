@@ -1,0 +1,57 @@
+describe 'captureNeighborhood: hierarchy serialization corner cases' [
+  in lang
+
+  it should 'pre-collect neighborhood blocks in captureNeighborhood' [
+    [ [ 1 2 ] [ 3 4 ] 5 6 ] toOrphan $: myOrphan
+
+    myOrphan first myOrphan 1 fromLeft child shove
+    myOrphan nki:captureNeighborhood $: cneigh
+
+    cneigh nki:toBlock $: myOrphanOut
+
+    myOrphanOut orphan? true assert=
+    myOrphanOut first parent myOrphanOut same? true assert=
+    myOrphanOut 1 fromLeft parent myOrphanOut same? true assert=
+    myOrphanOut first last parent myOrphanOut 1 fromLeft same? true assert=
+  ]
+
+  it should 'collect friends of friends which are members of neighborhood' [
+    [ ] $: b
+    b b befriend "doesn't have any effect on lookup, but may hang serializer if implemented incorrectly"
+    b b shove "same"
+    b child $: bc
+    b bc shove
+
+   "deeper recursion?"
+    bc b befriend
+    bc bc befriend
+    b bc befriend
+
+    bc child $: bbc "won't be included in the hierarchy, because it's out of it!"
+
+    bc child $: bbbc
+    bbbc bbc befriend
+    bbbc bc  befriend  "^^^^^^ even though we befriend it explicitly"
+    bbbc b  befriend
+    bc bbbc shove
+
+    "point of no return"
+
+    b nki:captureNeighborhood nki:toBlock $: outb
+
+    "... all hell breaks loose ..."
+
+    outb first outb same? true assert=
+    outb last $: outbc
+    outb friends last outb same? true assert=
+    outbc parent outb same? true assert=
+    outbc prototype outbc same? true assert=
+    outbc friends last outb same? true assert=
+    outbc friends first outbc same? true assert=
+    outbc last $: outbbbc
+    outbbbc parent outbc same? true assert=
+    outbbbc friends last outbc same? true assert=
+    outbbbc friends count 2 assert=
+    outbbbc friends first outb same? true assert=
+  ]
+]

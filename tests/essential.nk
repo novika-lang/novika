@@ -391,6 +391,28 @@ describe 'color?' [
   ]
 ]
 
+
+describe 'byteslice?' [
+  in lang
+
+  it should 'leave true for byteslice' [ 'hello world' toByteslice byteslice? true assert= ]
+  it should 'leave true for block implementing *asByteslice' [
+    [ 'hello' toByteslice $: *asByteslice this ] @: x
+    [ [ x ] @: *asByteslice this ] @: y
+    x byteslice? true assert=
+    y byteslice? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] byteslice? false assert=
+    #true byteslice? false assert=
+    #foobar byteslice? false assert=
+    '1234' byteslice? false assert=
+    " ... etc ... "
+  ]
+]
+
+
 describe 'asDecimal' [
   in lang
 
@@ -511,6 +533,35 @@ describe 'asBoolean' [
   ]
 ]
 
+
+describe 'asByteslice' [
+  in lang
+
+  it should 'accept byteslice only' [
+    [ 100 asByteslice ] 'bad type: decimal, expected: a byteslice' assertDies
+    [ 'foo' asByteslice ] 'bad type: quote, expected: a byteslice' assertDies
+    [ #foo asByteslice ] 'bad type: word, expected: a byteslice' assertDies
+    [ ##foo asByteslice ] 'bad type: quoted word, expected: a byteslice' assertDies
+    [ [] asByteslice ] 'bad type: block, expected: a byteslice' assertDies
+    [ true asByteslice] 'bad type: boolean, expected: a byteslice' assertDies
+    'hello world' toByteslice dup asByteslice assert=
+  ]
+
+
+  it should 'it should accept block with *asByteslice' [
+    [ $: x x $: *asByteslice this ] @: a
+
+    [ 100 a asByteslice ] 'bad type: decimal, expected: a byteslice' assertDies
+    [ 'foo' a asByteslice ] 'bad type: quote, expected: a byteslice' assertDies
+    [ #foo a asByteslice ] 'bad type: word, expected: a byteslice' assertDies
+    [ ##foo a asByteslice ] 'bad type: quoted word, expected: a byteslice' assertDies
+    [ [] a asByteslice ] 'bad type: block, expected: a byteslice' assertDies
+    [ true a asByteslice ] 'bad type: boolean, expected: a byteslice' assertDies
+    'hello world' toByteslice a dup asByteslice same? true assert=
+  ]
+]
+
+
 describe 'asBlock' [
   in lang
 
@@ -529,7 +580,7 @@ describe 'toQuote' [
 
   it should 'enquote boolean true' [ true toQuote 'true' assert= ]
   it should 'enquote boolean false' [ false toQuote 'false' assert= ]
-  it should 'enquote builtin' [ #+ here toQuote '[native code]' assert= ]
+  it should 'enquote builtin' [ #+ here toQuote '[native code for: \'+\']' assert= ]
   it should 'enquote decimal' [ 100 toQuote '100' assert= ]
   it should 'enquote -decimal' [ -100 toQuote '-100' assert= ]
   it should 'enquote +decimal' [ +100 toQuote '100' assert= ]
@@ -780,7 +831,7 @@ describe 'count' [
   ]
 
   it should 'die when invalid type' [
-    [ 123 count ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 123 count ] 'bad type: decimal, expected: a block, byteslice, or quote' assertDies
   ]
 ]
 
@@ -830,7 +881,7 @@ describe 'fromLeft' [
   ]
 
   it should 'die when argument is not block/quote' [
-    [ 123 0 fromLeft ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 123 0 fromLeft ] 'bad type: decimal, expected: a block, byteslice, or quote' assertDies
   ]
 ]
 
@@ -844,7 +895,7 @@ describe 'fromRight' [
     [ 1 2 3 ] 2 fromRight 1 assert=
     'hello world' 0 fromRight 'd' assert=
 
-    [ 123 0 fromRight ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 123 0 fromRight ] 'bad type: decimal, expected: a block, byteslice, or quote' assertDies
     [ 'he' 'llo' fromRight ] 'bad type: quote, expected: a decimal' assertDies
   ]
 
@@ -890,7 +941,7 @@ describe 'fromLeft*' [
     'hello world' 5 fromLeft* 'hello' assert=
     'hello world' 100 fromLeft* 'hello world' assert=
 
-    [ 123 0 fromLeft* ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 123 0 fromLeft* ] 'bad type: decimal, expected: a block, byteslice, or quote' assertDies
     [ 'he' 'llo' fromLeft* ] 'bad type: quote, expected: a decimal' assertDies
   ]
 
@@ -934,7 +985,7 @@ describe 'fromRight' [
     'hello world' 5 fromRight* 'world' assert=
     'hello world' 100 fromRight* 'hello world' assert=
 
-    [ 123 0 fromRight* ] 'bad type: decimal, expected: a block or quote' assertDies
+    [ 123 0 fromRight* ] 'bad type: decimal, expected: a block, byteslice, or quote' assertDies
     [ 'he' 'llo' fromRight* ] 'bad type: quote, expected: a decimal' assertDies
   ]
 

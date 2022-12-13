@@ -4,10 +4,13 @@ module Novika
   struct Builtin
     include Form
 
+    # Returns the identifier of this builtin.
+    getter id : String
+
     # :nodoc:
     getter code : Engine, Block ->
 
-    def initialize(@desc : String, @code)
+    def initialize(@id : String, @desc : String, @code)
     end
 
     def desc(io : IO)
@@ -28,7 +31,7 @@ module Novika
     end
 
     def to_s(io)
-      io << "[native code]"
+      io << "[native code for: '" << id << "']"
     end
 
     def_equals_and_hash code

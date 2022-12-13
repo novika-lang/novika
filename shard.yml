@@ -7,11 +7,19 @@ authors:
 
 targets:
   novika:
-    main: src/novika.cr
+    main: src/cli.cr
+  nkas:
+    main: src/nkas.cr
+  nki:
+    main: src/nki.cr
 
 dependencies:
   termbox2:
     github: homonoidian/termbox2.cr
+  bindata:
+    github: spider-gazelle/bindata
+  brotli:
+    github: naqvis/brotli.cr
 
 development_dependencies:
   ameba:

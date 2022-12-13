@@ -568,7 +568,7 @@ module Novika::Features::Impl
       For example, the following expression dies:
 
       ```
-      100 asWord
+      100 asBoolean
       ```
 
       Et cetera for all other forms, except:
@@ -652,6 +652,48 @@ module Novika::Features::Impl
       ```
       END
       ) { |_, stack| stack.top.a(Color) }
+
+      target.at("byteslice?", <<-END
+      ( F -- true/false ): leaves whether Form is a byteslice
+       form, or a block that implements '*asByteslice'.
+
+      ```
+      'hello world' toByteslice byteslice? leaves: true
+      [ [ 'Hi!' toByteslice ] $: *asByteslice this ] open byteslice? leaves: true
+      ```
+      END
+      ) do |_, stack|
+        form = stack.drop
+        Boolean[form.is_a?(Byteslice) || (form.is_a?(Block) && form.can_be?(Byteslice))].onto(stack)
+      end
+
+      target.at("asByteslice", <<-END
+      ( F -- B ): asserts that Form is a Byteslice form, dies if
+       it's not.
+
+      For example, the following expression dies:
+
+      ```
+      100 asByteslice
+      ```
+
+      Et cetera for all other forms, except:
+
+      ```
+      'hello world' toByteslice asByteslice leaves: '[byteslice, consists of 11 mutable byte(s)]'
+      ```
+
+      `*asByteslice` hook can make a block usable in place of
+      a byteslice, provided its definition leaves a byteslice
+      or a block that implements `*asByteslice`:
+
+      ```
+      [ $: x x $: *asByteslice this ] @: a
+      'foo' toByteslice a asByteslice "beware: leaves an instance of a"
+      'foo' toByteslice a a asByteslice "beware: leaves an instance of a"
+      ```
+      END
+      ) { |_, stack| stack.top.a(Byteslice) }
 
       target.at("pushes", <<-END
       ( B N F -- ): creates a definition for Name in Block that
@@ -819,8 +861,8 @@ module Novika::Features::Impl
       end
 
       target.at("fromLeft", <<-END
-      ( B/Q I -- E/G ): leaves Index-th Element (Grapheme) in
-       Block (Quote) from the left.
+      ( B/Q/Bf I -- E ): leaves Index-th Element from the left
+       in Block, Quote, or Byteslice form.
 
       ```
       [ 1 2 3 ] 0 fromLeft leaves: 1
@@ -828,12 +870,13 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         index = stack.drop.a(Decimal).posint
-        form = stack.drop.a(Block | Quote)
+        form = stack.drop.a(Block | Quote | Byteslice)
         form.at(index.to_i).onto(stack)
       end
 
       target.at("fromRight", <<-END
-      ( B I -- F ): leaves Index-th Form from right in Block.
+      ( B/Q/Bf I -- E ): leaves Index-th Element from the right
+       in Block, Quote, or Byteslice form.
 
       ```
       [ 1 2 3 ] 0 fromRight leaves: 3
@@ -843,15 +886,18 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         index = stack.drop.a(Decimal).posint
-        form = stack.drop.a(Block | Quote)
+        form = stack.drop.a(Block | Quote | Byteslice)
         form.at(form.count - index.to_i - 1).onto(stack)
       end
 
       target.at("fromLeft*", <<-END
-      ( B/Q N -- Fb/Rq ): leaves Forms block/Result quote with
-       N forms/chars from left in Block/Quote. If N is larger
-       than Block/Quote count, it is made equal to Block/Quote
-       count. Dies if N is negative.
+      ( B/Q/Bf N -- Eb/Rq/Rbf ): leaves Elements block (if given
+       a Block), Result quote (if given a Quote), or Result
+       byteslice form (if given a Byteslice form) with N forms/
+       chars/bytes from left in Block/Quote/Byteslice form.
+       If N is larger than Block/Quote/Byteslice form count,
+       it is made equal to Block/Quote/Byteslice form count.
+       Dies if N is negative.
 
       ```
       [ 1 2 3 ] 1 fromLeft* leaves: [ [ 1 ] ]
@@ -863,14 +909,18 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         size = stack.drop.a(Decimal).posint
-        form = stack.drop.a(Block | Quote)
+        form = stack.drop.a(Block | Quote | Byteslice)
         form.at(0, size.to_i - 1).onto(stack)
       end
 
       target.at("fromRight*", <<-END
-      ( B N -- Fb ): leaves Forms block with N forms from right
-       in Block. If N is larger than Block count, it is made
-       equal to Block count. Dies if N is less than zero.
+      ( B/Q/Bf N -- Fb/Rq/Rbf ): leaves Elements block (if given
+       a Block), Result quote (if given a Quote), or Result
+       byteslice form (if given a Byteslice form) with N forms/
+       chars/bytes from right in Block/Quote/Byteslice form.
+       If N is larger than Block/Quote/Byteslice form count,
+       it is made equal to Block/Quote/Byteslice form count.
+       Dies if N is negative.
 
       ```
       [ 1 2 3 ] 1 fromRight* leaves: [ [ 3 ] ]
@@ -881,7 +931,7 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         size = stack.drop.a(Decimal).posint
-        form = stack.drop.a(Block | Quote)
+        form = stack.drop.a(Block | Quote | Byteslice)
         form.at(form.count - size.to_i, form.count - 1).onto(stack)
       end
 
@@ -1002,11 +1052,11 @@ module Novika::Features::Impl
       end
 
       target.at("count", <<-END
-      ( B/Q -- N ): leaves N, the amount of elements (graphemes)
-       in Block (Quote).
+      ( B/Q/Bf -- N ): leaves N, the amount of elements/graphemes/
+       bytes in Block/Quote/Byteslice form.
       END
       ) do |_, stack|
-        form = stack.drop.a(Block | Quote)
+        form = stack.drop.a(Block | Quote | Byteslice)
 
         Decimal.new(form.count).onto(stack)
       end
@@ -1197,6 +1247,10 @@ module Novika::Features::Impl
 
       target.at("toQuote", "( F -- Qr ): leaves Quote representation of Form.") do |_, stack|
         stack.drop.to_quote.onto(stack)
+      end
+
+      target.at("toByteslice", "( Q -- B ): leaves immutable Byteslice for Quote.") do |_, stack|
+        stack.drop.a(Quote).to_byteslice.onto(stack)
       end
 
       target.at("replaceAll", <<-END
