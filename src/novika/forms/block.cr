@@ -3,6 +3,13 @@ module Novika
   # comments. Perfer `Form#effect` over matching by hand.
   EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
 
+  # Maps block unique identifiers (currently, object ids are used as
+  # such) to blocks they identify.
+  #
+  # Used instead of Sets for forcing identity-based lookup rather
+  # than hash-based lookup.
+  alias BlockIdMap = Hash(UInt64, Block)
+
   # Blocks are fundamental to Novika.
   #
   # They are a kind of AST node, they hold continuations and
@@ -265,33 +272,33 @@ module Novika
       friends.delete(other)
     end
 
-    # Explores this block's relatives, i.e., its vertical
-    # (parent) and horizontal (friend) hierarchy neighbors,
-    # calls *payload* with each such relative.
+    # Explores this block's relatives, i.e., its vertical (parent) and
+    # horizontal (friend) hierarchy neighbors, calls *payload* with
+    # each such relative.
     #
     # When *payload* returns a value of type *T* (a non-nil),
-    # exploration terminates. When *payload* returns nil,
-    # exploration continues.
+    # exploration terminates. When *payload* returns nil, exploration
+    # continues.
     #
     # The order is as follows, and is exactly Novika's *lookup order*.
     # Note that here, "yielded X" means "called *payload* with X".
     #
     # - First, this block is yielded.
-    # - Then, the parent blocks of this block are yielded,
-    #   starting from the immediate parent and ending with
-    #   the toplevel (god) block.
+    # - Then, the parent blocks of this block are yielded, starting
+    #   from the immediate parent and ending with the toplevel (god)
+    #   block.
     # - Then, this method recurses on friends of this block.
     # - Then, this method recurses on friends of parent blocks.
     #
-    # *skip* can be used to disable exploration of specific
-    # blocks, together with their (unexplored) vertical and
-    # horizontal hierarchy.
-    def each_relative(payload : Block -> T?, skip : Set(Block)? = nil) forall T
-      return if skip && in?(skip)
+    # *skip* can be used to disable exploration of specific blocks,
+    # together with their (unexplored) vertical and horizontal
+    # hierarchy.
+    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil) forall T
+      return if skip.try &.has_key?(object_id)
 
       block = self
       while block
-        break if skip && block.in?(skip)
+        break if skip.try &.has_key?(block.object_id)
 
         if value = payload.call(block)
           return value
@@ -301,10 +308,10 @@ module Novika
       end
 
       block = self
-      skip ||= Set(Block).new
+      skip ||= BlockIdMap.new
       while block
-        unless block.in?(skip)
-          skip << block
+        unless skip.has_key?(block.object_id)
+          skip[block.object_id] = block
           block.each_friend do |friend|
             return friend.each_relative(payload, skip) || next
           end
@@ -316,6 +323,70 @@ module Novika
     # :ditto:
     def each_relative(skip = nil, &payload : Block -> T?) forall T
       each_relative(payload, skip)
+    end
+
+    # Explores neighbor blocks of this block, calls *payload* with
+    # each such neighbor block. Records all neighbors it visited in
+    # *visited*.
+    #
+    # *Explicitly adjacent* (marked as *ExA1-2* in the diagram below)
+    # neighbor blocks are blocks found in the dictionary and tape of
+    # this block (marked as *B* in the diagram below).
+    #
+    # *Implicitly adjacent* (marked as *ImA1-4* in the diagram below)
+    # neighbor blocks are blocks in the tapes and dictionaries of
+    # explicitly adjacent neighbor blocks, and so on, recursively.
+    #
+    # ```text
+    # ┌───────────────────────────────────────┐
+    # │ B                                     │
+    # │  ┌───────────────┐ ┌───────────────┐  │
+    # │  │ ExA1          │ │ ExA2          │  │
+    # │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
+    # │  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+    # │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
+    # │  │    ...    ... │ │    ...    ... │  │
+    # │  └───────────────┘ └───────────────┘  │
+    # │                                       │
+    # └───────────────────────────────────────┘
+    # ```
+    def each_neighbor(payload : Block -> T?, visited : BlockIdMap? = nil) forall T
+      # Iterate through the tape of this block. Recurse on every block
+      # found there.
+      each do |form|
+        # I know this one and the one below are identical pieces of code,
+        # but I refuse to factor them out!
+        next unless form.is_a?(Block)
+        next if visited.try &.has_key?(form.object_id)
+
+        visited ||= BlockIdMap.new
+        visited[form.object_id] = form
+
+        return if payload.call(form)
+
+        form.each_neighbor(payload, visited)
+      end
+
+      # Iterate through the dictionary of this block. Recurse on every block
+      # value form there.
+      dict.each do |_, entry|
+        form = entry.form
+
+        next unless form.is_a?(Block)
+        next if visited.try &.has_key?(form.object_id)
+
+        visited ||= BlockIdMap.new
+        visited[form.object_id] = form
+
+        return if payload.call(form)
+
+        form.each_neighbor(payload, visited)
+      end
+    end
+
+    # :ditto:
+    def each_neighbor(visited : BlockIdMap? = nil, &payload : Block -> T?) forall T
+      each_neighbor(payload, visited)
     end
 
     # Returns the dictionary entry corresponding to *name*,

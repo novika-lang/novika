@@ -1,0 +1,17 @@
+describe 'hierarchy serialization corner cases' [
+  in lang
+
+  it should 'pre-collect neighborhood blocks in captureNeighborhood' [
+    [ [ 1 2 ] [ 3 4 ] 5 6 ] toOrphan $: myOrphan
+
+    myOrphan first myOrphan 1 fromLeft child shove
+    myOrphan nki:captureNeighborhood $: cneigh
+
+    cneigh nki:toBlock $: myOrphanOut
+
+    myOrphanOut orphan? true assert=
+    myOrphanOut first parent myOrphanOut same? true assert=
+    myOrphanOut 1 fromLeft parent myOrphanOut same? true assert=
+    myOrphanOut first last parent myOrphanOut 1 fromLeft same? true assert=
+  ]
+]

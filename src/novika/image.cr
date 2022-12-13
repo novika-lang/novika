@@ -553,7 +553,7 @@ module Novika
         # Maps block ids to frozen blocks.
         @frozen = @pool.to_h { |block| {block.id, block} }
         # Maps block ids to blocks.
-        @resolved = {} of UInt64 => Block
+        @resolved = BlockIdMap.new
       end
 
       # Manually resolves an *id* to *block*. Overwrites any
@@ -621,97 +621,115 @@ module Novika
       end
     end
 
-    # Flattens block hierarchy.
+    # Block visitors for the different `CaptureMode`s.
+    private abstract struct BlockVisitor
+      def self.new(bb : Block, mode : CaptureMode)
+        case mode
+        in .capture_all?          then CaptureAllVisitor.new(bb)
+        in .capture_neighborhood? then CaptureNeighborhoodVisitor.new(bb)
+        end
+      end
+    end
+
+    # In capture all mode, we recursively visit *all* relatives *and*
+    # prototypes, tape, and dictionary.
     #
-    # Note: bundle block and blocks above (if any) are not
-    # visited, for space and time gains. They won't be of
-    # any use anyway.
-    private struct BlockVisitor
+    # We terminate the recursion at the bundle block, which is passed
+    # in the initializer.
+    private struct CaptureAllVisitor < BlockVisitor
       # Holds all blocks that were visited by this visitor.
       getter blocks = [] of FrozenBlock
 
-      def initialize(@bb : Block, @mode : CaptureMode)
+      def initialize(@bb : Block)
         @visited = Set(UInt64).new
       end
 
-      # Visits the given *block*.
-      def visit(block : Block)
+      # Visits the given *form*.
+      def enter(block : Block)
         return if block.same?(@bb)
         return if @visited.includes?(block.object_id)
 
         @visited << block.object_id
 
-        case @mode
-        in .capture_all?
-          # In capture all mode, we visit *all* relatives
-          # *and* prototype.
-          @blocks << FrozenBlock.new(block.object_id,
-            tape: block.tape.empty? ? nil : block.tape,
-            dict: block.dict.empty? ? nil : block.dict.to_dict,
-            friends: block.has_friends? ? block.friends : nil,
-            parent: block.parent?,
-            prototype: block.prototype.same?(block) ? nil : block.prototype,
-            comment: block.has_comment? ? block.desc : nil,
-          )
+        @blocks << FrozenBlock.new(block.object_id,
+          tape: block.tape.empty? ? nil : block.tape,
+          dict: block.dict.empty? ? nil : block.dict.to_dict,
+          friends: block.has_friends? ? block.friends : nil,
+          parent: block.parent?,
+          prototype: block.prototype.same?(block) ? nil : block.prototype,
+          comment: block.has_comment? ? block.desc : nil,
+        )
 
-          block.tape.each { |form| visit(form) }
-          block.dict.each { |key, entry| visit(key); visit(entry.form) }
+        block.tape.each { |form| enter(form) }
+        block.dict.each { |key, entry| enter(key); enter(entry.form) }
 
-          block.each_relative { |rel| visit(rel); nil }
-          unless block.prototype.same?(block) # save on a recursive call
-            visit(block.prototype)
-          end
-        in .capture_neighborhood?
-          # In capture neighborhood mode, we only *really*
-          # visit the tape and the dictionary.
-          #
-          # We store block's parent, prototype, or friends
-          # *only if we've visited them before*. This allows
-          # us to save AST or AST-like (directly nested)
-          # block hierarchies.
-
-          block.tape.each { |form| visit(form) }
-          block.dict.each { |key, entry| visit(key); visit(entry.form) }
-
-          # Go through the block's friends and see whether
-          # we've visited any of them before. If we did,
-          # "mark" that friend.
-          maybe_friends = nil
-          if block.has_friends?
-            block.friends.each do |friend|
-              friend = friend.as(Block)
-
-              next unless friend.object_id.in?(@visited)
-
-              maybe_friends ||= [] of Block
-              maybe_friends << friend
-            end
-          end
-
-          maybe_parent = nil
-          if block.parent? && block.parent.object_id.in?(@visited)
-            maybe_parent = block.parent
-          end
-
-          maybe_prototype = nil
-          unless block.prototype.same?(block)
-            if block.prototype.in?(@visited)
-              maybe_prototype = block.prototype
-            end
-          end
-
-          @blocks << FrozenBlock.new(block.object_id,
-            tape: block.tape.empty? ? nil : block.tape,
-            dict: block.dict.empty? ? nil : block.dict.to_dict,
-            friends: maybe_friends,
-            parent: maybe_parent,
-            prototype: maybe_prototype,
-            comment: block.has_comment? ? block.desc : nil,
-          )
+        block.each_relative { |rel| enter(rel); nil }
+        unless block.prototype.same?(block) # save on a recursive call
+          enter(block.prototype)
         end
       end
 
-      def visit(form)
+      def enter(form)
+      end
+    end
+
+    # In capture neighborhood mode, we first remember which neighbor
+    # blocks the pivot block has, then go through the neigbors and,
+    # for those neighbors that have their hierarchy in the
+    # neighborset, leave that hierarchy intact; for neighbors whose
+    # hierarchy is outside of the neighborset, the particular element
+    # of hiearchy is skipped.
+    #
+    # Simply put, if the pivot block contains another block *B* whose
+    # parent is "above" the pivot block, then that parent won't be
+    # included in the frozen block hierarchy, i.e., after melting,
+    # *B* would be an orphan.
+    private struct CaptureNeighborhoodVisitor < BlockVisitor
+      getter blocks = [] of FrozenBlock
+
+      def initialize(@bb : Block)
+        @neighbors = BlockIdMap.new
+      end
+
+      def enter(block : Block)
+        return if block.same?(@bb)
+
+        # Populate the neighborset of block ahead of time.
+        # We don't need to do anything in the body.
+        block.each_neighbor(@neighbors) { }
+
+        @neighbors[block.object_id] = block
+        @neighbors.each_value do |neigh|
+          next if neigh.same?(@bb)
+
+          # Note that if any of the three (parent, prototype, any of the
+          # friends) are in neighbors, then we either will visit them, have
+          # visited them, or are visiting them.
+
+          if neigh.parent? && @neighbors.has_key?(neigh.parent.object_id)
+            maybe_parent = neigh.parent
+          end
+
+          if !neigh.same?(neigh.prototype) && @neighbors.has_key?(neigh.prototype.object_id)
+            maybe_prototype = neigh.prototype
+          end
+
+          maybe_friends = nil
+          neigh.each_friend do |friend|
+            next unless @neighbors.has_key?(friend.object_id)
+            maybe_friends ||= [] of Block
+            maybe_friends << friend
+          end
+
+          @blocks << FrozenBlock.new(neigh.object_id,
+            tape: neigh.tape.empty? ? nil : neigh.tape,
+            dict: neigh.dict.empty? ? nil : neigh.dict.to_dict,
+            friends: maybe_friends,
+            parent: maybe_parent,
+            prototype: maybe_prototype,
+            comment: neigh.has_comment? ? neigh.desc : nil,
+          )
+        end
       end
     end
 
@@ -752,7 +770,7 @@ module Novika
       pool = new
 
       visitor = BlockVisitor.new(bundle.bb, mode)
-      visitor.visit(pivot)
+      visitor.enter(pivot)
 
       pool.bb = bundle.bb.object_id
       pool.pivot = pivot.object_id
