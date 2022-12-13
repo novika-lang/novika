@@ -12,4 +12,4 @@ jobs:
       - name: Install dependencies
         run: shards install --without-development
       - name: Run language tests
-        run: crystal run src/novika.cr -Dnovika_frontend -- tests tests.nk
+        run: crystal run src/cli.cr -- tests tests.nk
