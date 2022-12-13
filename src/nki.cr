@@ -65,7 +65,7 @@ module Novika::Frontend::Nki
         engine.conts = block.not_nil!
         engine.exhaust
       else
-        block.not_nil!.parent = bundle.bb
+        block.not_nil!.parent = Block.new(bundle.bb)
         Novika::Engine.exhaust!(block.not_nil!, bundle: bundle)
       end
     rescue error : Novika::Error
