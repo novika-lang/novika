@@ -391,6 +391,28 @@ describe 'color?' [
   ]
 ]
 
+
+describe 'byteslice?' [
+  in lang
+
+  it should 'leave true for byteslice' [ 'hello world' toByteslice byteslice? true assert= ]
+  it should 'leave true for block implementing *asByteslice' [
+    [ 'hello' toByteslice $: *asByteslice this ] @: x
+    [ [ x ] @: *asByteslice this ] @: y
+    x byteslice? true assert=
+    y byteslice? true assert=
+  ]
+
+  it should 'leave false for other types' [
+    [ ] byteslice? false assert=
+    #true byteslice? false assert=
+    #foobar byteslice? false assert=
+    '1234' byteslice? false assert=
+    " ... etc ... "
+  ]
+]
+
+
 describe 'asDecimal' [
   in lang
 
@@ -510,6 +532,35 @@ describe 'asBoolean' [
     true a dup asBoolean same? true assert=
   ]
 ]
+
+
+describe 'asByteslice' [
+  in lang
+
+  it should 'accept byteslice only' [
+    [ 100 asByteslice ] 'bad type: decimal, expected: a byteslice' assertDies
+    [ 'foo' asByteslice ] 'bad type: quote, expected: a byteslice' assertDies
+    [ #foo asByteslice ] 'bad type: word, expected: a byteslice' assertDies
+    [ ##foo asByteslice ] 'bad type: quoted word, expected: a byteslice' assertDies
+    [ [] asByteslice ] 'bad type: block, expected: a byteslice' assertDies
+    [ true asByteslice] 'bad type: boolean, expected: a byteslice' assertDies
+    'hello world' toByteslice dup asByteslice assert=
+  ]
+
+
+  it should 'it should accept block with *asByteslice' [
+    [ $: x x $: *asByteslice this ] @: a
+
+    [ 100 a asByteslice ] 'bad type: decimal, expected: a byteslice' assertDies
+    [ 'foo' a asByteslice ] 'bad type: quote, expected: a byteslice' assertDies
+    [ #foo a asByteslice ] 'bad type: word, expected: a byteslice' assertDies
+    [ ##foo a asByteslice ] 'bad type: quoted word, expected: a byteslice' assertDies
+    [ [] a asByteslice ] 'bad type: block, expected: a byteslice' assertDies
+    [ true a asByteslice ] 'bad type: boolean, expected: a byteslice' assertDies
+    'hello world' toByteslice a dup asByteslice same? true assert=
+  ]
+]
+
 
 describe 'asBlock' [
   in lang

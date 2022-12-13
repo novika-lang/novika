@@ -40,6 +40,9 @@ module Novika
     # Block to quoted word hook name.
     AS_QUOTED_WORD = Word.new("*asQuotedWord")
 
+    # Block to byteslice hook name.
+    AS_BYTESLICE = Word.new("*asByteslice")
+
     # Whether this block is a leaf. A block is a leaf when
     # it has no blocks in its tape.
     protected property? leaf = true
@@ -527,6 +530,7 @@ module Novika
       when Color.class      then a?(AS_COLOR, type)
       when Boolean.class    then a?(AS_BOOLEAN, type)
       when QuotedWord.class then a?(AS_QUOTED_WORD, type)
+      when Byteslice.class  then a?(AS_BYTESLICE, type)
       end || afail(T)
     end
 
@@ -542,6 +546,7 @@ module Novika
       when Color.class      then dict.has?(AS_COLOR)
       when Boolean.class    then dict.has?(AS_BOOLEAN)
       when QuotedWord.class then dict.has?(AS_QUOTED_WORD)
+      when Byteslice.class  then dict.has?(AS_BYTESLICE)
       else
         false
       end
