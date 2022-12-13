@@ -22,13 +22,22 @@ module Novika::Frontend::Nki
       [assembles the repl]
 
       $ nki repl.nki
-      [starts the repl]
-
-      $ novika console examples/snake.nk
-      [play snake, hit Ctrl+S, quit or loose]
-
-      $ nki -c snake-savegame00.nki
-      [runs snake exactly like when Ctrl-S was pressed!]
+      [starts the repl; the following REPL session demonstates
+       the use of the '-c' switch]
+      >>> 100 $: x
+      >>> 200 $: y
+      >>> 'repl-save00.nki' disk:touch
+      >>> conts nki:captureAll
+      "Note! It is important to write to disk in the next REPL
+       prompt, because otherwise, nki:captureAll will capture
+       before pushing the image byteslice, and before your
+       write command. In short, this leaves your REPL save in
+       an 'unexpected' state."
+      >>> 'repl-save00.nki' disk:write
+      <Ctrl-D>
+      $ nki -c repl-save00.nki
+      >>> x y + echo
+      300
 
     Purpose:
 
