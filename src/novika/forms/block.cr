@@ -186,37 +186,6 @@ module Novika
       self
     end
 
-    # Returns whether this block has any friends.
-    def has_friends?
-      !!@friends && !friends.empty?
-    end
-
-    # Yields friends of this block. Asserts each is a block,
-    # otherwise, dies (e.g. the user may have mistakenly
-    # added some other form).
-    def each_friend
-      return unless has_friends?
-
-      friends.reverse_each do |friend|
-        unless friend.is_a?(Block)
-          die("expected a block, got #{friend.class.typedesc} for a friend")
-        end
-        yield friend
-      end
-    end
-
-    # Adds *other* to the friendlist of this block.
-    def befriend(other : Block)
-      friends << other
-    end
-
-    # Removes *other* from the friendlist of this block.
-    def unfriend(other : Block)
-      return unless has_friends?
-
-      friends.delete(other)
-    end
-
     # Lists all name forms in this block's dictionary.
     def ls : Array(Form)
       dict.names
@@ -263,6 +232,37 @@ module Novika
     def sort_using!(&cmp : Form, Form -> Int32)
       self.tape = tape.sort_using!(cmp)
       self
+    end
+
+    # Returns whether this block has any friends.
+    def has_friends?
+      !!@friends && !friends.empty?
+    end
+
+    # Yields friends of this block. Asserts each is a block,
+    # otherwise, dies (e.g. the user may have mistakenly
+    # added some other form).
+    def each_friend
+      return unless has_friends?
+
+      friends.reverse_each do |friend|
+        unless friend.is_a?(Block)
+          die("expected a block, got #{friend.class.typedesc} for a friend")
+        end
+        yield friend
+      end
+    end
+
+    # Adds *other* to the friendlist of this block.
+    def befriend(other : Block)
+      friends << other
+    end
+
+    # Removes *other* from the friendlist of this block.
+    def unfriend(other : Block)
+      return unless has_friends?
+
+      friends.delete(other)
     end
 
     # Explores this block's relatives, i.e., its vertical
