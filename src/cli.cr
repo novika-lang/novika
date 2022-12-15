@@ -58,8 +58,6 @@ module Novika::Frontend::CLI
 
       #{" Switches            ".colorize.reverse.bold}
 
-        -p                    \twrites dense (callers are recorded) profiling data to 'prof.novika.csv'
-        -ps                   \twrites sparse profiling data to 'prof.novika.csv'
         -h, --help, h, help, ?\tprints this message
 
       #{" Runnables           ".colorize.reverse.bold}
