@@ -1,4 +1,3 @@
-require "csv"
 require "./novika"
 require "./common"
 
@@ -159,45 +158,13 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    # Whether to profile at all.
-    profile = false
-
-    # Whether to profile sparsely.
-    profile_small = false
-
-    # Except for the switches "-p", "-profile", and "-ps",
-    # all arguments are considered runnables.
-    runnables = args.compact_map do |arg|
-      case arg
-      when "-p", "--profile"
-        profile = true
-        puts <<-END
-          Note: you have enabled profiling. When in profiling mode,
-          your programs will run a lot slower, because a lot of data
-          is being collected.
-        END
-        next
-      when "-ps", "--profile-small"
-        profile = true
-        profile_small = true
-        puts <<-END
-          Note: you have enabled profiling. When in profiling mode,
-          your programs will run a lot slower, because a lot of data
-          is being collected.
-        END
-        next
-      else
-        arg
-      end
-    end
-
     # Populate the bundle with all features. Only enable
     # default ones. We'll then enable those that the user
     # wants.
     bundle = Bundle.with_all
     bundle.enable_default
 
-    resolver = RunnableResolver.new(runnables, bundle, cwd)
+    resolver = RunnableResolver.new(args, bundle, cwd)
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
@@ -219,7 +186,7 @@ module Novika::Frontend::CLI
       exit(1)
     end
 
-    engine = Engine.new(bundle, profile)
+    engine = Engine.new(bundle)
 
     # Important: wrap bundle block in another block! This is
     # required to make it possible to ignore bundle block in
@@ -230,11 +197,6 @@ module Novika::Frontend::CLI
     resolver.folders.each { |folder| run(engine, toplevel, folder) }
     resolver.files.each { |file| run(engine, toplevel, file) }
     resolver.apps.each { |app| run(engine, toplevel, app) }
-
-    if profile
-      Frontend.okln("Done! Writing profiling results to prof.novika.csv...")
-      dump_profile(engine, "prof.novika.csv", small: profile_small)
-    end
   rescue e : Error
     e.report(STDERR)
     exit(1)

@@ -1,30 +1,4 @@
 module Novika
-  # Block statistic object.
-  class Stat
-    record SchedStat, scheduler : Int32, count : Int32, cumul : Time::Span? = nil
-
-    # Holds the unique identifier of the block.
-    property id : Int32
-
-    # Holds the block.
-    property block : Block
-
-    # Holds the words that scheduled this block (speculative,
-    # as Novika has no sure way to associate words and blocks).
-    property words = Set(Word).new
-
-    # Holds block IDs that scheduled this block mapped to a
-    # more detailed `SchedStat`.
-    property scheduled_by = {} of Int32 => SchedStat
-
-    # Clock stack used to record how much time block spent
-    # in its schedulers.
-    property clocks = [] of {Int32, Time::Span}
-
-    def initialize(@id, @block)
-    end
-  end
-
   # An engine object is responsible for managing its own
   # *continuations block*.
   #
@@ -123,28 +97,11 @@ module Novika
     # Returns the feature bundle this engine is running over.
     getter bundle : Bundle
 
-    # Maps blocks to their IDs. Nil if profiling is disabled.
-    getter! bids : Hash(Block, Int32)?
-
-    # Maps block IDs to `Stat` objects. Nil if profiling is disabled.
-    getter! prof : Hash(Int32, Stat)?
-
     # Holds the continuations block (aka continuations stack).
     property conts = Block.new
 
-    # Creates an engine.
-    #
-    # *profile* can be set to `true` to enable profiling. Collecting
-    # profiling data makes Engine slower (sometimes a lot), but it
-    # will allow you to analyze the resulting `prof` `Stat`s which
-    # are fairly detailed. See `Stat`.
-    def initialize(@bundle : Bundle, @profile = false)
+    def initialize(@bundle : Bundle)
       Engine.count += 1
-
-      if profile
-        @bids = {} of Block => Int32
-        @prof = {} of Int32 => Stat
-      end
     end
 
     def finalize
@@ -299,52 +256,6 @@ module Novika
       schedule!(form, stack)
     end
 
-    # Starts profiling for *schedulee*.
-    private def start_prof_for(pseudonym, schedulee, scheduled_by scheduler)
-      bids.rehash # Repair block ID hash, blocks may have changed.
-
-      # Fetch or generate an ID for the scheduler block.
-      scheduler_id = bids.fetch(scheduler) do
-        bids[scheduler] = bids.last_value?.try &.+(1) || 0
-      end
-
-      # Fetch or generate an ID for the schedulee block.
-      schedulee_id = bids.fetch(schedulee) do
-        bids[schedulee] = bids.last_value?.try &.+(1) || 0
-      end
-
-      # Fetch or create an entry for the schedulee block.
-      stat = prof.fetch(schedulee_id) do
-        prof[schedulee_id] = Stat.new(schedulee_id, schedulee)
-      end
-
-      # Fetch the individual scheduler statistic record,
-      # or create a new one.
-      sched_stat =
-        stat.scheduled_by[scheduler_id]? ||
-          Stat::SchedStat.new(scheduler_id, 0)
-
-      stat.words << pseudonym if pseudonym.is_a?(Word)
-      stat.scheduled_by[scheduler_id] = sched_stat.copy_with(count: sched_stat.count + 1)
-      stat.clocks << {scheduler_id, Time.monotonic}
-    end
-
-    # Ends profiling for *schedulee*.
-    private def end_prof_for(schedulee)
-      endtime = Time.monotonic
-
-      bids.rehash # Repair block ID hash, blocks may have changed.
-
-      return unless schedulee_id = bids[schedulee]?
-      return unless stat = prof[schedulee_id]?
-
-      scheduler_id, starttime = stat.clocks.pop? || return
-
-      stat.scheduled_by[scheduler_id] = stat
-        .scheduled_by[scheduler_id]
-        .copy_with(cumul: endtime - starttime)
-    end
-
     # Converts value form of a death handler *entry* to a
     # block, if it's not a block already. Returns the block.
     private def entry_to_death_handler_block(entry : Entry) : Block
@@ -387,16 +298,9 @@ module Novika
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
       until conts.tape.empty?
-        while form = (scheduler = block).next?
+        while form = block.next?
           begin
             form.on_parent_open(self)
-            if @profile
-              schproto = scheduler.prototype
-              scheeproto = block.prototype
-              next if schproto.same?(scheeproto)
-
-              start_prof_for(form, scheeproto, scheduled_by: schproto)
-            end
           rescue error : Error
             error.conts = conts.instance
 
@@ -417,11 +321,7 @@ module Novika
           end
         end
 
-        next conts.drop unless @profile
-
-        dropped_cont = conts.drop.as(Block)
-        dropped_cont_block = dropped_cont.at(C_BLOCK_AT).as(Block)
-        end_prof_for(dropped_cont_block.prototype)
+        conts.drop
       end
     end
   end
