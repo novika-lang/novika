@@ -210,6 +210,8 @@ module Novika
     #
     # See `schedule(form : Block, stack)`.
     def schedule!(form : Block, stack)
+      return if form.count.zero?
+
       schedule! Engine.cont(form.to(0), stack)
     end
 
@@ -244,6 +246,8 @@ module Novika
     #
     # Returns self.
     def schedule(form : Block, stack)
+      return if form.count.zero?
+
       schedule!(form.instance, stack)
     end
 
