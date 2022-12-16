@@ -147,8 +147,15 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    # Found a bunch of apps. We don't know what to do with
-    # them all.
+    # If more than one app, try to reject core (it is assumed
+    # to be picked up implicitly; the price of ignoring it is
+    # less than that of an explicitly specified app).
+    if resolver.apps.size > 1
+      resolver.apps.reject! { |app| app.core }
+    end
+
+    # If still more than one, then we don't know what to do
+    # with them.
     if resolver.apps.size > 1
       Frontend.errln("cannot determine which app to run (given apps: #{resolver.apps.join(", ", &.path.basename)})")
       exit(1)
