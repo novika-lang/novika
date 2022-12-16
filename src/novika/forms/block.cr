@@ -55,10 +55,26 @@ module Novika
     protected property? leaf = true
 
     # Returns the tape of this block.
-    property tape = Tape(Form).new
+    #
+    # Tape is created on-demand. If possible, try to conform to this
+    # checking `has_tape?` first.
+    protected property tape : Tape(Form) { Tape(Form).new }
+
+    # Returns whether this block has a tape.
+    def has_tape? : Bool
+      !!@tape
+    end
 
     # Returns the dictionary of this block.
-    property dict : IDict = Dict.new
+    #
+    # Tape is created on-demand. If possible, try to conform to this
+    # by checking `has_dict?` first.
+    protected property dict : IDict { Dict.new }
+
+    # Returns whether this block has a dict.
+    def has_dict? : Bool
+      !!@dict
+    end
 
     # Holds this block's friends. Friends provide an alternative
     # lookup pathway: when parent hierarchy fails to find an entry
@@ -67,7 +83,7 @@ module Novika
     # Traversal and lookup is performed in reverse insertion
     # order. Therefore, MRO is parent followed by friends from
     # latest friend to oldest friend.
-    getter friends : Array(Form) { [] of Form }
+    protected getter friends : Array(Form) { [] of Form }
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -81,13 +97,13 @@ module Novika
     # this block does.
     @comment : String?
 
-    def initialize(@parent : Block? = nil, @prototype = self, @tape = Tape(Form).new, @dict = Dict.new)
+    def initialize(@parent : Block? = nil, @prototype = self, @tape = nil, @dict = nil)
     end
 
     protected def initialize(*,
                              @parent : Block?,
                              @tape : Tape(Form),
-                             @dict = Dict.new,
+                             @dict = nil,
                              @prototype = self,
                              @leaf = true)
     end
@@ -136,9 +152,6 @@ module Novika
     def describe_with?(comment : String, force = false) : String?
       @comment = dedent comment if force || !comment?
     end
-
-    # See the same method in `Tape`.
-    delegate :cursor, :each, :count, :at?, to: tape
 
     # Removes common indentation from this string. Lines that
     # consist entirely of white space are replaced with a
@@ -193,9 +206,47 @@ module Novika
       self
     end
 
+    # Returns the cursor position in this block.
+    def cursor
+      has_tape? ? tape.cursor : 0
+    end
+
+    # Returns the amount of forms in this block.
+    def count
+      has_tape? ? tape.count : 0
+    end
+
+    # Yields all forms in this block.
+    def each
+      tape.each { |form| yield form } if has_tape?
+    end
+
+    # Returns the form at *index*, or nil.
+    def at?(index)
+      tape.at?(index) if has_tape?
+    end
+
+    # Returns the form at *index* in the tape. Dies if *index*
+    # is out of bounds. See `Tape#at?`.
+    def at(index : Int32) : Form
+      die("index out of bounds") unless has_tape?
+
+      tape.at?(index) || die("index out of bounds")
+    end
+
+    # Returns a block of forms between *b* and *e*, both
+    # inclusive. Clamps *b* and *e* to bounds.
+    def at(b : Int32, e : Int32)
+      return Block.new unless has_tape?
+
+      b = Math.max(b, 0)
+      e = Math.min(e, count - 1)
+      Block.with((b..e).map { |index| at(index) })
+    end
+
     # Lists all name forms in this block's dictionary.
     def ls : Array(Form)
-      dict.names
+      has_dict? ? dict.names : [] of Form
     end
 
     # Imports entries from *donor* to this block's dictionary
@@ -206,12 +257,20 @@ module Novika
 
     # See `Tape#next?`.
     def next? : Form?
+      return unless has_tape?
+
       self.tape, _ = tape.next? || return
     end
 
     # Moves tape cursor to *index*. Dies if *index* is out
     # of bounds. See `Tape#to?`.
     def to(index : Int32) : self
+      return self if !has_tape? && index.zero?
+
+      unless has_tape?
+        die("cursor index out of bounds")
+      end
+
       self.tape = tape.to?(index) || die("cursor index out of bounds")
       self
     end
@@ -224,6 +283,8 @@ module Novika
     # Drops and returns the element after the cursor. Dies if
     # cursor is at the end.
     def eject : Form
+      die("eject out of bounds") unless has_tape?
+
       self.tape, _ = tape.eject? || die("eject out of bounds")
     end
 
@@ -231,12 +292,59 @@ module Novika
     #
     # Similar to `eject`, but doesn't modify the block.
     def thru
+      die("thru out of bounds") unless has_tape?
+
       self.tape, _ = tape.thru? || die("thru out of bounds")
+    end
+
+    # Adds *form* to the tape.
+    def add(form : Form) : self
+      self.leaf = false if form.is_a?(Block)
+      self.tape = tape.add(form)
+      self
+    end
+
+    # Returns the top form, dies if none.
+    def top : Form
+      die("no top for block") unless has_tape?
+
+      tape.top? || die("no top for block")
+    end
+
+    # Duplicates the form before the cursor, dies if none.
+    def dupe : self
+      add(top)
+    end
+
+    # Swaps two forms before the cursor, dies if none.
+    def swap : self
+      a = drop
+      b = drop
+      add(a)
+      add(b)
+    end
+
+    # Slices this block at cursor. This results in two halves,
+    # which are consequently returned.
+    def slice : {Block, Block}
+      return {Block.new(parent: self), Block.new(parent: self)} unless has_tape?
+
+      lhs, rhs = tape.slice
+
+      {Block.new(parent: self, tape: lhs),
+       Block.new(parent: self, tape: rhs)}
+    end
+
+    # Removes and returns the top form. Dies if none.
+    def drop : Form
+      top.tap { self.tape = tape.drop? || raise "unreachable" }
     end
 
     # Sorts this block's tape inplace, calls *cmp* comparator proc
     # for each form pair for a comparison integer -1, 0, or 1.
     def sort_using!(&cmp : Form, Form -> Int32)
+      return unless has_tape?
+
       self.tape = tape.sort_using!(cmp)
       self
     end
@@ -367,6 +475,8 @@ module Novika
         form.each_neighbor(payload, visited)
       end
 
+      return unless has_dict?
+
       # Iterate through the dictionary of this block. Recurse on every block
       # value form there.
       dict.each do |_, entry|
@@ -412,27 +522,17 @@ module Novika
     # Returns the dictionary entry corresponding to *name*.
     # Does not traverse the block hierarchy.
     def flat_at?(name : Form) : Entry?
+      return unless has_dict?
+
       dict.get(name) { }
     end
 
     # Returns whether this block's (and this block's only)
     # dictionary has an entry corresponding to *name*.
     def flat_has?(name : Form) : Bool
+      return false unless has_dict?
+
       dict.has?(name)
-    end
-
-    # Returns the form at *index* in the tape. Dies if *index*
-    # is out of bounds. See `Tape#at?`.
-    def at(index : Int32) : Form
-      tape.at?(index) || die("index out of bounds")
-    end
-
-    # Returns a block of forms between *b* and *e*, both
-    # inclusive. Clamps *b* and *e* to bounds.
-    def at(b : Int32, e : Int32)
-      b = Math.max(b, 0)
-      e = Math.min(e, count - 1)
-      Block.with((b..e).map { |index| at(index) })
     end
 
     # Binds *name* to *entry* in this block's dictionary.
@@ -456,45 +556,6 @@ module Novika
       at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
     end
 
-    # Adds *form* to the tape.
-    def add(form : Form) : self
-      self.leaf = false if form.is_a?(Block)
-      self.tape = tape.add(form)
-      self
-    end
-
-    # Returns the top form, dies if none.
-    def top : Form
-      tape.top? || die("no top for block")
-    end
-
-    # Duplicates the form before the cursor, dies if none.
-    def dupe : self
-      add(top)
-    end
-
-    # Swaps two forms before the cursor, dies if none.
-    def swap : self
-      a = drop
-      b = drop
-      add(a)
-      add(b)
-    end
-
-    # Slices this block at cursor. This results in two halves,
-    # which are consequently returned.
-    def slice : {Block, Block}
-      lhs, rhs = tape.slice
-
-      {Block.new(parent: self, tape: lhs),
-       Block.new(parent: self, tape: rhs)}
-    end
-
-    # Removes and returns the top form. Dies if none.
-    def drop : Form
-      top.tap { self.tape = tape.drop? || raise "unreachable" }
-    end
-
     # Schedules this block for execution in *engine* using the
     # safe scheduling method (see `Engine#schedule`). Optionally,
     # a *stack* block may be provided (otherwise, the *engine*'s
@@ -505,12 +566,16 @@ module Novika
 
     # Returns a shallow copy of this block.
     def shallow : Block
-      self.class.new(parent: parent?, tape: tape.copy, dict: dict.copy, prototype: prototype)
+      self.class.new(parent: parent?,
+        tape: has_tape? ? tape.copy : nil,
+        dict: has_dict? ? dict.copy : nil,
+        prototype: prototype
+      )
     end
 
     # Replaces this block's tape with *other*'s.
     def resub(other : Block) : self
-      self.tape = tape.resub(other.tape)
+      self.tape = has_tape? ? tape.resub(other.tape) : Tape.new(other.tape.substrate)
       self
     end
 
@@ -530,7 +595,9 @@ module Novika
       return false unless count == other.count
       result = false
       executed = exec_recursive(:==) do
-        result = tape == other.tape && dict == other.dict
+        result = true
+        result &&= tape == other.tape if has_tape? || other.has_tape?
+        result &&= dict == other.dict if has_dict? || other.has_dict?
       end
       executed && result
     end
@@ -538,6 +605,8 @@ module Novika
     # Returns whether the tape of this block includes *other*,
     # as per loose equality `==(other)`.
     def includes?(other : Form)
+      return false unless has_tape?
+
       tape.each { |form| return true if other == form }
 
       false
@@ -545,10 +614,13 @@ module Novika
 
     # Creates and returns an instance of this block, under the
     # given *parent*.
-    def instance(parent reparent : Block = self, __tr = nil) : Block
-      if leaf?
-        return self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
-      end
+    def instance(parent new_parent : Block = self, __tr = nil) : Block
+      copy = self.class.new(parent: new_parent,
+        tape: has_tape? ? tape.copy : nil,
+        prototype: prototype
+      )
+
+      return copy if leaf?
 
       # If this block isn't a leaf, we need to copy its sub-blocks
       # as well. Note that `map!` allows to skip quickly (i.e., is
@@ -571,7 +643,10 @@ module Novika
       # Therefore, the fact that they are reflections of the
       # parent is maintained.
       __tr ||= {} of Block => Block
-      __tr[self] = copy = self.class.new(parent: reparent, tape: tape.copy, prototype: prototype)
+      __tr[self] = copy
+
+      # This is never reached with tape empty, so we don't care
+      # whether we create it.
       copy.tape = copy.tape.map! do |form|
         next unless form.is_a?(Block)
         __tr[form]? || form.instance(copy, __tr: __tr)
@@ -591,7 +666,7 @@ module Novika
         die("bad engine depth: maybe deep recursion in *as...?")
       end
 
-      entry = dict.get(name) { return }
+      entry = flat_at?(name) || return
       result = Engine.exhaust(entry, Block.new.add(self)).top
 
       if result.is_a?(Block) && !same?(result)
@@ -626,13 +701,13 @@ module Novika
       return true if is_a?(T)
 
       case T
-      when Decimal.class    then dict.has?(AS_DECIMAL)
-      when Quote.class      then dict.has?(AS_QUOTE)
-      when Word.class       then dict.has?(AS_WORD)
-      when Color.class      then dict.has?(AS_COLOR)
-      when Boolean.class    then dict.has?(AS_BOOLEAN)
-      when QuotedWord.class then dict.has?(AS_QUOTED_WORD)
-      when Byteslice.class  then dict.has?(AS_BYTESLICE)
+      when Decimal.class    then flat_has?(AS_DECIMAL)
+      when Quote.class      then flat_has?(AS_QUOTE)
+      when Word.class       then flat_has?(AS_WORD)
+      when Color.class      then flat_has?(AS_COLOR)
+      when Boolean.class    then flat_has?(AS_BOOLEAN)
+      when QuotedWord.class then flat_has?(AS_QUOTED_WORD)
+      when Byteslice.class  then flat_has?(AS_BYTESLICE)
       else
         false
       end
@@ -679,23 +754,23 @@ module Novika
     end
 
     def to_s(io)
-      if repr = a?(AS_QUOTE, Quote)
-        # Block represents itself in some other way, respect
-        # that here.
-        io << repr.string
-        return
-      end
+      # if repr = a?(AS_QUOTE, Quote)
+      #   # Block represents itself in some other way, respect
+      #   # that here.
+      #   io << repr.string
+      #   return
+      # end
 
       executed = exec_recursive(:to_s) do
         io << "["
-        unless tape.empty?
+        unless !has_tape? || tape.empty?
           (0...cursor).each { |index| io << " " << at(index) }
           unless cursor == count
             io << " |"
             (cursor...count).each { |index| io << " " << at(index) }
           end
         end
-        unless dict.empty?
+        unless !has_dict? || dict.empty?
           io << " ·"
           dict.each do |name, entry|
             io << " " << (entry.is_a?(OpenEntry) ? "@" : "$") << "{" << name << " :: "
