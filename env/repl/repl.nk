@@ -112,7 +112,7 @@ _pgRoot #? [
 
     this $: self
 
-    0 $: timeTakenMs
+    0 $: durationMs
 
     "Create an instance of the root block so that the line of code
      we will execute has access to all words the frontend provided."
@@ -133,7 +133,7 @@ _pgRoot #? [
         self resume
       ] @: *died
 
-      [ pgStackCopy pgRootInstance line slurp hydrate! ] measure =: timeTakenMs
+      [ pgStackCopy pgRootInstance line slurp hydrate! ] measure =: durationMs
     ] do
 
     error br:
@@ -148,7 +148,11 @@ _pgRoot #? [
          which proved to have no errors."
         _pgRoot pgRootInstance mergeDicts
         pgStackCopy =: pgStack
-        [ 'In ' timeTakenMs 'ms' ] ~* echo
+
+        [ 'In ' durationMs 'ms ('
+                durationMs 1000 * 'μs '
+                durationMs 1000000 * 'ns)'
+        ] vals join echo
       ]
 
     pgStack echo
