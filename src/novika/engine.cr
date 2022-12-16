@@ -81,17 +81,15 @@ module Novika
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
 
-    # Holds the amount of living Engines. When an `Engine` is
-    # created, this number is increased. When an `Engine` is
-    # collected by the GC (finalized), this number is decreased.
-    class_getter count = 0
+    # Holds Engine depth.
+    class_getter depth = 0
 
     # :ditto:
-    protected def self.count=(other)
+    protected def self.depth=(other)
       unless other.in?(0..MAX_ENGINES)
-        raise Error.new("bad engine count: maybe deep recursion in *as...?")
+        raise Error.new("bad engine depth: maybe deep recursion in *as...?")
       end
-      @@count = other
+      @@depth = other
     end
 
     # Returns the feature bundle this engine is running over.
@@ -105,11 +103,11 @@ module Novika
 
     # Yields an instance of `Engine`.
     def self.new(bundle : Bundle)
-      Engine.count += 1
+      Engine.depth += 1
 
       yield new(bundle)
     ensure
-      Engine.count -= 1
+      Engine.depth -= 1
     end
 
     # Creates and returns a canonical continuation block.

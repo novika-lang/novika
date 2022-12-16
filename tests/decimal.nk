@@ -192,6 +192,6 @@ describe '*asDecimal hook for implicit conversion of blocks to decimals' [
 
   it should 'die when same type left in *asDecimal' [
     [ $: n [ n foos ] @: *asDecimal this ] @: foos
-    [ 100 foos 200 foos + ] 'bad engine count: maybe deep recursion in *as...?' assertDies
+    [ 100 foos 200 foos + ] 'bad engine depth: maybe deep recursion in *as...?' assertDies
   ]
 ]

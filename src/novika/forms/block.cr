@@ -582,26 +582,41 @@ module Novika
 
     # Assert through the result of running *name*'s value in
     # this block's dictionary.
-    private def a?(name : Form, type : T.class) : T? forall T
+    private def a?(name : Form, type : T.class, _depth = 0) : T? forall T
+      if _depth > Engine::MAX_ENGINES
+        # Engine itself tracks only vertical depth (nesting),
+        # but we need to track cast depth.
+        #
+        # Give up when exceeded the max engine count.
+        die("bad engine depth: maybe deep recursion in *as...?")
+      end
+
       entry = dict.get(name) { return }
       result = Engine.exhaust(entry, Block.new.add(self)).top
-      result.a(T) unless result.is_a?(Block) && same?(result)
+
+      if result.is_a?(Block) && !same?(result)
+        # Result is a different block. Increment depth to handle
+        # deep (infinite) recursion properly.
+        result.a(T, _depth + 1)
+      elsif !result.is_a?(Block)
+        result.a(T)
+      end
     end
 
     # Converts this block into the given *type*. Code execution
     # may be required, hence the need for *engine*. If failed,
     # same as `Form#a`.
-    def a(type : T.class) : T forall T
+    def a(type : T.class, _depth = 0) : T forall T
       return self if is_a?(T)
 
       case T
-      when Decimal.class    then a?(AS_DECIMAL, type)
-      when Quote.class      then a?(AS_QUOTE, type)
-      when Word.class       then a?(AS_WORD, type)
-      when Color.class      then a?(AS_COLOR, type)
-      when Boolean.class    then a?(AS_BOOLEAN, type)
-      when QuotedWord.class then a?(AS_QUOTED_WORD, type)
-      when Byteslice.class  then a?(AS_BYTESLICE, type)
+      when Decimal.class    then a?(AS_DECIMAL, type, _depth)
+      when Quote.class      then a?(AS_QUOTE, type, _depth)
+      when Word.class       then a?(AS_WORD, type, _depth)
+      when Color.class      then a?(AS_COLOR, type, _depth)
+      when Boolean.class    then a?(AS_BOOLEAN, type, _depth)
+      when QuotedWord.class then a?(AS_QUOTED_WORD, type, _depth)
+      when Byteslice.class  then a?(AS_BYTESLICE, type, _depth)
       end || afail(T)
     end
 
