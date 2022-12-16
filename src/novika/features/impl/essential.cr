@@ -1474,6 +1474,26 @@ module Novika::Features::Impl
         stack.top.a(Block).parent = nil
       end
 
+      target.at("toTape", <<-END
+      ( B -- Tb ): leaves Tape block for Block. Useful for e.g.
+       comparing two blocks only for tape contents, when Block may
+       have dictionary entries.
+
+      Lookup hierarchy is destroyed: Tape block is an orphan.
+
+      ```
+      [ 1 2 3 ] $: a
+      a #x 0 pushes
+      a a toTape 2echo
+      "STDOUT: [ 1 2 3 · ${x :: 0} ]⏎"
+      "STDOUT: [ 1 2 3 ]⏎"
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        block.to_tape_block.onto(stack)
+      end
+
       target.at("desc", <<-END
       ( F -- Dq ): leaves the Description quote of the given Form.
 

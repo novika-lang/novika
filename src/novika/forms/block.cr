@@ -579,6 +579,13 @@ module Novika
       self
     end
 
+    # Returns tape block for this block. Tape block is an *orphan*
+    # block with a shallow copy of this block's tape set as its tape,
+    # and at all times no dictionary.
+    def to_tape_block : self
+      Block.new(parent: nil, tape: tape.copy, leaf: leaf?)
+    end
+
     # Loose equality: for two blocks to be loosely equal, their
     # tapes and their dictionaries must be loosely equal.
     #
