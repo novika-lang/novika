@@ -47,8 +47,7 @@ describe 'definfix example' [
     ctx name this pushes
     ahead name [
       ahead $: caller
-      caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |before? not
-        => [ caller 1 |+ ]
+      caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |before
       caller reparent vals last code
     ] opens
   ] @: definfix

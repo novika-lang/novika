@@ -1451,9 +1451,7 @@
   """
   over $: list
 
-  |after?
-
-  list empty? not => [ list 1 |- ]
+  |after? dup => [ list 1 |- ]
 ] @: |before?
 
 
