@@ -61,9 +61,10 @@ module Novika::Frontend::Nki
       block = image.to_block(bundle)
 
       if conts
-        engine = Novika::Engine.new(bundle)
-        engine.conts = block.not_nil!
-        engine.exhaust
+        Novika::Engine.new(bundle) do |engine|
+          engine.conts = block.not_nil!
+          engine.exhaust
+        end
       else
         block.not_nil!.parent = Block.new(bundle.bb)
         Novika::Engine.exhaust!(block.not_nil!, bundle: bundle)

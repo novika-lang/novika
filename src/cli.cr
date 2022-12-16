@@ -184,17 +184,17 @@ module Novika::Frontend::CLI
       exit(1)
     end
 
-    engine = Engine.new(bundle)
+    engine = Engine.new(bundle) do |engine|
+      # Important: wrap bundle block in another block! This is
+      # required to make it possible to ignore bundle block in
+      # Image emission, saving some time and space!
+      toplevel = Block.new(bundle.bb)
 
-    # Important: wrap bundle block in another block! This is
-    # required to make it possible to ignore bundle block in
-    # Image emission, saving some time and space!
-    toplevel = Block.new(bundle.bb)
-
-    resolver.features.each { |feature_id| bundle.enable(feature_id) }
-    resolver.folders.each { |folder| run(engine, toplevel, folder) }
-    resolver.files.each { |file| run(engine, toplevel, file) }
-    resolver.apps.each { |app| run(engine, toplevel, app) }
+      resolver.features.each { |feature_id| bundle.enable(feature_id) }
+      resolver.folders.each { |folder| run(engine, toplevel, folder) }
+      resolver.files.each { |file| run(engine, toplevel, file) }
+      resolver.apps.each { |app| run(engine, toplevel, app) }
+    end
   rescue e : Error
     e.report(STDERR)
     exit(1)

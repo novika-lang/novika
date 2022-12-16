@@ -100,11 +100,15 @@ module Novika
     # Holds the continuations block (aka continuations stack).
     property conts = Block.new
 
-    def initialize(@bundle : Bundle)
-      Engine.count += 1
+    private def initialize(@bundle : Bundle)
     end
 
-    def finalize
+    # Yields an instance of `Engine`.
+    def self.new(bundle : Bundle)
+      Engine.count += 1
+
+      yield new(bundle)
+    ensure
       Engine.count -= 1
     end
 
@@ -127,9 +131,10 @@ module Novika
     # especially from Crystal.
     def self.exhaust!(form, stack = nil, bundle = Bundle.with_default) : Block
       stack ||= Block.new
-      engine = Engine.new(bundle)
-      engine.schedule!(form, stack)
-      engine.exhaust
+      Engine.new(bundle) do |engine|
+        engine.schedule!(form, stack)
+        engine.exhaust
+      end
       stack
     end
 
@@ -155,9 +160,10 @@ module Novika
     # especially from Crystal.
     def self.exhaust(form, stack = nil, bundle = Bundle.with_default) : Block
       stack ||= Block.new
-      engine = Engine.new(bundle)
-      engine.schedule(form, stack)
-      engine.exhaust
+      Engine.new(bundle) do |engine|
+        engine.schedule(form, stack)
+        engine.exhaust
+      end
       stack
     end
 
