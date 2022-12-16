@@ -1,0 +1,444 @@
+[ dup empty? not => [ dup count 1 - sliceQuoteAt drop ] ] @: rchop
+
+[ [ * ] 1 reduce ] @: product
+
+
+
+
+
+
+
+
+needsFeature: console
+
+ 33  33  33 rgb $: BG
+224 224 224 rgb $: FG
+117 117 117 rgb $: DIM_FG
+ 76 175  80 rgb $: OK_FG
+244  67  54 rgb $: ERR_FG
+
+[ dup empty? => [ drop 0 ^ ] product ] @: product?
+
+"The context object is used to store words accessible
+ from within the prompt. It is an orphan so that no
+ other Novika words leak to the prompt."
+
+[
+  PI  $: PI
+  TAU $: TAU
+] obj toOrphan $: context
+
+
+"The Gem of Novika, namely a two-line-long Pratt parser (or a
+ variant thereof)."
+
+
+[ asBlock $: context
+  asBlock $: operators
+  asBlock @: code
+  asDecimal $: prec
+  asWord $: name
+
+  context name [
+    "Put cursor before a looser operator (or, if none, at
+     block end)."
+    ahead [ operators swap entry:flatFetch? [ .prec prec <= ] and ] |before
+
+    """Reparent everything between this operator and the looser
+     operator to ahead:
+
+     stack               ┌────┐
+     ──────────┐         │    │
+               │         │    │      │cursor
+       ┌───────┴─────────▼────┼──────┼──────────┐
+       │       ▼              │      │          │
+       │   ┌───────┐     ┌────┴────┐ │    ┌───┐ │
+       │   │ 2   3 │  *  │ 12   PI │ │ +  │ 2 │ │
+       │   └───────┘  ▲  └─────────┘ │ ▲  └───┘ │
+       │ahead         │              │ │        │
+       └──────────────┼──────────────┼─┼────────┘
+                      │              │ │and
+                      │                │so
+                      │                │on
+                      │this word       │...
+                                       │
+          ──────────────────────────► ─┘
+         after *, result becomes stack
+    """
+    ahead reparent vals product? code
+  ] opens
+] @: definfix
+
+
+"Operator precedence. Lower means looser, and higher
+ means tighter."
+
+0 $: _SUM
+1 $: _FACTOR
+2 $: _POWER
+
+"The operators object is used to store operators, their
+ precedence, and their action."
+
+orphan $: operators
+
+#+     _SUM [ $: y stack product? y +  ] operators context definfix
+#-     _SUM [ $: y stack product? y -  ] operators context definfix
+#*  _FACTOR [ $: y stack product? y *  ] operators context definfix
+#/  _FACTOR [ $: y stack product? y /  ] operators context definfix
+#**  _POWER [ $: y stack product? y ** ] operators context definfix
+
+
+[ $: document
+
+  '>>> ' $: prompt
+
+  '' $: answer
+  [] $: answerBlock
+
+  this $: self
+
+  true $: canBeMovedTo?
+
+  [ console:width document.x 2 * - ] @: width
+   2 $: height
+
+  "--------------------------------------------------------------------------"
+  "                               Cursor words                              -"
+  "--------------------------------------------------------------------------"
+
+  0 $: windowStart
+  1 $: nAlwaysShowLeft
+  0 $: nAlwaysShowRight
+
+  [ windowStart width + ] @: windowEnd
+
+  [ answer empty? => [ '' ^ ]
+    answer windowStart sliceQuoteAt nip $: remainder
+    remainder empty? => [ '' ^ ]
+    remainder width clamp: 0 [ remainder count ] sliceQuoteAt drop
+  ] @: answerWindow
+
+  "Leaves where the cursor is positioned inside the answer quote."
+  0 $: cursorIndex
+
+  "Leaves start index."
+  0 $: cursorStartIndex
+
+  [ "( -- I ): leaves end Index."
+    answer count
+  ] @: cursorEndIndex
+
+  [ "( I -- ): moves cursor to the given Index."
+    clamp: cursorStartIndex cursorEndIndex =: cursorIndex
+
+    "If cursor falls within the sliding window bounds,
+     do nothing."
+    windowStart nAlwaysShowLeft + cursorIndex <
+    windowEnd nAlwaysShowRight - cursorIndex >
+    and
+    => ^
+
+    "If cursor is to the left of the boundary, move the boundary
+     by the distance between window start and index."
+    cursorIndex windowStart nAlwaysShowLeft + <=
+    => [ windowStart dup cursorIndex - nAlwaysShowLeft + abs - 0 2max =: windowStart ^ ]
+
+    "If cursor is to the right of the boundary, move the boundary
+     forward by the distance between window start and index."
+    windowStart cursorIndex windowEnd - nAlwaysShowRight 1 + + + =: windowStart
+
+  ] @: setCursorIndex
+
+  [ "( -- B ): leaves Boolean for whether cursor is at the
+     start of the answer."
+    cursorIndex cursorStartIndex =
+  ] @: cursorAtStart?
+
+  [ "( -- B ): leaves Boolean for whether cursor is at the
+     end of the answer."
+    cursorIndex cursorEndIndex =
+  ] @: cursorAtEnd?
+
+  [ "( Q -- ): inserts Quote before cursor."
+    answer empty? => [ setAnswer ^ ]
+    answer cursorIndex sliceQuoteAt dip: [ swap ~ ] ~ setAnswer
+  ] @: insertBeforeCursor
+
+  [ "( -- ): removes the character before cursor."
+    answer cursorIndex sliceQuoteAt dip: rchop ~ setAnswer
+  ] @: removeBeforeCursor
+
+  [ "( -- ): moves the cursor once to the left."
+    cursorIndex 1 - setCursorIndex
+  ] @: moveCursorLeft
+
+  [ "( -- ): moves the cursor once to the right."
+    cursorIndex 1 + setCursorIndex
+  ] @: moveCursorRight
+
+  [ "( -- ): moves the cursor to the start of the answer."
+    cursorStartIndex setCursorIndex
+  ] @: moveCursorToStart
+
+  [ "( -- ): moves the cursor to the end of the answer."
+    cursorEndIndex setCursorIndex
+  ] @: moveCursorToEnd
+
+  "--------------------------------------------------------------------------"
+  "                            Result computation                            "
+  "--------------------------------------------------------------------------"
+
+  0 $: _lastOkResult
+
+  "Leaves whether the answer block can be opened without an error."
+  false $: isAnswerRunnable?
+
+  [ "( Q -- ): sets answer equal to Quote."
+    [ false =: isAnswerRunnable? ] @: *died
+
+    dup =: answer
+
+    "Replace parens with brackets for fun and profit!"
+    orphan swap '(' '[' replaceAll
+                ')' ']' replaceAll slurp =: answerBlock
+
+    true =: isAnswerRunnable?
+  ] @: setAnswer
+
+
+  [ "( -- Dr ): leaves Decimal result of current answer, or,
+     if impossible, last available Decimal result."
+
+    [ "If we fail for some reason, set the isAnswerRunnable flag
+       and leave last valid result."
+      drop  false =: isAnswerRunnable?  _lastOkResult
+    ] @: *died
+
+    isAnswerRunnable? => [
+      "If result block is empty, go back to 0 as the last result."
+      answerBlock  context reparent vals product? =: _lastOkResult
+      true =: isAnswerRunnable?
+    ]
+
+    _lastOkResult
+  ] @: result
+
+  "-------------------------------------------------------------------------"
+  "                                 Painting                                "
+  "-------------------------------------------------------------------------"
+
+  [ "( -- X ): leaves X position of the answer."
+    prompt count
+  ] @: answerX
+
+  [ "( -- X ): leaves VISUAL X position of the cursor."
+    answerX cursorIndex + windowStart -
+  ] @: cursorX
+
+  [ "( X Y -- ): draws this prompt at X, Y position."
+    $( x y )
+
+    DIM_FG withEchoFg
+      prompt x y     console:appendEcho
+       '===' x y 1 + console:appendEcho
+    dropEchoFg
+
+    answerWindow answerX x + y console:appendEcho
+    result answerX x + y 1 +
+
+    self document.isActiveNode? br:
+      [ isAnswerRunnable? OK_FG ERR_FG sel ]
+      "Do not use colors if prompt is inactive. This'll needlessly
+       hijack the user's attention."
+      DIM_FG
+
+    withEchoFg
+      console:appendEcho
+    dropEchoFg
+
+    "Do not highlight the cursor if prompt is inactive."
+    self document.isActiveNode? => [
+      FG withEchoBg
+      BG withEchoFg
+        cursorX x + y console:change
+      dropEchoBg
+      dropEchoFg
+    ]
+  ] @: paint
+
+  this
+] @: createMathPromptNode
+
+
+[ $( document caption )
+
+      1 $: height
+  false $: canBeMovedTo?
+
+  [ "( X Y -- ): paints this label node."
+    caption -rot console:appendEcho
+  ] @: paint
+
+  this
+] @: createLabelNode
+
+
+[ $: y $: x
+
+  [ ] $: _nodes
+
+  "Leaves the index where the nodes start in the node list."
+  1 $: nodesStartIndex
+
+  [ "( -- I ): leaves the Index where the nodes end in the
+     node list."
+    _nodes count
+  ] @: nodesEndIndex
+
+  [ "( N -- ): adds a Node after the active node. Makes Node
+     the active node."
+    _nodes gulp
+  ] @: insert
+
+  [ "( -- N ): leaves the active node."
+    _nodes top
+  ] @: activeNode
+
+  [ "( N -- ): leaves whether Node is the active node."
+    activeNode same?
+  ] @: isActiveNode?
+
+  [ "( -- ): makes active the first node that can be moved
+     to, above."
+    _nodes |at dup $: hadCursorAt nodesStartIndex = => ^
+    _nodes dup 1 |- <-| [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
+    _nodes hadCursorAt |to
+  ] @: moveToNodeAbove
+
+  [ "( -- ): makes active the first node that can be moved
+     to, below."
+    _nodes |at dup $: hadCursorAt nodesEndIndex = => ^
+    _nodes |-> [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
+    _nodes hadCursorAt |to
+  ] @: moveToNodeBelow
+
+  [ _nodes |at dup $: hadCursorAt nodesStartIndex = => ^
+    _nodes dup 1 |- <-| [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
+    _nodes hadCursorAt |to
+  ] @: dropPrompt
+
+  [ _nodes |at dup $: hadCursorAt nodesEndIndex = => ^
+    _nodes |-> [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
+    _nodes hadCursorAt |to
+  ] @: ejectPrompt
+
+  [
+    0 $: height
+    _nodes 4 |around eachWithIndex: [ $: node $: index
+      x y height + node.paint
+      height node.height + =: height
+    ]
+  ] @: paint
+
+  this
+] @: createDocument
+
+
+[
+
+  [
+    dropEchoBg dropEchoFg
+    console:off
+  ] @: finalize
+
+
+  [ finalize die ] @: *died
+
+  console:on
+  console:truecolor
+
+  10 5 createDocument $: document
+
+
+  document 'Interactive infix math DSL, backed by Novika.' createLabelNode document.insert
+  document 'Available words: ' context   ls sepBy: ' ' ~
+                            operators ls sepBy: ' ' ~
+                            createLabelNode document.insert
+
+  document createMathPromptNode document.insert
+
+  [
+    console:clear
+      document.paint
+    console:present
+  ] @: repaint
+
+  [ document.activeNode ] @: prompt
+
+  BG withEchoBg
+  FG withEchoFg
+
+  true $: running?
+
+  [
+    console:hadKeyPressed? not => ^
+
+    console:hadCtrlPressed?
+    console:getCharPressed 'c' = and
+      => [ false =: running? ^ ]
+
+    console:hadPageUpPressed? => [
+      document 'gibberish' createLabelNode document.insert ^
+    ]
+
+    console:getCharPressed '\n' = => [
+      document createMathPromptNode document.insert ^
+    ]
+
+    console:hadBackspacePressed? => [
+      prompt.cursorAtStart? => [ document.dropPrompt ^ ]
+
+      prompt.removeBeforeCursor
+      prompt.moveCursorLeft
+      ^
+    ]
+
+    console:hadDeletePressed? => [
+      prompt.cursorAtEnd? => [ document.ejectPrompt ^ ]
+
+      prompt.moveCursorRight
+      prompt.removeBeforeCursor
+      prompt.moveCursorLeft
+      ^
+    ]
+
+    console:hadUpPressed? => [ document.moveToNodeAbove ^ ]
+    console:hadDownPressed? => [ document.moveToNodeBelow ^ ]
+
+    console:hadHomePressed?  => [ prompt.moveCursorToStart ^ ]
+    console:hadEndPressed?   => [ prompt.moveCursorToEnd  ^ ]
+    console:hadLeftPressed?  => [ prompt.moveCursorLeft ^ ]
+    console:hadRightPressed? => [ prompt.moveCursorRight ^ ]
+
+    console:hadCharPressed? not => ^
+
+    console:getCharPressed
+    prompt.insertBeforeCursor
+    prompt.moveCursorRight
+  ] @: processInput
+
+  repaint
+
+  while: running?
+  [
+    console:readKey processInput
+
+    repaint
+  ]
+
+  finalize
+] @: mainloop
+
+
+mainloop
