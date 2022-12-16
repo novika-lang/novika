@@ -128,27 +128,6 @@ module Novika::Frontend::CLI
     end
   end
 
-  # Writes recent profiling information for *engine* to *filename*
-  # using the CSV format.
-  private def dump_profile(engine : Engine, filename, small = false)
-    result = CSV.build do |csv|
-      csv.row "Block ID", "Pseudonym(s)", "Scheduler ID", "Amt of schedules", "Cumulative time (ms)", "Representation"
-
-      engine.prof.each_value do |stat|
-        total_count = stat.scheduled_by.each_value.sum(&.count)
-        total_cumul = stat.scheduled_by.each_value.compact_map(&.cumul).sum(&.total_milliseconds)
-        csv.row stat.id, stat.words.join(' '), "*", total_count, total_cumul, stat.block.to_s
-        next if small
-
-        stat.scheduled_by.each do |sched_id, sched|
-          csv.row "", "", sched_id, sched.count, sched.cumul.try &.total_milliseconds || "-", ""
-        end
-      end
-    end
-
-    File.write(filename, result)
-  end
-
   # Novika command-line frontend entry point.
   def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
     if args.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
