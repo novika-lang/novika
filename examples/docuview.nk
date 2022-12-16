@@ -127,11 +127,18 @@ this $: _toplevel
   this
 ] @: createWord
 
-'Loading (this may take a while)...' echo
+'Please wait while I\'m taking a look...' echo
+
+0 $: progress
+_toplevelWords count $: maxProgress
 
 "Collect all toplevel words and make word objects for each
  one of them:"
 _toplevelWords map: [ $: form
+  [ '\e[2K\r' progress '/' maxProgress ' (' form ')' ] ~* appendEcho
+
+  progress 1 + =: progress
+
   "Skip private words: if form is a word, and the word is
    private, then skip it."
   form word?
@@ -153,6 +160,8 @@ _toplevelWords map: [ $: form
 
   name stackEffect description createWord
 ] $: data
+
+'\e[2K\rDone!\n' appendEcho
 
 data 0 |to
 
