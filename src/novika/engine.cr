@@ -310,7 +310,7 @@ module Novika
           begin
             form.on_parent_open(self)
           rescue error : Error
-            error.conts = conts.instance
+            error.conts ||= conts.instance
 
             # Re-raise if no user-defined death handler ANYWHERE.
             # Death handler lookup is the broadest kind of lookup
