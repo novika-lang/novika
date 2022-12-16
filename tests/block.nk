@@ -212,6 +212,17 @@ describe 'first' [
 ]
 
 
+describe 'first?' [
+  in lang
+
+  it should 'leave first element (opt) and true/false' [
+    [ [ ] first? ] vals [ false ] vals assert=
+    [ [ 0 ] first? ] vals [ 0 true ] vals assert=
+    [ [ 1 2 3 ] first? ] vals [ 1 true ] vals assert=
+  ]
+]
+
+
 describe 'last' [
   in lang
 
@@ -219,6 +230,17 @@ describe 'last' [
     [ [ ] last ] 'index out of bounds' assertDies
     [ 0 ] last 0 assert=
     [ 1 2 3 ] last 3 assert=
+  ]
+]
+
+
+describe 'last?' [
+  in lang
+
+  it should 'leave last element (opt) and true/false' [
+    [ [ ] last? ] vals [ false ] vals assert=
+    [ [ 0 ] last? ] vals [ 0 true ] vals assert=
+    [ [ 1 2 3 ] last? ] vals [ 3 true ] vals assert=
   ]
 ]
 

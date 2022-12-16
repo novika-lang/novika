@@ -132,6 +132,19 @@
 ] @: first
 
 
+[ """( B -- F true / false ): leaves first Form in Block
+   followed by true if Block is non-empty. Leaves false
+   if Block is empty.
+
+  ```
+  [ ] first? leaves: [ false ]
+  [ 1 2 3 ] first? leaves: [ 1 true ]
+  ```
+  """
+  dup empty? br: [ drop false ] [ first true ]
+] @: first?
+
+
 [ """( B -- F ): leaves last Form in Block. Dies if Block
    is empty.
 
@@ -142,6 +155,19 @@
   """
   0 fromRight
 ] @: last
+
+
+[ """( B -- F true / false ): leaves last Form in Block
+   followed by true if Block is non-empty. Leaves false
+   if Block is empty.
+
+  ```
+  [ ] last? leaves: [ false ]
+  [ 1 2 3 ] last? leaves: [ 3 true ]
+  ```
+  """
+  dup empty? br: [ drop false ] [ last true ]
+] @: last?
 
 
 [ """( B/Q F/Fq -- Sb ): leaves Status boolean for whether
