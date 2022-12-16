@@ -210,7 +210,7 @@ module Novika::Features::Impl
       xi = x.to_i
       yi = y.to_i
       if xi.in?(0...Termbox.width) && yi.in?(0...Termbox.height)
-        Termbox.print(xi, yi, fg, bg, quote.string)
+        Termbox.print(xi, yi, fg, bg, quote.string[...Termbox.width - xi])
       end
     end
 
