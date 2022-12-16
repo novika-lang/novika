@@ -1364,14 +1364,11 @@
   \"STDOUT: [ 1 2 3 4 | 5 6 ]⏎\"
   ```
   """
-  $: pattern ahead $: caller
+  ahead $: caller
 
-  pattern block? not =>
-    "Create a [ pattern = ] block, and make it a child of the
-     caller. This makes e.g. [...] 4 |after? behave the same
-     as if the user wrote [...] [ 4 = ] |after?"
-    [ pattern #= 2enclose caller reparent =: pattern ]
-  pattern @: cond
+  "Support literal pattern arguments like `[ 1 2 3 4 ] 3 |after?`
+   by wrapping in a block together with '=' (`[ 3 = ]`)."
+  dup block? not => [ #= 2enclose caller reparent ] @: cond
 
   false  $: match
   orphan $: memo
