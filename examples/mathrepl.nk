@@ -176,6 +176,11 @@ orphan $: operators
     cursorEndIndex setCursorIndex
   ] @: moveCursorToEnd
 
+  [ "( P -- ): appends the answer in Prompt to this prompt's
+     answer. Does nothing to the cursor position."
+    answer swap .answer ~ setAnswer
+  ] @: append
+
   "--------------------------------------------------------------------------"
   "                            Result computation                            "
   "--------------------------------------------------------------------------"
@@ -287,9 +292,14 @@ orphan $: operators
     _nodes count
   ] @: nodesEndIndex
 
-  [ "( N -- ): adds a Node after the active node. Makes Node
-     the active node."
-    _nodes gulp
+  [ "( N -- ): adds a Node after the active node and makes
+     it active *if it can be moved to*. Otherwise, inserts
+     Node *before* the currently active node."
+    $: node
+
+    _nodes dup empty? node.canBeMovedTo? or br:
+      [ node shove ]
+      [ [ <| node |> ] hydrate ]
   ] @: insert
 
   [ "( -- N ): leaves the active node."
@@ -314,14 +324,28 @@ orphan $: operators
     _nodes hadCursorAt |to
   ] @: moveToNodeBelow
 
-  [ _nodes |at dup $: hadCursorAt nodesStartIndex = => ^
-    _nodes dup 1 |- <-| [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
-    _nodes hadCursorAt |to
+  [ "( -- ): drops the currently active prompt node, but
+     only if there is a node that can be moved to above.
+     Otherwise, it is a noop. Contents of the currently
+     active prompt node are appended to that node above."
+    _nodes top $: activePromptWas
+    moveToNodeAbove
+    _nodes top $: activePromptIs
+
+    activePromptWas activePromptIs same? => ^
+
+    "TODO: maybe have something like this in native
+     code, for the simpler use cases? Seems fairly
+     inefficient to use without for this."
+    _nodes without: [ activePromptWas same? ] _nodes resub
+
+    activePromptWas activePromptIs.append
   ] @: dropPrompt
 
-  [ _nodes |at dup $: hadCursorAt nodesEndIndex = => ^
-    _nodes |-> [ dup.canBeMovedTo? => [ stack |at =: hadCursorAt break ] ]
-    _nodes hadCursorAt |to
+  [ "( -- ): drops the prompt below, if it can be
+     moved to. Otherwise, a noop. Appends the content
+     of dropped form to the current form."
+    moveToNodeBelow dropPrompt
   ] @: ejectPrompt
 
   [
