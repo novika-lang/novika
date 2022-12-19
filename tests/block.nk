@@ -1188,6 +1188,37 @@ describe 'sum' [
   ]
 ]
 
+
+describe 'product' [
+  in lang
+
+  it should 'leave 1 when block is empty' [
+    [ ] product 1 assert=
+  ]
+
+  it should 'leave number when block has one form' [
+    [ 234 ] product 234 assert=
+  ]
+
+  it should 'leave product of numbers' [
+    [ 5 4 3 2 ] product 120 assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal' [
+    [ $: n [ n 1 + ] @: *asDecimal this ] @: foos
+
+    100 foos "101"
+    200 foos "201"
+    2enclose
+
+    300 foos "301"
+    <<
+
+    product 6110601 assert=
+  ]
+]
+
+
 describe 'minmaxBy' [
   in lang
 

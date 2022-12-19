@@ -1,14 +1,5 @@
 [ dup empty? not => [ dup count 1 - sliceQuoteAt drop ] ] @: rchop
 
-[ [ * ] 1 reduce ] @: product
-
-
-
-
-
-
-
-
 needsFeature: console
 
  33  33  33 rgb $: BG
