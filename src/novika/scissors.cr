@@ -6,8 +6,8 @@
 # by-whitespace.
 #
 # `Scissors` and `Classifier` are designed to work in tandem.
-# Separating one from the other is possible and will work, but
-# is not recommended unless you read the source code of both.
+# Separating one from the other is possible and will work, but is
+# not recommended unless you have read the source code of both.
 struct Novika::Scissors
   private getter start : Int32
 
@@ -106,19 +106,24 @@ struct Novika::Scissors
       last_prop = prop
 
       unless boundary
-        # Unless at grapheme boundary, simply skip the character
-        # we're looking at.
+        # Unless at grapheme boundary, simply (inclusion-) skip
+        # the character we're looking at.
         thru
         next
       end
 
       case it = chr
-      when .ascii_whitespace?
+      when .whitespace?
         # In Novika, whitespace acts as the primary separator between
         # forms. It is otherwise skipped.
-        yield start, length, @dot unless length.zero?
-        advance
-        cut
+        while chr.whitespace?
+          # Skip while there is whitespace. This resolves cases like
+          # '\r\n', where there are multiple whitespace characters that
+          # may or may not be captured by the machinery otherwise.
+          yield start, length, @dot unless length.zero?
+          advance
+          cut
+        end
       when '\'', '"'
         # Quotes and comments act like a separator, too, mainly because
         # they can contain other separators. Note that comments are not
