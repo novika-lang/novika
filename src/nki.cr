@@ -62,12 +62,12 @@ module Novika::Frontend::Nki
 
       if conts
         Novika::Engine.new(bundle) do |engine|
-          engine.conts = block.not_nil!
+          engine.conts = block
           engine.exhaust
         end
       else
-        block.not_nil!.parent = Block.new(bundle.bb)
-        Novika::Engine.exhaust!(block.not_nil!, bundle: bundle)
+        block.parent = Block.new(bundle.bb)
+        Novika::Engine.exhaust!(block, bundle: bundle)
       end
     rescue error : Novika::Error
       error.report(STDERR)

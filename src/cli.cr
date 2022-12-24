@@ -151,7 +151,7 @@ module Novika::Frontend::CLI
     # to be picked up implicitly; the price of ignoring it is
     # less than that of an explicitly specified app).
     if resolver.apps.size > 1
-      resolver.apps.reject! { |app| app.core }
+      resolver.apps.reject!(&.core)
     end
 
     # If still more than one, then we don't know what to do
@@ -170,7 +170,7 @@ module Novika::Frontend::CLI
       exit(1)
     end
 
-    engine = Engine.new(bundle) do |engine|
+    Engine.new(bundle) do |engine|
       # Important: wrap bundle block in another block! This is
       # required to make it possible to ignore bundle block in
       # Image emission, saving some time and space!

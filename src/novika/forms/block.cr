@@ -770,14 +770,14 @@ module Novika
 
       executed = exec_recursive(:to_s) do
         io << "["
-        unless !has_tape? || tape.empty?
+        if has_tape? && !tape.empty?
           (0...cursor).each { |index| io << " " << at(index) }
           unless cursor == count
             io << " |"
             (cursor...count).each { |index| io << " " << at(index) }
           end
         end
-        unless !has_dict? || dict.empty?
+        if has_dict? && !dict.empty?
           io << " ·"
           dict.each do |name, entry|
             io << " " << (entry.is_a?(OpenEntry) ? "@" : "$") << "{" << name << " :: "

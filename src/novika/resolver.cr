@@ -141,12 +141,12 @@ module Novika
     end
 
     # Returns whether *path* is an app directory (contains '.nk.app').
-    private def is_app?(path : Path)
+    private def app?(path : Path)
       File.file?(path / ".nk.app")
     end
 
     # Returns whether *path* is a 'core' directory.
-    private def is_core?(path : Path)
+    private def core?(path : Path)
       path.dirname == "core"
     end
 
@@ -176,11 +176,11 @@ module Novika
       end
 
       Dir.glob(root / "*/") do |path|
-        next if is_app?(path = Path[path])
+        next if app?(path = Path[path])
 
         # Disallow apps but allow core. This configuration
         # seems to work, but still smells weirdly!
-        load(store, path, app: false, core: is_core?(path))
+        load(store, path, app: false, core: core?(path))
       end
     end
 
@@ -207,7 +207,7 @@ module Novika
       # if there is 'core' there.
       #
       # This 'core' is allowed to be an app.
-      cwd_core.try { |dir| load(dir, core: true, app: is_app?(@cwd)) }
+      cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd)) }
 
       @runnables.each do |runnable|
         if @bundle.includes?(runnable)
@@ -225,7 +225,7 @@ module Novika
         end
 
         if File.directory?(path)
-          load(path, app: is_app?(path))
+          load(path, app: app?(path))
         elsif File.file?(path)
           files << path
         end
