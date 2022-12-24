@@ -8,6 +8,10 @@ authors:
 targets:
   novika:
     main: src/cli.cr
+  nkas:
+    main: src/nkas.cr
+  nki:
+    main: src/nki.cr
 
 dependencies:
   bindata:
