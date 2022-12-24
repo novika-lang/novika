@@ -9,6 +9,10 @@ targets:
   novika:
     main: src/cli.cr
 
+dependencies:
+  bindata:
+    github: spider-gazelle/bindata
+
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
