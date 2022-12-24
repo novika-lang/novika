@@ -8,7 +8,7 @@ needsFeature: console
  76 175  80 rgb $: OK_FG
 244  67  54 rgb $: ERR_FG
 
-[ dup empty? => [ drop 0 ^ ] product ] @: product?
+[ dup empty? => [ drop 0 ^ ] productBy: val ] @: productByVal?
 
 "The context object is used to store words accessible
  from within the prompt. It is an orphan so that no
@@ -56,7 +56,7 @@ needsFeature: console
           ──────────────────────────► ─┘
          after *, result becomes stack
     """
-    ahead reparent vals product? code
+    ahead reparent vals productByVal? code
   ] opens
 ] @: definfix
 
@@ -73,11 +73,11 @@ needsFeature: console
 
 orphan $: operators
 
-#+     _SUM [ $: y stack product? y +  ] operators context definfix
-#-     _SUM [ $: y stack product? y -  ] operators context definfix
-#*  _FACTOR [ $: y stack product? y *  ] operators context definfix
-#/  _FACTOR [ $: y stack product? y /  ] operators context definfix
-#**  _POWER [ $: y stack product? y ** ] operators context definfix
+#+     _SUM [ $: y stack productByVal? y +  ] operators context definfix
+#-     _SUM [ $: y stack productByVal? y -  ] operators context definfix
+#*  _FACTOR [ $: y stack productByVal? y *  ] operators context definfix
+#/  _FACTOR [ $: y stack productByVal? y /  ] operators context definfix
+#**  _POWER [ $: y stack productByVal? y ** ] operators context definfix
 
 
 [ $: document
@@ -213,7 +213,7 @@ orphan $: operators
 
     isAnswerRunnable? => [
       "If result block is empty, go back to 0 as the last result."
-      answerBlock  context reparent vals product? =: _lastOkResult
+      answerBlock  context reparent vals productByVal? =: _lastOkResult
       true =: isAnswerRunnable?
     ]
 
