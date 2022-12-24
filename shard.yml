@@ -18,8 +18,6 @@ dependencies:
     github: homonoidian/termbox2.cr
   bindata:
     github: spider-gazelle/bindata
-  brotli:
-    github: naqvis/brotli.cr
 
 development_dependencies:
   ameba:

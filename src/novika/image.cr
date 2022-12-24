@@ -1,6 +1,7 @@
 require "bindata"
-require "brotli"
 require "compress/gzip"
+
+require "../ext/brotli/src/brotli"
 
 module Novika
   # Holds the type of a snapshot.
