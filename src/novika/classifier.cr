@@ -11,7 +11,7 @@
 #
 # `Scissors` and `Classifier` are designed to work in
 # tandem. Separating one from the other is possible and will
-# work, but is not recommended unless you read the source
+# work, but is not recommended unless you have read the source
 # code of both.
 struct Novika::Classifier
   # Returns the source code byte pointer used by this classifier.
@@ -53,11 +53,7 @@ struct Novika::Classifier
   # bytes in size; wraps it in a string without any kind of
   # interpretation. Returns the resulting string.
   private def build_raw(start, count)
-    String.build do |io|
-      start.upto(start + count - 1) do |index|
-        io.write_byte(@bytes[index])
-      end
-    end
+    String.new(@bytes + start, count)
   end
 
   # Takes a byte slice starting at *start*, and of *count*
