@@ -1319,14 +1319,68 @@ describe 'sumBy' [
     24 assert=
   ]
 
-  it dies 'on next' [
+  it dies 'on break' [
     [ 1 2 3 ] [ break ] sumBy
   ]
 
-  it dies 'on break' [
+  it dies 'on next' [
     [ 1 2 3 ] [ next ] sumBy
   ]
 ]
+
+
+describe 'productBy' [
+  in lang
+
+  [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
+
+  it should 'leave 1 when list block is empty' [
+    [ ] [ ] productBy 1 assert=
+  ]
+
+  it should 'leave one numeric if one numeric in list block' [
+    [ 1 ] [ ] productBy 1 assert=
+    'foo' toAwesomeBlock enclose [ ] productBy 3 assert=
+  ]
+
+  it should 'multiply numerically if transform block is empty' [
+    [ 5 4 3 2 1 ] [ ] productBy 120 assert=
+  ]
+
+  it should 'die when transform block is empty but list block is non-numeric' [
+    [ [ 1 'foo' #barbee 3 ] [ ] sumBy ] 'bad type: quote, expected: a decimal' assertDies
+  ]
+
+  it should 'convert to numeric and leave numeric sum & have proper stack signature' [
+    [ ] $: stacks
+
+    [ 'foo' 'bar' 3 4 'x' ] [ stack shallowCopy stacks gulp dup quote? => [ count ] ] productBy
+
+    108 assert=
+
+    stacks [
+      [ 'foo' ]
+      [ 'bar' ]
+      [ 3 ]
+      [ 4 ]
+      [ 'x' ]
+    ] assert=
+  ]
+
+  it should 'support blocks implementing *asDecimal as results/multiplicands' [
+    'foobee' toAwesomeBlock $: myBestBlock
+
+    [ 'foo' 3 myBestBlock 4 'bar' 5 ] here [ dup quote? => [ toAwesomeBlock ] ] productBy
+
+    3240 assert=
+  ]
+
+  it should 'die when next/break is used' [
+    [ [ 1 2 3 ] [ next ] productBy ] 'definition for next not found in the enclosing block(s)' assertDies
+    [ [ 1 2 3 ] [ break ] productBy ] 'definition for break not found in the enclosing block(s)' assertDies
+  ]
+]
+
 
 describe 'collect' [
   in lang

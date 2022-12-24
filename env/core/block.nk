@@ -1131,14 +1131,16 @@
 ] @: sumBy:
 
 
-[ """( Lb Tb -- Product ): leaves Product of List block
-   elements transformed into decimals by Transformation
-   block. Similar to `sumBy`.
+[ """( Lb Tb -- P ): leaves Product of List block elements
+   transformed into decimals by Transformation block. Similar
+   to `sumBy`.
 
   ```
   [ 'dave' 'john' ] [ count ] productBy leaves: 16 \"4 * 4\"
   ```
   """
+  $: transformer
+
   [ enclose transformer there cherry * ] 1 reduce
 ] @: productBy
 
