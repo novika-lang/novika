@@ -2,15 +2,11 @@ version: 2.0
 shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 1.2.0
+    version: 1.3.1
 
   bindata:
     git: https://github.com/spider-gazelle/bindata.git
     version: 1.11.1
-
-  brotli:
-    git: https://github.com/naqvis/brotli.cr.git
-    version: 0.1.5
 
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
