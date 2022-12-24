@@ -276,7 +276,7 @@ module Novika
     # Returns the relevant death handler, or nil. Avoids
     # handlers whose prototype is *avoid_prototype*.
     #
-    # To find the relevant death handler, The continuations
+    # To find the relevant death handler, the continuations
     # block is inspected right-to-left (back-to-front); each
     # code block is then asked to retrieve `Word::DIED`
     # using `Block#at?`. Regardless of the result, the
@@ -288,7 +288,7 @@ module Novika
     #
     # If all continuations were exhausted and no `Word::DIED`
     # had been found, returns nil.
-    def dig_for_death_handler?(avoid_prototype = nil)
+    def drop_until_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
         entry = block.at?(Word::DIED)
         conts.drop
@@ -319,7 +319,7 @@ module Novika
             #
             # Avoid current block because that would case
             # infinite death loop.
-            unless handler = dig_for_death_handler?(avoid_prototype: block.prototype)
+            unless handler = drop_until_death_handler?(avoid_prototype: block.prototype)
               raise error
             end
 
