@@ -85,7 +85,7 @@ module Novika
 
     # Returns whether this bundle has the feature class with
     # the given *id* enabled.
-    def has_enabled?(id : String)
+    def has_feature_enabled?(id : String)
       @objects.has_key?(id)
     end
 
