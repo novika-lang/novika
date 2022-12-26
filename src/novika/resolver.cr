@@ -210,7 +210,7 @@ module Novika
       cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd)) }
 
       @runnables.each do |runnable|
-        if @bundle.includes?(runnable)
+        if @bundle.has_feature?(runnable)
           features << runnable
           next
         end

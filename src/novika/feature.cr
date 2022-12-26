@@ -91,7 +91,7 @@ module Novika
 
     # Returns whether this bundle includes a feature class
     # with the given *id*.
-    def includes?(id : String)
+    def has_feature?(id : String)
       @classes.has_key?(id)
     end
 

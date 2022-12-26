@@ -858,7 +858,7 @@ module Novika
       # Verify that all required features are enabled/can be
       # enabled (in this case enable them right away!).
       features.required.each do |fid|
-        unless bundle.includes?(fid.id)
+        unless bundle.has_feature?(fid.id)
           raise Novika::Error.new("image requires feature '#{fid.id}', but it isn't available")
         end
 
