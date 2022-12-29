@@ -733,29 +733,31 @@ module Novika::Features::Impl
       end
 
       target.at("entry:exists?", <<-END
-      ( D N -- true/false ): leaves whether Dictionary can fetch
-       value for Name.
+      ( S N -- true/false ): leaves whether Store (usually
+       a block) can fetch value for Name.
       END
       ) do |_, stack|
         name = stack.drop
-        block = stack.drop.a(Block)
-        Boolean[block.has?(name)].onto(stack)
+        store = stack.drop.a(IReadableStore)
+        Boolean[store.has_form_for?(name)].onto(stack)
       end
 
       target.at("entry:fetch", <<-END
-      ( B N -- F ): leaves the value Form under Name in Block's
-       dictionary. Does not open the value form.
+      ( S N -- F ): leaves the value Form with the given Name
+       in Store (usually a Block). Does not open the value form.
+       Dies if Store does not contain an entry for Name.
       END
       ) do |_, stack|
         name = stack.drop
-        block = stack.drop.a(Block)
-        block.at(name).onto(stack)
+        store = stack.drop.a(IReadableStore)
+        store.form_for(name).onto(stack)
       end
 
       target.at("entry:fetch?", <<-END
-      ( B N -- F true / false ): leaves the value Form under
-       Name in Block's dictionary followed by `true`, or `false`
-       if no such entry is in Block.
+      ( B N -- F true / false ): leaves the value Form with
+       the given Name in Store (usually a block) if an entry
+       for Name exists there, and/or a boolean indicating the
+       latter: `true` (exists), or `false` (does not exist).
 
       ```
       [ ] $: a
@@ -767,8 +769,8 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         name = stack.drop
-        block = stack.drop.a(Block)
-        if form = block.at?(name)
+        store = stack.drop.a(IReadableStore)
+        if form = store.form_for?(name)
           form.onto(stack)
         end
         Boolean[!!form].onto(stack)
@@ -790,13 +792,27 @@ module Novika::Features::Impl
       end
 
       target.at("entry:isOpenEntry?", <<-END
-      ( B N -- true/false ): leaves whether an entry called Name
-       in Block is an open entry.
+      ( S N -- true/false ): leaves whether an entry with the
+       given Name in Store (usually a block) is an open entry.
+       Dies if Store has no entry with the given Name.
       END
       ) do |_, stack|
         name = stack.drop
-        block = stack.drop.a(Block)
-        Boolean[block.at(name).is_a?(OpenEntry)].onto(stack)
+
+        # Entries don't really exist for a standard Novika user,
+        # that is, they do not manifest themselves other than
+        # through `entry:isOpenEntry?`.
+        #
+        # So even though allowing IReadableStore here is weird
+        # from the viewpoint of a Novika developer, it's not
+        # weird at all from that of a Novika user.
+        store = stack.drop.a(IReadableStore)
+
+        if block = store.as?(Block)
+          Boolean[block.at(name).is_a?(OpenEntry)].onto(stack)
+        else
+          Boolean[false].onto(stack)
+        end
       end
 
       target.at("shallowCopy", <<-END

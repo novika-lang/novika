@@ -147,4 +147,27 @@ module Novika
     # See the same method in `Form`.
     delegate :on_open, to: form
   end
+
+  # Implementors act like a form-to-form mapping where entry
+  # kind (opens/pushes) is ignored (basically, a read-only,
+  # restricted subset of block methods for dictionary access).
+  #
+  # Implementors can be targets of `entry:fetch`, `entry:fetch?`,
+  # `entry:exists?`, `entry:isOpenEntry?`.
+  module IReadableStore
+    def self.typedesc
+      "readable store"
+    end
+
+    # Returns whether this store has an entry with the given *name*.
+    abstract def has_form_for?(name : Form) : Bool
+
+    # Returns the value form for an entry with the given *name*, or
+    # nil if no such entry exists.
+    abstract def form_for?(name : Form) : Form?
+
+    # Returns the value form for an entry with the given *name*, or
+    # dies if no such entry exists.
+    abstract def form_for(name : Form) : Form
+  end
 end

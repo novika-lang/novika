@@ -21,6 +21,7 @@ module Novika
   # wants or needs to.
   class Block
     include Form
+    include IReadableStore
 
     # Maximum amount of forms to display in block string representation.
     MAX_COUNT_TO_S = 128
@@ -497,6 +498,18 @@ module Novika
     # :ditto:
     def each_neighbor(visited : BlockIdMap? = nil, &payload : Block -> T?) forall T
       each_neighbor(payload, visited)
+    end
+
+    def has_form_for?(name : Form) : Bool
+      has?(name)
+    end
+
+    def form_for?(name : Form) : Form?
+      at?(name).try &.form
+    end
+
+    def form_for(name : Form) : Form
+      at(name).form
     end
 
     # Returns the dictionary entry corresponding to *name*,

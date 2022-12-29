@@ -371,6 +371,10 @@ describe 'entry:open' [
   it dies 'when entry does not exist' [
     [ ] this #foo entry:open
   ]
+
+  it should 'expect a readable store' [
+    [ 1 . foobar ] 'bad type: decimal, expected: a readable store' assertDies
+  ]
 ]
 
 describe '.' [
