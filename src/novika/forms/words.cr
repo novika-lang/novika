@@ -2,12 +2,12 @@ class String
   # Returns whether this string starts with *prefix* but also
   # has other characters after it.
   def prefixed_by?(prefix : String) : Bool
-    size > prefix.size && starts_with?(prefix)
+    bytesize > prefix.bytesize && starts_with?(prefix)
   end
 
   # :ditto:
   def prefixed_by?(prefix : Char) : Bool
-    size > 1 && starts_with?(prefix)
+    bytesize > 1 && starts_with?(prefix)
   end
 end
 
