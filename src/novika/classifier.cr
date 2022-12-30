@@ -257,7 +257,10 @@ struct Novika::Classifier
   def classify(start, count)
     dot = nil
     start.upto(start + count - 1) do |index|
-      dot = index if @bytes[index] === '.'
+      if @bytes[index] === '.'
+        dot = index
+        break
+      end
     end
     classify(start, count, dot)
   end
