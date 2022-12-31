@@ -80,12 +80,12 @@ module Novika::Features::Impl
             entry = block.entry_for? Word.new(desc.id)
             if entry
               view[desc.id] = desc.type.from(entry.form)
-            elsif desc.type.is_a?(Novika::FFI::UntypedPointer) || desc.type.is_a?(Novika::FFI::StructReferenceType)
-              view[desc.id] = Novika::FFI::None.new
+            elsif desc.type.is_a?(Novika::FFI::UntypedPointer.class) || desc.type.is_a?(Novika::FFI::StructReferenceType)
+              view[desc.id] = Novika::FFI::UntypedPointer.none
             else
               block.die(
                 "block is missing field '#{desc.id}'. Note that none (C nullptr) \
-                 as default value is only supported on untyped pointers (`pointer`) \
+                 as default value is only supported for untyped pointers (`pointer`) \
                  and struct references (`&name`)")
             end
           end

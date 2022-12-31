@@ -172,7 +172,7 @@ module Novika::FFI
   def_decimal_type F32, Float32, float, to_f32
   def_decimal_type F64, Float64, double, to_f64
 
-  # Type-side and value-side representation of `{{cr_type}}`.
+  # Type-side and value-side representation of pointers.
   struct UntypedPointer
     include ForeignValue
     extend ForeignType
@@ -181,6 +181,14 @@ module Novika::FFI
 
     def initialize(decimal)
       @address = decimal.to_u64
+    end
+
+    def self.none
+      new(0)
+    end
+
+    def none?
+      @address.zero?
     end
 
     def to_form? : Form?
@@ -216,7 +224,13 @@ module Novika::FFI
     end
 
     def to_s(io)
-      io << "@" << @address
+      if none?
+        io << "(none)"
+      else
+        io << "("
+        @address.to_s(base: 16)
+        io << ")"
+      end
     end
 
     def self.to_s(io)
@@ -224,6 +238,10 @@ module Novika::FFI
     end
 
     def self.unbox(box : Void*) : ForeignValue
+      if box.null?
+        raise Error.new("attempt to unbox none (C nullptr)")
+      end
+
       UntypedPointer.new(box.as(UInt64*).value)
     end
 
@@ -236,47 +254,6 @@ module Novika::FFI
     end
 
     def_equals_and_hash @address
-  end
-
-  # Type-side and value-side representation of null pointer.
-  struct None
-    include ForeignValue
-    extend ForeignType
-
-    def box : Void*
-      Pointer(Void*).malloc(1, Pointer(Void).null).as(Void*)
-    end
-
-    def write_to!(base : Void*)
-      base.as(Void**).value = Pointer(Void).null
-    end
-
-    def to_form? : Form?
-      # This is a tricky one, subject to change. There is no nil type
-      # in Novika. The other variant here would be to raise, but that
-      # doesn't seem too nice.
-      Boolean[false]
-    end
-
-    def self.alloc : Void*
-      Pointer(Void).null
-    end
-
-    def to_s(io)
-      io << "(none)"
-    end
-
-    def self.to_s(io)
-      io << "none"
-    end
-
-    def self.unbox(box : Void*) : ForeignValue
-      None.new
-    end
-
-    def self.to_ffi_type : Crystal::FFI::Type
-      Crystal::FFI::Type.pointer
-    end
   end
 
   # Type-side and value-side representation of void. All value-side
@@ -375,7 +352,7 @@ module Novika::FFI
 
     def self.unbox(box : Void*) : ForeignValue
       handle = Pointer(UInt8).new(box.as(UInt64*).value)
-      handle.null? ? None.new : new(String.new(handle))
+      handle.null? ? UntypedPointer.none : new(String.new(handle))
     end
 
     def self.matches?(value : Cstr)
@@ -648,7 +625,7 @@ module Novika::FFI
 
     def unbox(box : Void*) : ForeignValue
       handle = Pointer(Void).new(box.as(UInt64*).value)
-      handle.null? ? None.new : view_for(handle)
+      handle.null? ? UntypedPointer.none : view_for(handle)
     end
 
     def to_ffi_type : Crystal::FFI::Type
@@ -659,8 +636,8 @@ module Novika::FFI
       @layout.same?(view.@layout)
     end
 
-    def matches?(none : None)
-      true
+    def matches?(pointer : UntypedPointer)
+      pointer.none?
     end
   end
 
@@ -681,7 +658,7 @@ module Novika::FFI
     end
 
     def unbox(box : Void*) : ForeignValue
-      box.null? ? None.new : view_for(box)
+      box.null? ? UntypedPointer.none : view_for(box)
     end
 
     def to_ffi_type : Crystal::FFI::Type

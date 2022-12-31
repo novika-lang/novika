@@ -171,7 +171,6 @@ module Novika
         when "i64"     then {false, typename, FFI::I64}
         when "f32"     then {false, typename, FFI::F32}
         when "f64"     then {false, typename, FFI::F64}
-        when "none"    then {false, typename, FFI::None}
         when "cstr"    then {false, typename, FFI::Cstr}
         when "nothing" then {false, typename, FFI::Nothing}
         when "pointer" then {false, typename, FFI::UntypedPointer}

@@ -874,12 +874,12 @@ describe 'Feature FFI' [
     lst.nxt.nxt.nxt.nxt.payload 4 assert=
     "none (nullptr) is represented with false in Novika FFI,
      since no other type maps to false (&/ true for that matter)"
-    lst.nxt.nxt.nxt.nxt.nxt false assert=
+    lst.nxt.nxt.nxt.nxt.nxt 0 assert=
 
     lst $: cur
     [ ] $: items
 
-    while: cur [
+    until: [ cur zero? ] [
       items cur.payload shove
       cur.nxt =: cur
     ]
@@ -1115,5 +1115,28 @@ describe 'Feature FFI' [
     obj point ffi:buildStruct~ $: pt_inl
 
     pt_inl ffi:viewLayout point assert=
+  ]
+
+  it should 'allow to write/read none to structs' [
+    [ foo pointer ] ffi:createLayout $: struct
+
+    "note how we are not setting foo here:"
+    [ ] struct ffi:buildStruct& $: struct1_ref
+    [ ] struct ffi:buildStruct~ $: struct1_inl
+
+    struct1_ref.foo 0 assert=
+    struct1_inl.foo 0 assert=
+
+    [ 0 #pointer ffi:unbox ] 'attempt to unbox none (C nullptr)' assertDies
+
+    [ 1234 $: foo ] struct ffi:buildStruct& $: struct2_ref
+    [ 5678 $: foo ] struct ffi:buildStruct~ $: struct2_inl
+
+    struct2_ref #foo 0 entry:submit
+    struct2_inl #foo 0 entry:submit
+
+    struct2_ref.foo 0 assert=
+    struct2_inl.foo 0 assert=
+
   ]
 ]
