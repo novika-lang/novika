@@ -222,7 +222,7 @@ module Novika
     # Schedules *form* for opening in *stack*.
     #
     # Same as `schedule(form, stack)`.
-    def schedule!(form : Builtin | QuotedWord, stack)
+    def schedule!(form : Builtin | QuotedWord | Library | ForeignFunction | Hole, stack)
       unless stack.same?(self.stack)
         # Schedule a fictious entry. Note how we do *not* set
         # the cursor to 0. This handles two things:

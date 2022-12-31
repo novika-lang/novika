@@ -59,6 +59,18 @@ module Novika
     # runnables, as per this resolver.
     getter folders = [] of Folder
 
+    # Holds platform-specific, `dlopen`-able shared objects
+    # (.so in Linux, .dll and .lib in Windows), later consumed
+    # by the library machinery.
+    #
+    # Note that we don't actually check whether they *are* shared
+    # objects or are simply files with an so (dll, lib) file
+    # extension.
+    #
+    # Mostly for safety, shared objects are not loaded automatically.
+    # You need to list them by hand in the initial runnable list.
+    getter shared_objects = [] of Path
+
     # Holds feature ids identified in the initial list of
     # runnables by this resolver.
     #
@@ -150,6 +162,17 @@ module Novika
       path.dirname == "core"
     end
 
+    # Returns whether *path* is a system-specific shared object.
+    private def shared_object?(path : Path)
+      {% if flag?(:windows) %}
+        path.extension.in?(".dll", ".lib")
+      {% elsif flag?(:unix) %}
+        path.extension == ".so"
+      {% else %}
+        false
+      {% end %}
+    end
+
     # Recursively visits directories starting at, and
     # including, *root*, and creates `Folder`s for their
     # corresponding paths.
@@ -226,9 +249,20 @@ module Novika
 
         if File.directory?(path)
           load(path, app: app?(path))
-        elsif File.file?(path)
-          files << path
+          next
         end
+
+        unless File.file?(path)
+          unknowns << runnable
+          next
+        end
+
+        if shared_object?(path)
+          shared_objects << path
+          next
+        end
+
+        files << path
       end
 
       # Move apps from folders to the dedicated apps array.

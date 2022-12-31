@@ -75,6 +75,7 @@ module Novika
       @bb = Block.new(parent)
       @classes = {} of String => IFeatureClass
       @objects = {} of String => Feature
+      @libraries = {} of String => Library
     end
 
     # Returns an array of feature classes that are enabled
@@ -93,6 +94,12 @@ module Novika
     # with the given *id*.
     def has_feature?(id : String)
       @classes.has_key?(id)
+    end
+
+    # Returns whether this bundle includes a library with
+    # the given *id*.
+    def has_library?(id : String)
+      @libraries.has_key?(id)
     end
 
     # Enables a feature class with the given *id*.
@@ -147,6 +154,12 @@ module Novika
       @objects[feature.id]?.try &.as(T)
     end
 
+    # Returns the library with the given *id*. Returns nil if there
+    # is no such library in this bundle.
+    def get_library?(id : String)
+      @libraries[id]?
+    end
+
     # Yields the feature instance of the given *feature* class
     # to the block, if one can be found in this bundle.
     #
@@ -160,6 +173,12 @@ module Novika
     # Adds a feature class to this bundle.
     def <<(feature : IFeatureClass)
       @classes[feature.id] = feature
+    end
+
+    # Adds a *library* to this bundle. Overwrites any previous
+    # library with the same id.
+    def <<(library : Library)
+      @libraries[library.id] = library
     end
 
     # Creates a bundle, and adds features that are on by

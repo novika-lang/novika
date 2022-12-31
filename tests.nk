@@ -4,3 +4,10 @@ This file runs novika lang[uage] tests.
 """
 
 runTestsInGroup: lang "Leaves success/failure boolean." not => [ 1 bye ]
+
+"do this 100 times to ensure no memory related (per-chance) bugs happen
+ TODO: remove this or do this in a nicer way"
+100 times:  [
+'/100' ~ echo
+runTestsInGroup: ffi-tests "Leaves success/failure boolean." not => [ 1 bye ]
+]

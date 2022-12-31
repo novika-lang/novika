@@ -165,9 +165,31 @@ module Novika::Frontend::CLI
     # to do with them either.
     unless resolver.unknowns.empty?
       resolver.unknowns.each do |arg|
-        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or feature")
+        Frontend.errln(
+          "could not resolve runnable #{arg.colorize.bold}: it's not a file, \
+           directory, shared object, Novika app, or feature ID")
       end
       exit(1)
+    end
+
+    # Create a library for each shared object, and put it in
+    # the bundle.
+    #
+    # For each shared object, a library ID is made by taking the stem
+    # of path to the object and stripping it of the lib prefix, if it
+    # has one. For example, given `/lib/libmath.so` or `/lib/math.so`,
+    # the library ID would be `math` in both cases.
+    #
+    # Err if a library with the same id exists already.
+    resolver.shared_objects.each do |shared_object|
+      id = shared_object.stem.lstrip("lib")
+
+      if bundle.has_library?(id)
+        Frontend.errln("multiple libraries with the same id: #{id}")
+        exit(1)
+      end
+
+      bundle << Library.new(id, shared_object)
     end
 
     Engine.new(bundle) do |engine|

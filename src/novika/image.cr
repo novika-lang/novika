@@ -250,7 +250,7 @@ module Novika
     string :id
 
     def to_form(assembler)
-      assembler.bb.at(Novika::Word.new(id)).form
+      assembler.bb.form_for(Novika::Word.new(id))
     end
 
     def self.new(form : Builtin)
