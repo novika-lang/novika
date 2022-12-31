@@ -161,18 +161,19 @@ module Novika
 
       types = types.map do |typename|
         case typename.id
-        when "u8"      then {false, typename, FFI::U8}
-        when "u16"     then {false, typename, FFI::U16}
-        when "u32"     then {false, typename, FFI::U32}
-        when "u64"     then {false, typename, FFI::U64}
-        when "i8"      then {false, typename, FFI::I8}
-        when "i16"     then {false, typename, FFI::I16}
-        when "i32"     then {false, typename, FFI::I32}
-        when "i64"     then {false, typename, FFI::I64}
-        when "f32"     then {false, typename, FFI::F32}
-        when "f64"     then {false, typename, FFI::F64}
-        when "cstr"    then {false, typename, FFI::Cstr}
-        when "nothing" then {false, typename, FFI::Nothing}
+        when "u8"   then {false, typename, FFI::U8}
+        when "u16"  then {false, typename, FFI::U16}
+        when "u32"  then {false, typename, FFI::U32}
+        when "u64"  then {false, typename, FFI::U64}
+        when "i8"   then {false, typename, FFI::I8}
+        when "i16"  then {false, typename, FFI::I16}
+        when "i32"  then {false, typename, FFI::I32}
+        when "i64"  then {false, typename, FFI::I64}
+        when "f32"  then {false, typename, FFI::F32}
+        when "f64"  then {false, typename, FFI::F64}
+        when "cstr" then {false, typename, FFI::Cstr}
+        when "nothing"
+          typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
         when "pointer" then {false, typename, FFI::UntypedPointer}
         else
           unless (inline = typename.id.prefixed_by?('~')) || typename.id.prefixed_by?('&')
@@ -300,7 +301,7 @@ module Novika
 
         argtypes = argforms.map do |argform|
           FFI::ForeignType
-            .parse(this, argform)
+            .parse(this, argform, allow_nothing: false)
             .as(FFI::ForeignType)
         end
 

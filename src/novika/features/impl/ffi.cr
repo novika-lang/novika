@@ -106,7 +106,7 @@ module Novika::Features::Impl
         case typename
         in Hole then type = Novika::FFI::UntypedPointer.new(typename.address)
         in Word
-          type = Novika::FFI::ForeignType.parse(engine.block, typename)
+          type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
         end
         Hole.new(type).onto(stack)
       end
@@ -114,12 +114,7 @@ module Novika::Features::Impl
       target.at("ffi:box") do |engine, stack|
         typename = stack.drop.a(Word)
         form = stack.drop
-        type = Novika::FFI::ForeignType.parse(engine.block, typename)
-
-        if type.is_a?(Novika::FFI::Nothing.class)
-          typename.die("nothing is not a value, it cannot be boxed. If you wanted to box untyped pointer, try using `pointer`")
-        end
-
+        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
         pointer = type.from(form).box
 
         Decimal.new(pointer.address).onto(stack)
@@ -128,11 +123,7 @@ module Novika::Features::Impl
       target.at("ffi:unbox") do |engine, stack|
         typename = stack.drop.a(Word)
         pointer = stack.drop.a(Decimal)
-        type = Novika::FFI::ForeignType.parse(engine.block, typename)
-
-        if type.is_a?(Novika::FFI::Nothing.class)
-          typename.die("nothing is not a value, it cannot be unboxed. If you wanted to unbox untyped pointer, try using `pointer`")
-        end
+        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
 
         # TODO: document how unsafe this method is!
 

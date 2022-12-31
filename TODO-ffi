@@ -20,6 +20,7 @@ DONE
   [+] cast untyped pointer to primitive type/cstr
   [+] set field in inline/ref struct using entry:submit
   [+] testing
+    [+] nothing as value is impossible?
     [+] none: working with pointers & nullptrs
       [+] write none to inline struct
       [+] write none to struct ref
@@ -60,7 +61,6 @@ TODO:
 
   [-] variadic functions
   [-] testing
-    [-] nothing as value is impossible?
     [-] safety of allocateStruct&, allocateStruct~, createHole
     [-] typechecking/typename parsing test
       [-] single &

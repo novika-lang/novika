@@ -51,20 +51,22 @@ module Novika::FFI
     # Returns foreign type corresponding to *typename*.
     #
     # Dies if there is no such type.
-    def self.parse(this : Block, typename : Word) : ForeignType
+    def self.parse(this : Block, typename : Word, allow_nothing = true) : ForeignType
       case typename.id
-      when "u8"      then U8
-      when "u16"     then U16
-      when "u32"     then U32
-      when "u64"     then U64
-      when "i8"      then I8
-      when "i16"     then I16
-      when "i32"     then I32
-      when "i64"     then I64
-      when "f32"     then F32
-      when "f64"     then F64
-      when "cstr"    then Cstr
-      when "nothing" then Nothing
+      when "u8"   then U8
+      when "u16"  then U16
+      when "u32"  then U32
+      when "u64"  then U64
+      when "i8"   then I8
+      when "i16"  then I16
+      when "i32"  then I32
+      when "i64"  then I64
+      when "f32"  then F32
+      when "f64"  then F64
+      when "cstr" then Cstr
+      when "nothing"
+        return Nothing if allow_nothing
+        typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
       when "pointer" then UntypedPointer
       else
         unless (inline = typename.id.prefixed_by?('~')) || typename.id.prefixed_by?('&')

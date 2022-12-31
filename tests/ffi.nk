@@ -608,7 +608,7 @@ describe 'Feature FFI' [
     s.k #f64 ffi:unbox 32.12345678912346 assert=
     s.l #pointer ffi:unbox s.a assert=
 
-    [ s.a #nothing ffi:unbox ] 'nothing is not a value, it cannot be unboxed. If you wanted to unbox untyped pointer, try using `pointer`' assertDies
+    [ s.a #nothing ffi:unbox ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
   ]
 
   it should 'allow to deref pointer to cstr type' [
@@ -691,7 +691,7 @@ describe 'Feature FFI' [
     32.123456789123456789 #f64 ffi:box
       #f64 ffi:unbox 32.12345678912346 assert=
 
-    [ 1234 #nothing ffi:box ] 'nothing is not a value, it cannot be boxed. If you wanted to box untyped pointer, try using `pointer`' assertDies
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
   ]
 
   it should 'allow to box cstr' [
@@ -1138,5 +1138,14 @@ describe 'Feature FFI' [
     struct2_ref.foo 0 assert=
     struct2_inl.foo 0 assert=
 
+  ]
+
+  it should 'forbid nothing as value' [
+    'ffi-test' ffi:getLibrary @: lib
+    [ [ foo nothing ] ffi:createLayout "force layout creation->" toQuote ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:unbox ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ #nothing ffi:hole ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ [ [ dummy nothing -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
   ]
 ]
