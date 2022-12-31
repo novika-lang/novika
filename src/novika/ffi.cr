@@ -86,11 +86,6 @@ module Novika::FFI
       end
     end
 
-    # :ditto:
-    def self.parse(this : Block, form) : ForeignType
-      raise Error.new("could not parse foreign type: #{form}")
-    end
-
     # Returns whether this type corresponds to the given *value*.
     def matches?(value : ForeignValue) : Bool
       false
@@ -207,7 +202,7 @@ module Novika::FFI
 
     def self.from(form : StructViewForm)
       unless view = form.view.as?(StructReferenceView)
-        raise Error.new("cannot take pointer of struct view that is not a reference struct view")
+        raise Error.new("cannot implicitly take pointer of struct view that is not a reference struct view")
       end
 
       new(view.address)
@@ -265,18 +260,18 @@ module Novika::FFI
     extend ForeignType
 
     def box : Void*
-      raise Error.new("'nothing' cannot be boxed")
+      raise "BUG: nothing cannot be boxed"
     end
 
     def write_to!(base : Void*)
-      raise Error.new("'nothing' cannot be written")
+      raise "BUG: nothing cannot be written"
     end
 
     def to_form? : Form?
     end
 
     def self.alloc : Void*
-      raise Error.new("'nothing' cannot be allocated")
+      raise "BUG: nothing cannot be allocated"
     end
 
     def to_s(io)
@@ -507,7 +502,7 @@ module Novika::FFI
     # Returns the index of a field with the given *id*. Dies if
     # there is no such field.
     def index(id : String)
-      index?(id) || raise Error.new("no such field in struct layout: #{id}")
+      index?(id) || raise "BUG: no such field in struct layout: #{id}"
     end
 
     # Returns field description given the field's *index*inal.
@@ -641,6 +636,11 @@ module Novika::FFI
     def matches?(pointer : UntypedPointer)
       pointer.none?
     end
+
+    def to_s(io)
+      io << "&"
+      super
+    end
   end
 
   # *Type-side* representation of an inline struct, e.g. one returned
@@ -669,6 +669,11 @@ module Novika::FFI
 
     def matches?(view : InlineStructView) : Bool
       @layout.same?(view.@layout)
+    end
+
+    def to_s(io)
+      io << "~"
+      super
     end
   end
 
@@ -836,7 +841,7 @@ module Novika::FFI
     # Calls this function with the given arguments. Returns the
     # resulting value (or `Nothing` in case of `void`).
     def call(args : Array(ForeignValue)) : ForeignValue
-      raise Error.new("argument count mismatch") unless args.size == argtypes.size
+      raise "BUG: argument count mismatch" unless args.size == argtypes.size
 
       # Make sure arguments are of the correct type.
       argtypes.zip(args) { |argtype, arg| arg.must_be_of(argtype) }

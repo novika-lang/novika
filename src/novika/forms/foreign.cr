@@ -279,11 +279,7 @@ module Novika
         half = argforms
 
         (1...fdecl.count).each do |index|
-          form = fdecl.at(index)
-
-          unless form.is_a?(Word)
-            form.die("expected type in function declaration to be a word")
-          end
+          form = fdecl.at(index).a(Word)
 
           if form.id == "--"
             half = retforms

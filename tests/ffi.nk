@@ -35,6 +35,8 @@ describe 'Feature FFI' [
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
+    [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a word' assertDies
+    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
   ]
 
@@ -50,6 +52,10 @@ describe 'Feature FFI' [
 
     [ x y ] ffi:createLayout $: wrong "wrong but runs to allow fdecl"
     [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean `~y` (inline struct) or `&y` (reference to struct)?' assertDies
+
+    123 $: foobar
+    [ [ x ~foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
+    [ [ x &foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
   ]
 
   it should 'primitive -> C int/float -> C args/inline struct -> inline struct -> primitive' [
@@ -780,7 +786,7 @@ describe 'Feature FFI' [
       [ get_self_ref_s_over &self_ref_s -- &self_ref_s ]
     ] lib
 
-    self_ref_s toQuote '⟪payload=i32, self=[reflection]⟫' assert=
+    self_ref_s toQuote '⟪payload=i32, self=&[reflection]⟫' assert=
 
     get_self_ref_s $: self-ref
     self-ref.payload 1234 assert=
@@ -1148,4 +1154,66 @@ describe 'Feature FFI' [
     [ #nothing ffi:hole ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
     [ [ [ dummy nothing -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
   ]
+
+  it should 'catch invalid struct typenames' [
+    "Argument typename:"
+    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean `~&` (inline struct) or `&&` (reference to struct)?' assertDies
+    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean `~~` (inline struct) or `&~` (reference to struct)?' assertDies
+
+    "Struct layout typename:"
+    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~&` (inline struct) or `&&` (reference to struct)?' assertDies
+    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~~` (inline struct) or `&~` (reference to struct)?' assertDies
+  ]
+
+  it should 'typecheck function args' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: point
+
+    [
+      [ Point_New f32 f32 -- &point ]
+      [ Point_Inl f32 f32 -- ~point ]
+      [ Point_Subtract &point &point -- &point ]
+    ] lib
+
+    [ 'foo' 34 Point_New ] 'could not convert \'foo\' to foreign type f32' assertDies
+    [ 34 'foo' Point_New ] 'could not convert \'foo\' to foreign type f32' assertDies
+
+    12 34 Point_New $: x
+    56 78 Point_Inl $: y
+
+    [ 123 y Point_Subtract ] 'could not convert 123 to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ x 456 Point_Subtract ] 'could not convert 456 to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ 'foo' y Point_Subtract ] 'could not convert \'foo\' to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ x 'foo' Point_Subtract ] 'could not convert \'foo\' to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ x y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+    [ y x Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+  ]
+
+  it should 'die when implicitly taking a pointer of non-reference struct view' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [
+      [ Point_Subtract pointer pointer -- &point ]
+    ] lib
+
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct& $: ref1
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct& $: ref2
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct~ $: inl
+
+    ref1 ref2 Point_Subtract -> [x y] [0 0] assert=
+    [ inl ref2 Point_Subtract ] 'cannot implicitly take pointer of struct view that is not a reference struct view' assertDies
+    [ ref1 inl Point_Subtract ] 'cannot implicitly take pointer of struct view that is not a reference struct view' assertDies
+  ]
+
+   it should 'die if missing field when doing buildStruct' [
+    [ foo i32 ] ffi:createLayout $: layout
+    [ [ ] layout ffi:buildStruct& ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
+    [ [ ] layout ffi:buildStruct~ ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
+   ]
 ]

@@ -19,6 +19,7 @@ DONE
   [+] get layout of structview
   [+] cast untyped pointer to primitive type/cstr
   [+] set field in inline/ref struct using entry:submit
+  [+] PR
   [+] testing
     [+] nothing as value is impossible?
     [+] none: working with pointers & nullptrs
@@ -47,6 +48,12 @@ DONE
     [+] flat inline/ref struct
     [+] output into struct
     [+] string
+    [+] test raise/.die()s hits and error messages
+    [+] typechecking/typename parsing test
+      [+] single &
+      [+] single ~
+      [+] fn: wrong argument type
+      [+] wrong struct type
     [+] struct layout equality
       [+] flat equality
       [+] nested equality
@@ -61,20 +68,9 @@ TODO:
 
   [-] variadic functions
   [-] testing
-    [-] safety of allocateStruct&, allocateStruct~, createHole
-    [-] typechecking/typename parsing test
-      [-] single &
-      [-] single ~
-      [-] fn: wrong argument type
-      [-] fn: wrong argument count
-      [-] wrong struct type
-      [-] use of nothing in arguments
-      [-] nothing hole dereference
-    [-] test raise/.die()s hits and error messages
     [-] variadic functions 0 arg } sum example from crystal ffi test
     [-] variadic functions 1 arg }
     [-] variadic functions n arg }
-  [-] PR
   [-] serialization
   [-] compile tests using nkas and run with nki
   [-] efficiency evaluation
