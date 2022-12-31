@@ -166,8 +166,36 @@ module Novika
     # nil if no such entry exists.
     abstract def form_for?(name : Form) : Form?
 
+    # Returns whether *name* opens its value form, as defined in
+    # this block. Returns false if *name* is not defined in the
+    # this block.
+    abstract def opens?(name : Form)
+
+    # Returns whether *name* pushes its value form, as defined in
+    # this block. Returns false if *name* is not defined in the
+    # this block.
+    abstract def pushes?(name : Form)
+
     # Returns the value form for an entry with the given *name*, or
     # dies if no such entry exists.
-    abstract def form_for(name : Form) : Form
+    def form_for(name : Form) : Form
+      form_for?(name) || name.die("no value form for '#{name}'")
+    end
+  end
+
+  module ISubmittableStore
+    def self.typedesc
+      "submittable store"
+    end
+
+    # Submits value *form* to an entry with the given *name*.
+    # Returns nil if no such entry exists.
+    abstract def submit?(name : Form, form : Form)
+
+    # Submits value *form* to an entry with the given *name*.
+    # Dies if no such entry exists.
+    def submit(name : Form, form : Form)
+      submit?(name, form) || name.die("no entry to submit to")
+    end
   end
 end

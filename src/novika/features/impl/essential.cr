@@ -725,11 +725,8 @@ module Novika::Features::Impl
       ) do |_, stack|
         form = stack.drop
         name = stack.drop
-        block = stack.drop.a(Block)
-        unless entry = block.at?(name)
-          name.die("entry:submit: entry does not exist in enclosing block(s)")
-        end
-        entry.submit(form)
+        submittable = stack.drop.a(ISubmittableStore)
+        submittable.submit(name, form)
       end
 
       target.at("entry:exists?", <<-END
@@ -798,21 +795,8 @@ module Novika::Features::Impl
       END
       ) do |_, stack|
         name = stack.drop
-
-        # Entries don't really exist for a standard Novika user,
-        # that is, they do not manifest themselves other than
-        # through `entry:isOpenEntry?`.
-        #
-        # So even though allowing IReadableStore here is weird
-        # from the viewpoint of a Novika developer, it's not
-        # weird at all from that of a Novika user.
         store = stack.drop.a(IReadableStore)
-
-        if block = store.as?(Block)
-          Boolean[block.at(name).is_a?(OpenEntry)].onto(stack)
-        else
-          Boolean[false].onto(stack)
-        end
+        Boolean[store.opens?(name)].onto(stack)
       end
 
       target.at("shallowCopy", <<-END
@@ -1419,7 +1403,7 @@ module Novika::Features::Impl
       a.x echo
       "STDOUT: 100⏎"
       a.y echo
-      "Sorry: undefined dictionary property: y."
+      "Sorry: no value form found for 'y'."
       ```
       END
       ) do |_, stack|
@@ -1445,7 +1429,7 @@ module Novika::Features::Impl
       a friends count echo
       "STDOUT: 0⏎"
       a.y echo
-      "Sorry: undefined dictionary property: y."
+      "Sorry: no value form found for 'y'."
       ```
       END
       ) do |_, stack|
@@ -1483,7 +1467,7 @@ module Novika::Features::Impl
 
       b toOrphan leaves: [ [ ] ]
       . x
-      "Sorry: undefined dictionary property: x.""
+      "Sorry: no value form found for 'x'""
       ```
       END
       ) do |_, stack|

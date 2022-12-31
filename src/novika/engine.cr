@@ -290,7 +290,7 @@ module Novika
     # had been found, returns nil.
     def drop_until_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
-        entry = block.at?(Word::DIED)
+        entry = block.entry_for?(Word::DIED)
         conts.drop
 
         next unless entry

@@ -22,6 +22,7 @@ module Novika
   class Block
     include Form
     include IReadableStore
+    include ISubmittableStore
 
     # Maximum amount of forms to display in block string representation.
     MAX_COUNT_TO_S = 128
@@ -500,36 +501,31 @@ module Novika
       each_neighbor(payload, visited)
     end
 
+    # Returns the dictionary entry for *name*, or nil. See
+    # `each_relative` for a detailed description of lookup
+    # order etc.
+    def entry_for?(name : Form) : Entry?
+      each_relative &.flat_at?(name)
+    end
+
     def has_form_for?(name : Form) : Bool
-      has?(name)
+      !!each_relative { |block| block.flat_has?(name) || nil }
     end
 
     def form_for?(name : Form) : Form?
-      at?(name).try &.form
+      entry_for?(name).try &.form
     end
 
-    def form_for(name : Form) : Form
-      at(name).form
+    def submit?(name : Form, form : Form)
+      entry_for?(name).try &.submit(form)
     end
 
-    # Returns the dictionary entry corresponding to *name*,
-    # or dies. See `each_relative` for a detailed description
-    # of lookup order.
-    def at(name : Form, skip = nil) : Entry
-      at?(name, skip) || die("undefined dictionary property: #{name}")
+    def opens?(name : Form)
+      entry_for?(name).is_a?(OpenEntry)
     end
 
-    # Returns the dictionary entry corresponding to *name*,
-    # or nil. See `each_relative` for a detailed description
-    # of lookup order.
-    def at?(name : Form, skip = nil) : Entry?
-      each_relative skip, &.flat_at?(name)
-    end
-
-    # Returns whether this block can look up an entry corresponding
-    # to *name*.
-    def has?(name : Form, skip = nil)
-      !!each_relative(skip) { |block| block.flat_has?(name) || nil }
+    def pushes?(name : Form)
+      !!entry_for?(name).try { |entry| !entry.is_a?(OpenEntry) }
     end
 
     # Returns the dictionary entry corresponding to *name*.

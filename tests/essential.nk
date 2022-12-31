@@ -77,7 +77,7 @@ describe 'toOrphan' [
     [ ] $: b
     b . x 0 assert=
     b toOrphan
-    [ b . x ] 'undefined dictionary property: x' assertDies
+    [ b . x ] 'no value form for \'x\'' assertDies
   ]
 ]
 

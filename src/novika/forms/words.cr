@@ -42,7 +42,7 @@ module Novika
     end
 
     def on_parent_open(engine : Engine) : self
-      if entry = engine.block.at?(self)
+      if entry = engine.block.entry_for?(self)
         # An entry exists for this word in the current block
         # or in its parents.
         entry.on_open(engine)
@@ -51,7 +51,7 @@ module Novika
 
       block = current = engine.block
 
-      while block && (trap = block.at?(TRAP))
+      while block && (trap = block.entry_for?(TRAP))
         # A trap entry exists for this word in *block*. Traps are
         # inherited as opposed to conversion words like *asDecimal.
         form = trap.form

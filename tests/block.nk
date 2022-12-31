@@ -338,11 +338,11 @@ describe '->' [
 
     point -> [ ] [ ] assert=
     point -> [ x ] [ 100 ] assert=
-    [ point -> [ z ] ] 'undefined dictionary property: z' assertDies
+    [ point -> [ z ] ] 'no value form for \'z\'' assertDies
 
     point -> [ x y ] [ 100 200 ] assert=
     point -> [ [ [ x ] ] [ y ] ] [ [ [ 100 ] ] [ 200 ] ] assert=
-    [ point -> [ 100 x ] ] 'undefined dictionary property: 100' assertDies
+    [ point -> [ 100 x ] ] 'no value form for \'100\'' assertDies
   ]
 
   it dies 'when entry does not exist' [
