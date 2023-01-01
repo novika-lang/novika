@@ -30,6 +30,11 @@ needsFeature: console
   asDecimal $: prec
   asWord $: name
 
+  "Operators block is used to store operators *only*."
+  operators name this pushes
+
+  "Context block is used to store all words accessible from inside
+   the REPL, including operators."
   context name [
     "Put cursor before a looser operator (or, if none, at
      block end)."
