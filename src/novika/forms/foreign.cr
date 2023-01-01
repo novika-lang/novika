@@ -151,25 +151,26 @@ module Novika
 
       types = types.map do |typename|
         case typename.id
-        when "u8"   then {false, typename, FFI::U8}
-        when "u16"  then {false, typename, FFI::U16}
-        when "u32"  then {false, typename, FFI::U32}
-        when "u64"  then {false, typename, FFI::U64}
-        when "i8"   then {false, typename, FFI::I8}
-        when "i16"  then {false, typename, FFI::I16}
-        when "i32"  then {false, typename, FFI::I32}
-        when "i64"  then {false, typename, FFI::I64}
-        when "f32"  then {false, typename, FFI::F32}
-        when "f64"  then {false, typename, FFI::F64}
-        when "cstr" then {false, typename, FFI::Cstr}
+        when "u8"   then {false, false, typename, FFI::U8}
+        when "u16"  then {false, false, typename, FFI::U16}
+        when "u32"  then {false, false, typename, FFI::U32}
+        when "u64"  then {false, false, typename, FFI::U64}
+        when "i8"   then {false, false, typename, FFI::I8}
+        when "i16"  then {false, false, typename, FFI::I16}
+        when "i32"  then {false, false, typename, FFI::I32}
+        when "i64"  then {false, false, typename, FFI::I64}
+        when "f32"  then {false, false, typename, FFI::F32}
+        when "f64"  then {false, false, typename, FFI::F64}
+        when "cstr" then {false, false, typename, FFI::Cstr}
         when "nothing"
           typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
-        when "pointer" then {false, typename, FFI::UntypedPointer}
+        when "pointer" then {false, false, typename, FFI::UntypedPointer}
         else
-          unless (inline = typename.id.prefixed_by?('~')) || typename.id.prefixed_by?('&')
+          unless (inline = typename.id.prefixed_by?('~')) || (union_ = typename.id.prefixed_by?('?')) || typename.id.prefixed_by?('&')
             typename.die(
               "could not recognize foreign type. Did you mean `~#{typename}` \
-               (inline struct) or `&#{typename}` (reference to struct)?")
+               (inline struct), `&#{typename}` (reference to struct), or \
+               `?#{typename}` (union)?")
           end
 
           typename = Word.new(typename.id.lchop)
@@ -179,19 +180,25 @@ module Novika
           end
           form = form.as(StructLayoutForm)
 
-          {inline, typename, form}
+          {inline, union_, typename, form}
         end
       end
 
-      names.zip(types) do |name, (inline, typename, type)|
+      names.zip(types) do |name, (inline, union_, typename, type)|
         if type.is_a?(StructLayoutForm)
           parent_object_ids ||= Set(UInt64).new
           parent_object_ids << object_id
-          if inline && parent_object_ids && type.object_id.in?(parent_object_ids)
-            typename.die("inline struct cycle detected: consider using struct reference (#{name} ~#{typename})")
+          if (inline || union_) && parent_object_ids && type.object_id.in?(parent_object_ids)
+            typename.die("inline struct cycle detected: consider using reference type (pointer or &#{name}) for '#{name}'")
           end
           l = type.layout(parent_object_ids)
-          ffi_type = inline ? l.inline : l.reference
+          if inline
+            ffi_type = l.inline
+          elsif union_
+            ffi_type = l.union
+          else
+            ffi_type = l.reference
+          end
         else
           ffi_type = type
         end

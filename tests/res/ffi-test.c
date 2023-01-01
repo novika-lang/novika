@@ -658,3 +658,28 @@ EXPORT float scaled_sum_structs_variadic(uint32_t n, uint8_t isinl, float scale,
 
   return sum;
 }
+
+typedef union test
+{
+  void *addr;
+  char *str;
+} TestU;
+
+EXPORT TestU Get_Union_Inl_Str()
+{
+  TestU u;
+  u.str = "hello world";
+  return u;
+}
+
+EXPORT TestU *Get_Union_Ref_Str(char *s)
+{
+  TestU *u = malloc(sizeof(TestU));
+  u->addr = s;
+  return u;
+}
+
+EXPORT char *Get_Str_From_TestU(TestU u)
+{
+  return u.str;
+}

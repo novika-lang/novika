@@ -101,6 +101,40 @@ module Novika::Features::Impl
         end
       {% end %}
 
+      target.at("ffi:allocateUnion") do |_, stack|
+        form = stack.drop.a(StructLayoutForm)
+        view = form.layout.union.make!
+        StructViewForm.new(view).onto(stack)
+      end
+
+      target.at("ffi:buildUnion") do |_, stack|
+        form = stack.drop.a(StructLayoutForm)
+        block = stack.drop.a(Block)
+        layout = form.layout
+        view = layout.union.make!
+        had_entry = false
+        layout.each_desc_with_index do |desc|
+          entry = block.entry_for? Word.new(desc.id)
+          if entry
+            view[desc.id] = desc.type.from(entry.form)
+            had_entry = true
+            break
+          end
+        end
+        unless had_entry
+          block.die("block must have one of the union's fields defined")
+        end
+        StructViewForm.new(view).onto(stack)
+      end
+
+      target.at("ffi:asUnion") do |_, stack|
+        layout_form = stack.drop.a(StructLayoutForm)
+        pointer = stack.drop.a(Decimal)
+        # TODO: document how unsafe this method is!
+        view = Novika::FFI::UnionView.new(layout_form.layout, Pointer(Void).new(pointer.to_u64))
+        StructViewForm.new(view).onto(stack)
+      end
+
       target.at("ffi:hole") do |engine, stack|
         typename = stack.drop.a(Word | Hole)
         case typename

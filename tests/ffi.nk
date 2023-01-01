@@ -31,7 +31,7 @@ describe 'Feature FFI' [
     [ [ [ [ bar 2 ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, write: `-- nothing`' assertDies
     [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, write: `-- nothing`' assertDies
-    [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean `~xyzzy` (inline struct) or `&xyzzy` (reference to struct)?' assertDies
+    [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean `~xyzzy` (inline struct), `&xyzzy` (reference to struct), or `?xyzzy` (union)?' assertDies
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
@@ -48,10 +48,10 @@ describe 'Feature FFI' [
     [ [ x y z ] ffi:createLayout ] 'malformed struct layout: missing field name or type' assertDies
 
     [ a i32 b pointer ] ffi:createLayout $: l
-    l toQuote '[struct layout: (a b)]'
+    l toQuote '⟪a=i32, b=pointer⟫' assert=
 
     [ x y ] ffi:createLayout $: wrong "wrong but runs to allow fdecl"
-    [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean `~y` (inline struct) or `&y` (reference to struct)?' assertDies
+    [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean `~y` (inline struct), `&y` (reference to struct), or `?y` (union)?' assertDies
 
     123 $: foobar
     [ [ x ~foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
@@ -453,10 +453,13 @@ describe 'Feature FFI' [
 
   it should 'catch inline struct cycle' [
     [ a i32 x ~foo ] ffi:createLayout $: foo
-    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (x ~foo)' assertDies
+    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &x) for \'x\'' assertDies
 
     [ foobar ~s ] ffi:createLayout $: s
-    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (foobar ~s)' assertDies
+    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &foobar) for \'foobar\'' assertDies
+
+    [ foobar ?u ] ffi:createLayout $: u
+    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (pointer or &foobar) for \'foobar\'' assertDies
 
     [ barbaz &xyzzy ] ffi:createLayout $: xyzzy
     xyzzy ffi:allocateStruct& toQuote '&⟨barbaz=(none)⟩' assert=
@@ -465,10 +468,10 @@ describe 'Feature FFI' [
     [ b ~l2 ] ffi:createLayout $: l1
     [ c ~l3 ] ffi:createLayout $: l2
     [ d ~l1 ] ffi:createLayout $: l3
-    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (d ~l1)' assertDies
-    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (d ~l1)' assertDies
-    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (b ~l2)' assertDies
-    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using struct reference (c ~l3)' assertDies
+    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &d) for \'d\'' assertDies
+    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &d) for \'d\'' assertDies
+    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &b) for \'b\'' assertDies
+    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &c) for \'c\'' assertDies
   ]
 
   it should 'allow to output primitive types into hole' [
@@ -1157,12 +1160,12 @@ describe 'Feature FFI' [
 
   it should 'catch invalid struct typenames' [
     "Argument typename:"
-    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean `~&` (inline struct) or `&&` (reference to struct)?' assertDies
-    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean `~~` (inline struct) or `&~` (reference to struct)?' assertDies
+    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean `~&` (inline struct), `&&` (reference to struct), or `?&` (union)?' assertDies
+    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean `~~` (inline struct), `&~` (reference to struct), or `?~` (union)?' assertDies
 
     "Struct layout typename:"
-    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~&` (inline struct) or `&&` (reference to struct)?' assertDies
-    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~~` (inline struct) or `&~` (reference to struct)?' assertDies
+    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~&` (inline struct), `&&` (reference to struct), or `?&` (union)?' assertDies
+    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~~` (inline struct), `&~` (reference to struct), or `?~` (union)?' assertDies
   ]
 
   it should 'typecheck function args' [
@@ -1306,5 +1309,140 @@ describe 'Feature FFI' [
 
     sum_ref 93.59999 assert=
     sum_inl 226.80002 assert=
+  ]
+
+  it should 'support basic union construction in Novika' [
+    [
+      foo cstr
+      bar i32
+      baz f64
+    ] ffi:createLayout $: myNiceUnion
+
+    #?myNiceUnion ffi:sizeof 8 assert= "f64 is the largest type, its sizeof = 8 => union sizeof is 8"
+
+    [
+      'hello world' $: foo
+      123 $: bar
+    ] obj myNiceUnion ffi:buildUnion $: u1
+    u1 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u1.foo 'hello world' assert=
+
+    [
+      123 $: bar
+    ] obj myNiceUnion ffi:buildUnion $: u2
+    u2 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u2.bar 123 assert=
+
+    [
+      123.456 $: baz
+    ] obj myNiceUnion ffi:buildUnion $: u3
+    u3 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u3.baz 123.456 assert=
+  ]
+
+  it should 'support union inside struct, struct inside union' [
+    [
+      x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [ obj point ffi:buildStruct& ] @: pointRef
+    [ obj point ffi:buildStruct~ ] @: pointInl
+
+    [
+      a ~point
+      b &point
+      c i32
+      d cstr
+    ] ffi:createLayout $: test_union
+
+    [
+      det u32
+      xyzzy ?test_union
+    ] ffi:createLayout $: structWithDet
+
+    [
+      0 $: det
+      [
+        [ 123 $: x 456 $: y ] pointInl $: a
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_a
+
+    with_union_a toQuote '&⟨det=0_u32, xyzzy=(⋃ ⟪a=~⟪x=f32, y=f32⟫, b=&⟪x=f32, y=f32⟫, c=i32, d=cstr⟫)⟩' assert=
+
+    [
+      1 $: det
+      [
+        [ 567 $: x 890 $: y ] pointRef $: b
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_b
+
+    [
+      2 $: det
+      [
+        12  $: c
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_c
+
+    [
+      3 $: det
+      [
+        'hello world' $: d
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_d
+
+    [ $: with_union
+
+      with_union.det
+      [
+        0 [ with_union.xyzzy.a ]
+        1 [ with_union.xyzzy.b ]
+        2 [ with_union.xyzzy.c ]
+        3 [ with_union.xyzzy.d ]
+      ] choose
+    ] @: byDet
+
+    with_union_a byDet -> [x y] [123 456] assert=
+    with_union_b byDet -> [x y] [567 890] assert=
+    with_union_c byDet 12 assert=
+    with_union_d byDet 'hello world' assert=
+  ]
+
+  it should 'accept C unions' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      addr pointer
+      str cstr
+    ] ffi:createLayout $: testu
+
+    [
+      [ Get_Union_Inl_Str -- ?testu ]
+      [ Get_Union_Ref_Str cstr -- pointer ]
+    ] lib
+
+    Get_Union_Inl_Str $: u1
+    'hello world' Get_Union_Ref_Str testu ffi:asUnion $: u2
+
+    u1.str 'hello world' assert=
+    u2.str 'hello world' assert=
+  ]
+
+  it should 'allow to send unions to C' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      addr pointer
+      str cstr
+    ] ffi:createLayout $: testu
+
+    [
+      [ Get_Union_Ref_Str cstr -- pointer ]
+      [ Get_Str_From_TestU ?testu -- cstr ]
+    ] lib
+
+    'hello world' Get_Union_Ref_Str testu ffi:asUnion $: u2
+    [ u2.addr "yup this unsafe!!!" $: addr ] obj testu ffi:buildUnion $: testu_inst
+    testu_inst Get_Str_From_TestU 'hello world' assert=
   ]
 ]

@@ -72,10 +72,11 @@ module Novika::FFI
         typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
       when "pointer" then UntypedPointer
       else
-        unless (inline = typename.id.prefixed_by?('~')) || typename.id.prefixed_by?('&')
+        unless (inline = typename.id.prefixed_by?('~')) || (union_ = typename.id.prefixed_by?('?')) || typename.id.prefixed_by?('&')
           typename.die(
             "could not recognize foreign type. Did you mean `~#{typename}` \
-             (inline struct) or `&#{typename}` (reference to struct)?")
+             (inline struct), `&#{typename}` (reference to struct), or \
+             `?#{typename}` (union)?")
         end
 
         typename = Word.new(typename.id.lchop)
@@ -85,7 +86,13 @@ module Novika::FFI
         end
         form = form.as(StructLayoutForm)
 
-        inline ? form.layout.inline : form.layout.reference
+        if inline
+          form.layout.inline
+        elsif union_
+          form.layout.union
+        else
+          form.layout.reference
+        end
       end
     end
 
@@ -431,13 +438,15 @@ module Novika::FFI
     # Returns the alignment of this struct layout.
     getter alignment : UInt64
 
+    getter max_field_size : UInt64
+
     # Creates an empty struct layout.
     def initialize
       @size = 0u64
+      @max_field_size = 0u64
       @alignment = 0u64
       @padded_size = 0u64
       @fields = [] of StructFieldDesc
-      @sealed = false
     end
 
     # https://github.com/jnr/jnr-ffi/blob/7cecfcf8358b49ab5505cfe6c426f7497e639513/src/main/java/jnr/ffi/StructLayout.java#L99
@@ -453,6 +462,7 @@ module Novika::FFI
       offset = align(@size, align)
       @size = Math.max(@size, offset + size)
       @alignment = Math.max(@alignment, align)
+      @max_field_size = Math.max(@max_field_size, size)
       @padded_size = align(@size, @alignment)
       offset
     end
@@ -556,6 +566,10 @@ module Novika::FFI
       InlineStructType.new(self)
     end
 
+    def union
+      UnionType.new(self)
+    end
+
     def to_s(io)
       executed = exec_recursive(:to_s) do
         io << "⟪"
@@ -655,7 +669,7 @@ module Novika::FFI
     end
 
     def alloc : Void*
-      Pointer(Void).malloc(padded_size)
+      Pointer(Void).malloc(self.sizeof)
     end
 
     def view_for(handle : Void*) : StructView
@@ -676,6 +690,37 @@ module Novika::FFI
 
     def to_s(io)
       io << "~"
+      super
+    end
+  end
+
+  struct UnionType < StructType
+    def sizeof : UInt64
+      @layout.max_field_size
+    end
+
+    def alloc : Void*
+      Pointer(Void).malloc(self.sizeof)
+    end
+
+    def view_for(handle : Void*) : StructView
+      UnionView.new(@layout, handle)
+    end
+
+    def unbox(box : Void*) : ForeignValue
+      box.null? ? UntypedPointer.none : view_for(box)
+    end
+
+    def to_ffi_type : Crystal::FFI::Type
+      Crystal::FFI::Type.pointer
+    end
+
+    def matches?(view : UnionView) : Bool
+      @layout.same?(view.@layout)
+    end
+
+    def to_s(io)
+      io << "⋃"
       super
     end
   end
@@ -815,6 +860,35 @@ module Novika::FFI
       io << "~⟨"
       super
       io << "⟩"
+    end
+  end
+
+  struct UnionView < StructView
+    def size
+      @layout.field_count
+    end
+
+    def unsafe_put(index : Int, value : ForeignValue)
+      desc = @layout.desc(index)
+      value.must_be_of(desc.type)
+      value.write_to!(@handle)
+    end
+
+    def unsafe_fetch(index : Int)
+      desc = @layout.desc(index)
+      desc.type.unbox(@handle)
+    end
+
+    def box : Void*
+      @handle
+    end
+
+    def write_to!(base : Void*)
+      @handle.move_to(base, @layout.max_field_size)
+    end
+
+    def to_s(io)
+      io << "(⋃ " << @layout << ")"
     end
   end
 

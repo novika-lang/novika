@@ -21,7 +21,15 @@ DONE
   [+] set field in inline/ref struct using entry:submit
   [+] PR
   [+] add EXPORT/visibility to ffi-test
+  [+] unions
+    [+] layout as union
+    [+] build union in Novika
+    [+] pass union in function args
+    [+] union & discriminator in Novika
   [+] testing
+    [+] unions
+      [+] union of primitives & cstr
+      [+] union holds inline & ref struct, discriminator
     [+] variadic functions
     [+] variadic functions 0 arg } sum example from crystal ffi test
     [+] variadic functions 1 arg }
@@ -71,9 +79,7 @@ DONE
 
 TODO:
 
-  [-] unions
-  [-] testing
-    [-] unions
+  [-] char support
   [-] serialization
   [-] compile tests using nkas and run with nki
   [-] efficiency evaluation
