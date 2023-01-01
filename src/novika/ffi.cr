@@ -67,6 +67,7 @@ module Novika::FFI
       when "f32"  then F32
       when "f64"  then F64
       when "cstr" then Cstr
+      when "char" then Cchar
       when "nothing"
         return Nothing if allow_nothing
         typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
@@ -298,6 +299,62 @@ module Novika::FFI
 
     def self.to_ffi_type : Crystal::FFI::Type
       Crystal::FFI::Type.void
+    end
+  end
+
+  struct Cchar
+    include ForeignValue
+    extend ForeignType
+
+    def initialize(@char : UInt8)
+    end
+
+    def to_crystal
+      @char.chr
+    end
+
+    def to_form? : Form?
+      Quote.new(to_crystal)
+    end
+
+    def self.from?(form : Quote)
+      form.first_byte?.try { |byte| new(byte) }
+    end
+
+    def self.from?(form : Decimal)
+      new(form.to_u8)
+    end
+
+    def to_s(io)
+      io << "'" << to_crystal << "'"
+    end
+
+    def self.alloc : Void*
+      Pointer(UInt8).malloc(1, 0).as(Void*)
+    end
+
+    def self.to_s(io)
+      io << "char"
+    end
+
+    def box : Void*
+      Pointer(UInt8).malloc(1, @char).as(Void*)
+    end
+
+    def write_to!(base : Void*)
+      base.as(UInt8*).value = @char
+    end
+
+    def self.unbox(box : Void*) : ForeignValue
+      new(box.as(UInt8*).value)
+    end
+
+    def self.matches?(value : Cchar)
+      true
+    end
+
+    def self.to_ffi_type : Crystal::FFI::Type
+      Crystal::FFI::Type.uint8
     end
   end
 

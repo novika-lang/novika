@@ -162,6 +162,7 @@ module Novika
         when "f32"  then {false, false, typename, FFI::F32}
         when "f64"  then {false, false, typename, FFI::F64}
         when "cstr" then {false, false, typename, FFI::Cstr}
+        when "char" then {false, false, typename, FFI::Cchar}
         when "nothing"
           typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
         when "pointer" then {false, false, typename, FFI::UntypedPointer}

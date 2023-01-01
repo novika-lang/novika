@@ -1,4 +1,6 @@
 DONE
+  [+] char support
+    [+] add test with union of int and char 'A' & 65
   [+] struct declaration with ffi:createLayout
   [+] struct reference
   [+] struct inline
@@ -79,8 +81,6 @@ DONE
 
 TODO:
 
-  [-] char support
-    [-] add test with union of int and char 'A' & 65
   [-] serialization
   [-] compile tests using nkas and run with nki
   [-] efficiency evaluation

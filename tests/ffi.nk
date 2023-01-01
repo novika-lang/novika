@@ -1445,4 +1445,34 @@ describe 'Feature FFI' [
     [ u2.addr "yup this unsafe!!!" $: addr ] obj testu ffi:buildUnion $: testu_inst
     testu_inst Get_Str_From_TestU 'hello world' assert=
   ]
+
+  it should 'support C char type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      x u8
+      ch char
+    ] ffi:createLayout $: char_union
+
+    [
+      [ Get_First_Char cstr -- char ]
+      [ Get_U8_Char char -- u8 ]
+      [ Get_Char_Union -- ?char_union ]
+      [ [ Get_Char_From_Union gcfu:u8 ] ?char_union -- u8 ]
+      [ [ Get_Char_From_Union gcfu:char ] ?char_union -- char ]
+    ] lib
+
+    'hello world' Get_First_Char 'h' assert=
+    'h' Get_U8_Char 104 assert=
+    Get_Char_Union $: u
+    u.x 65 assert=
+    u.ch 'A' assert=
+
+    u #x 66 entry:submit
+    u.ch 'B' assert=
+
+    u #ch 'c' entry:submit
+    u gcfu:u8  99 assert=
+    u gcfu:char 'c' assert=
+  ]
 ]

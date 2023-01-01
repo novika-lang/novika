@@ -683,3 +683,31 @@ EXPORT char *Get_Str_From_TestU(TestU u)
 {
   return u.str;
 }
+
+EXPORT char Get_First_Char(char *s)
+{
+  return s[0];
+}
+
+EXPORT uint8_t Get_U8_Char(char c)
+{
+  return (uint8_t)c; // same thing but still
+}
+
+typedef union char_union_u
+{
+  uint8_t x;
+  char ch;
+} CharUnion;
+
+EXPORT CharUnion Get_Char_Union()
+{
+  CharUnion cu;
+  cu.ch = 'A';
+  return cu;
+}
+
+EXPORT char Get_Char_From_Union(CharUnion cu)
+{
+  return cu.ch;
+}
