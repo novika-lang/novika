@@ -80,6 +80,7 @@ DONE
 TODO:
 
   [-] char support
+    [-] add test with union of int and char 'A' & 65
   [-] serialization
   [-] compile tests using nkas and run with nki
   [-] efficiency evaluation
@@ -91,6 +92,7 @@ TODO:
     [?] optimize
   [-] refactor
   [-] windows
+  [-] make ffi off-by-default
   [-] documentation; check for memory leaks & unsafe situations
     [-] what types are available
     [-] how to declare function?
