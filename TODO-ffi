@@ -20,6 +20,7 @@ DONE
   [+] cast untyped pointer to primitive type/cstr
   [+] set field in inline/ref struct using entry:submit
   [+] PR
+  [+] add EXPORT/visibility to ffi-test
   [+] testing
     [+] variadic functions
     [+] variadic functions 0 arg } sum example from crystal ffi test

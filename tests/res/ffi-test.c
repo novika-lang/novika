@@ -5,7 +5,15 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void dummy() {}
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#define LOCAL
+#else
+#define EXPORT __attribute__((visibility("default")))
+#define LOCAL __attribute__((visibility("hidden")))
+#endif
+
+EXPORT void dummy() {}
 
 struct xyzzy_s
 {
@@ -22,7 +30,7 @@ struct xyzzy_s
   void *l;
 };
 
-struct xyzzy_s decimalTypeTest__Arg(
+EXPORT struct xyzzy_s decimalTypeTest__Arg(
     uint8_t a,
     uint16_t b,
     uint32_t c,
@@ -52,12 +60,12 @@ struct xyzzy_s decimalTypeTest__Arg(
   return s;
 }
 
-struct xyzzy_s decimalTypeTest__Inl(struct xyzzy_s s)
+EXPORT struct xyzzy_s decimalTypeTest__Inl(struct xyzzy_s s)
 {
   return s;
 }
 
-struct xyzzy_s *decimalTypeTest__ArgRef(
+EXPORT struct xyzzy_s *decimalTypeTest__ArgRef(
     uint8_t a,
     uint16_t b,
     uint32_t c,
@@ -87,7 +95,7 @@ struct xyzzy_s *decimalTypeTest__ArgRef(
   return s;
 }
 
-struct xyzzy_s *decimalTypeTest__InlRef(struct xyzzy_s *s)
+EXPORT struct xyzzy_s *decimalTypeTest__InlRef(struct xyzzy_s *s)
 {
   return s;
 }
@@ -98,7 +106,7 @@ typedef struct point_s
   float y;
 } Point;
 
-Point *Point_New(float x, float y)
+EXPORT Point *Point_New(float x, float y)
 {
   Point *p = malloc(sizeof(Point));
   p->x = x;
@@ -106,7 +114,7 @@ Point *Point_New(float x, float y)
   return p;
 }
 
-Point Point_Inl(float x, float y)
+EXPORT Point Point_Inl(float x, float y)
 {
   Point p;
   p.x = x;
@@ -114,17 +122,17 @@ Point Point_Inl(float x, float y)
   return p;
 }
 
-void Point_Free(Point *point)
+EXPORT void Point_Free(Point *point)
 {
   free(point);
 }
 
-Point *Point_Subtract(Point *a, Point *b)
+EXPORT Point *Point_Subtract(Point *a, Point *b)
 {
   return Point_New(a->x - b->x, a->y - b->y);
 }
 
-const char *getstr()
+EXPORT const char *getstr()
 {
   return "hello from C";
 }
@@ -135,13 +143,13 @@ typedef struct stringstruct_s
   char *str;
 } StringStruct;
 
-void getstr_out(StringStruct *out)
+EXPORT void getstr_out(StringStruct *out)
 {
   out->str = "HELLO FROM C";
   out->len = 12;
 }
 
-StringStruct makestr_inline(char *str)
+EXPORT StringStruct makestr_inline(char *str)
 {
   StringStruct s;
   s.len = strlen(str);
@@ -149,7 +157,7 @@ StringStruct makestr_inline(char *str)
   return s;
 }
 
-char *upcase(char *inp)
+EXPORT char *upcase(char *inp)
 {
   char *start = strdup(inp);
   for (char *curs = start; *curs; curs++)
@@ -157,7 +165,7 @@ char *upcase(char *inp)
   return start;
 }
 
-StringStruct upcase_inline(StringStruct s)
+EXPORT StringStruct upcase_inline(StringStruct s)
 {
   StringStruct s2;
 
@@ -170,7 +178,7 @@ StringStruct upcase_inline(StringStruct s)
   return s2;
 }
 
-StringStruct *downcase_ref(StringStruct *s)
+EXPORT StringStruct *downcase_ref(StringStruct *s)
 {
   StringStruct *s2 = malloc(sizeof(StringStruct));
 
@@ -183,7 +191,7 @@ StringStruct *downcase_ref(StringStruct *s)
   return s2;
 }
 
-void output_primitives(
+EXPORT void output_primitives(
     uint8_t *a,
     uint16_t *b,
     uint32_t *c,
@@ -209,13 +217,13 @@ void output_primitives(
   *l = a;
 }
 
-void output_cstr(char *inp, char **out1, char **out2)
+EXPORT void output_cstr(char *inp, char **out1, char **out2)
 {
   *out1 = "hello from C";
   *out2 = upcase(inp);
 }
 
-void output_point(float x, float y, Point **out)
+EXPORT void output_point(float x, float y, Point **out)
 {
   Point *pt = malloc(sizeof(Point));
   pt->x = x;
@@ -223,7 +231,7 @@ void output_point(float x, float y, Point **out)
   *out = pt;
 }
 
-void output_point_inl(float x, float y, Point *out)
+EXPORT void output_point_inl(float x, float y, Point *out)
 {
   Point pt;
   pt.x = x;
@@ -246,7 +254,7 @@ struct struct_of_pointers
   void **l;
 };
 
-struct struct_of_pointers output_struct_of_pointers()
+EXPORT struct struct_of_pointers output_struct_of_pointers()
 {
   struct struct_of_pointers s;
 
@@ -288,7 +296,7 @@ struct struct_of_pointers output_struct_of_pointers()
   return s;
 }
 
-char **output_str_ptr()
+EXPORT char **output_str_ptr()
 {
   char **stuff = malloc(sizeof(char *));
   *stuff = "Hello from C!";
@@ -312,7 +320,7 @@ typedef struct rect_inl_s
   int64_t b;
 } RectInl;
 
-RectRef *get_rect_ref()
+EXPORT RectRef *get_rect_ref()
 {
   RectRef *r = malloc(sizeof(RectRef));
   r->a = 100;
@@ -326,7 +334,7 @@ RectRef *get_rect_ref()
   return r;
 }
 
-RectInl get_rect_inl(RectRef *ref)
+EXPORT RectInl get_rect_inl(RectRef *ref)
 {
   RectInl r;
   Point o;
@@ -360,7 +368,7 @@ struct self_ref_substruct
   struct self_ref_s2 *s2;
 };
 
-struct self_ref_s *get_self_ref_s()
+EXPORT struct self_ref_s *get_self_ref_s()
 {
   struct self_ref_s *s = malloc(sizeof(struct self_ref_s));
   s->payload = 1234;
@@ -368,7 +376,7 @@ struct self_ref_s *get_self_ref_s()
   return s;
 }
 
-struct self_ref_s *get_self_ref_s_over(struct self_ref_s *s2)
+EXPORT struct self_ref_s *get_self_ref_s_over(struct self_ref_s *s2)
 {
   struct self_ref_s *s = malloc(sizeof(struct self_ref_s));
   s->payload = 5678;
@@ -377,7 +385,7 @@ struct self_ref_s *get_self_ref_s_over(struct self_ref_s *s2)
 }
 
 // self_ref_s2#1 -> substruct#2 -> self_ref_s2#3 -> substruct#4 -> self_ref_s2#1
-struct self_ref_s2 *get_self_ref_s2()
+EXPORT struct self_ref_s2 *get_self_ref_s2()
 {
   struct self_ref_s2 *s1 = malloc(sizeof(struct self_ref_s2));
   struct self_ref_s2 *s2 = malloc(sizeof(struct self_ref_s2));
@@ -402,7 +410,7 @@ struct mut_r_s2
   struct mut_r_s1 *fst;
 };
 
-struct mut_r_s1 *get_mut_r_s1()
+EXPORT struct mut_r_s1 *get_mut_r_s1()
 {
   struct mut_r_s1 *s1 = malloc(sizeof(struct mut_r_s1));
   struct mut_r_s2 *s2 = malloc(sizeof(struct mut_r_s2));
@@ -417,7 +425,7 @@ struct ll_node_s
   struct ll_node_s *nxt;
 };
 
-struct ll_node_s *ll_node_new(int payload)
+EXPORT struct ll_node_s *ll_node_new(int payload)
 {
   struct ll_node_s *node = malloc(sizeof(struct ll_node_s));
   node->payload = payload;
@@ -425,14 +433,14 @@ struct ll_node_s *ll_node_new(int payload)
   return node;
 }
 
-struct ll_node_s *ll_node_append(struct ll_node_s *l, int payload)
+EXPORT struct ll_node_s *ll_node_append(struct ll_node_s *l, int payload)
 {
   struct ll_node_s *nxt = ll_node_new(payload);
   l->nxt = nxt;
   return nxt;
 }
 
-int ll_traverse_free(struct ll_node_s *l)
+EXPORT int ll_traverse_free(struct ll_node_s *l)
 {
   int count = 0;
   while (l != NULL)
@@ -445,7 +453,7 @@ int ll_traverse_free(struct ll_node_s *l)
   return count;
 }
 
-struct ll_node_s *ll_create_n(int count)
+EXPORT struct ll_node_s *ll_create_n(int count)
 {
   struct ll_node_s *head = ll_node_new(0);
   struct ll_node_s *current = head;
@@ -456,7 +464,7 @@ struct ll_node_s *ll_create_n(int count)
   return head;
 }
 
-int ll_traverse_sum(struct ll_node_s *l)
+EXPORT int ll_traverse_sum(struct ll_node_s *l)
 {
   int sum = 0;
   while (l != NULL)
@@ -478,7 +486,7 @@ typedef struct dcll_s
 } DCLL_node;
 
 // Function to insert at the end
-void insertEnd(DCLL_node **start, int value)
+EXPORT void insertEnd(DCLL_node **start, int value)
 {
   if (*start == NULL)
   {
@@ -513,7 +521,7 @@ void insertEnd(DCLL_node **start, int value)
 
 // Function to insert dcll_s at the beginning
 // of the List,
-void insertBegin(DCLL_node **start, int value)
+EXPORT void insertBegin(DCLL_node **start, int value)
 {
   // Pointer points to last dcll_s
   DCLL_node *last = (*start)->prev;
@@ -536,8 +544,8 @@ void insertBegin(DCLL_node **start, int value)
 // Function to insert node with value as value1.
 // The new node is inserted after the node with
 // with value2
-void insertAfter(DCLL_node **start, int value1,
-                 int value2)
+EXPORT void insertAfter(DCLL_node **start, int value1,
+                        int value2)
 {
   DCLL_node *new_node = (DCLL_node *)malloc(sizeof(DCLL_node));
   new_node->data = value1; // Inserting the data
@@ -555,7 +563,7 @@ void insertAfter(DCLL_node **start, int value1,
   next->prev = new_node;
 }
 
-int dcll_sum(DCLL_node *start)
+EXPORT int dcll_sum(DCLL_node *start)
 {
   DCLL_node *temp = start;
 
@@ -571,7 +579,7 @@ int dcll_sum(DCLL_node *start)
   return sum;
 }
 
-int64_t sum_variadic(int32_t count, ...)
+EXPORT int64_t sum_variadic(int32_t count, ...)
 {
   va_list ap;
   int32_t j;
@@ -587,7 +595,7 @@ int64_t sum_variadic(int32_t count, ...)
   return sum;
 }
 
-int64_t swap_muladd_variadic(int32_t a, int32_t b, uint32_t n, ...)
+EXPORT int64_t swap_muladd_variadic(int32_t a, int32_t b, uint32_t n, ...)
 {
   va_list ap;
   int64_t sum = 0;
@@ -603,7 +611,7 @@ int64_t swap_muladd_variadic(int32_t a, int32_t b, uint32_t n, ...)
   return sum;
 }
 
-int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
+EXPORT int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
 {
   va_list ap;
   int64_t sum = 0;
@@ -627,7 +635,7 @@ int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
   return sum;
 }
 
-float scaled_sum_structs_variadic(uint32_t n, uint8_t isinl, float scale, ...)
+EXPORT float scaled_sum_structs_variadic(uint32_t n, uint8_t isinl, float scale, ...)
 {
   va_list ap;
   float sum = 0;
