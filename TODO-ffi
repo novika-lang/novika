@@ -67,10 +67,12 @@ DONE
 TODO:
 
   [-] variadic functions
+  [-] unions
   [-] testing
     [-] variadic functions 0 arg } sum example from crystal ffi test
     [-] variadic functions 1 arg }
     [-] variadic functions n arg }
+    [-] unions
   [-] serialization
   [-] compile tests using nkas and run with nki
   [-] efficiency evaluation
@@ -81,8 +83,20 @@ TODO:
     ! speed of novika -> foreign is important
     [?] optimize
   [-] refactor
-  [-] documentation; check for memory leaks & unsafe situations
   [-] windows
+  [-] documentation; check for memory leaks & unsafe situations
+    [-] what types are available
+    [-] how to declare function?
+    [-] how to declare layout
+    [-] how to use layout for struct
+    [-] how to use layout for union
+    [-] how to construct structs in Novika
+    [-] how to construct unions in Novika
+    [-] how to set fields in structs from Novika
+    [-] how to set fields in unions from Novika
+    [-] how to use ffi:hole
+    [-] how to use of ffi:box and ffi:unbox
+    [-] difference between ffi:hole and ffi:box
   [-] write example: ncurses
   [-] write example: windows something (ncurses too?)
   [-] merge <<<<<<<<<<<< !!!!!!!! <<<<<<<<<<<<<<< I REALLY WANT TO BE HERE!!! 05:49PM 29 Dec 2022
