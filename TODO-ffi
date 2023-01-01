@@ -21,6 +21,10 @@ DONE
   [+] set field in inline/ref struct using entry:submit
   [+] PR
   [+] testing
+    [+] variadic functions
+    [+] variadic functions 0 arg } sum example from crystal ffi test
+    [+] variadic functions 1 arg }
+    [+] variadic functions n arg }
     [+] nothing as value is impossible?
     [+] none: working with pointers & nullptrs
       [+] write none to inline struct
@@ -66,12 +70,8 @@ DONE
 
 TODO:
 
-  [-] variadic functions
   [-] unions
   [-] testing
-    [-] variadic functions 0 arg } sum example from crystal ffi test
-    [-] variadic functions 1 arg }
-    [-] variadic functions n arg }
     [-] unions
   [-] serialization
   [-] compile tests using nkas and run with nki

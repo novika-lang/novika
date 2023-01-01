@@ -40,12 +40,15 @@ module Novika::FFI
       to_ffi_type.@type.value.size
     end
 
+    def from(form : Form) : ForeignValue
+      from?(form) || raise Error.new("could not convert #{form} to foreign type #{self}")
+    end
+
     # Instantiates a foreign value of this foreign type from
     # the given *form*.
     #
-    # Dies if conversion is impossible.
-    def from(form : Form) : ForeignValue
-      raise Error.new("could not convert #{form} to foreign type #{self}")
+    # Returns nil if conversion is impossible.
+    def from?(form : Form) : ForeignValue?
     end
 
     # Returns foreign type corresponding to *typename*.
@@ -117,7 +120,7 @@ module Novika::FFI
         Pointer({{cr_type}}).malloc(1, 0).as(Void*)
       end
 
-      def self.from(form : Decimal)
+      def self.from?(form : Decimal)
         # Decimal is assumed to implement the usual `to_...`
         # methods, e.g. `to_i32`, which are then called by the
         # corresponding constructor (e.g. `I32.new`).
@@ -196,11 +199,11 @@ module Novika::FFI
       Pointer(UInt64).malloc(1, 0).as(Void*)
     end
 
-    def self.from(form : Hole)
+    def self.from?(form : Hole)
       new(form.address)
     end
 
-    def self.from(form : StructViewForm)
+    def self.from?(form : StructViewForm)
       unless view = form.view.as?(StructReferenceView)
         raise Error.new("cannot implicitly take pointer of struct view that is not a reference struct view")
       end
@@ -208,7 +211,7 @@ module Novika::FFI
       new(view.address)
     end
 
-    def self.from(form : Decimal)
+    def self.from?(form : Decimal)
       new(form)
     end
 
@@ -323,7 +326,7 @@ module Novika::FFI
       Pointer(UInt64).malloc(1, 0).as(Void*)
     end
 
-    def self.from(form : Quote)
+    def self.from?(form : Quote)
       new(form.string)
     end
 
@@ -589,7 +592,7 @@ module Novika::FFI
     # wrapped around the given *handle*.
     abstract def view_for(handle : Void*) : StructView
 
-    def from(form : StructViewForm)
+    def from?(form : StructViewForm)
       form.view
     end
 
@@ -815,41 +818,32 @@ module Novika::FFI
     end
   end
 
+  abstract struct Function
+    abstract def id : String
+    abstract def call(block : Block) : Form?
+  end
+
   # An interface to describe and call C functions at runtime.
-  struct Function
+  struct FixedArityFunction < Function
     # Returns the identifier of this function.
     getter id : String
 
-    # Returns the underlying LibFFI handle.
-    getter handle : Void*
-
-    # Returns the array of argument types.
-    getter argtypes : Array(ForeignType)
-
-    # Returns the return type of this function.
-    getter return_type : ForeignType
-
-    def initialize(@id, @handle, @argtypes, @return_type)
+    def initialize(@id, @handle : Void*, @argtypes : Array(ForeignType), @return_type : ForeignType)
       @cif = Crystal::FFI::CallInterface.new(@return_type.to_ffi_type, @argtypes.map(&.to_ffi_type))
-    end
-
-    # Returns the amount of arguments this function takes.
-    def arity
-      argtypes.size
     end
 
     # Calls this function with the given arguments. Returns the
     # resulting value (or `Nothing` in case of `void`).
-    def call(args : Array(ForeignValue)) : ForeignValue
-      raise "BUG: argument count mismatch" unless args.size == argtypes.size
+    def call(args = [] of ForeignValue) : ForeignValue
+      raise "BUG: argument count mismatch" unless args.size == @argtypes.size
 
       # Make sure arguments are of the correct type.
-      argtypes.zip(args) { |argtype, arg| arg.must_be_of(argtype) }
+      @argtypes.zip(args) { |argtype, arg| arg.must_be_of(argtype) }
 
       # Allocate argument array with boxed arguments, and a hole for
       # the return value.
       cargs = Pointer(Void*).malloc(args.size) { |index| args[index].box }
-      creturn = Pointer(Void).malloc(return_type.sizeof)
+      creturn = Pointer(Void).malloc(@return_type.sizeof)
 
       @cif.call(@handle, cargs, creturn)
 
@@ -859,14 +853,72 @@ module Novika::FFI
       @return_type.unbox(creturn)
     end
 
-    # :ditto:
-    def call(*args : ForeignValue)
-      call(args.to_a)
+    def call(block : Block) : Form?
+      args = [] of ForeignValue
+      @argtypes.reverse_each do |argtype|
+        args.unshift argtype.from(block.drop)
+      end
+      call(args).to_form?
+    end
+  end
+
+  struct VariadicFunction < Function
+    getter id : String
+
+    def initialize(@id, @handle : Void*, @fixed_arg_types : Array(ForeignType), @va_allowed : Array(ForeignType), @return_type : ForeignType)
     end
 
-    # :ditto:
-    def call
-      call([] of ForeignValue)
+    def call(block : Block) : Form?
+      # Drop varargs block.
+      va_list = block.drop.a(Block)
+
+      # Drop fixed arguments.
+      fixed_args = [] of ForeignValue
+      @fixed_arg_types.reverse_each do |argtype|
+        fixed_args.unshift argtype.from(block.drop)
+      end
+
+      # Make sure fixed arguments are of the correct type.
+      @fixed_arg_types.zip(fixed_args) { |argtype, arg| arg.must_be_of(argtype) }
+
+      # Go through the varargs block, make sure each form there
+      # is of the allowed type & make a foreign value out of it.
+      va_types = [] of ForeignType
+      va_args = [] of ForeignValue
+
+      va_list.each do |form|
+        type_candidates = @va_allowed
+          .map { |rtype| {rtype, rtype.from?(form)} }
+          .select { |_, rtype_form| rtype_form }
+
+        unless type_candidates.size == 1
+          form.die(
+            "unable to convert to foreign value: too many or no type \
+             candidates for form. Make sure you've specified the \
+             corresponding foreign type in the variadic function's set \
+             of allowed types, and no conflicts between types exist \
+             (e.g. i32 and i64; this is currently unsupported)")
+        end
+
+        va_types << type_candidates.first.[0]
+        va_args << type_candidates.first.[1].not_nil!
+      end
+
+      cif = Crystal::FFI::CallInterface.variadic(@return_type.to_ffi_type, (@fixed_arg_types + va_types).map &.to_ffi_type, @fixed_arg_types.size)
+
+      cargs = Pointer(Void*).malloc(fixed_args.size + va_args.size)
+      fixed_args.each_with_index do |fixed_arg, index|
+        (cargs + index).as(Void**).value = fixed_arg.box.as(Void*)
+      end
+      va_args.each_with_index do |va_arg, index|
+        (cargs + index + fixed_args.size).as(Void**).value = va_arg.box.as(Void*)
+      end
+
+      creturn = Pointer(Void).malloc(@return_type.sizeof)
+
+      cif.call(@handle, cargs, creturn)
+
+      @return_type.unbox(creturn).to_form?
     end
   end
 end

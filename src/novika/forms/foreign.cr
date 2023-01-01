@@ -8,18 +8,8 @@ module Novika
     def on_open(engine : Engine) : self
       stack = engine.stack
 
-      if @function.arity.zero?
-        value = @function.call
-      else
-        args = [] of FFI::ForeignValue
-        (0...@function.arity).reverse_each do |index|
-          argtype = @function.argtypes[index]
-          args.unshift argtype.from(stack.drop)
-        end
-        value = @function.call(args)
-      end
-
-      value.to_form?.try &.onto(stack)
+      value = @function.call(stack)
+      value.try &.onto(stack)
 
       self
     end
@@ -274,19 +264,43 @@ module Novika
           name.die("function name must be a word or alias block `[ foreign-name opener-name ]`")
         end
 
-        argforms = [] of Word
-        retforms = [] of Word
+        argforms = [] of Word | Block
+        retforms = [] of Word | Block
         half = argforms
 
+        # Stuff everything to the left of '--' to argforms array and
+        # everything to the right to retforms array.
         (1...fdecl.count).each do |index|
-          form = fdecl.at(index).a(Word)
+          form = fdecl.at(index).a(Word | Block)
 
-          if form.id == "--"
+          if form.is_a?(Word) && form.id == "--"
             half = retforms
             next
           end
 
           half << form
+        end
+        argtypes = [] of FFI::ForeignType
+        va_args = nil
+
+        argforms.each_with_index do |argform, index|
+          if argform.is_a?(Block) && index != argforms.size - 1
+            argform.die("only one varargs block is allowed, and must be positioned last in function declaration")
+          end
+
+          if argform.is_a?(Block)
+            va_args = [] of FFI::ForeignType
+            argform.each do |form|
+              va_args << FFI::ForeignType.parse(this, form.a(Word), allow_nothing: false)
+            end
+            next
+          end
+
+          argtypes << FFI::ForeignType.parse(this, argform.a(Word), allow_nothing: false).as(FFI::ForeignType)
+        end
+
+        if va_args && argtypes.empty?
+          fdecl.die("function declaration must have at least one fixed argument other than varargs")
         end
 
         unless retforms.size == 1
@@ -295,13 +309,11 @@ module Novika
              one return type. If function returns void, write: `-- nothing`")
         end
 
-        argtypes = argforms.map do |argform|
-          FFI::ForeignType
-            .parse(this, argform, allow_nothing: false)
-            .as(FFI::ForeignType)
+        unless (return_form = retforms.first).is_a?(Word)
+          return_form.die("cannot use varargs as return type")
         end
 
-        return_type = FFI::ForeignType.parse(this, retforms.first)
+        return_type = FFI::ForeignType.parse(this, return_form)
 
         # A hell of an abstraction leak huh?.. This whole piece
         # of dung is, really.
@@ -311,7 +323,11 @@ module Novika
           fdecl.die("malformed function declaration: #{message}")
         end
 
-        function = FFI::Function.new(foreign_name.id, sym, argtypes, return_type)
+        if va_args
+          function = FFI::VariadicFunction.new(foreign_name.id, sym, argtypes, va_args, return_type)
+        else
+          function = FFI::FixedArityFunction.new(foreign_name.id, sym, argtypes, return_type)
+        end
         invoker = ForeignFunction.new(self, function, fdecl.prototype.comment?)
 
         this.at(opener_name, OpenEntry.new(invoker))

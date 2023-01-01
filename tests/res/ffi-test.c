@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 void dummy() {}
 
@@ -566,6 +567,86 @@ int dcll_sum(DCLL_node *start)
     temp = temp->next;
   }
   sum += temp->data;
+
+  return sum;
+}
+
+int64_t sum_variadic(int32_t count, ...)
+{
+  va_list ap;
+  int32_t j;
+  int64_t sum = 0;
+
+  va_start(ap, count); /* Requires the last fixed parameter (to get the address) */
+  for (j = 0; j < count; j++)
+  {
+    sum += va_arg(ap, int32_t); /* Increments ap to the next argument. */
+  }
+  va_end(ap);
+
+  return sum;
+}
+
+int64_t swap_muladd_variadic(int32_t a, int32_t b, uint32_t n, ...)
+{
+  va_list ap;
+  int64_t sum = 0;
+
+  va_start(ap, n); /* Requires the last fixed parameter (to get the address) */
+  for (int64_t j = 0; j < n; j++)
+  {
+    int32_t arg = va_arg(ap, int32_t);
+    sum += (j % 2 == 0 ? a : b) * arg;
+  }
+  va_end(ap);
+
+  return sum;
+}
+
+int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
+{
+  va_list ap;
+  int64_t sum = 0;
+
+  va_start(ap, n); /* Requires the last fixed parameter (to get the address) */
+  for (int64_t j = 0; j < n; j++)
+  {
+    if (det == 0)
+    {
+      char *arg = va_arg(ap, char *);
+      sum += strlen(arg);
+    }
+    else if (det == 1)
+    {
+      int32_t arg = va_arg(ap, int32_t);
+      sum += arg;
+    }
+  }
+  va_end(ap);
+
+  return sum;
+}
+
+float scaled_sum_structs_variadic(uint32_t n, uint8_t isinl, float scale, ...)
+{
+  va_list ap;
+  float sum = 0;
+
+  va_start(ap, scale); /* Requires the last fixed parameter (to get the address) */
+  for (int64_t j = 0; j < n; j++)
+  {
+    if (isinl == 1)
+    {
+      Point arg = va_arg(ap, Point);
+      sum += scale * (arg.x + arg.y);
+    }
+    else
+    {
+      Point *arg = va_arg(ap, Point *);
+      sum += scale * (arg->x + arg->y);
+    }
+  }
+  va_end(ap);
 
   return sum;
 }

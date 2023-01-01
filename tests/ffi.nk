@@ -35,8 +35,8 @@ describe 'Feature FFI' [
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
-    [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a word' assertDies
-    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a word' assertDies
+    [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
+    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
     [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
   ]
 
@@ -1211,9 +1211,100 @@ describe 'Feature FFI' [
     [ ref1 inl Point_Subtract ] 'cannot implicitly take pointer of struct view that is not a reference struct view' assertDies
   ]
 
-   it should 'die if missing field when doing buildStruct' [
+  it should 'die if missing field when doing buildStruct' [
     [ foo i32 ] ffi:createLayout $: layout
     [ [ ] layout ffi:buildStruct& ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
     [ [ ] layout ffi:buildStruct~ ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
-   ]
+  ]
+
+  it should 'call variadic function with one allowed type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ sum_variadic i32 [ i32 ] -- i64 ]
+      [ swap_muladd_variadic i32 i32 u32 [ i32 ] -- i64 ]
+    ] lib
+
+    0 [ ] sum_variadic 0 assert=
+    1 [ 123 ] sum_variadic 123 assert=
+    3 [ 1 3 5 ]  sum_variadic 9 assert=
+
+    2 3 6 [ 0 1 2 3 4 5 ] swap_muladd_variadic
+      "0 * 2 + 1 * 3 + 2 * 2 + 3 * 3 + 4 * 2 + 5 * 3"
+      39 assert=
+  ]
+
+  it should 'call variadic function with n allowed types' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ sum_count_or_self u8 u32 [ i32 cstr ] -- i64 ]
+    ] lib
+
+    0 "<- sum count" 3 "<- how many"  [ 'hello world' 'bye world' 'salam' ] sum_count_or_self 25 assert=
+    1 "<- sum self" 3 "<- how many" [ 2 3 6 ] sum_count_or_self 11 assert=
+  ]
+
+  it should 'parse variadic decl and die where appropriate' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ [ dummy [ ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
+    [ [ [ dummy [ i32 ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
+    [ [ [ dummy [ i32 ] i32 -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
+    [ [ [ dummy i32 [ i32 ] i32 -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
+    [ [ [ dummy -- [ i32 ] ] ] lib ] 'cannot use varargs as return type' assertDies
+    [ [ [ dummy i32 [ i32 ] -- [ i32 ] ] ] lib ] 'cannot use varargs as return type' assertDies
+    [ [ [ dummy [ i32 ] [ i32 ] -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
+    [ [ [ dummy i32 [ nothing ] -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+
+  ]
+
+  it should 'die when argument not of allowed type/conflicting in variadic call' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ [ dummy dummy:a ] i32 [ i32 cstr ] -- i64 ]
+      [ [ dummy dummy:b ] i32 [ i32 f64 ] -- i64 ]
+    ] lib
+
+    [ x i32 ] ffi:createLayout $: foo
+
+    [ 1 [ [ ] ] dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ [ 123 $: x ] obj foo ffi:buildStruct& ] vals dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 'hello world' ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 1234 ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
+  ]
+
+  it should 'allow to pass inline & ref structs in varargs' [
+     'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: point
+
+    [ [ [ scaled_sum_structs_variadic sssv:inl ] u32 u8 f32 [ ~point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:ref ] u32 u8 f32 [ &point ] -- f32 ]
+    ] lib
+
+    "0 2
+     2 3
+     4 4
+     6 5
+     8 6"
+    5 collect: [ $: i
+      i 2 * $: x
+      i 2 + $: y
+      this $: self
+
+      [ self point ffi:buildStruct& $: ref
+        self point ffi:buildStruct~ $: inl
+      ] obj
+    ] $: varargs
+
+    "2.34 * (0 + 2) + 2.34 * (2 + 3) + 2.34 * (4 + 4) + 2.34 * (6 + 5) + 2.34 * (8 + 6)"
+    varargs count  0  2.34  varargs map: [ .ref ]  sssv:ref $: sum_ref
+                  "^-- is inline? no"
+
+    "5.67 * (0 + 2) + 5.67 * (2 + 3) + 5.67 * (4 + 4) + 5.67 * (6 + 5) + 5.67 * (8 + 6)"
+    varargs count  1  5.67  varargs map: [ .inl ]  sssv:inl $: sum_inl
+                  "^-- is inline? yes"
+
+    sum_ref 93.59999 assert=
+    sum_inl 226.80002 assert=
+  ]
 ]
