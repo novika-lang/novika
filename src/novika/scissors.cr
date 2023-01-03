@@ -73,7 +73,7 @@ struct Novika::Scissors
       thru if chr == escape
       if at_end?
         # May happen in cases like '\<EOF> or "\<EOF>
-        raise Novika::Error.new("excerpt ended suddenly: expected escape sequence, grapheme, or ｢#{endswith}｣")
+        raise Novika::Error.new("excerpt ended suddenly: expected escape sequence, grapheme, or ⸢#{endswith}⸥")
       end
       thru
       if chr == endswith
@@ -82,7 +82,7 @@ struct Novika::Scissors
       end
     end
 
-    raise Novika::Error.new("unterminated excerpt: no matching ｢#{endswith}｣")
+    raise Novika::Error.new("unterminated excerpt: no matching ⸢#{endswith}⸥")
   end
 
   # Cuts the source string into a series of *unclassified forms*;

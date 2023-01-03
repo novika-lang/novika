@@ -1637,8 +1637,8 @@ describe '|after/|after!/|after?' [
 
     [ 1 2 3 4 5 6 7 ] $: a
     a 1 |to
-    [ a [ 8 = ] |after! ] 'expected ｢[ 8 = ]｣ to match, but reached end of block' assertDies
-    [ a 8 |after! ] 'expected ｢8｣ to match, but reached end of block' assertDies
+    [ a [ 8 = ] |after! ] 'expected ⸢[ 8 = ]⸥ to match, but reached end of block' assertDies
+    [ a 8 |after! ] 'expected ⸢8⸥ to match, but reached end of block' assertDies
   ]
 ]
 

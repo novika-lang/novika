@@ -1270,9 +1270,9 @@ describe 'slurp' [
     [ ] '\'🐒hello 👋 \invalid \Escape \\\'world!!!\\\' \\\\n \\n \n\n 👨‍👨‍👦‍👦!🐹\'' slurp val
     '🐒hello 👋 \invalid \Escape \'world!!!\' \\n \n \n\n 👨‍👨‍👦‍👦!🐹' assert=
 
-    [ [ ] '\'hello world!!' slurp ] 'unterminated excerpt: no matching ｢\'｣' assertDies
-    [ [ ] 'hello world!!\'' slurp ] 'unterminated excerpt: no matching ｢\'｣' assertDies
-    [ [ ] '\'\\' slurp ] 'excerpt ended suddenly: expected escape sequence, grapheme, or ｢\'｣' assertDies
+    [ [ ] '\'hello world!!' slurp ] 'unterminated excerpt: no matching ⸢\'⸥' assertDies
+    [ [ ] 'hello world!!\'' slurp ] 'unterminated excerpt: no matching ⸢\'⸥' assertDies
+    [ [ ] '\'\\' slurp ] 'excerpt ended suddenly: expected escape sequence, grapheme, or ⸢\'⸥' assertDies
   ]
 
   it should 'slurp comments correctly' [

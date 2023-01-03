@@ -47,7 +47,7 @@
 
   thruWord $: got
 
-  got exp = not => [ [ 'expected ｢' exp '｣, but got: ｢' got '｣' ] ~* die ]
+  got exp = not => [ [ 'expected ⸢' exp '⸥, but got: ⸢' got '⸥' ] ~* die ]
 ] @: thruWord:
 
 

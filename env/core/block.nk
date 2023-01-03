@@ -1477,7 +1477,7 @@
     [ dup hasDesc? => desc ]
   $: what
 
-  [ 'expected ｢' what '｣ to match, but reached end of block' ] ~* die
+  [ 'expected ⸢' what '⸥ to match, but reached end of block' ] ~* die
 ] @: |after!
 
 

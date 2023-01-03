@@ -126,7 +126,7 @@ describe 'mapFromRange:toRange:' [
     [ 10 mapFromRange: ] 'thru out of bounds' assertDies
     [ 10 mapFromRange: 1 ] 'thru out of bounds' assertDies
     [ 10 mapFromRange: 1 2 ] 'thru out of bounds' assertDies
-    [ 10 mapFromRange: 1 2 some-weird-word ] 'expected ｢toRange:｣, but got: ｢some-weird-word｣' assertDies
+    [ 10 mapFromRange: 1 2 some-weird-word ] 'expected ⸢toRange:⸥, but got: ⸢some-weird-word⸥' assertDies
     [ 10 mapFromRange: 1 2 toRange: ] 'thru out of bounds' assertDies
     [ 10 mapFromRange: 1 2 toRange: 1 ] 'thru out of bounds' assertDies
   ]
