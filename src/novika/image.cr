@@ -370,6 +370,14 @@ module Novika
       new(SnapshotType::Byteslice, BytesliceSnapshot.new(form))
     end
 
+    # :ditto:
+    def self.new(form : Library | ForeignFunction | StructViewForm | StructLayoutForm)
+      raise Error.new(
+        "serialization of ffi features is unsafe and disabled anyway. Try \
+        searializing 'how' you create FFI objects rather than 'what' objects \
+        you create")
+    end
+
     # Raises: no overload for *form*.
     def self.new(form)
       raise "no overload for #{form.class}"
