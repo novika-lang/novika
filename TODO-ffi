@@ -1,4 +1,5 @@
 DONE
+  [+] compile tests using nkas and run with nki
   [+] char support
     [+] add test with union of int and char 'A' & 65
   [+] struct declaration with ffi:createLayout
@@ -81,8 +82,6 @@ DONE
 
 TODO:
 
-  [-] serialization
-  [-] compile tests using nkas and run with nki
   [-] efficiency evaluation
     ! speed of allocateStruct/buildStruct is important
     ! speed of calls to C is important
@@ -93,6 +92,10 @@ TODO:
   [-] refactor
   [-] windows
   [-] make ffi off-by-default
+  [-] write example: ncurses
+  [-] write example: windows something (ncurses too?)
+  [-] begin SDL2 bindings
+  [-] merge <<<<<<<<<<<< !!!!!!!! <<<<<<<<<<<<<<< I REALLY WANT TO BE HERE!!! 05:49PM 29 Dec 2022
   [-] documentation; check for memory leaks & unsafe situations
     [-] what types are available
     [-] how to declare function?
@@ -106,6 +109,4 @@ TODO:
     [-] how to use ffi:hole
     [-] how to use of ffi:box and ffi:unbox
     [-] difference between ffi:hole and ffi:box
-  [-] write example: ncurses
-  [-] write example: windows something (ncurses too?)
-  [-] merge <<<<<<<<<<<< !!!!!!!! <<<<<<<<<<<<<<< I REALLY WANT TO BE HERE!!! 05:49PM 29 Dec 2022
+    [-] how to serialize ffi if it's not serializable?
