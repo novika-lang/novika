@@ -1185,9 +1185,9 @@ describe 'Feature FFI' [
     12 34 Point_New $: x
     56 78 Point_Inl $: y
 
-    [ 123 y Point_Subtract ] 'could not convert 123 to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ 123 y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
     [ x 456 Point_Subtract ] 'could not convert 456 to foreign type &⟪x=f32, y=f32⟫' assertDies
-    [ 'foo' y Point_Subtract ] 'could not convert \'foo\' to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ 'foo' y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
     [ x 'foo' Point_Subtract ] 'could not convert \'foo\' to foreign type &⟪x=f32, y=f32⟫' assertDies
     [ x y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
     [ y x Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
@@ -1269,10 +1269,10 @@ describe 'Feature FFI' [
 
     [ x i32 ] ffi:createLayout $: foo
 
-    [ 1 [ [ ] ] dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
-    [ 1 [ [ 123 $: x ] obj foo ffi:buildStruct& ] vals dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
-    [ 1 [ 'hello world' ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
-    [ 1 [ 1234 ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s set of allowed types, and no conflicts between types exist (e.g. i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ [ ] ] dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ [ 123 $: x ] obj foo ffi:buildStruct& ] vals dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 'hello world' ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 1234 ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
   ]
 
   it should 'allow to pass inline & ref structs in varargs' [

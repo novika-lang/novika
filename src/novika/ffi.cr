@@ -213,7 +213,9 @@ module Novika::FFI
 
     def self.from?(form : StructViewForm)
       unless view = form.view.as?(StructReferenceView)
-        raise Error.new("cannot implicitly take pointer of struct view that is not a reference struct view")
+        raise Error.new(
+          "cannot implicitly take pointer of struct view that is \
+           not a reference struct view")
       end
 
       new(view.address)
@@ -309,6 +311,7 @@ module Novika::FFI
     def initialize(@char : UInt8)
     end
 
+    # Returns the corresponding Crystal character.
     def to_crystal
       @char.chr
     end
@@ -495,6 +498,7 @@ module Novika::FFI
     # Returns the alignment of this struct layout.
     getter alignment : UInt64
 
+    # Returns the maximum field size in this struct.
     getter max_field_size : UInt64
 
     # Creates an empty struct layout.
@@ -623,6 +627,12 @@ module Novika::FFI
       InlineStructType.new(self)
     end
 
+    # Returns an inline struct type corresponding to this struct
+    # layout. You then can use it as such in your struct field /
+    # argument types.
+    #
+    # Note: this method costs nothing. Feel free to spam `.union`
+    # instead of saving it in a variable and using that variable.
     def union
       UnionType.new(self)
     end
@@ -638,15 +648,10 @@ module Novika::FFI
       io << "[reflection]" unless executed
     end
 
-    # Returns whether this and *other* layouts are the same layout.
-    # Uses reference equality (`same?`) rather than deep equality.
-    def ==(other : StructLayout)
-      # We don't compare layouts often, so we use simple pointer
-      # equality rather than deep equality. This lets us avoid
-      # the problem of writing complex, recursive reference-aware
-      # comparison code like in Block.
-      same?(other)
-    end
+    # Returns whether this and *other* layouts are the same
+    # layout. Uses reference equality (like `same?`) rather
+    # than deep equality.
+    def_equals_and_hash object_id
   end
 
   # Base class of the *type* side of structs.
@@ -751,6 +756,7 @@ module Novika::FFI
     end
   end
 
+  # *Type-side* representation of a union.
   struct UnionType < StructType
     def sizeof : UInt64
       @layout.max_field_size
@@ -920,6 +926,7 @@ module Novika::FFI
     end
   end
 
+  # *Value-side* representation of a union.
   struct UnionView < StructView
     def size
       @layout.field_count
@@ -950,27 +957,24 @@ module Novika::FFI
   end
 
   abstract struct Function
+    # Reutrns the identifier of this function.
     abstract def id : String
+
+    # Drops arguments from *block* and calls this function.
+    # Returns the resulting form, or nil in case this function
+    # returns `Nothing` (C `void`).
     abstract def call(block : Block) : Form?
   end
 
   # An interface to describe and call C functions at runtime.
   struct FixedArityFunction < Function
-    # Returns the identifier of this function.
     getter id : String
 
     def initialize(@id, @handle : Void*, @argtypes : Array(ForeignType), @return_type : ForeignType)
       @cif = Crystal::FFI::CallInterface.new(@return_type.to_ffi_type, @argtypes.map(&.to_ffi_type))
     end
 
-    # Calls this function with the given arguments. Returns the
-    # resulting value (or `Nothing` in case of `void`).
-    def call(args = [] of ForeignValue) : ForeignValue
-      raise "BUG: argument count mismatch" unless args.size == @argtypes.size
-
-      # Make sure arguments are of the correct type.
-      @argtypes.zip(args) { |argtype, arg| arg.must_be_of(argtype) }
-
+    private def call(args : Array(ForeignValue)) : ForeignValue
       # Allocate argument array with boxed arguments, and a hole for
       # the return value.
       cargs = Pointer(Void*).malloc(args.size) { |index| args[index].box }
@@ -987,7 +991,9 @@ module Novika::FFI
     def call(block : Block) : Form?
       args = [] of ForeignValue
       @argtypes.reverse_each do |argtype|
-        args.unshift argtype.from(block.drop)
+        arg = argtype.from(block.drop)
+        arg.must_be_of(argtype)
+        args.unshift(arg)
       end
       call(args).to_form?
     end
@@ -996,55 +1002,61 @@ module Novika::FFI
   struct VariadicFunction < Function
     getter id : String
 
-    def initialize(@id, @handle : Void*, @fixed_arg_types : Array(ForeignType), @va_allowed : Array(ForeignType), @return_type : ForeignType)
+    def initialize(
+      @id,
+      @handle : Void*,
+      @fixed_arg_types : Array(ForeignType),
+      @var_arg_allowed : Array(ForeignType),
+      @return_type : ForeignType
+    )
     end
 
     def call(block : Block) : Form?
-      # Drop varargs block.
-      va_list = block.drop.a(Block)
+      var_args_block = block.drop.a(Block)
 
-      # Drop fixed arguments.
-      fixed_args = [] of ForeignValue
+      ffi_args = [] of ForeignValue
+      ffi_types = [] of Crystal::FFI::Type
+
+      # Drop fixed arguments first into the arguments array.
       @fixed_arg_types.reverse_each do |argtype|
-        fixed_args.unshift argtype.from(block.drop)
+        ffi_types.unshift(argtype.to_ffi_type)
+        arg = argtype.from(block.drop)
+        arg.must_be_of(argtype)
+        ffi_args.unshift(arg)
       end
 
-      # Make sure fixed arguments are of the correct type.
-      @fixed_arg_types.zip(fixed_args) { |argtype, arg| arg.must_be_of(argtype) }
-
       # Go through the varargs block, make sure each form there
-      # is of the allowed type & make a foreign value out of it.
-      va_types = [] of ForeignType
-      va_args = [] of ForeignValue
+      # is of an allowed type & make a foreign value out of it.
+      var_args_block.each do |form|
+        candidates = @var_arg_allowed
+          .map { |type| {type, type.from?(form)} }
+          .select { |_, value| value }
 
-      va_list.each do |form|
-        type_candidates = @va_allowed
-          .map { |rtype| {rtype, rtype.from?(form)} }
-          .select { |_, rtype_form| rtype_form }
-
-        unless type_candidates.size == 1
+        unless candidates.size == 1
           form.die(
             "unable to convert to foreign value: too many or no type \
              candidates for form. Make sure you've specified the \
-             corresponding foreign type in the variadic function's set \
+             corresponding foreign type in the variadic function's list \
              of allowed types, and no conflicts between types exist \
-             (e.g. i32 and i64; this is currently unsupported)")
+             (e.g. both i32 and i64; this is currently unsupported)")
         end
 
-        va_types << type_candidates.first.[0]
-        va_args << type_candidates.first.[1].not_nil!
+        candidate = candidates[0]
+        candidate_type, candidate_value = candidate
+        candidate_value = candidate_value.not_nil!
+
+        ffi_types << candidate_type.to_ffi_type
+        ffi_args << candidate_value
       end
 
-      cif = Crystal::FFI::CallInterface.variadic(@return_type.to_ffi_type, (@fixed_arg_types + va_types).map &.to_ffi_type, @fixed_arg_types.size)
+      # Variadic functions need a call interface for each call.
+      cif = Crystal::FFI::CallInterface.variadic(
+        return_type: @return_type.to_ffi_type,
+        arg_types: ffi_types,
+        fixed_args: @fixed_arg_types.size
+      )
 
-      cargs = Pointer(Void*).malloc(fixed_args.size + va_args.size)
-      fixed_args.each_with_index do |fixed_arg, index|
-        (cargs + index).as(Void**).value = fixed_arg.box.as(Void*)
-      end
-      va_args.each_with_index do |va_arg, index|
-        (cargs + index + fixed_args.size).as(Void**).value = va_arg.box.as(Void*)
-      end
-
+      cargs = Pointer(Void*).malloc(ffi_args.size) { |index| ffi_args[index].box }
       creturn = Pointer(Void).malloc(@return_type.sizeof)
 
       cif.call(@handle, cargs, creturn)

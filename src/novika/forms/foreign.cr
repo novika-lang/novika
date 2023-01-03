@@ -36,12 +36,12 @@ module Novika
       @handle = @type.alloc
     end
 
-    delegate :address, to: @handle
-
     def initialize(pointer : FFI::UntypedPointer)
       @handle = pointer.box
       @type = FFI::UntypedPointer
     end
+
+    delegate :address, to: @handle
 
     def on_open(engine : Engine) : self
       @type.unbox(@handle).to_form?.try &.onto(engine.stack)
