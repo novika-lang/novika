@@ -644,6 +644,7 @@ describe 'toQuote block' [
   it should 'respect quote reprs' [
     [ 'fooBar' $: *asQuote ] obj $: x
     x toQuote 'fooBar' assert=
+    x enclose toQuote '[ fooBar ]' assert=
   ]
 
   it should 'enquote reflection keys' [

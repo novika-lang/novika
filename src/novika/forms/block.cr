@@ -761,12 +761,12 @@ module Novika
     end
 
     def to_s(io)
-      # if repr = a?(AS_QUOTE, Quote)
-      #   # Block represents itself in some other way, respect
-      #   # that here.
-      #   io << repr.string
-      #   return
-      # end
+      if repr = a?(AS_QUOTE, Quote)
+        # Block represents itself in some other way, respect
+        # that here.
+        io << repr.string
+        return
+      end
 
       executed = exec_recursive(:to_s) do
         io << "["
