@@ -160,6 +160,33 @@ module Novika
       @libraries[id]?
     end
 
+    @load_library_callbacks = [] of String -> Library?
+
+    # Subscribes *callback* to library load requests, so that whenever
+    # the runtime needs to load a library, it is invoked and performs
+    # the loading.
+    def on_load_library?(&callback : String -> Library?)
+      @load_library_callbacks << callback
+    end
+
+    # Tries to load library (aka shared object) with the given *id*.
+    # Returns the resulting `Library` object, or nil. The library
+    # object is also stored in this bundle.
+    #
+    # Usually, bundle is used as a dumb-ish container for *already
+    # loaded* features and libraries. `load_library?` breaks this
+    # tradition and allows to ask bundle-creators for stuff from
+    # the deep below of the bundle users.
+    def load_library?(id : String)
+      @libraries.fetch(id) do
+        @load_library_callbacks.each do |callback|
+          if library = callback.call(id)
+            return @libraries[id] = library
+          end
+        end
+      end
+    end
+
     # Yields the feature instance of the given *feature* class
     # to the block, if one can be found in this bundle.
     #

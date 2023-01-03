@@ -192,6 +192,12 @@ module Novika::Frontend::CLI
       bundle << Library.new(id, shared_object)
     end
 
+    bundle.on_load_library? do |id|
+      # If this callback is invoked, then id is not in the
+      # bundle. Return nil since under CLI, automatic library
+      # lookup is disabled.
+    end
+
     Engine.new(bundle) do |engine|
       # Important: wrap bundle block in another block! This is
       # required to make it possible to ignore bundle block in

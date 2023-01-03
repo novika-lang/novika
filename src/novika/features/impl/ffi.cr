@@ -26,7 +26,7 @@ module Novika::Features::Impl
 
       target.at("ffi:getLibrary") do |engine, stack|
         id = stack.drop.a(Quote)
-        unless library = engine.bundle.get_library?(id.string)
+        unless library = engine.bundle.load_library?(id.string)
           id.die("no such library")
         end
         library.onto(stack)

@@ -56,7 +56,26 @@ module Novika::Frontend::Nki
     conts = ARGV.delete("-c")
     bundle = Novika::Bundle.with_all
 
-    File.open(ARGV[-1], "r") do |infile|
+    filepath = ARGV[-1]
+    filedir = Path[filepath].expand.parent
+
+    bundle.on_load_library? do |id|
+      paths = {filedir, filedir / "lib"}
+
+      {% if flag?(:windows) %}
+        paths = paths.flat_map { |path| [path / "#{id}.dll", path / "lib#{id}.dll"] }
+      {% elsif flag?(:unix) %}
+        paths = paths.flat_map { |path| [path / "#{id}.so", path / "lib#{id}.so"] }
+      {% else %}
+        next
+      {% end %}
+
+      path = paths.each { |path| break path if File.exists?(path) }
+
+      Library.new(id, path) if path
+    end
+
+    File.open(filepath, "r") do |infile|
       image = infile.read_bytes(Novika::Image)
       block = image.to_block(bundle)
 
