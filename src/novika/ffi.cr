@@ -297,7 +297,7 @@ module Novika::FFI
         io << "(none)"
       else
         io << "("
-        @address.to_s(base: 16)
+        @address.to_s(io, base: 16)
         io << ")"
       end
     end
