@@ -766,7 +766,7 @@ module Novika::FFI
     end
 
     def matches?(view : StructReferenceView) : Bool
-      @layout.same?(view.@layout)
+      @layout.same?(view.layout)
     end
 
     def matches?(pointer : UntypedPointer)
@@ -804,7 +804,7 @@ module Novika::FFI
     end
 
     def matches?(view : InlineStructView) : Bool
-      @layout.same?(view.@layout)
+      @layout.same?(view.layout)
     end
 
     def to_s(io)
@@ -836,7 +836,7 @@ module Novika::FFI
     end
 
     def matches?(view : UnionView) : Bool
-      @layout.same?(view.@layout)
+      @layout.same?(view.layout)
     end
 
     def to_s(io)
@@ -855,7 +855,10 @@ module Novika::FFI
     include Indexable(ForeignValue)
     include Indexable::Mutable(ForeignValue)
 
-    def initialize(@layout : StructLayout, @handle : Void*)
+    # Returns this view's struct layout.
+    getter layout : StructLayout
+
+    def initialize(@layout, @handle : Void*)
     end
 
     # See `StructLayout`.

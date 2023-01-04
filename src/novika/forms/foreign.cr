@@ -1,4 +1,5 @@
 module Novika
+  # A thin wrapper around `FFI::Function`.
   struct ForeignFunction
     include Form
 
@@ -27,9 +28,15 @@ module Novika
     end
   end
 
+  # Holes are similar to Crystal's `uninitialized` or `out`, in that
+  # they allow you to allocate memory for a type, pass a pointer to
+  # that memory to e.g. a C function, and let that C function write
+  # into the memory. The written value can then be retrieved by
+  # opening the hole.
   struct Hole
     include Form
 
+    # Returns a pointer to this hole's content.
     getter handle : Void*
 
     def initialize(@type : FFI::ForeignType)
@@ -41,10 +48,12 @@ module Novika
       @type = FFI::UntypedPointer
     end
 
+    # Returns the address of this hole's content in memory.
     delegate :address, to: @handle
 
     def on_open(engine : Engine) : self
-      @type.unbox(@handle).to_form?.try &.onto(engine.stack)
+      form = @type.unbox(@handle).to_form?
+      form.try &.onto(engine.stack)
 
       self
     end
@@ -64,20 +73,28 @@ module Novika
     end
   end
 
-  class StructViewForm
+  # A thin wrapper around `FFI::StructView` and its descendants.
+  #
+  # This form is a readable and submittable store, which means you
+  # can read (e.g. `entry:fetch`) and submit (e.g. `entry:submit`)
+  # to exsisting entries.
+  struct StructViewForm
     include Form
     include IReadableStore
     include ISubmittableStore
 
-    getter view
+    # Returns the underlying struct view.
+    getter view : FFI::StructView
 
-    def initialize(@view : FFI::StructView)
+    def initialize(@view)
     end
 
+    # Returns the address of the underlying struct in memory.
     delegate :address, to: view
 
+    # Returns the struct layout of the underlying struct view.
     def layout : StructLayoutForm
-      StructLayoutForm.new(view.@layout)
+      StructLayoutForm.new(view.layout)
     end
 
     def self.typedesc
@@ -95,7 +112,7 @@ module Novika
     def submit?(name : Form, form : Form)
       return unless name.is_a?(Word)
 
-      @view.@layout.desc?(name.id).try do |desc|
+      @view.layout.desc?(name.id).try do |desc|
         @view[name.id] = desc.type.from(form)
       end
     end
@@ -112,21 +129,19 @@ module Novika
       to_s(io)
     end
 
-    def ==(other : StructViewForm)
-      return true if same?(other)
-      return false unless @view.size == other.@view.size
-      result = false
-      executed = exec_recursive(:==) do
-        result = @view == other.@view
-      end
-      executed && result
-    end
-
     def to_s(io)
       io << @view
     end
+
+    # Returns whether this and *other* struct views are equal.
+    # Performs deep, recursive equality based on the fields'
+    # values. Supports self-reference, mutual reference, etc.
+    def_equals @view
   end
 
+  # Parses types in struct layouts. Similar to `FFI::ValueTypeParser`,
+  # but does some bookkeeping to stay away from deep recursion/ensure
+  # no cycles exist for inline structs/unions.
   struct StructLayoutParser < FFI::TypeParser
     include FFI::TypeParser::ForbidsNothing
 
@@ -138,6 +153,25 @@ module Novika
     # This is normally done to prevent/detect (deep) self-reference.
     #
     # Returns the outerset.
+    #
+    # ┌────────────────────────┐
+    # │ ID1                    │
+    # │                        │
+    # │  ┌──────────────────┐  │
+    # │  │ ID2              │  │
+    # │  │                  │  │
+    # │  │                  │  │
+    # │  │   ┌───────────┐  │  │
+    # │  │   │ ID3       │  │  │
+    # │  │   │           │  │  │  Outerset: ID1 ID2 ID3
+    # │  │   │     ◄─────┼──┼──┼─────
+    # │  │   │           │  │  │
+    # │  │   │  current  │  │  │
+    # │  │   └───────────┘  │  │
+    # │  │                  │  │
+    # │  └──────────────────┘  │
+    # │                        │
+    # └────────────────────────┘
     private def add_to_outerset : Set(UInt64)
       outerset = @outerset ||= Set(UInt64).new
       outerset << @current.object_id
@@ -172,34 +206,53 @@ module Novika
     end
   end
 
-  class StructLayoutForm
+  # A thin form wrapper around `FFI::StructLayout`. Lazily parses
+  # a struct layout definition and keeps the corresponding
+  # `FFI::StructLayout` in sync.
+  struct StructLayoutForm
     include Form
 
     @this : Block?
     @names : Array(Word)?
     @types : Array(Word)?
 
+    # Initializes a struct layout form. Names array *names* must
+    # be created uniquely for this form, because it will be used
+    # as this struct layout form's identity during deep recursion
+    # checks etc.
+    #
+    # *this* block is going to be used for lookup of user-defined
+    # struct layouts (e.g. `&foobar`).
     def initialize(@this : Block, @names : Array(Word), @types : Array(Word))
-      @layout = Novika::FFI::StructLayout.new
-      @sealed = false
+      @layout = FFI::StructLayout.new
     end
 
+    # Initializes a struct layout form from the given *layout*.
+    # The layout must contain at least one field.
     def initialize(@layout)
-      @sealed = true
+      if @layout.field_count.zero?
+        raise "BUG: bad layout passed to StructLayoutForm"
+      end
     end
 
+    # Since `StructLayoutForm` is a struct, it doesn't have its own
+    # object id, and instead borrows it from the names array, which
+    # is assumed to be created personally for this struct layout form.
+    delegate :object_id, to: (@names || raise "BUG: bad state")
+
+    # Returns the underlying layout.
     def layout(outerset = nil)
-      return @layout if @sealed || outerset.try &.includes?(object_id)
+      return @layout if @layout.field_count > 0 || outerset.try &.includes?(object_id)
       return @layout unless this = @this
       return @layout unless names = @names
       return @layout unless types = @types
 
       names.zip(types) do |name, typename|
-        type = StructLayoutParser.new(@this, typename, name, self, outerset).parse
-        @layout.add(name.id, type)
+        parser = StructLayoutParser.new(@this, typename, name, self, outerset)
+
+        @layout.add(name.id, parser.parse)
       end
 
-      @sealed = true
       @layout
     end
 
@@ -226,6 +279,10 @@ module Novika
   # opener block.
   #
   # For more details, see Novika's `ffi:getLibrary`.
+  #
+  # Internally, library objects are created by the frontend and
+  # fed to `Bundle`. When needed, they are retrieved from the
+  # bundle. Prefer this access pattern.
   class Library
     include Form
 
