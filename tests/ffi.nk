@@ -12,6 +12,8 @@ describe 'Feature FFI' [
   it should 'find library provided by frontend or die' [
     [ 'random-nonexisting-library' ffi:getLibrary ] 'no such library' assertDies
     'ffi-test' ffi:getLibrary $: lib
+    lib typedesc 'foreign library' assert=
+    lib desc '[foreign library: ffi-test]' assert=
     lib library? true assert=
     100 library? false assert=
   ]
@@ -49,6 +51,8 @@ describe 'Feature FFI' [
 
     [ a i32 b pointer ] ffi:createLayout $: l
     l toQuote '⟪a=i32, b=pointer⟫' assert=
+    l desc l toQuote assert=
+    l typedesc 'foreign struct layout' assert=
 
     [ x y ] ffi:createLayout $: wrong "wrong but runs to allow fdecl"
     [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean `~y` (inline struct), `&y` (reference to struct), or `?y` (union)?' assertDies
@@ -106,6 +110,10 @@ describe 'Feature FFI' [
     decimalTypeTestInlRes decimalTypeTestInlRes2 assert=
 
     [ decimalTypeTestArgRes.foobar ] 'no value form for \'foobar\'' assertDies
+
+    decimalTypeTestArgRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes2 typedesc 'foreign struct view' assert=
 
     decimalTypeTestArgRes.a 8 assert=
     decimalTypeTestArgRes.b 16 assert=
@@ -179,6 +187,10 @@ describe 'Feature FFI' [
     decimalTypeTestArgRefRes decimalTypeTestInlRefRes assert=
     decimalTypeTestInlRefRes decimalTypeTestInlRes2 assert=
 
+    decimalTypeTestArgRefRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRefRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes2 typedesc 'foreign struct view' assert=
+
     decimalTypeTestArgRefRes.a 8 assert=
     decimalTypeTestArgRefRes.b 16 assert=
     decimalTypeTestArgRefRes.c 32 assert=
@@ -222,6 +234,8 @@ describe 'Feature FFI' [
     ] lib
 
     #point:new here desc '( X Y -- P ): leaves Point for X and Y. Point must\nbe freed (`point:free`) after use.' assert=
+    #point:new here toQuote '[foreign function: Point_New]' assert=
+    #point:new here typedesc 'foreign function' assert=
 
     123 456 point:new $: a
 
@@ -510,6 +524,11 @@ describe 'Feature FFI' [
 
     a b c d e f g h j k l
     output_primitives
+
+    a typedesc 'hole' assert=
+    a toQuote '[u8 hole: 0x' keep: [ count fromLeft* ] assert= "TODO: startsWith?"
+    a toQuote 0 fromRight ']' assert= "TODO: endsWith?"
+    "TODO: surroundedBy?"
 
     a open 8 assert=
     b open 16 assert=
@@ -1488,5 +1507,13 @@ describe 'Feature FFI' [
 
     s.x 100 assert=
     s.y 200 assert=
+  ]
+
+  it should 'stringify pointer correctly' [
+    [ x pointer ] ffi:createLayout $: foo
+    foo ffi:allocateStruct~ $: s
+    s #x 1234 entry:submit
+    s.x 1234 assert=
+    s toQuote '~⟨x=(0x4d2)⟩' assert=
   ]
 ]

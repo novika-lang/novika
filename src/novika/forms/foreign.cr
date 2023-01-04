@@ -24,7 +24,7 @@ module Novika
     end
 
     def to_s(io)
-      io << "[foreign function " << @function.id << "]"
+      io << "[foreign function: " << @function.id << "]"
     end
   end
 
@@ -67,7 +67,7 @@ module Novika
     end
 
     def to_s(io)
-      io << "[" << @type << " @ 0x"
+      io << "[" << @type << " hole: 0x"
       address.to_s(io, base: 16)
       io << "]"
     end
@@ -458,7 +458,7 @@ module Novika
     end
 
     def self.typedesc
-      "library"
+      "foreign library"
     end
 
     def desc(io)
@@ -466,7 +466,7 @@ module Novika
     end
 
     def to_s(io)
-      io << "[library " << id << "]"
+      io << "[foreign library: " << id << "]"
     end
   end
 end

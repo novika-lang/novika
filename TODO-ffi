@@ -30,6 +30,7 @@ DONE
     [+] pass union in function args
     [+] union & discriminator in Novika
   [+] testing
+    [+] foreign forms typedesc
     [+] unions
       [+] union of primitives & cstr
       [+] union holds inline & ref struct, discriminator
@@ -90,7 +91,6 @@ TODO:
     ! speed of novika -> foreign is important
     [?] optimize
   [-] testing
-    [-] foreign forms typedesc
     [-] question words
   [-] question words
     [-] layout?
