@@ -137,18 +137,19 @@ module Novika::Features::Impl
 
       target.at("ffi:hole") do |engine, stack|
         typename = stack.drop.a(Word | Hole)
-        case typename
-        in Hole then type = Novika::FFI::UntypedPointer.new(typename.address)
-        in Word
-          type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
-        end
+        type =
+          case typename
+          in Hole then Novika::FFI::UntypedPointer.new(typename.address)
+          in Word then Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
+          end
+
         Hole.new(type).onto(stack)
       end
 
       target.at("ffi:box") do |engine, stack|
         typename = stack.drop.a(Word)
         form = stack.drop
-        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
+        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
         pointer = type.from(form).box
 
         Decimal.new(pointer.address).onto(stack)
@@ -157,7 +158,7 @@ module Novika::Features::Impl
       target.at("ffi:unbox") do |engine, stack|
         typename = stack.drop.a(Word)
         pointer = stack.drop.a(Decimal)
-        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
+        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
 
         # TODO: document how unsafe this method is!
 
@@ -170,9 +171,8 @@ module Novika::Features::Impl
         form = stack.drop
         address = stack.drop.a(Decimal)
 
-        # type != nothing => never nil
         # TODO: document how unsafe this method is!
-        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
+        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
         value = type.from(form)
         value.write_to!(Pointer(Void).new(address.to_u64))
       end
@@ -184,7 +184,7 @@ module Novika::Features::Impl
 
       target.at("ffi:sizeof") do |engine, stack|
         typename = stack.drop.a(Word)
-        type = Novika::FFI::ForeignType.parse(engine.block, typename)
+        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
         Decimal.new(type.sizeof).onto(stack)
       end
 

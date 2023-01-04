@@ -127,6 +127,51 @@ module Novika
     end
   end
 
+  struct StructLayoutParser < FFI::TypeParser
+    include FFI::TypeParser::ForbidsNothing
+
+    def initialize(this, typename, @field : Word, @current : StructLayoutForm, @outerset : Set(UInt64)? = nil)
+      super(this, typename)
+    end
+
+    # Appends the current layout's object id to the outer set of ids.
+    # This is normally done to prevent/detect (deep) self-reference.
+    #
+    # Returns the outerset.
+    private def add_to_outerset : Set(UInt64)
+      outerset = @outerset ||= Set(UInt64).new
+      outerset << @current.object_id
+    end
+
+    # Dies if *form*'s id is in the outer (as in nesting) set
+    # of ids. Otherwise, adds *form*'s id to the outer set.
+    private def check_cycles(form)
+      return unless add_to_outerset.includes?(form.object_id)
+
+      @typename.die(
+        "inline struct cycle detected: consider using reference \
+         type (pointer or &#{@typename.id.lchop}) for '#{@field}'")
+    end
+
+    def on_union(form : StructLayoutForm) : FFI::ForeignType
+      check_cycles(form)
+
+      form.layout(@outerset).union
+    end
+
+    def on_inline_struct(form : StructLayoutForm) : FFI::ForeignType
+      check_cycles(form)
+
+      form.layout(@outerset).inline
+    end
+
+    def on_struct_reference(form : StructLayoutForm) : FFI::ForeignType
+      add_to_outerset
+
+      form.layout(@outerset).reference
+    end
+  end
+
   class StructLayoutForm
     include Form
 
@@ -136,78 +181,25 @@ module Novika
 
     def initialize(@this : Block, @names : Array(Word), @types : Array(Word))
       @layout = Novika::FFI::StructLayout.new
-      @finished = false
+      @sealed = false
     end
 
     def initialize(@layout)
-      @finished = true
+      @sealed = true
     end
 
-    def layout(parent_object_ids = nil)
-      return @layout if @finished || (parent_object_ids && object_id.in?(parent_object_ids))
+    def layout(outerset = nil)
+      return @layout if @sealed || outerset.try &.includes?(object_id)
       return @layout unless this = @this
       return @layout unless names = @names
       return @layout unless types = @types
 
-      types = types.map do |typename|
-        case typename.id
-        when "u8"   then {false, false, typename, FFI::U8}
-        when "u16"  then {false, false, typename, FFI::U16}
-        when "u32"  then {false, false, typename, FFI::U32}
-        when "u64"  then {false, false, typename, FFI::U64}
-        when "i8"   then {false, false, typename, FFI::I8}
-        when "i16"  then {false, false, typename, FFI::I16}
-        when "i32"  then {false, false, typename, FFI::I32}
-        when "i64"  then {false, false, typename, FFI::I64}
-        when "f32"  then {false, false, typename, FFI::F32}
-        when "f64"  then {false, false, typename, FFI::F64}
-        when "cstr" then {false, false, typename, FFI::Cstr}
-        when "char" then {false, false, typename, FFI::Cchar}
-        when "nothing"
-          typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
-        when "pointer" then {false, false, typename, FFI::UntypedPointer}
-        else
-          unless (inline = typename.id.prefixed_by?('~')) || (union_ = typename.id.prefixed_by?('?')) || typename.id.prefixed_by?('&')
-            typename.die(
-              "could not recognize foreign type. Did you mean `~#{typename}` \
-               (inline struct), `&#{typename}` (reference to struct), or \
-               `?#{typename}` (union)?")
-          end
-
-          typename = Word.new(typename.id.lchop)
-          form = this.form_for(typename)
-          unless form.as?(StructLayoutForm)
-            typename.die("expected struct layout to be value form, not: #{form.class.typedesc}")
-          end
-          form = form.as(StructLayoutForm)
-
-          {inline, union_, typename, form}
-        end
+      names.zip(types) do |name, typename|
+        type = StructLayoutParser.new(@this, typename, name, self, outerset).parse
+        @layout.add(name.id, type)
       end
 
-      names.zip(types) do |name, (inline, union_, typename, type)|
-        if type.is_a?(StructLayoutForm)
-          parent_object_ids ||= Set(UInt64).new
-          parent_object_ids << object_id
-          if (inline || union_) && parent_object_ids && type.object_id.in?(parent_object_ids)
-            typename.die("inline struct cycle detected: consider using reference type (pointer or &#{name}) for '#{name}'")
-          end
-          l = type.layout(parent_object_ids)
-          if inline
-            ffi_type = l.inline
-          elsif union_
-            ffi_type = l.union
-          else
-            ffi_type = l.reference
-          end
-        else
-          ffi_type = type
-        end
-        @layout.add(name.id, ffi_type)
-      end
-
-      @finished = true
-
+      @sealed = true
       @layout
     end
 
@@ -299,12 +291,12 @@ module Novika
           if argform.is_a?(Block)
             va_args = [] of FFI::ForeignType
             argform.each do |form|
-              va_args << FFI::ForeignType.parse(this, form.a(Word), allow_nothing: false)
+              va_args << FFI::ValueTypeParser.new(this, form.a(Word)).parse
             end
             next
           end
 
-          argtypes << FFI::ForeignType.parse(this, argform.a(Word), allow_nothing: false).as(FFI::ForeignType)
+          argtypes << FFI::ValueTypeParser.new(this, argform.a(Word)).parse
         end
 
         if va_args && argtypes.empty?
@@ -321,7 +313,7 @@ module Novika
           return_form.die("cannot use varargs as return type")
         end
 
-        return_type = FFI::ForeignType.parse(this, return_form)
+        return_type = FFI::DefaultTypeParser.new(this, return_form).parse
 
         # A hell of an abstraction leak huh?.. This whole piece
         # of dung is, really.

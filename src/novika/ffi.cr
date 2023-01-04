@@ -7,7 +7,8 @@ module Novika::FFI
     abstract def box : Void*
 
     # Writes this value starting at the given *base* pointer.
-    abstract def write_to!(base : Void*)
+    # Returns the *base* pointer.
+    abstract def write_to!(base : Void*) : Void*
 
     # Determines the best form type to represent this foreign
     # value, then builds and returns a form of that type.
@@ -40,6 +41,10 @@ module Novika::FFI
       to_ffi_type.@type.value.size
     end
 
+    # Instantiates a foreign value of this foreign type from
+    # the given *form*.
+    #
+    # Dies if conversion is impossible.
     def from(form : Form) : ForeignValue
       from?(form) || raise Error.new("could not convert #{form} to foreign type #{self}")
     end
@@ -51,56 +56,108 @@ module Novika::FFI
     def from?(form : Form) : ForeignValue?
     end
 
-    # Returns foreign type corresponding to *typename*.
-    #
-    # Dies if there is no such type.
-    def self.parse(this : Block, typename : Word, allow_nothing = true) : ForeignType
-      case typename.id
-      when "u8"   then U8
-      when "u16"  then U16
-      when "u32"  then U32
-      when "u64"  then U64
-      when "i8"   then I8
-      when "i16"  then I16
-      when "i32"  then I32
-      when "i64"  then I64
-      when "f32"  then F32
-      when "f64"  then F64
-      when "cstr" then Cstr
-      when "char" then Cchar
-      when "nothing"
-        return Nothing if allow_nothing
-        typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
-      when "pointer" then UntypedPointer
-      else
-        unless (inline = typename.id.prefixed_by?('~')) || (union_ = typename.id.prefixed_by?('?')) || typename.id.prefixed_by?('&')
-          typename.die(
-            "could not recognize foreign type. Did you mean `~#{typename}` \
-             (inline struct), `&#{typename}` (reference to struct), or \
-             `?#{typename}` (union)?")
-        end
-
-        typename = Word.new(typename.id.lchop)
-        form = this.form_for(typename)
-        unless form.as?(StructLayoutForm)
-          typename.die("expected struct layout to be value form, not: #{form.class.typedesc}")
-        end
-        form = form.as(StructLayoutForm)
-
-        if inline
-          form.layout.inline
-        elsif union_
-          form.layout.union
-        else
-          form.layout.reference
-        end
-      end
-    end
-
     # Returns whether this type corresponds to the given *value*.
     def matches?(value : ForeignValue) : Bool
       false
     end
+  end
+
+  # An object used to translate `Word`s (representing a foreign type)
+  # into actual `ForeignType`s.
+  abstract struct TypeParser
+    # If included, the parser would die upon encountering `nothing`.
+    module ForbidsNothing
+      def on_primitive(type : Nothing.class)
+        @typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
+      end
+    end
+
+    # Initializes a parser object from *this*, a block that will be
+    # asked for word definitions in case they are needed, and
+    # *typename*, which is the word-to-be-parsed itself.
+    def initialize(@this : Block, @typename : Word)
+    end
+
+    # Primitive *type* middleware.
+    def on_primitive(type : ForeignType) : ForeignType
+      type
+    end
+
+    # Union-annotated struct layout middleware.
+    def on_union(form : StructLayoutForm) : ForeignType
+      form.layout.union
+    end
+
+    # Inline struct-annotated struct layout middleware.
+    def on_inline_struct(form : StructLayoutForm) : ForeignType
+      form.layout.inline
+    end
+
+    # Struct reference-annotated struct layout middleware.
+    def on_struct_reference(form : StructLayoutForm) : ForeignType
+      form.layout.reference
+    end
+
+    # Performs the parsing. Returns the resulting type.
+    def parse : ForeignType
+      case @typename.id
+      when "u8"      then return on_primitive(U8)
+      when "u16"     then return on_primitive(U16)
+      when "u32"     then return on_primitive(U32)
+      when "u64"     then return on_primitive(U64)
+      when "i8"      then return on_primitive(I8)
+      when "i16"     then return on_primitive(I16)
+      when "i32"     then return on_primitive(I32)
+      when "i64"     then return on_primitive(I64)
+      when "f32"     then return on_primitive(F32)
+      when "f64"     then return on_primitive(F64)
+      when "cstr"    then return on_primitive(Cstr)
+      when "char"    then return on_primitive(Cchar)
+      when "pointer" then return on_primitive(UntypedPointer)
+      when "nothing" then return on_primitive(Nothing)
+      when .prefixed_by?('?')
+        handler = ->on_union(StructLayoutForm)
+      when .prefixed_by?('~')
+        handler = ->on_inline_struct(StructLayoutForm)
+      when .prefixed_by?('&')
+        handler = ->on_struct_reference(StructLayoutForm)
+      else
+        @typename.die(
+          "could not recognize foreign type. Did you mean `~#{@typename}` \
+           (inline struct), `&#{@typename}` (reference to struct), or \
+           `?#{@typename}` (union)?")
+      end
+
+      raw = Word.new(@typename.id.lchop)
+      form = @this.form_for(raw)
+      unless form.is_a?(StructLayoutForm)
+        @typename.die("expected struct layout to be value form, not: #{form.class.typedesc}")
+      end
+
+      handler.call(form)
+    end
+  end
+
+  # Allows all parse-able types, from ints to `nothing` to
+  # structs and unions.
+  struct DefaultTypeParser < TypeParser
+  end
+
+  # Same as `DefaultTypeParser`, but forbids nothing.
+  #
+  # ```
+  # # this : Block
+  #
+  # parser = ValueTypeParser.new(this, Word.new("i32"))
+  # parser.parse # => I32
+  #
+  # # ...
+  #
+  # parser = ValueTypeParser.new(this, Word.new("nothing"))
+  # parser.parse # Dies: nothing is not a value type.
+  # ```
+  struct ValueTypeParser < TypeParser
+    include TypeParser::ForbidsNothing
   end
 
   private macro def_decimal_type(name, cr_type, ffi_type, vconv)
@@ -139,8 +196,9 @@ module Novika::FFI
         Pointer({{cr_type.id}}).malloc(1, @value).as(Void*)
       end
 
-      def write_to!(base : Void*)
+      def write_to!(base : Void*) : Void*
         base.as({{cr_type.id}}*).value = @value
+        base
       end
 
       def to_s(io)
@@ -229,8 +287,9 @@ module Novika::FFI
       Pointer(UInt64).malloc(1, @address).as(Void*)
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       base.as(UInt64*).value = @address
+      base
     end
 
     def to_s(io)
@@ -276,7 +335,7 @@ module Novika::FFI
       raise "BUG: nothing cannot be boxed"
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       raise "BUG: nothing cannot be written"
     end
 
@@ -304,6 +363,8 @@ module Novika::FFI
     end
   end
 
+  # Type-side and value-side representation of C char (a u8).
+  # In Novika, char is represented by a single-character quote.
   struct Cchar
     include ForeignValue
     extend ForeignType
@@ -344,8 +405,9 @@ module Novika::FFI
       Pointer(UInt8).malloc(1, @char).as(Void*)
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       base.as(UInt8*).value = @char
+      base
     end
 
     def self.unbox(box : Void*) : ForeignValue
@@ -361,6 +423,8 @@ module Novika::FFI
     end
   end
 
+  # Type-side and value-side representation of C string (a u8 pointer).
+  # In Novika, C string is represented by a quote.
   struct Cstr
     include ForeignValue
     extend ForeignType
@@ -402,19 +466,16 @@ module Novika::FFI
     end
 
     def box : Void*
-      bytes = Pointer(UInt8).malloc(@string.bytesize + 1)
-      bytes.copy_from(@string.to_unsafe, @string.bytesize)
-      bytes[@string.bytesize + 1] = 0
-
-      Pointer(UInt64).malloc(1, bytes.address).as(Void*)
+      write_to! Pointer(UInt64).malloc(1).as(Void*)
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       bytes = Pointer(UInt8).malloc(@string.bytesize + 1)
       bytes.copy_from(@string.to_unsafe, @string.bytesize)
       bytes[@string.bytesize + 1] = 0
 
       base.as(UInt64*).value = bytes.address
+      base
     end
 
     def self.unbox(box : Void*) : ForeignValue
@@ -454,7 +515,7 @@ module Novika::FFI
     # The latter is not enforced; therefore, this method is considered
     # **unsafe**.
     def put!(base : Void*, value : ForeignValue)
-      value.must_be_of type
+      value.must_be_of(type)
       value.write_to! Pointer(Void).new(base.address + offset)
     end
 
@@ -486,9 +547,6 @@ module Novika::FFI
   # rect = rect_s.reference.make!
   # rect["origin"] = origin
   # rect["corner"] = corner
-  #
-  # puts rect
-  # # &(Rect origin=&(Point x=(f64 123.0) y=(f64 456.0)) corner=(Point x=(f64 234.0) y=(f64 567.0)))
   # ```
   class StructLayout
     # Returns the padded size of this struct. Simply put, this is how
@@ -562,54 +620,54 @@ module Novika::FFI
       @fields.size
     end
 
-    # Returns whether this layout contains a field with the given *id*.
+    # Returns whether this layout contains a field with the
+    # given *id*entifier.
     def has_field?(id : String)
       @fields.any? &.id.== id
     end
 
-    # Returns the index of a field with the given *id*, or nil
-    # if there is no such field.
+    # Returns the index of a field with the given *id*entifier,
+    # or nil if there is no such field.
     def index?(id : String)
       @fields.index(&.id.== id)
     end
 
-    # Returns the index of a field with the given *id*. Dies if
-    # there is no such field.
+    # Returns the index of a field with the given *id*entifier.
+    # Dies if there is no such field.
     def index(id : String)
       index?(id) || raise "BUG: no such field in struct layout: #{id}"
     end
 
-    # Returns field description given the field's *index*inal.
+    # Retrieves field description given the field's *index*.
     def desc(index : Int32)
       @fields[index]
     end
 
-    # Returns the description of a field called *id* in this
-    # layout. Returns nil if no such field exists.
+    # Retrieves field description given the field's *id*entifier.
+    # Returns nil if no such field exists.
     def desc?(id : String)
       index?(id).try { |index| @fields.unsafe_fetch(index) }
     end
 
-    # Returns the description of a field called *id* in this
-    # layout. Raises if no such field exists.
+    # Retrieves field description given the field's *id*entifier.
+    # Raises if no such field exists.
     def desc(id : String)
       desc?(id) || raise "BUG: no such field: #{id}"
     end
 
-    # Yields field descriptions and their ordinals to the block.
+    # Yields field descriptions and their indices to the block.
     def each_desc_with_index
       @fields.each_with_index { |field, index| yield field, index }
     end
 
-    # Yields field descriptions and their ordinals to the block.
+    # Yields field descriptions and their indices to the block.
     # Returns an array of block results.
     def map_desc_with_index
       @fields.map_with_index { |field, index| yield field, index }
     end
 
-    # Returns a struct reference type corresponding to this struct
-    # layout. You then can use it as such in your struct field /
-    # argument types.
+    # Returns a struct reference type layed out according to this struct
+    # layout. You can then use it in your struct field / argument types.
     #
     # Note: this method costs nothing. Feel free to spam `.reference`
     # instead of saving it in a variable and using that variable.
@@ -617,9 +675,8 @@ module Novika::FFI
       StructReferenceType.new(self)
     end
 
-    # Returns an inline struct type corresponding to this struct
-    # layout. You then can use it as such in your struct field /
-    # argument types.
+    # Returns an inline struct type layed out according to this struct
+    # layout. You can then use it in your struct field / argument types.
     #
     # Note: this method costs nothing. Feel free to spam `.inline`
     # instead of saving it in a variable and using that variable.
@@ -627,9 +684,8 @@ module Novika::FFI
       InlineStructType.new(self)
     end
 
-    # Returns an inline struct type corresponding to this struct
-    # layout. You then can use it as such in your struct field /
-    # argument types.
+    # Returns a union type layed out according to this struct layout.
+    # You can then use it in your struct field / argument types.
     #
     # Note: this method costs nothing. Feel free to spam `.union`
     # instead of saving it in a variable and using that variable.
@@ -654,7 +710,7 @@ module Novika::FFI
     def_equals_and_hash object_id
   end
 
-  # Base class of the *type* side of structs.
+  # Base type of the *type* side of structs.
   abstract struct StructType
     include ForeignType
 
@@ -672,6 +728,7 @@ module Novika::FFI
       form.view
     end
 
+    # See `StructLayout`.
     delegate :references?, to: @layout
 
     # Constructs a struct view for this struct type.
@@ -788,7 +845,7 @@ module Novika::FFI
     end
   end
 
-  # Base class of the *value* side of structs.
+  # Base type of the *value* side of structs.
   #
   # Implements `Indexable` and `Indexable::Mutable` over the fields in
   # the struct, allowing you to iterate, read, and change them (with
@@ -801,7 +858,10 @@ module Novika::FFI
     def initialize(@layout : StructLayout, @handle : Void*)
     end
 
+    # See `StructLayout`.
     delegate :has_field?, to: @layout
+
+    # Returns the pointer address of the struct this view refers to.
     delegate :address, to: @handle
 
     def size
@@ -816,19 +876,19 @@ module Novika::FFI
       @layout.desc(index).fetch!(@handle)
     end
 
-    # Assigns *value* to a field named *id*.
+    # Assigns *value* to a field with the given *id*entifier.
     def []=(id : String, value : ForeignValue)
       unsafe_put(@layout.index(id), value)
     end
 
-    # Returns the value of a field named *id*. Dies if there is
-    # no such field.
+    # Returns the value of a field with the given *id*entifier.
+    # Dies if there is no such field.
     def [](id : String)
       unsafe_fetch(@layout.index(id))
     end
 
-    # Returns the value of a field named *id*, or nil if there
-    # is no such field.
+    # Returns the value of a field with the given *id*entifier,
+    # or nil if there is no such field.
     def []?(id : String)
       if index = @layout.index?(id)
         unsafe_fetch(index)
@@ -861,8 +921,10 @@ module Novika::FFI
       Pointer(UInt64).malloc(1, @handle.address).as(Void*)
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       base.as(UInt64*).value = @handle.address
+
+      base
     end
 
     # Similar to `exec_recursive`, but instead of using object_id
@@ -912,11 +974,10 @@ module Novika::FFI
       @handle
     end
 
-    def write_to!(base : Void*)
-      # Copy the contents of this struct to the destination pointer.
-      # We use `move_to` because we don't know *anything* about
-      # *pointer*, and `move_to` is safer in such cases (I guess).
+    def write_to!(base : Void*) : Void*
       @handle.move_to(base, @layout.padded_size)
+
+      base
     end
 
     def to_s(io)
@@ -947,8 +1008,10 @@ module Novika::FFI
       @handle
     end
 
-    def write_to!(base : Void*)
+    def write_to!(base : Void*) : Void*
       @handle.move_to(base, @layout.max_field_size)
+
+      base
     end
 
     def to_s(io)
@@ -956,8 +1019,9 @@ module Novika::FFI
     end
   end
 
+  # Base type for C function call interfaces.
   abstract struct Function
-    # Reutrns the identifier of this function.
+    # Returns the identifier of this function.
     abstract def id : String
 
     # Drops arguments from *block* and calls this function.
@@ -966,7 +1030,7 @@ module Novika::FFI
     abstract def call(block : Block) : Form?
   end
 
-  # An interface to describe and call C functions at runtime.
+  # Calls a fixed-arity C function.
   struct FixedArityFunction < Function
     getter id : String
 
@@ -999,6 +1063,7 @@ module Novika::FFI
     end
   end
 
+  # Calls a variadic C function.
   struct VariadicFunction < Function
     getter id : String
 

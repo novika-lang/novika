@@ -453,13 +453,13 @@ describe 'Feature FFI' [
 
   it should 'catch inline struct cycle' [
     [ a i32 x ~foo ] ffi:createLayout $: foo
-    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &x) for \'x\'' assertDies
+    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &foo) for \'x\'' assertDies
 
     [ foobar ~s ] ffi:createLayout $: s
-    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &foobar) for \'foobar\'' assertDies
+    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &s) for \'foobar\'' assertDies
 
     [ foobar ?u ] ffi:createLayout $: u
-    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (pointer or &foobar) for \'foobar\'' assertDies
+    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (pointer or &u) for \'foobar\'' assertDies
 
     [ barbaz &xyzzy ] ffi:createLayout $: xyzzy
     xyzzy ffi:allocateStruct& toQuote '&⟨barbaz=(none)⟩' assert=
@@ -468,10 +468,10 @@ describe 'Feature FFI' [
     [ b ~l2 ] ffi:createLayout $: l1
     [ c ~l3 ] ffi:createLayout $: l2
     [ d ~l1 ] ffi:createLayout $: l3
-    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &d) for \'d\'' assertDies
-    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &d) for \'d\'' assertDies
-    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &b) for \'b\'' assertDies
-    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &c) for \'c\'' assertDies
+    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l1) for \'d\'' assertDies
+    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l1) for \'d\'' assertDies
+    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l2) for \'b\'' assertDies
+    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l3) for \'c\'' assertDies
   ]
 
   it should 'allow to output primitive types into hole' [
