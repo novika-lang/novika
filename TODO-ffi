@@ -89,6 +89,15 @@ TODO:
     ! speed of foreign -> novika is important
     ! speed of novika -> foreign is important
     [?] optimize
+  [-] testing
+    [-] foreign forms typedesc
+    [-] question words
+  [-] question words
+    [-] layout?
+    [-] struct&?
+    [-] struct~?
+    [-] union?
+    [-] hole?
   [-] refactor
   [-] windows
   [-] make ffi off-by-default
