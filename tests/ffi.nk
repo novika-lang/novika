@@ -24,19 +24,19 @@ describe 'Feature FFI' [
     [ [ bomba ] lib ] 'bad type: word, expected: a block' assertDies
     [ [ [ ] ] lib ] 'first form in function declaration must be the function\'s name' assertDies
     [ [ [ 123 ] ] lib ] 'function name must be a word or alias block `[ foreign-name opener-name ]`' assertDies
-    [ [ [ foobar ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, write: `-- nothing`' assertDies
+    [ [ [ foobar ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
     [ [ [ [ ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
     [ [ [ [ foobar ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
     [ [ [ [ 1 bar ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ [ bar 2 ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
-    [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, write: `-- nothing`' assertDies
-    [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, write: `-- nothing`' assertDies
+    [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
+    [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
     [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean `~xyzzy` (inline struct), `&xyzzy` (reference to struct), or `?xyzzy` (union)?' assertDies
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
     [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
-    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
+    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
   ]
 
@@ -1251,11 +1251,11 @@ describe 'Feature FFI' [
 
     [ [ [ dummy [ ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
     [ [ [ dummy [ i32 ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
-    [ [ [ dummy [ i32 ] i32 -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
-    [ [ [ dummy i32 [ i32 ] i32 -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
-    [ [ [ dummy -- [ i32 ] ] ] lib ] 'cannot use varargs as return type' assertDies
-    [ [ [ dummy i32 [ i32 ] -- [ i32 ] ] ] lib ] 'cannot use varargs as return type' assertDies
-    [ [ [ dummy [ i32 ] [ i32 ] -- nothing ] ] lib ] 'only one varargs block is allowed, and must be positioned last in function declaration' assertDies
+    [ [ [ dummy [ i32 ] i32 -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy i32 [ i32 ] i32 -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy i32 [ i32 ] -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy [ i32 ] [ i32 ] -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
     [ [ [ dummy i32 [ nothing ] -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
 
   ]

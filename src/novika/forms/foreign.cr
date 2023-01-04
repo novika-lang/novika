@@ -218,9 +218,18 @@ module Novika
     def_equals layout
   end
 
+  # A library is a collection of foreign functions.
+  #
+  # A library form can be opened with a block of *function declarations*
+  # to be exposed. Each function declaration consists of the function's
+  # name and type signature. Exposed functions are then defined in the
+  # opener block.
+  #
+  # For more details, see Novika's `ffi:getLibrary`.
   class Library
     include Form
 
+    # Returns the identifier of this library.
     getter id : String
 
     private def initialize(@id, @path : Path, @handle : Void*)
@@ -230,7 +239,11 @@ module Novika
       LibC.dlclose(@handle)
     end
 
-    def self.new(id, path : Path)
+    # Initializes a library for a dynamic library found at *path*,
+    # with the given *id*entifier (may be chosen arbitrarily).
+    #
+    # May die if LibDL fails to load the library.
+    def self.new(id : String, path : Path)
       unless handle = LibC.dlopen(path.to_s, LibC::RTLD_NOW)
         raise Error.new(String.new(LibC.dlerror))
       end
@@ -238,99 +251,150 @@ module Novika
       new(id, path, handle)
     end
 
+    # Parses function name or alias block *fname*.
+    #
+    # Returns a tuple of {foreign name, opener name}. Dies if
+    # could not parse.
+    private def parse_fn_name(fname : Word)
+      {fname, fname}
+    end
+
+    # :ditto:
+    private def parse_fn_name(fname : Block)
+      unless fname.count == 2
+        fname.die("malformed alias block: expected foreign name followed by opener name")
+      end
+
+      {fname.at(0).a(Word), fname.at(1).a(Word)}
+    end
+
+    # :ditto:
+    private def parse_fn_name(fname)
+      fname.die("function name must be a word or alias block `[ foreign-name opener-name ]`")
+    end
+
+    # Parses function head (arguments and return type) in function
+    # declaration *fdecl*, starting at the given *start* index.
+    #
+    # *this* block is used to resolve argument/return types.
+    #
+    # Returns a tuple of the following form:
+    #
+    # `{return type, fixed argument types, vararg allowed types?}`
+    private def parse_fn_signature(this : Block, fdecl : Block, start : Int)
+      var_args = nil
+      fixed_args = [] of FFI::ForeignType
+      return_type = nil
+
+      # It's at least:
+      #
+      #   -- <return type word>
+      #
+      # Otherwise, it's invalid anyway.
+      if fdecl.count - start >= 2
+        hi = fdecl.count
+
+        (start...hi).each do |index|
+          cur = fdecl.at(index)
+
+          case index
+          when ...hi - 3
+            #
+            #  W1 W2 W3 W4 [ ... ] -- W5
+            #  ^^^^^^^^^^^
+            #
+            fixed_args << FFI::ValueTypeParser.new(this, cur.a(Word)).parse
+          when hi - 3
+            # Last argument must be a word or a block.
+            cur = cur.a(Word | Block)
+            if cur.is_a?(Word)
+              # If it is a word, then it's simply the last argument.
+              #
+              #  W1 W2 W3 W4 W5 -- W6
+              #              ^^
+              #
+              fixed_args << FFI::ValueTypeParser.new(this, cur).parse
+            elsif cur.is_a?(Block)
+              # If it is a block, then it's the varargs block.
+              #
+              #  W1 W2 W3 W4 [ ... ] -- W5
+              #              ^^^^^^^
+              #
+              var_args = [] of FFI::ForeignType
+              cur.each do |typename|
+                var_args << FFI::ValueTypeParser.new(this, typename.a(Word)).parse
+              end
+            end
+          when hi - 2
+            #
+            #  W1 W2 W3 W4 [ ... ] -- W5
+            #                      ^^
+            #
+            # By breaking here, we leave return type equal to nil,
+            # therefore, the error clause below will trigger.
+            break unless cur.is_a?(Word) && cur.id == "--"
+          when hi - 1
+            #
+            #  W1 W2 W3 W4 [ ... ] -- W5
+            #                         ^^
+            #
+            return_type = FFI::DefaultTypeParser.new(this, cur.a(Word)).parse
+          end
+        end
+      end
+
+      unless return_type
+        fdecl.die(
+          "function declaration must always contain `--` followed \
+           by exactly one return type. If function returns void, \
+           use `-- nothing`")
+      end
+
+      # C varargs require at least one fixed argument.
+      if var_args && fixed_args.empty?
+        fdecl.die("function declaration must have at least one fixed argument other than varargs")
+      end
+
+      {return_type, fixed_args, var_args}
+    end
+
+    # Parses a single function declaration, and defines the
+    # corresponding entry in *this*.
+    private def parse_fdecl(this : Block, fdecl : Block)
+      unless fname = fdecl.at?(0)
+        fdecl.die("first form in function declaration must be the function's name")
+      end
+
+      foreign_name, opener_name = parse_fn_name(fname)
+      return_type, fixed_args, var_args = parse_fn_signature(this, fdecl, start: 1)
+
+      # A hell of an abstraction leak huh? This whole piece of dung
+      # is, really.
+      unless sym = LibC.dlsym(@handle, foreign_name.id)
+        message = String.new(LibC.dlerror)
+        message = message.lstrip("#{@path.expand}: ")
+        fdecl.die("malformed function declaration: #{message}")
+      end
+
+      if var_args
+        ffi_fn = FFI::VariadicFunction.new(foreign_name.id, sym, fixed_args, var_args, return_type)
+      else
+        ffi_fn = FFI::FixedArityFunction.new(foreign_name.id, sym, fixed_args, return_type)
+      end
+
+      # Note how we use prototype's comment. This is similar to how
+      # blocks work: they "inherit" their doc comment from their prototype.
+      fn = ForeignFunction.new(self, ffi_fn, fdecl.prototype.comment?)
+
+      this.at(opener_name, OpenEntry.new(fn))
+    end
+
     def on_open(engine : Engine) : self
       this = engine.block
 
       fdecls = engine.stack.drop.a(Block)
       fdecls.each do |fdecl|
-        fdecl = fdecl.a(Block)
-
-        unless name = fdecl.at?(0)
-          fdecl.die("first form in function declaration must be the function's name")
-        end
-
-        case name
-        when Word
-          opener_name = name
-          foreign_name = name
-        when Block
-          unless name.count == 2
-            name.die("malformed alias block: expected foreign name followed by opener name")
-          end
-
-          opener_name = name.at(1).a(Word)
-          foreign_name = name.at(0).a(Word)
-        else
-          name.die("function name must be a word or alias block `[ foreign-name opener-name ]`")
-        end
-
-        argforms = [] of Word | Block
-        retforms = [] of Word | Block
-        half = argforms
-
-        # Stuff everything to the left of '--' to argforms array and
-        # everything to the right to retforms array.
-        (1...fdecl.count).each do |index|
-          form = fdecl.at(index).a(Word | Block)
-
-          if form.is_a?(Word) && form.id == "--"
-            half = retforms
-            next
-          end
-
-          half << form
-        end
-        argtypes = [] of FFI::ForeignType
-        va_args = nil
-
-        argforms.each_with_index do |argform, index|
-          if argform.is_a?(Block) && index != argforms.size - 1
-            argform.die("only one varargs block is allowed, and must be positioned last in function declaration")
-          end
-
-          if argform.is_a?(Block)
-            va_args = [] of FFI::ForeignType
-            argform.each do |form|
-              va_args << FFI::ValueTypeParser.new(this, form.a(Word)).parse
-            end
-            next
-          end
-
-          argtypes << FFI::ValueTypeParser.new(this, argform.a(Word)).parse
-        end
-
-        if va_args && argtypes.empty?
-          fdecl.die("function declaration must have at least one fixed argument other than varargs")
-        end
-
-        unless retforms.size == 1
-          fdecl.die(
-            "function declaration must always contain `--` followed by exactly \
-             one return type. If function returns void, write: `-- nothing`")
-        end
-
-        unless (return_form = retforms.first).is_a?(Word)
-          return_form.die("cannot use varargs as return type")
-        end
-
-        return_type = FFI::DefaultTypeParser.new(this, return_form).parse
-
-        # A hell of an abstraction leak huh?.. This whole piece
-        # of dung is, really.
-        unless sym = LibC.dlsym(@handle, foreign_name.id)
-          message = String.new(LibC.dlerror)
-          message = message.lstrip("#{@path.expand}: ")
-          fdecl.die("malformed function declaration: #{message}")
-        end
-
-        if va_args
-          function = FFI::VariadicFunction.new(foreign_name.id, sym, argtypes, va_args, return_type)
-        else
-          function = FFI::FixedArityFunction.new(foreign_name.id, sym, argtypes, return_type)
-        end
-        invoker = ForeignFunction.new(self, function, fdecl.prototype.comment?)
-
-        this.at(opener_name, OpenEntry.new(invoker))
+        parse_fdecl(this, fdecl.a(Block))
       end
 
       self
