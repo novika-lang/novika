@@ -1475,4 +1475,18 @@ describe 'Feature FFI' [
     u gcfu:u8  99 assert=
     u gcfu:char 'c' assert=
   ]
+
+  it should 'allow to write at pointer unsafely' [
+    [ x i32 y i32 ] ffi:createLayout $: point
+
+    point ffi:allocateStruct~ $: s
+
+    s ffi:addressof $: s_addr
+
+    s_addr 100 #i32 ffi:unsafeWrite
+    s_addr #i32 ffi:sizeof + 200 #i32 ffi:unsafeWrite
+
+    s.x 100 assert=
+    s.y 200 assert=
+  ]
 ]

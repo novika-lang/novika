@@ -165,6 +165,18 @@ module Novika::Features::Impl
         type.unbox(Pointer(Void).new(pointer.to_u64)).to_form?.not_nil!.onto(stack)
       end
 
+      target.at("ffi:unsafeWrite") do |engine, stack|
+        typename = stack.drop.a(Word)
+        form = stack.drop
+        address = stack.drop.a(Decimal)
+
+        # type != nothing => never nil
+        # TODO: document how unsafe this method is!
+        type = Novika::FFI::ForeignType.parse(engine.block, typename, allow_nothing: false)
+        value = type.from(form)
+        value.write_to!(Pointer(Void).new(address.to_u64))
+      end
+
       target.at("ffi:viewLayout") do |_, stack|
         view = stack.drop.a(StructViewForm)
         view.layout.onto(stack)
