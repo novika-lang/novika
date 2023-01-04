@@ -14,7 +14,7 @@ describe 'toCapitalized' [
   ]
 
   it should 'not touch empty quote' [
-    '' toCapitalized '' assert=
+    [ '' toCapitalized ] vals [ '' ] assert=
   ]
 
   it should 'not touch whitespace quote' [
@@ -30,15 +30,16 @@ describe 'toCapitalized' [
   ]
 
   it should 'work like toUppercase for single-character quote' [
-    'h' toCapitalized 'H' assert=
+    [ 'h' toCapitalized ] vals [ 'H' ] assert=
     'H' toCapitalized 'H' assert=
     'ḧ' toCapitalized 'Ḧ' assert=
     '.' toCapitalized '.' assert=
   ]
 
   it should 'properly capitalize non-capitalized quote' [
-    'john doe went to town in search of rats' toCapitalized
-    'John doe went to town in search of rats' assert=
+    [ 'john doe went to town in search of rats' toCapitalized ] vals
+    [ 'John doe went to town in search of rats' ]
+    assert=
 
     'ïmanu!' toCapitalized
     'Ïmanu!' assert=

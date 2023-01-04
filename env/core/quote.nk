@@ -10,7 +10,7 @@
   ]
 
   qq count
-    dup 0 = => [ qq ^ ]
+    dup 0 = => [ drop qq ^ ]
     dup 1 = => [ drop qq toUppercase ^ ]
     drop
 
