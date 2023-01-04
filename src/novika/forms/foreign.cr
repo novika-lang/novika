@@ -125,6 +125,21 @@ module Novika
       has_form_for?(name)
     end
 
+    # Returns whether this view is a struct reference view.
+    def reference?
+      view.is_a?(FFI::StructReferenceView)
+    end
+
+    # Returns whether this view is an inline struct view.
+    def inline?
+      view.is_a?(FFI::InlineStructView)
+    end
+
+    # Returns whether this view is a union view.
+    def union?
+      view.is_a?(FFI::UnionView)
+    end
+
     def desc(io)
       to_s(io)
     end

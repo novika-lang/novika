@@ -29,7 +29,14 @@ DONE
     [+] build union in Novika
     [+] pass union in function args
     [+] union & discriminator in Novika
+  [+] question words
+    [+] layout?
+    [+] struct&?
+    [+] struct~?
+    [+] union?
+    [+] hole?
   [+] testing
+    [+] question words
     [+] foreign forms typedesc
     [+] unions
       [+] union of primitives & cstr
@@ -90,14 +97,6 @@ TODO:
     ! speed of foreign -> novika is important
     ! speed of novika -> foreign is important
     [?] optimize
-  [-] testing
-    [-] question words
-  [-] question words
-    [-] layout?
-    [-] struct&?
-    [-] struct~?
-    [-] union?
-    [-] hole?
   [-] refactor
   [-] windows
   [-] make ffi off-by-default

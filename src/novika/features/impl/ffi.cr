@@ -7,7 +7,7 @@ module Novika::Features::Impl
     end
 
     def self.purpose : String
-      "words for working with foreign functions and structs"
+      "exposes words for working with foreign functions, structs, and unions"
     end
 
     def self.on_by_default? : Bool
@@ -15,14 +15,49 @@ module Novika::Features::Impl
     end
 
     def inject(into target : Block)
-      target.at("library?", <<-END
-      ( F -- true/false ): leaves whether Form is a library form.
+      target.at("ffi:library?", <<-END
+      ( F -- true/false ): leaves whether Form is a foreign
+       library form.
 
       ```
-      'foo' ffi:getLibrary library? leaves: true
+      'foo' ffi:getLibrary ffi:library? leaves: true
       ```
       END
       ) { |_, stack| Boolean[stack.drop.is_a?(Library)].onto(stack) }
+
+      # TODO: example
+      target.at("ffi:layout?", <<-END
+      ( F -- true/false ): leaves whether Form is a foreign
+       layout form.
+      END
+      ) { |_, stack| Boolean[stack.drop.is_a?(StructLayoutForm)].onto(stack) }
+
+      # TODO: example
+      target.at("ffi:struct&?", <<-END
+      ( F -- true/false ): leaves whether Form is a struct
+       reference view form.
+      END
+      ) { |_, stack| Boolean[stack.drop.as?(StructViewForm).try &.reference?].onto(stack) }
+
+      # TODO: example
+      target.at("ffi:struct~?", <<-END
+      ( F -- true/false ): leaves whether Form is an inline
+       struct view form.
+      END
+      ) { |_, stack| Boolean[stack.drop.as?(StructViewForm).try &.inline?].onto(stack) }
+
+      # TODO: example
+      target.at("ffi:union?", <<-END
+      ( F -- true/false ): leaves whether Form is a union
+       view form.
+      END
+      ) { |_, stack| Boolean[stack.drop.as?(StructViewForm).try &.union?].onto(stack) }
+
+      # TODO: example
+      target.at("ffi:hole?", <<-END
+      ( F -- true/false ): leaves whether Form is a hole.
+      END
+      ) { |_, stack| Boolean[stack.drop.is_a?(Hole)].onto(stack) }
 
       target.at("ffi:getLibrary") do |engine, stack|
         id = stack.drop.a(Quote)

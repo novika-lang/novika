@@ -14,8 +14,8 @@ describe 'Feature FFI' [
     'ffi-test' ffi:getLibrary $: lib
     lib typedesc 'foreign library' assert=
     lib desc '[foreign library: ffi-test]' assert=
-    lib library? true assert=
-    100 library? false assert=
+    lib ffi:library? true assert=
+    100 ffi:library? false assert=
   ]
 
   it should 'parse fdecl block or die correctly' [
@@ -1515,5 +1515,41 @@ describe 'Feature FFI' [
     s #x 1234 entry:submit
     s.x 1234 assert=
     s toQuote '~⟨x=(0x4d2)⟩' assert=
+  ]
+
+  it should 'implement predicates for foreign forms' [
+    [ x i32 ] ffi:createLayout $: x
+
+    123 ffi:layout? false assert=
+    "...etc"
+    x ffi:layout? true assert=
+
+    x ffi:allocateStruct& $: x&
+    x ffi:allocateStruct~ $: x~
+    x ffi:allocateUnion $: xU
+
+    123 ffi:struct&? false assert=
+    x~ ffi:struct&? false assert=
+    "...etc"
+    x& ffi:struct&? true assert=
+
+    123 ffi:struct~? false assert=
+    x& ffi:struct~? false assert=
+    "...etc"
+    x~ ffi:struct~? true assert=
+
+    123 ffi:union? false assert=
+    x& ffi:union? false assert=
+    x~ ffi:union? false assert=
+    "...etc"
+    xU ffi:union? true assert=
+
+    #i32 ffi:hole $: h
+
+    123 ffi:hole? false assert=
+    h ffi:hole? true assert=
+    x& ffi:hole? false assert=
+    x~ ffi:hole? false assert=
+    xU ffi:hole? false assert=
   ]
 ]
