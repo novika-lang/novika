@@ -392,7 +392,7 @@ module Novika
               #  W1 W2 W3 W4 [ ... ] -- W5
               #              ^^^^^^^
               #
-              var_args = [] of FFI::ForeignType
+              var_args = Array(FFI::ForeignType).new(cur.count)
               cur.each do |typename|
                 var_args << FFI::ValueTypeParser.new(this, typename.a(Word)).parse
               end

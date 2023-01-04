@@ -1056,7 +1056,7 @@ module Novika::FFI
     end
 
     def call(block : Block) : Form?
-      args = [] of ForeignValue
+      args = Array(ForeignValue).new(@argtypes.size)
       @argtypes.reverse_each do |argtype|
         arg = argtype.from(block.drop)
         arg.must_be_of(argtype)
@@ -1082,8 +1082,10 @@ module Novika::FFI
     def call(block : Block) : Form?
       var_args_block = block.drop.a(Block)
 
-      ffi_args = [] of ForeignValue
-      ffi_types = [] of Crystal::FFI::Type
+      nargs_total = @fixed_arg_types.size + var_args_block.count
+
+      ffi_args = Array(ForeignValue).new(nargs_total)
+      ffi_types = Array(Crystal::FFI::Type).new(nargs_total)
 
       # Drop fixed arguments first into the arguments array.
       @fixed_arg_types.reverse_each do |argtype|
