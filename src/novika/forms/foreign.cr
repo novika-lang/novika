@@ -1,3 +1,5 @@
+require "compiler/crystal/loader"
+
 module Novika
   # A thin wrapper around `FFI::Function`.
   struct ForeignFunction
@@ -311,16 +313,40 @@ module Novika
       LibC.dlclose(@handle)
     end
 
-    # Initializes a library for a dynamic library found at *path*,
+    # Uses Crystal::Loader's cross platform default search paths
+    # and library filename helpers to try to load the library
+    # with the given *id*entifier automatically.
+    #
+    # Returns nil if the library could not be found & loaded.
+    def self.new?(id : String) : Library?
+      library = nil
+
+      Crystal::Loader.default_search_paths.each do |search_path|
+        path = Path[search_path] / Crystal::Loader.library_filename(id)
+        if library = Library.new?(id, path)
+          break
+        end
+      end
+
+      library
+    end
+
+    # Initializes a library for the dynamic library at *path*,
+    # with the given *id*entifier (it may be chosen arbitrarily).
+    #
+    # Returns nil if the library could not be loaded.
+    def self.new?(id : String, path : Path) : Library?
+      return unless handle = LibC.dlopen(path.to_s, LibC::RTLD_NOW)
+
+      new(id, path, handle)
+    end
+
+    # Initializes a library for the dynamic library at *path*,
     # with the given *id*entifier (may be chosen arbitrarily).
     #
     # May die if LibDL fails to load the library.
-    def self.new(id : String, path : Path)
-      unless handle = LibC.dlopen(path.to_s, LibC::RTLD_NOW)
-        raise Error.new(String.new(LibC.dlerror))
-      end
-
-      new(id, path, handle)
+    def self.new(id : String, path : Path) : Library
+      new?(id, path) || raise Error.new(String.new(LibC.dlerror))
     end
 
     # Parses function name or alias block *fname*.

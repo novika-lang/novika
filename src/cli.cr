@@ -193,9 +193,7 @@ module Novika::Frontend::CLI
     end
 
     bundle.on_load_library? do |id|
-      # If this callback is invoked, then id is not in the
-      # bundle. Return nil since under CLI, automatic library
-      # lookup is disabled.
+      Library.new?(id)
     end
 
     Engine.new(bundle) do |engine|
