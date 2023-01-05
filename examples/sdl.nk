@@ -1,0 +1,211 @@
+'SDL2' ffi:getLibrary? not => [ 'did not find SDL!' die ] @: _sdl
+
+[
+  type u32
+
+  common pointer
+  display pointer
+  window ~sdl:windowEvent
+  key pointer
+  edit pointer
+  edit_ext pointer
+  text pointer
+  motion ~sdl:mouseMotionEvent
+  button pointer
+  wheel pointer
+  jaxis pointer
+  jball pointer
+  jhat pointer
+  jbutton pointer
+  jdevice pointer
+  jbattery pointer
+  caxis pointer
+  cbutton pointer
+  cdevice pointer
+  ctouchpad pointer
+  csensor pointer
+  adevice pointer
+  sensor pointer
+  quit pointer
+  user pointer
+  syswm pointer
+  tfinger pointer
+  mgesture pointer
+  dgesture pointer
+  drop pointer
+
+  "Padding. I don't know why it's needed, but let it be
+   here anyway."
+  _p1 u64
+  _p2 u64
+  _p3 u64
+  _p4 u64
+  _p5 u64
+  _p6 u64
+  _p7 u64
+] ffi:createLayout $: sdl:event
+
+ 256 $: SDL_QUIT_EVENT
+1024 $: SDL_MOUSE_MOTION_EVENT
+
+2 $: SDL_RENDERER_ACCELERATED
+[
+  type u32
+  timestamp u32
+  window_id u32
+  event u8
+  padding1 u8
+  padding2 u8
+  padding3 u8
+  data1 i32
+  data2 i32
+] ffi:createLayout $: sdl:windowEvent
+
+[
+  type u32
+  timestamp u32
+  window_id u32
+  which u32
+  state u32
+  x i32
+  y i32
+  xrel i32
+  yrel i32
+] ffi:createLayout $: sdl:mouseMotionEvent
+
+[
+  format u32
+  palette pointer
+  bitsPerPixel u8
+  bytesPerPixel u8
+
+  padding  u16
+
+  rmask  u32
+  gmask  u32
+  bmask  u32
+  amask  u32
+  rloss  u8
+  gloss  u8
+  bloss  u8
+  aloss  u8
+  rshift  u8
+  gshift  u8
+  bshift  u8
+  ashift  u8
+  refcount  i32
+
+  next  &sdl:pixelFormat
+] ffi:createLayout $: sdl:pixelFormat
+
+[
+  flags u32
+  format &sdl:pixelFormat
+  w i32
+  h i32
+  pitch i32
+  pixels pointer
+  userdata pointer
+  locked i32
+  list_blitmap pointer
+  clip_rect pointer
+  map pointer
+  refcount i32
+] ffi:createLayout $: sdl:surface
+
+[
+  x i32
+  y i32
+  w i32
+  h i32
+] ffi:createLayout $: sdl:rect
+
+[
+  [ [ SDL_Init sdl:init ] u32 -- i32 ]
+  [ [ SDL_GetError sdl:error ] -- cstr ]
+  [ [ SDL_CreateWindow sdl:createWindow ] cstr i32 i32 i32 i32 u32 -- pointer ]
+  [ [ SDL_CreateRenderer sdl:createRenderer ] pointer i32 u32 -- pointer ]
+  [ [ SDL_RenderClear sdl:renderClear ] pointer -- i32 ]
+  [ [ SDL_SetRenderDrawColor sdl:setRenderDrawColor ] pointer u8 u8 u8 u8 -- i32 ]
+  [ [ SDL_RenderFillRect sdl:fillRect ] pointer &sdl:rect -- i32 ]
+  [ [ SDL_RenderPresent sdl:renderPresent ] pointer -- nothing ]
+  [ [ SDL_PollEvent sdl:pollEvent ] pointer -- i32 ]
+  [ [ SDL_WaitEvent sdl:waitEvent ] pointer -- i32 ]
+  [ [ SDL_Quit sdl:quit ] -- nothing ]
+] _sdl
+
+[ sdl:quit die ] @: *died
+
+[ 0 < => [ sdl:error die ] ] @: sdl:ensure
+
+32 $: SDL_INIT_VIDEO
+805240832 $: SDL_WINDOWPOS_CENTERED
+
+
+SDL_INIT_VIDEO sdl:init 0 < => [ sdl:error die ]
+
+'Hello World' SDL_WINDOWPOS_CENTERED SDL_WINDOWPOS_CENTERED 680 480 0 sdl:createWindow $: window
+window not => [ sdl:error die ]
+
+
+window -1 SDL_RENDERER_ACCELERATED sdl:createRenderer $: renderer
+renderer not => [ sdl:error die ]
+
+[ @: h @: w @: y @: x
+
+  [
+    x 1 + $: x
+    y 1 + $: y
+    w 2 - $: w
+    h 2 - $: h
+    this sdl:rect ffi:buildStruct&
+  ] @: background
+
+  [
+    x $: x y $: y w $: w h $: h "TODO: support .schedule in buildStruct"
+    this sdl:rect ffi:buildStruct&
+  ] @: outline
+
+  [ $: renderer
+
+    x mapFromRange: 0 680 toRange: 20 132 round $: c
+    y mapFromRange: 0 480 toRange: 0 360 round $: h
+
+    60 c h lch $: bgColor
+    30 c h lch $: outColor
+
+    renderer outColor getRGB 255 sdl:setRenderDrawColor sdl:ensure
+    renderer outline sdl:fillRect
+
+    renderer bgColor getRGB 255 sdl:setRenderDrawColor sdl:ensure
+    renderer background sdl:fillRect
+  ] @: draw
+
+  this
+] @: createWindow
+
+0 $: mouseX
+0 $: mouseY
+
+[ mouseX ]
+[ mouseY ]
+50
+50
+createWindow $: window
+
+sdl:event ffi:allocateUnion $: e
+
+while: [ e ffi:addressof sdl:waitEvent 0 > ] [
+  e.type SDL_QUIT_EVENT = => break
+  e.type SDL_MOUSE_MOTION_EVENT = => [
+    e.motion.x =: mouseX
+    e.motion.y =: mouseY
+  ]
+
+  renderer 255 255 255 255 sdl:setRenderDrawColor
+  renderer sdl:renderClear sdl:ensure
+  renderer window.draw
+  renderer sdl:renderPresent
+]
+
+sdl:quit
