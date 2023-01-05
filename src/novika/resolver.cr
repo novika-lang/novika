@@ -164,7 +164,9 @@ module Novika
 
     # Returns whether *path* is a system-specific shared object.
     private def shared_object?(path : Path)
-      {% if flag?(:windows) %}
+      {% if flag?(:darwin) %}
+        path.extension == ".dylib"
+      {% elsif flag?(:windows) %}
         path.extension.in?(".dll", ".lib")
       {% elsif flag?(:unix) %}
         path.extension == ".so"
