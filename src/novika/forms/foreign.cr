@@ -201,7 +201,7 @@ module Novika
 
       @typename.die(
         "inline struct cycle detected: consider using reference \
-         type (pointer or &#{@typename.id.lchop}) for '#{@field}'")
+         type (⸢pointer⸥ or ⸢&#{@typename.id.lchop}⸥) for '#{@field}'")
     end
 
     def on_union(form : StructLayoutForm) : FFI::ForeignType
@@ -368,7 +368,7 @@ module Novika
 
     # :ditto:
     private def parse_fn_name(fname)
-      fname.die("function name must be a word or alias block `[ foreign-name opener-name ]`")
+      fname.die("function name must be a word or alias block ⸢[ foreign-name opener-name ]⸥")
     end
 
     # Parses function head (arguments and return type) in function
@@ -443,9 +443,9 @@ module Novika
 
       unless return_type
         fdecl.die(
-          "function declaration must always contain `--` followed \
+          "function declaration must always contain ⸢--⸥ followed \
            by exactly one return type. If function returns void, \
-           use `-- nothing`")
+           use ⸢-- nothing⸥")
       end
 
       # C varargs require at least one fixed argument.

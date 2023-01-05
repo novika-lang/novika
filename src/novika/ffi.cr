@@ -68,7 +68,7 @@ module Novika::FFI
     # If included, the parser would die upon encountering `nothing`.
     module ForbidsNothing
       def on_primitive(type : Nothing.class)
-        @typename.die("nothing is not a value type. Did you mean `pointer` (an untyped pointer)?")
+        @typename.die("nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?")
       end
     end
 
@@ -123,9 +123,9 @@ module Novika::FFI
         handler = ->on_struct_reference(StructLayoutForm)
       else
         @typename.die(
-          "could not recognize foreign type. Did you mean `~#{@typename}` \
-           (inline struct), `&#{@typename}` (reference to struct), or \
-           `?#{@typename}` (union)?")
+          "could not recognize foreign type. Did you mean ⸢~#{@typename}⸥ \
+           (inline struct), ⸢&#{@typename}⸥ (reference to struct), or \
+           ⸢?#{@typename}⸥ (union)?")
       end
 
       raw = Word.new(@typename.id.lchop)

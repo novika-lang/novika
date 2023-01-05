@@ -31,15 +31,15 @@ describe 'Feature FFI' [
 
     [ [ bomba ] lib ] 'bad type: word, expected: a block' assertDies
     [ [ [ ] ] lib ] 'first form in function declaration must be the function\'s name' assertDies
-    [ [ [ 123 ] ] lib ] 'function name must be a word or alias block `[ foreign-name opener-name ]`' assertDies
-    [ [ [ foobar ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
+    [ [ [ 123 ] ] lib ] 'function name must be a word or alias block ⸢[ foreign-name opener-name ]⸥' assertDies
+    [ [ [ foobar ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
     [ [ [ [ ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
     [ [ [ [ foobar ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
     [ [ [ [ 1 bar ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ [ bar 2 ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
-    [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
-    [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain `--` followed by exactly one return type. If function returns void, use `-- nothing`' assertDies
-    [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean `~xyzzy` (inline struct), `&xyzzy` (reference to struct), or `?xyzzy` (union)?' assertDies
+    [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
+    [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
+    [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean ⸢~xyzzy⸥ (inline struct), ⸢&xyzzy⸥ (reference to struct), or ⸢?xyzzy⸥ (union)?' assertDies
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
@@ -61,7 +61,7 @@ describe 'Feature FFI' [
     l typedesc 'foreign struct layout' assert=
 
     [ x y ] ffi:createLayout $: wrong "wrong but runs to allow fdecl"
-    [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean `~y` (inline struct), `&y` (reference to struct), or `?y` (union)?' assertDies
+    [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean ⸢~y⸥ (inline struct), ⸢&y⸥ (reference to struct), or ⸢?y⸥ (union)?' assertDies
 
     123 $: foobar
     [ [ x ~foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
@@ -473,13 +473,13 @@ describe 'Feature FFI' [
 
   it should 'catch inline struct cycle' [
     [ a i32 x ~foo ] ffi:createLayout $: foo
-    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &foo) for \'x\'' assertDies
+    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&foo⸥) for \'x\'' assertDies
 
     [ foobar ~s ] ffi:createLayout $: s
-    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &s) for \'foobar\'' assertDies
+    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&s⸥) for \'foobar\'' assertDies
 
     [ foobar ?u ] ffi:createLayout $: u
-    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (pointer or &u) for \'foobar\'' assertDies
+    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&u⸥) for \'foobar\'' assertDies
 
     [ barbaz &xyzzy ] ffi:createLayout $: xyzzy
     xyzzy ffi:allocateStruct& toQuote '&⟨barbaz=(none)⟩' assert=
@@ -488,10 +488,10 @@ describe 'Feature FFI' [
     [ b ~l2 ] ffi:createLayout $: l1
     [ c ~l3 ] ffi:createLayout $: l2
     [ d ~l1 ] ffi:createLayout $: l3
-    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l1) for \'d\'' assertDies
-    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l1) for \'d\'' assertDies
-    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l2) for \'b\'' assertDies
-    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (pointer or &l3) for \'c\'' assertDies
+    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l1⸥) for \'d\'' assertDies
+    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l1⸥) for \'d\'' assertDies
+    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l2⸥) for \'b\'' assertDies
+    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l3⸥) for \'c\'' assertDies
   ]
 
   it should 'allow to output primitive types into hole' [
@@ -642,7 +642,7 @@ describe 'Feature FFI' [
     s.k #f64 ffi:unbox 32.12345678912346 assert=
     s.l #pointer ffi:unbox s.a assert=
 
-    [ s.a #nothing ffi:unbox ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ s.a #nothing ffi:unbox ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
   ]
 
   it should 'allow to deref pointer to cstr type' [
@@ -725,7 +725,7 @@ describe 'Feature FFI' [
     32.123456789123456789 #f64 ffi:box
       #f64 ffi:unbox 32.12345678912346 assert=
 
-    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
   ]
 
   it should 'allow to box cstr' [
@@ -1176,21 +1176,21 @@ describe 'Feature FFI' [
 
   it should 'forbid nothing as value' [
     'ffi-test' ffi:getLibrary @: lib
-    [ [ foo nothing ] ffi:createLayout "force layout creation->" toQuote ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
-    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
-    [ 1234 #nothing ffi:unbox ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
-    [ #nothing ffi:hole ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
-    [ [ [ dummy nothing -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ [ foo nothing ] ffi:createLayout "force layout creation->" toQuote ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:unbox ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ #nothing ffi:hole ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ [ [ dummy nothing -- nothing ] ] lib ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
   ]
 
   it should 'catch invalid struct typenames' [
     "Argument typename:"
-    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean `~&` (inline struct), `&&` (reference to struct), or `?&` (union)?' assertDies
-    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean `~~` (inline struct), `&~` (reference to struct), or `?~` (union)?' assertDies
+    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean ⸢~&⸥ (inline struct), ⸢&&⸥ (reference to struct), or ⸢?&⸥ (union)?' assertDies
+    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean ⸢~~⸥ (inline struct), ⸢&~⸥ (reference to struct), or ⸢?~⸥ (union)?' assertDies
 
     "Struct layout typename:"
-    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~&` (inline struct), `&&` (reference to struct), or `?&` (union)?' assertDies
-    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean `~~` (inline struct), `&~` (reference to struct), or `?~` (union)?' assertDies
+    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean ⸢~&⸥ (inline struct), ⸢&&⸥ (reference to struct), or ⸢?&⸥ (union)?' assertDies
+    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean ⸢~~⸥ (inline struct), ⸢&~⸥ (reference to struct), or ⸢?~⸥ (union)?' assertDies
   ]
 
   it should 'typecheck function args' [
@@ -1281,7 +1281,7 @@ describe 'Feature FFI' [
     [ [ [ dummy -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
     [ [ [ dummy i32 [ i32 ] -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
     [ [ [ dummy [ i32 ] [ i32 ] -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
-    [ [ [ dummy i32 [ nothing ] -- nothing ] ] lib ] 'nothing is not a value type. Did you mean `pointer` (an untyped pointer)?' assertDies
+    [ [ [ dummy i32 [ nothing ] -- nothing ] ] lib ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
 
   ]
 
