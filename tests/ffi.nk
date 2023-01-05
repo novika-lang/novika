@@ -9,13 +9,19 @@ describe 'Feature FFI' [
   in lang
   in ffi-tests
 
-  it should 'find library provided by frontend or die' [
+  it should 'find library provided by frontend' [
     [ 'random-nonexisting-library' ffi:getLibrary ] 'no such library' assertDies
     'ffi-test' ffi:getLibrary $: lib
     lib typedesc 'foreign library' assert=
     lib desc '[foreign library: ffi-test]' assert=
     lib ffi:library? true assert=
     100 ffi:library? false assert=
+
+    [ 'random-nonexisting-library' ffi:getLibrary? ] vals
+    [ false ] vals assert=
+
+    [ 'ffi-test' ffi:getLibrary? ] vals
+    [ lib true ] here assert=
   ]
 
   it should 'parse fdecl block or die correctly' [

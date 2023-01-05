@@ -59,6 +59,14 @@ module Novika::Features::Impl
       END
       ) { |_, stack| Boolean[stack.drop.is_a?(Hole)].onto(stack) }
 
+      target.at("ffi:getLibrary?") do |engine, stack|
+        id = stack.drop.a(Quote)
+        if library = engine.bundle.load_library?(id.string)
+          library.onto(stack)
+        end
+        Boolean[!!library].onto(stack)
+      end
+
       target.at("ffi:getLibrary") do |engine, stack|
         id = stack.drop.a(Quote)
         unless library = engine.bundle.load_library?(id.string)
