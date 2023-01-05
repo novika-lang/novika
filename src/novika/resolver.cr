@@ -148,7 +148,7 @@ module Novika
     # working directory, or, if it doesn't exist there, to
     # that in the Novika environment directory. If both do
     # not exist, returns nil.
-    private def expand_runnable_path?(path : Path)
+    def expand_runnable_path?(path : Path)
       expand_in_cwd?(path) || expand_in_env?(path)
     end
 
@@ -167,7 +167,7 @@ module Novika
       {% if flag?(:darwin) %}
         path.extension == ".dylib"
       {% elsif flag?(:windows) %}
-        path.extension.in?(".dll", ".lib")
+        path.extension == ".dll"
       {% elsif flag?(:unix) %}
         path.extension == ".so"
       {% else %}

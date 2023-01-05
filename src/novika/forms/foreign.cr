@@ -310,25 +310,47 @@ module Novika
     end
 
     def finalize
-      LibC.dlclose(@handle)
+      LibDl.dlclose(@handle)
     end
 
-    # Uses Crystal::Loader's cross platform default search paths
-    # and library filename helpers to try to load the library
-    # with the given *id*entifier automatically.
+    # Tries to find the library with the given *id* in the
+    # system-specific library directories and in the current
+    # working directory.
     #
-    # Returns nil if the library could not be found & loaded.
-    def self.new?(id : String) : Library?
-      library = nil
+    # Returns nil if the library could not be found / loaded.
+    def self.new?(id : String, resolver : RunnableResolver) : Library?
+      candidates = [] of String
+
+      {% if flag?(:windows) %}
+        candidates << "#{id}.dll"
+        candidates << "lib#{id}.dll"
+      {% elsif flag?(:darwin) %}
+        candidates << "#{id}.dylib"
+        candidates << "lib#{id}.dylib"
+      {% elsif flag?(:unix) %}
+        candidates << "#{id}.so"
+        candidates << "lib#{id}.so"
+      {% end %}
 
       Crystal::Loader.default_search_paths.each do |search_path|
-        path = Path[search_path] / Crystal::Loader.library_filename(id)
-        if library = Library.new?(id, path)
-          break
+        # ???
+        #
+        # https://github.com/crystal-lang/crystal/blob/42a3f91335852613824a6a2587da6e590b540518/src/compiler/crystal/loader/msvc.cr#L65
+
+        candidates.each do |candidate|
+          if library = Library.new?(id, Path[search_path] / candidate)
+            return library
+          end
         end
       end
 
-      library
+      # If not in search paths or no search paths, try looking
+      # in Novika-specific directories.
+      candidates.each do |candidate|
+        next unless path = resolver.expand_runnable_path?(Path[candidate])
+        next unless library = Library.new?(id, path)
+        return library
+      end
     end
 
     # Initializes a library for the dynamic library at *path*,
@@ -336,7 +358,7 @@ module Novika
     #
     # Returns nil if the library could not be loaded.
     def self.new?(id : String, path : Path) : Library?
-      return unless handle = LibC.dlopen(path.to_s, LibC::RTLD_NOW)
+      return unless handle = LibDl.dlopen(path.to_s, LibDl::RTLD_NOW)
 
       new(id, path, handle)
     end
@@ -346,7 +368,7 @@ module Novika
     #
     # May die if LibDL fails to load the library.
     def self.new(id : String, path : Path) : Library
-      new?(id, path) || raise Error.new(String.new(LibC.dlerror))
+      new?(id, path) || raise Error.new(String.new(LibDl.dlerror))
     end
 
     # Parses function name or alias block *fname*.
@@ -468,8 +490,8 @@ module Novika
 
       # A hell of an abstraction leak huh? This whole piece of dung
       # is, really.
-      unless sym = LibC.dlsym(@handle, foreign_name.id)
-        message = String.new(LibC.dlerror)
+      unless sym = LibDl.dlsym(@handle, foreign_name.id)
+        message = String.new(LibDl.dlerror)
         message = message.lstrip("#{@path.expand}: ")
         fdecl.die("malformed function declaration: #{message}")
       end

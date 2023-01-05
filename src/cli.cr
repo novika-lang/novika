@@ -193,7 +193,7 @@ module Novika::Frontend::CLI
     end
 
     bundle.on_load_library? do |id|
-      Library.new?(id)
+      Library.new?(id, resolver)
     end
 
     Engine.new(bundle) do |engine|

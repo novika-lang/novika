@@ -1,6 +1,8 @@
 require "big"
 require "colorize"
 
+require "./ext/dlfcn"
+
 # Order is important!
 require "./novika/forms/form"
 require "./novika/image"
