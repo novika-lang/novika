@@ -205,8 +205,8 @@ module Novika::Features::Impl
       end
 
       {% for method, desc in {
-                               inline:    {"~", :InlineStruct, "Isv", "an Inline struct"},
-                               reference: {"&", :StructReference, "Srv", "a Struct reference"},
+                               inline:    {"~", :InlineStruct, "Isv", "Inline struct"},
+                               reference: {"&", :StructReference, "Srv", "Struct reference"},
                              } %}
 
         {% sign, cls, ann, qual = desc %}
@@ -350,7 +350,7 @@ module Novika::Features::Impl
       target.at("ffi:buildUnion", <<-END
       ( Eb Slf -- Uv ): allocates and fills Union view with an
        entry by asking Entry block for any *one* entry in Struct
-       layout form, in the order they are specified in Sruct
+       layout form, in the order they are specified in Struct
        layout form.
 
       Entry block must have at least one of the Struct layout

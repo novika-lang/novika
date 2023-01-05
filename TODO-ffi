@@ -98,6 +98,8 @@ TODO:
     ! speed of foreign -> novika is important
     ! speed of novika -> foreign is important
     [?] optimize
+  [-] see whether novika compiles under windows statically
+    [-] de-gitignore dl.dll (in bin/)
   [-] refactor
   [-] make ffi off-by-default
   [-] write example: ncurses
