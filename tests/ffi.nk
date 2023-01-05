@@ -42,10 +42,16 @@ describe 'Feature FFI' [
     [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean ⸢~xyzzy⸥ (inline struct), ⸢&xyzzy⸥ (reference to struct), or ⸢?xyzzy⸥ (union)?' assertDies
     [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
     [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
-    [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] 'malformed function declaration: undefined symbol: foobar' assertDies
     [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
     [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a word' assertDies
     [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
+  ]
+
+  it dies 'when function doesn\'t exist in the library' [
+    'ffi-test' ffi:getLibrary @: lib
+    "TODO: .startsWith"
+    "TODO: [ ... ] [ \"(Em --): Error message\" ... ] assertDies"
+    [ [ [ foobar barbaz ] -- i32 ] maurice ] lib
   ]
 
   it should 'parse struct layout decl properly' [
@@ -232,14 +238,13 @@ describe 'Feature FFI' [
     pointStruct toQuote '⟪x=f32, y=f32⟫' assert=
 
     [
-      [ "( X Y -- P ): leaves Point for X and Y. Point must
-         be freed (`point:free`) after use."
+      [ "( X Y -- P ): leaves Point for X and Y."
         [ Point_New point:new ]  f32 f32 -- &pointStruct ]
       [ [ Point_Free point:free ]  &pointStruct -- nothing ]
       [ [ Point_Subtract point:- ]  &pointStruct &pointStruct -- &pointStruct ]
     ] lib
 
-    #point:new here desc '( X Y -- P ): leaves Point for X and Y. Point must\nbe freed (`point:free`) after use.' assert=
+    #point:new here desc '( X Y -- P ): leaves Point for X and Y.' assert=
     #point:new here toQuote '[foreign function: Point_New]' assert=
     #point:new here typedesc 'foreign function' assert=
 
