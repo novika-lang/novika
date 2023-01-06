@@ -1,6 +1,7 @@
 /docs/
 /lib/
 /bin/
+!/bin/dl.dll
 /.shards/
 *.dwarf
 cachegrind.out.*
