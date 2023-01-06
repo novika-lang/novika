@@ -1,5 +1,8 @@
 DONE
+  [+] efficiency evaluation -- somewhere around 7us / ffi op
+    A huge lot but I don't really care about it right now
   [+] windows
+  [+ sort of] refactor
   [+] compile tests using nkas and run with nki
   [+] char support
     [+] add test with union of int and char 'A' & 65
@@ -93,16 +96,8 @@ DONE
 
 TODO:
 
-  [-] efficiency evaluation
-    ! speed of allocateStruct/buildStruct is important
-    ! speed of calls to C is important
-    ! speed of type parse is important
-    ! speed of foreign -> novika is important
-    ! speed of novika -> foreign is important
-    [?] optimize
   [-] see whether novika compiles under windows statically
-    [-] de-gitignore dl.dll (in bin/)
-  [-] refactor
+    [-] de-gitignore dl.dll (in bin/) using !
   [-] make ffi off-by-default
   [-] merge <<<<<<<<<<<< !!!!!!!! <<<<<<<<<<<<<<< I REALLY WANT TO BE HERE!!! 05:49PM 29 Dec 2022
   [-] documentation; check for memory leaks & unsafe situations
