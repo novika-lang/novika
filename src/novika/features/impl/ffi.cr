@@ -92,9 +92,10 @@ module Novika::Features::Impl
        if dynamic library with the given Id exists and was loaded &
        retrieved successfully; otherwise, leaves false.
 
-      Opening Library form allows one to expose functions from
-      it. See FFI documentation on GitHub Wiki for more details
-      and examples
+      Opening Library form allows one to expose functions from the
+      underlying dynamic library (.so on Linux, .dll on Windows,
+      .dylib on Mac). See FFI documentation on GitHub Wiki for more
+      details and examples.
 
       ```
       'SDL2' ffi:getLibrary? leaves: [ "[foreign library]" true ]
@@ -114,9 +115,10 @@ module Novika::Features::Impl
        given Id exists and was loaded & retrieved successfully;
        otherwise, dies.
 
-      Opening Library form allows one to expose functions from
-      it. See FFI documentation on GitHub Wiki for more details
-      and examples.
+      Opening Library form allows one to expose functions from the
+      underlying dynamic library (.so on Linux, .dll on Windows,
+      .dylib on Mac). See FFI documentation on GitHub Wiki for more
+      details and examples.
 
       ```
       'SDL2' ffi:getLibrary ffi:library? leaves: true
@@ -136,7 +138,7 @@ module Novika::Features::Impl
        Struct layout form.
 
       Struct layouts are a generalization over structs (heap-
-      allocated and stack-allocated), and unions. They literally
+      allocated and stack-allocated) and unions. They literally
       describe how structs (unions) are layed out in memory.
 
       Layout block consists of *name words followed by type words*.
@@ -149,9 +151,9 @@ module Novika::Features::Impl
       Either could be hidden behind a reference/pointer.
 
       Layout block is parsed lazily (on first use, e.g., by `toQuote`,
-      `allocateStruct` variants, etc.) Therefore, you can define self-
-      referential structs, mutually referential structs, and reference
-      layouts that are defined later.
+      `allocateStruct` variants, `=`, etc.) Therefore, you can define
+      self-referential structs, mutually referential structs, and
+      reference layouts that are defined later.
 
       See FFI documentation on GitHub Wiki for a list of available
       types and the corresponding C types.
@@ -241,10 +243,11 @@ module Novika::Features::Impl
         ( Eb Slf -- {{ann.id}} ): allocates and fills {{qual.id}}
          view with entries by asking Entry block for them.
 
-        If Entry block is missing a field that Struct layout form
-        declares, and that field is of `pointer` or struct reference
-        (`&`) type, `none` (C nullptr) is used as the value. Dies if
-        Entry block is missing a field of any other type.
+        If Entry block is missing an entry matching a field that
+        Struct layout form declares, and that field is of type
+        `pointer` or struct reference (`&`), `none` (C nullptr)
+        is used as the value. Dies if Entry block is missing
+        matching entry or entries for fields of other types.
 
         ```
         [ x i32 y i32 ] ffi:createLayout $: point
@@ -281,8 +284,8 @@ module Novika::Features::Impl
         end
 
         target.at("ffi:asStruct{{sign.id}}", <<-END
-        ( A Slf -- {{ann.id}} ): wraps Address in {{qual.id}}
-         view according to the given Struct layout form.
+        ( A Slf -- {{ann.id}} ): creates and leaves {{qual.id}} view
+         for the given Address, according to Struct layout form.
 
         This word is **unsafe**: it does not check whether Address
         points at something that is layed out according to Struct
@@ -290,9 +293,9 @@ module Novika::Features::Impl
         will lead to segfault. Passing Address that is outside of
         your program's memory will lead to segfault. Passing Address
         that *is* in the bounds of your program's memory, but one
-        not pointing at a struct in accordance to Struct layout form,
-        will lead to undefined behavior (most likely junk values
-        in {{qual.id}} view).
+        not pointing at a struct in accordance with Struct layout
+        form, will lead to undefined behavior (most likely junk
+        values in {{qual.id}} view).
 
         ```
         [ x i32 y i32 ] ffi:createLayout $: point
@@ -322,10 +325,11 @@ module Novika::Features::Impl
        layout form.
 
       This word is **unsafe**: the resulting Union view is in
-      an undefined state (may contain junk) before you (or the
-      C code you pass it to) fills it with good values. Showing
-      the union left by this word to clients may expose your
-      program to a whole class of security vulnerabilities.
+      an undefined (uninitialized) state (may be zeroed out,
+      contain junk, or both) before you (or the C code you pass
+      it to) fills it with good values. Showing the uninitialized
+      union to clients may expose your program to a whole class
+      of security vulnerabilities.
 
       ```
       [ chr char
@@ -350,10 +354,10 @@ module Novika::Features::Impl
 
       target.at("ffi:buildUnion", <<-END
       ( Eb Slf -- Uv ): allocates and fills Union view with an
-       entry by asking Entry block for any *one* entry in Struct
-       layout form, in the order they are specified in Struct
-       layout form. If the union is no longer in use, it is freed
-       by the GC automatically.
+       entry by asking Entry block for any *one* entry out of
+       those specified in Struct layout form, in the order they
+       are specified in Struct layout form. If the union is no
+       longer in use, it is freed by the GC automatically.
 
       Entry block must have at least one of the Struct layout
       form's fields defined. Otherwise, this word dies.
@@ -407,7 +411,7 @@ module Novika::Features::Impl
 
       target.at("ffi:asUnion", <<-END
       ( A Slf -- Uv ): creates and leaves a Union view for the
-       given Address, according to the given Struct layout form.
+       given Address, according to Struct layout form.
 
       This word is **unsafe**: it does not check whether Address
       points at something that is layed out according to Struct
@@ -415,7 +419,7 @@ module Novika::Features::Impl
       will lead to segfault. Passing Address that points outside
       of your program's memory will lead to segfault. Passing
       Address that *is* in the bounds of your program's memory,
-      but one not pointing at a struct in accordance to Struct
+      but one not pointing at a union in accordance with Struct
       layout form, will lead to undefined behavior (most likely
       junk values in Union view). Showing ill-formed results of
       this word to clients may expose your program to a whole
@@ -446,13 +450,17 @@ module Novika::Features::Impl
 
       target.at("ffi:hole", <<-END
       ( T/Oh -- H ): allocates garbage-collected memory for Hole
-       that will hold a value of the given Type. If Other hole is
-       passed instead, wraps that Other hole instead (this could be
+       that will hold a value of the given Type. If Other hole
+       is passed, wraps that Other hole instead (this could be
        useful in C situations like `int**`)
 
       Holes are (just a bit) safer way of letting C write to a
       memory location. You first create the hole, then pass it
       to C, then read from the hole by opening it.
+
+      Note: this word is **unsafe**: since we cannot check whether
+      the hole was written to, reading from hole (opening it) before
+      writing to it will result in undefined behavior.
 
       ```
       """
@@ -481,9 +489,9 @@ module Novika::Features::Impl
 
       target.at("ffi:box", <<-END
       ( F T -- A ): allocates garbage-collected memory for Type, and
-       writes Form to that memory. Form must be of (or convertible to)
-       Type, otherwise, this word dies. Leaves Address of the beginning
-       of the allocated memory.
+       writes Form there. Form must be of (or convertible to) Type;
+       otherwise, this word dies. Leaves Address of the beginning of
+       the allocated memory.
 
       ```
       123 #i32 ffi:box $: ptr
@@ -537,10 +545,10 @@ module Novika::Features::Impl
        and writes it at Address.
 
       This word is **unsafe**: it does not check whether Address
-      can be written to, whether there is enough memory, etc.
-      Passing 0 (none aka null pointer) for Address will lead
-      to segfault. Passing Address that points outside of your
-      program's memory will lead to segfault. Passing Address
+      can be written to, whether there is enough memory to fully
+      write Form, etc. Passing 0 (none aka null pointer) for Address
+      will lead to segfault. Passing Address that points outside
+      of your program's memory will lead to segfault. Passing Address
       that *is* in the bounds of your program's memory and can
       be written to may lead to undefined behavior.
 
@@ -602,7 +610,7 @@ module Novika::Features::Impl
 
       target.at("ffi:addressof", <<-END
       ( Svf/H -- A ): leaves Address of the given Struct view form
-       (an inline struct view, struct reference view, or union view)
+       (an inline struct view, struct reference view, or union view),
        or Hole in memory.
 
       ```
@@ -613,9 +621,9 @@ module Novika::Features::Impl
       ```
       END
       ) do |engine, stack|
-        foreign = stack.drop.a(Hole | StructViewForm)
+        form = stack.drop.a(Hole | StructViewForm)
 
-        Decimal.new(foreign.address).onto(stack)
+        Decimal.new(form.address).onto(stack)
       end
     end
   end
