@@ -213,7 +213,8 @@ module Novika::Features::Impl
 
         target.at("ffi:allocateStruct{{sign.id}}", <<-END
         ( Slf -- {{ann.id}} ): allocates {{qual.id}} view for the
-         given Struct layout form.
+         given Struct layout form. If the struct is no longer in
+         use, it is freed by the GC automatically.
 
         This word is **unsafe**: the resulting {{qual.id}} view is
         in an undefined state (may contain junk) before you (or the
@@ -280,14 +281,14 @@ module Novika::Features::Impl
         end
 
         target.at("ffi:asStruct{{sign.id}}", <<-END
-        ( Pd Slf -- {{ann.id}} ): wraps Pointer decimal in {{qual.id}}
+        ( A Slf -- {{ann.id}} ): wraps Address in {{qual.id}}
          view according to the given Struct layout form.
 
-        This word is **unsafe**: it does not check whether Pointer
-        decimal points at something that is layed out according to
-        Struct layout form. Passing 0 for Pointer decimal will lead
-        to segfault. Passing a pointer that points outside of your
-        program's memory will lead to segfault. Passing a pointer
+        This word is **unsafe**: it does not check whether Address
+        points at something that is layed out according to Struct
+        layout form. Passing 0 (none aka null pointer) for Address
+        will lead to segfault. Passing Address that is outside of
+        your program's memory will lead to segfault. Passing Address
         that *is* in the bounds of your program's memory, but one
         not pointing at a struct in accordance to Struct layout form,
         will lead to undefined behavior (most likely junk values
@@ -351,7 +352,8 @@ module Novika::Features::Impl
       ( Eb Slf -- Uv ): allocates and fills Union view with an
        entry by asking Entry block for any *one* entry in Struct
        layout form, in the order they are specified in Struct
-       layout form.
+       layout form. If the union is no longer in use, it is freed
+       by the GC automatically.
 
       Entry block must have at least one of the Struct layout
       form's fields defined. Otherwise, this word dies.
@@ -404,20 +406,20 @@ module Novika::Features::Impl
       end
 
       target.at("ffi:asUnion", <<-END
-      ( Pd Slf -- Uv ): wraps Pointer decimal in a Union view
-       according to the given Struct layout form.
+      ( A Slf -- Uv ): creates and leaves a Union view for the
+       given Address, according to the given Struct layout form.
 
-      This word is **unsafe**: it does not check whether Pointer
-      decimal points at something that is layed out according to
-      Struct layout form. Passing 0 for Pointer decimal will lead
-      to segfault. Passing a pointer that points outside of your
-      program's memory will lead to segfault. Passing a pointer
-      that *is* in the bounds of your program's memory, but one
-      not pointing at a struct in accordance to Struct layout form,
-      will lead to undefined behavior (most likely junk values
-      in Union view). Showing ill-formed results of this word to
-      clients may expose your program to a whole class of
-      security vulnerabilities.
+      This word is **unsafe**: it does not check whether Address
+      points at something that is layed out according to Struct
+      layout form. Passing 0 (none aka null pointer) for Address
+      will lead to segfault. Passing Address that points outside
+      of your program's memory will lead to segfault. Passing
+      Address that *is* in the bounds of your program's memory,
+      but one not pointing at a struct in accordance to Struct
+      layout form, will lead to undefined behavior (most likely
+      junk values in Union view). Showing ill-formed results of
+      this word to clients may expose your program to a whole
+      class of security vulnerabilities.
 
       ```
       [ chr char
@@ -442,7 +444,31 @@ module Novika::Features::Impl
         StructViewForm.new(view).onto(stack)
       end
 
-      target.at("ffi:hole") do |engine, stack|
+      target.at("ffi:hole", <<-END
+      ( T/Oh -- H ): allocates garbage-collected memory for Hole
+       that will hold a value of the given Type. If Other hole is
+       passed instead, wraps that Other hole instead (this could be
+       useful in C situations like `int**`)
+
+      Holes are (just a bit) safer way of letting C write to a
+      memory location. You first create the hole, then pass it
+      to C, then read from the hole by opening it.
+
+      ```
+      """
+      void outputCInt(int* x)
+      {
+        *x = 123;
+      }
+      """
+
+      #i32 ffi:hole $: intBox
+
+      intBox outputCInt
+      intBox open leaves: 123
+      ```
+      END
+      ) do |engine, stack|
         typename = stack.drop.a(Word | Hole)
         type =
           case typename
@@ -453,7 +479,18 @@ module Novika::Features::Impl
         Hole.new(type).onto(stack)
       end
 
-      target.at("ffi:box") do |engine, stack|
+      target.at("ffi:box", <<-END
+      ( F T -- A ): allocates garbage-collected memory for Type, and
+       writes Form to that memory. Form must be of (or convertible to)
+       Type, otherwise, this word dies. Leaves Address of the beginning
+       of the allocated memory.
+
+      ```
+      123 #i32 ffi:box $: ptr
+      ptr #i32 ffi:unbox leaves: 123
+      ```
+      END
+      ) do |engine, stack|
         typename = stack.drop.a(Word)
         form = stack.drop
         type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
@@ -462,41 +499,122 @@ module Novika::Features::Impl
         Decimal.new(pointer.address).onto(stack)
       end
 
-      target.at("ffi:unbox") do |engine, stack|
-        typename = stack.drop.a(Word)
-        pointer = stack.drop.a(Decimal)
-        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
+      target.at("ffi:unbox", <<-END
+      ( A T -- F ): interprets whatever Address points at as a
+       value of the given Type, and leaves the matching Form.
+       Inverse of `ffi:box`.
 
-        # TODO: document how unsafe this method is!
+      This word is **unsafe**: it does not check whether Address
+      points at something that is of the given Type. Passing 0
+      (none aka null pointer) for Address will lead to segfault.
+      Passing Address that points outside of your program's memory
+      will lead to segfault. Passing Address that *is* in the bounds
+      of your program's memory, but one not pointing at a value of
+      the given Type, will lead to undefined behavior (most likely
+      junk value of Form). Showing ill-formed results of this word to
+      clients, or letting clients control Address or Type, may expose
+      your program to a whole class of security vulnerabilities.
+
+      ```
+      123 #i32 ffi:box $: ptr
+      ptr #i32 ffi:unbox leaves: 123
+      ```
+      END
+      ) do |engine, stack|
+        typename = stack.drop.a(Word)
+        address = stack.drop.a(Decimal)
+
+        type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
+        base = Pointer(Void).new(address.to_u64)
 
         # type != nothing => never nil
-        type.unbox(Pointer(Void).new(pointer.to_u64)).to_form?.not_nil!.onto(stack)
+        form = type.unbox(base).to_form?.not_nil!
+        form.onto(stack)
       end
 
-      target.at("ffi:unsafeWrite") do |engine, stack|
+      target.at("ffi:unsafeWrite", <<-END
+      ( A F T -- ): interprets Form as that of the given Type,
+       and writes it at Address.
+
+      This word is **unsafe**: it does not check whether Address
+      can be written to, whether there is enough memory, etc.
+      Passing 0 (none aka null pointer) for Address will lead
+      to segfault. Passing Address that points outside of your
+      program's memory will lead to segfault. Passing Address
+      that *is* in the bounds of your program's memory and can
+      be written to may lead to undefined behavior.
+
+      ```
+      #i32 ffi:hole $: myHole
+      myHole ffi:addressof $: holeAddr
+      holeAddr 123 #i32 ffi:unsafeWrite
+      myHole open leaves: 123
+      ```
+      END
+      ) do |engine, stack|
         typename = stack.drop.a(Word)
         form = stack.drop
         address = stack.drop.a(Decimal)
-
-        # TODO: document how unsafe this method is!
         type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
         value = type.from(form)
-        value.write_to!(Pointer(Void).new(address.to_u64))
+        base = Pointer(Void).new(address.to_u64)
+        value.write_to!(base)
       end
 
-      target.at("ffi:viewLayout") do |_, stack|
+      target.at("ffi:viewLayout", <<-END
+      ( Svf -- Slf ): leaves Struct layout form for the given
+       Struct view form (an inline struct view, struct reference
+       view, or union view).
+
+      ```
+      [ x f32 y f32 ] ffi:createLayout $: point
+
+      point ffi:allocateStruct& $: point&
+      point ffi:allocateStruct~ $: point~
+      point ffi:allocateUnion $: pointU
+
+      point& ffi:viewLayout leaves: point
+      point~ ffi:viewLayout leaves: point
+      pointU ffi:viewLayout leaves: point
+      ```
+      END
+      ) do |_, stack|
         view = stack.drop.a(StructViewForm)
         view.layout.onto(stack)
       end
 
-      target.at("ffi:sizeof") do |engine, stack|
+      target.at("ffi:sizeof", <<-END
+      ( T -- B ): leaves the size of Type, in Bytes.
+
+      ```
+      #u8  ffi:sizeof leaves: 1
+      #u16 ffi:sizeof leaves: 2
+      #u32 ffi:sizeof leaves: 4
+      #u64 ffi:sizeof leaves: 8
+      ```
+      END
+      ) do |engine, stack|
         typename = stack.drop.a(Word)
         type = Novika::FFI::ValueTypeParser.new(engine.block, typename).parse
+
         Decimal.new(type.sizeof).onto(stack)
       end
 
-      target.at("ffi:addressof") do |engine, stack|
+      target.at("ffi:addressof", <<-END
+      ( Svf/H -- A ): leaves Address of the given Struct view form
+       (an inline struct view, struct reference view, or union view)
+       or Hole in memory.
+
+      ```
+      #i32 ffi:hole $: myHole
+      myHole ffi:addressof $: holeAddr
+      holeAddr 123 #i32 ffi:unsafeWrite
+      myHole open leaves: 123
+      ```
+      END
+      ) do |engine, stack|
         foreign = stack.drop.a(Hole | StructViewForm)
+
         Decimal.new(foreign.address).onto(stack)
       end
     end

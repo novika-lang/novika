@@ -16,6 +16,8 @@ DONE
   [+] box foreign value in a pointer
   [+] self-referential structs
   [+] self-referential toQuote
+  [+] write example
+    [+] begin SDL2 bindings
   [+] struct layout byref equality
     [+] flat equality
     [+] nested equality
@@ -102,9 +104,6 @@ TODO:
     [-] de-gitignore dl.dll (in bin/)
   [-] refactor
   [-] make ffi off-by-default
-  [-] write example: ncurses
-  [-] write example: windows something (ncurses too?)
-  [-] begin SDL2 bindings
   [-] merge <<<<<<<<<<<< !!!!!!!! <<<<<<<<<<<<<<< I REALLY WANT TO BE HERE!!! 05:49PM 29 Dec 2022
   [-] documentation; check for memory leaks & unsafe situations
     [-] what types are available
