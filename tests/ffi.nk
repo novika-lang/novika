@@ -1269,7 +1269,7 @@ describe 'Feature FFI' [
   it should 'call variadic function with n allowed types' [
     'ffi-test' ffi:getLibrary @: lib
 
-    [ [ sum_count_or_self u8 u32 [ i32 cstr ] -- i64 ]
+    [ [ sum_count_or_self u32 u32 [ i32 cstr ] -- i64 ]
     ] lib
 
     0 "<- sum count" 3 "<- how many"  [ 'hello world' 'bye world' 'salam' ] sum_count_or_self 25 assert=
@@ -1310,8 +1310,12 @@ describe 'Feature FFI' [
 
     [ x f32 y f32 ] ffi:createLayout $: point
 
-    [ [ [ scaled_sum_structs_variadic sssv:inl ] u32 u8 f32 [ ~point ] -- f32 ]
-      [ [ scaled_sum_structs_variadic sssv:ref ] u32 u8 f32 [ &point ] -- f32 ]
+    [ [ [ scaled_sum_structs_variadic sssv:inl ] u32 u32 f64 [ ~point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:ref ] u32 u32 f64 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype1 ] u8 u32 f64 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype2 ] u32 u32 f32 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype3 ] u32 u32 f64 [ i16 &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype4 ] u32 u32 f64 [ f32 &point ] -- f32 ]
     ] lib
 
     "0 2
@@ -1337,8 +1341,13 @@ describe 'Feature FFI' [
     varargs count  1  5.67  varargs map: [ .inl ]  sssv:inl $: sum_inl
                   "^-- is inline? yes"
 
-    sum_ref 93.59999 assert=
-    sum_inl 226.80002 assert=
+    sum_ref 93.6 assert=
+    sum_inl 226.8 assert=
+
+    [ varargs count 1 5.67 varargs map: [.inl] sssv:bad_argtype1 ] 'bad argtype in variadic call: promote to i32 first: 5_u8' assertDies
+    [ varargs count 1 5.67 varargs map: [.inl] sssv:bad_argtype2 ] 'bad argtype in variadic call: promote to f64 first: 5.67_f32' assertDies
+    [ varargs count 1 5.67 [ 1234 ] sssv:bad_argtype3 ] 'bad argtype in variadic call: promote to i32 first: 1234_i16' assertDies
+    [ varargs count 1 5.67 [ 1234 ] sssv:bad_argtype4 ] 'bad argtype in variadic call: promote to f64 first: 1234.0_f32' assertDies
   ]
 
   it should 'support basic union construction in Novika' [

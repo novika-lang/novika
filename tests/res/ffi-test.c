@@ -611,7 +611,7 @@ EXPORT int64_t swap_muladd_variadic(int32_t a, int32_t b, uint32_t n, ...)
   return sum;
 }
 
-EXPORT int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
+EXPORT int64_t sum_count_or_self(uint32_t det, uint32_t n, ...)
 {
   va_list ap;
   int64_t sum = 0;
@@ -635,7 +635,7 @@ EXPORT int64_t sum_count_or_self(uint8_t det, uint32_t n, ...)
   return sum;
 }
 
-EXPORT float scaled_sum_structs_variadic(uint32_t n, uint8_t isinl, float scale, ...)
+EXPORT float scaled_sum_structs_variadic(uint32_t n, uint32_t isinl, double scale, ...)
 {
   va_list ap;
   float sum = 0;

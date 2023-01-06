@@ -1119,6 +1119,23 @@ module Novika::FFI
         ffi_args << candidate_value
       end
 
+      # Per LibFFI docs:
+      #
+      # `ffi_prep_cif_var` will return `FFI_BAD_ARGTYPE` if
+      # any of the variable argument types are `ffi_type_float`
+      # (promote to `ffi_type_double` first, or any integer
+      # type smaller than an int (promote to an int-sized
+      # type first).
+      ffi_args.each do |arg|
+        # TODO: maybe We CoUld acTuaLLy ProMote iT HeRe?
+        case arg
+        when U8, U16, I8, I16
+          block.die("bad argtype in variadic call: promote to i32 first: #{arg}")
+        when F32
+          block.die("bad argtype in variadic call: promote to f64 first: #{arg}")
+        end
+      end
+
       # Variadic functions need a call interface for each call.
       cif = Crystal::FFI::CallInterface.variadic(
         return_type: @return_type.to_ffi_type,
