@@ -96,8 +96,8 @@ module Novika
       @classes.has_key?(id)
     end
 
-    # Returns whether this bundle includes a library with
-    # the given *id*.
+    # Returns whether this bundle includes a library with the
+    # given *id*.
     def has_library?(id : String)
       @libraries.has_key?(id)
     end
@@ -162,22 +162,29 @@ module Novika
 
     @load_library_callbacks = [] of String -> Library?
 
-    # Subscribes *callback* to library load requests, so that whenever
-    # the runtime needs to load a library, it is invoked and performs
-    # the loading.
+    # Subscribes *callback* to library load requests, so that
+    # whenever the runtime needs a library, *callback* gets a
+    # chance to be invoked and load it.
+    #
+    # *callback* is only going to be invoked if all previously
+    # defined callbacks failed (returned nil).
+    #
+    # *callback* should return a `Library` if it successfully
+    # loaded it; otherwise, it should return nil.
     def on_load_library?(&callback : String -> Library?)
       @load_library_callbacks << callback
     end
 
-    # Tries to load library (aka shared object) with the given *id*.
-    # Returns the resulting `Library` object, or nil. The library
-    # object is also stored in this bundle.
+    # Tries to load a library (aka shared object) with the given
+    # *id*. Returns the resulting `Library` object, or nil. The
+    # library object is cached: further calls to `load_library?`
+    # and `get_library?` will return that library object.
     #
-    # Usually, bundle is used as a dumb-ish container for *already
-    # loaded* features and libraries. `load_library?` breaks this
-    # tradition and allows to ask bundle-creators for stuff from
-    # the deep below of the bundle users.
-    def load_library?(id : String)
+    # Usually, bundle is used as a dumb-ish container for features
+    # and libraries that were loaded beforehand, by the frontend of
+    # choice. `load_library?` breaks this habit, and allows bundle
+    # users to request new stuff from the frontend at runtime.
+    def load_library?(id : String) : Library?
       @libraries.fetch(id) do
         @load_library_callbacks.each do |callback|
           if library = callback.call(id)
