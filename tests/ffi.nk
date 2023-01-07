@@ -7,7 +7,6 @@ nor this test itself were written to be leak-free.
 
 describe 'Feature FFI' [
   in lang
-  in ffi-tests
 
   it should 'find library provided by frontend' [
     [ 'random-nonexisting-library' ffi:getLibrary ] 'no such library' assertDies

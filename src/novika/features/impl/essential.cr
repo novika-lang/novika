@@ -718,9 +718,10 @@ module Novika::Features::Impl
       end
 
       target.at("entry:submit", <<-END
-      ( B N F -- ): changes the value form of an existing definition
-       of Name in Block to Form, but keeps its resolution action
-       (open/push).
+      ( Ss N F -- ): replaces the value form of an existing
+       definition for Name in Submittable store (usually a block)
+       to Form. Does not change whether the definition opens
+       or pushes.
       END
       ) do |_, stack|
         form = stack.drop
@@ -730,8 +731,8 @@ module Novika::Features::Impl
       end
 
       target.at("entry:exists?", <<-END
-      ( S N -- true/false ): leaves whether Store (usually
-       a block) can fetch value for Name.
+      ( Rs N -- true/false ): leaves whether Readable store
+       (usually a block) can fetch value for Name.
       END
       ) do |_, stack|
         name = stack.drop
@@ -740,9 +741,10 @@ module Novika::Features::Impl
       end
 
       target.at("entry:fetch", <<-END
-      ( S N -- F ): leaves the value Form with the given Name
-       in Store (usually a Block). Does not open the value form.
-       Dies if Store does not contain an entry for Name.
+      ( Rs N -- F ): leaves the value Form with the given Name
+       in Readable store (usually a block). Does not open the
+       value form. Dies if Store does not contain an entry
+       for Name.
       END
       ) do |_, stack|
         name = stack.drop
@@ -751,8 +753,8 @@ module Novika::Features::Impl
       end
 
       target.at("entry:fetch?", <<-END
-      ( B N -- F true / false ): leaves the value Form with
-       the given Name in Store (usually a block) if an entry
+      ( Rs N -- F true / false ): leaves the value Form with the
+       given Name in Readable store (usually a block) if an entry
        for Name exists there, and/or a boolean indicating the
        latter: `true` (exists), or `false` (does not exist).
 
@@ -789,9 +791,10 @@ module Novika::Features::Impl
       end
 
       target.at("entry:isOpenEntry?", <<-END
-      ( S N -- true/false ): leaves whether an entry with the
-       given Name in Store (usually a block) is an open entry.
-       Dies if Store has no entry with the given Name.
+      ( Rs N -- true/false ): leaves whether an entry with the
+       given Name in Readable store (usually a block) is an
+       open entry. Dies if Readable store has no entry with
+       the given Name.
       END
       ) do |_, stack|
         name = stack.drop

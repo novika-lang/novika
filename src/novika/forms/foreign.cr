@@ -330,6 +330,8 @@ module Novika
       {% elsif flag?(:unix) %}
         candidates << "#{id}.so"
         candidates << "lib#{id}.so"
+      {% else %}
+        return
       {% end %}
 
       Crystal::Loader.default_search_paths.each do |search_path|
