@@ -183,6 +183,7 @@ module Novika
     end
   end
 
+  # Implementors can be targets of `entry:submit`.
   module ISubmittableStore
     def self.typedesc
       "submittable store"
