@@ -11,7 +11,7 @@ module Novika::Features::Impl
     end
 
     def self.on_by_default? : Bool
-      true
+      false
     end
 
     def inject(into target : Block)
