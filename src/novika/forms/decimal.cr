@@ -13,7 +13,9 @@ module Novika
       initialize(object.to_big_d)
     end
 
-    delegate :to_f64, :to_u8, :to_i64, to: val
+    delegate :to_u8, :to_u16, :to_u32, :to_u64, to: val
+    delegate :to_i8, :to_i16, :to_i32, :to_i64, to: val
+    delegate :to_f32, :to_f64, to: val
 
     def desc(io : IO)
       io << "decimal number " << val

@@ -97,6 +97,11 @@ module Novika
       Byteslice.new(string.to_slice, mutable: false)
     end
 
+    # Returns the first byte (or nil) in this quote.
+    def first_byte? : UInt8?
+      string.byte_at?(0)
+    end
+
     # Stitches (concatenates) this and *other* quote variants,
     # and returns the resulting quote.
     def stitch(other : Quote) : Quote

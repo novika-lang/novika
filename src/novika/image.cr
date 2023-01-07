@@ -250,7 +250,7 @@ module Novika
     string :id
 
     def to_form(assembler)
-      assembler.bb.at(Novika::Word.new(id)).form
+      assembler.bb.form_for(Novika::Word.new(id))
     end
 
     def self.new(form : Builtin)
@@ -368,6 +368,14 @@ module Novika
     # :ditto:
     def self.new(form : Byteslice)
       new(SnapshotType::Byteslice, BytesliceSnapshot.new(form))
+    end
+
+    # :ditto:
+    def self.new(form : Library | ForeignFunction | StructViewForm | StructLayoutForm)
+      raise Error.new(
+        "serialization of ffi features is unsafe and disabled anyway. Try \
+        searializing 'how' you create FFI objects rather than 'what' objects \
+        you create")
     end
 
     # Raises: no overload for *form*.
@@ -858,7 +866,7 @@ module Novika
       # Verify that all required features are enabled/can be
       # enabled (in this case enable them right away!).
       features.required.each do |fid|
-        unless bundle.includes?(fid.id)
+        unless bundle.has_feature?(fid.id)
           raise Novika::Error.new("image requires feature '#{fid.id}', but it isn't available")
         end
 

@@ -66,13 +66,13 @@ describe 'block friends' [
     foo open $: fooI
     fooI.x 3 assert=
     fooI.y 1 assert=
-    [ fooI.z ] 'undefined dictionary property: z' assertDies
+    [ fooI.z ] 'no value form for \'z\'' assertDies
 
     foo a unfriend
     foo #open 2enclose this reparent
     "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ demonic crap related to
       *died precedence. Maybe fixable, maybe not."
-      'undefined dictionary property: bar' assertDies
+      'no value form for \'bar\'' assertDies
   ]
 
   it should 'support direct modification of friends' [
@@ -91,12 +91,12 @@ describe 'block friends' [
 
     x friends [ dup.bar 200 = => drop ] hydrate
     x.foo 100 assert=
-    [ x.bar ] 'undefined dictionary property: bar' assertDies
+    [ x.bar ] 'no value form for \'bar\'' assertDies
     x friends count 0 assert=
   ]
 
   it should 'ignore immediate recursion' [
-    [ [ ] dup dup befriend . x ] 'undefined dictionary property: x' assertDies
+    [ [ ] dup dup befriend . x ] 'no value form for \'x\'' assertDies
   ]
 
   it should 'ignore deep recursion' [
@@ -115,7 +115,7 @@ describe 'block friends' [
     z.a 100 assert=
     z.b 200 assert=
     z.c 300 assert=
-    [ z.d ] 'undefined dictionary property: d' assertDies
+    [ z.d ] 'no value form for \'d\'' assertDies
   ]
 
   it should 'support mutual friendship' [

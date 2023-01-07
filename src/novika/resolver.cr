@@ -59,6 +59,19 @@ module Novika
     # runnables, as per this resolver.
     getter folders = [] of Folder
 
+    # Holds platform-specific, `dlopen`-able shared objects
+    # (.so in Linux, .dll in Windows, .dylib in MacOS), later
+    # consumed by the FFI/library machinery.
+    #
+    # Note that we don't actually check whether they *are* shared
+    # objects or are simply files with an .so (.dll, .dylib) file
+    # extension.
+    #
+    # Mostly for safety, shared objects are not loaded automatically.
+    # You need to list them by hand in the initial runnable list; or
+    # manually ask feature ffi to get them, in code.
+    getter shared_objects = [] of Path
+
     # Holds feature ids identified in the initial list of
     # runnables by this resolver.
     #
@@ -136,7 +149,7 @@ module Novika
     # working directory, or, if it doesn't exist there, to
     # that in the Novika environment directory. If both do
     # not exist, returns nil.
-    private def expand_runnable_path?(path : Path)
+    def expand_runnable_path?(path : Path)
       expand_in_cwd?(path) || expand_in_env?(path)
     end
 
@@ -148,6 +161,19 @@ module Novika
     # Returns whether *path* is a 'core' directory.
     private def core?(path : Path)
       path.dirname == "core"
+    end
+
+    # Returns whether *path* is a system-specific shared object.
+    private def shared_object?(path : Path)
+      {% if flag?(:darwin) %}
+        path.extension == ".dylib"
+      {% elsif flag?(:windows) %}
+        path.extension == ".dll"
+      {% elsif flag?(:unix) %}
+        path.extension == ".so"
+      {% else %}
+        false
+      {% end %}
     end
 
     # Recursively visits directories starting at, and
@@ -210,7 +236,7 @@ module Novika
       cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd)) }
 
       @runnables.each do |runnable|
-        if @bundle.includes?(runnable)
+        if @bundle.has_feature?(runnable)
           features << runnable
           next
         end
@@ -226,9 +252,20 @@ module Novika
 
         if File.directory?(path)
           load(path, app: app?(path))
-        elsif File.file?(path)
-          files << path
+          next
         end
+
+        unless File.file?(path)
+          unknowns << runnable
+          next
+        end
+
+        if shared_object?(path)
+          shared_objects << path
+          next
+        end
+
+        files << path
       end
 
       # Move apps from folders to the dedicated apps array.

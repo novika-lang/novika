@@ -1,0 +1,1574 @@
+"""WARNING!
+
+This test makes a lot of memory leaks (although the amount of
+memory used is negligible). Neither the C code for this test
+nor this test itself were written to be leak-free.
+"""
+
+describe 'Feature FFI' [
+  in lang
+
+  it should 'find library provided by frontend' [
+    [ 'random-nonexisting-library' ffi:getLibrary ] 'no such library' assertDies
+    'ffi-test' ffi:getLibrary $: lib
+    lib typedesc 'foreign library' assert=
+    lib desc '[foreign library: ffi-test]' assert=
+    lib ffi:library? true assert=
+    100 ffi:library? false assert=
+
+    [ 'random-nonexisting-library' ffi:getLibrary? ] vals
+    [ false ] vals assert=
+
+    [ 'ffi-test' ffi:getLibrary? ] vals
+    [ lib true ] here assert=
+  ]
+
+  it should 'parse fdecl block or die correctly' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ ] lib "Should simply do nothing"
+
+    [ [ bomba ] lib ] 'bad type: word, expected: a block' assertDies
+    [ [ [ ] ] lib ] 'first form in function declaration must be the function\'s name' assertDies
+    [ [ [ 123 ] ] lib ] 'function name must be a word or alias block ⸢[ foreign-name opener-name ]⸥' assertDies
+    [ [ [ foobar ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
+    [ [ [ [ ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
+    [ [ [ [ foobar ] ] ] lib ] 'malformed alias block: expected foreign name followed by opener name' assertDies
+    [ [ [ [ 1 bar ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
+    [ [ [ [ bar 2 ] ] ] lib ] 'bad type: decimal, expected: a word' assertDies
+    [ [ [ [ foobar barbaz ] ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
+    [ [ [ [ foobar barbaz ] -- ] ] lib ] 'function declaration must always contain ⸢--⸥ followed by exactly one return type. If function returns void, use ⸢-- nothing⸥' assertDies
+    [ [ [ [ foobar barbaz ] -- xyzzy ] ] lib ] 'could not recognize foreign type. Did you mean ⸢~xyzzy⸥ (inline struct), ⸢&xyzzy⸥ (reference to struct), or ⸢?xyzzy⸥ (union)?' assertDies
+    [ [ [ [ foobar barbaz ] -- ~xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
+    [ [ [ [ foobar barbaz ] -- &xyzzy ] ] lib ] 'no value form for \'xyzzy\'' assertDies
+    [ [ [ dummy 123 -- nothing ] ] lib ] 'bad type: decimal, expected: a block or word' assertDies
+    [ [ [ dummy i32 -- 123 ] ] lib ] 'bad type: decimal, expected: a word' assertDies
+    [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
+  ]
+
+  it dies 'when function doesn\'t exist in the library' [
+    'ffi-test' ffi:getLibrary @: lib
+    "TODO: .startsWith"
+    "TODO: [ ... ] [ \"(Em --): Error message\" ... ] assertDies"
+    [ [ [ foobar barbaz ] -- i32 ] maurice ] lib
+  ]
+
+  it should 'parse struct layout decl properly' [
+    [ [ ] ffi:createLayout ] 'struct layout must have at least one field' assertDies
+    [ [ 123 ] ffi:createLayout ] 'only words (for field name and for field type) are allowed in struct layout declaration' assertDies
+    [ [ x 123 ] ffi:createLayout ] 'only words (for field name and for field type) are allowed in struct layout declaration' assertDies
+    [ [ x ] ffi:createLayout ] 'malformed struct layout: missing field name or type' assertDies
+    [ [ x y z ] ffi:createLayout ] 'malformed struct layout: missing field name or type' assertDies
+
+    [ a i32 b pointer ] ffi:createLayout $: l
+    l toQuote '⟪a=i32, b=pointer⟫' assert=
+    l desc l toQuote assert=
+    l typedesc 'foreign struct layout' assert=
+
+    [ x y ] ffi:createLayout $: wrong "wrong but runs to allow fdecl"
+    [ wrong l =  "this triggers layout to be instantiated" ] 'could not recognize foreign type. Did you mean ⸢~y⸥ (inline struct), ⸢&y⸥ (reference to struct), or ⸢?y⸥ (union)?' assertDies
+
+    123 $: foobar
+    [ [ x ~foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
+    [ [ x &foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
+  ]
+
+  it should 'primitive -> C int/float -> C args/inline struct -> inline struct -> primitive' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      a u8
+      b u16
+      c u32
+      d u64
+      e i8
+      f i16
+      g i32
+      h i64
+      j f32
+      k f64
+      l pointer
+    ] ffi:createLayout $: primitives
+
+    [
+      [ decimalTypeTest__Arg  u8 u16 u32 u64 i8 i16 i32 i64 f32 f64 pointer -- ~primitives ]
+      [ [ decimalTypeTest__Inl dttInl ]  ~primitives -- ~primitives ]
+    ] lib
+
+    8 16 32 64
+    80 160 320 640
+    32.123456789 32.123456789123456789
+    0
+    decimalTypeTest__Arg $: decimalTypeTestArgRes
+
+    [ 8 $: a
+      16 $: b
+      32 $: c
+      64 $: d
+      80 $: e
+      160 $: f
+      320 $: g
+      640 $: h
+      32.123456789 $: j
+      32.123456789123456789 $: k
+      0 $: l
+    ] obj primitives ffi:buildStruct~
+    dttInl $: decimalTypeTestInlRes
+
+    decimalTypeTestArgRes dttInl $: decimalTypeTestInlRes2
+
+    decimalTypeTestArgRes decimalTypeTestInlRes assert=
+    decimalTypeTestInlRes decimalTypeTestInlRes2 assert=
+
+    [ decimalTypeTestArgRes.foobar ] 'no value form for \'foobar\'' assertDies
+
+    decimalTypeTestArgRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes2 typedesc 'foreign struct view' assert=
+
+    decimalTypeTestArgRes.a 8 assert=
+    decimalTypeTestArgRes.b 16 assert=
+    decimalTypeTestArgRes.c 32 assert=
+    decimalTypeTestArgRes.d 64 assert=
+    decimalTypeTestArgRes.e 80 assert=
+    decimalTypeTestArgRes.f 160 assert=
+    decimalTypeTestArgRes.g 320 assert=
+    decimalTypeTestArgRes.h 640 assert=
+    decimalTypeTestArgRes.j 32.123455 "losing some precision" assert=
+    decimalTypeTestArgRes.k 32.12345678912346 "here as well" assert=
+    decimalTypeTestArgRes.l 0 assert=
+
+    decimalTypeTestInlRes.a 8 assert=
+    decimalTypeTestInlRes.b 16 assert=
+    decimalTypeTestInlRes.c 32 assert=
+    decimalTypeTestInlRes.d 64 assert=
+    decimalTypeTestInlRes.e 80 assert=
+    decimalTypeTestInlRes.f 160 assert=
+    decimalTypeTestInlRes.g 320 assert=
+    decimalTypeTestInlRes.h 640 assert=
+    decimalTypeTestInlRes.j 32.123455 assert=
+    decimalTypeTestInlRes.k 32.12345678912346 assert=
+    decimalTypeTestInlRes.l 0 assert=
+  ]
+
+  it should 'primitive -> reference struct -> primitive via C' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      a u8
+      b u16
+      c u32
+      d u64
+      e i8
+      f i16
+      g i32
+      h i64
+      j f32
+      k f64
+      l pointer
+    ] ffi:createLayout $: primitives
+
+    [
+      [ decimalTypeTest__ArgRef  u8 u16 u32 u64 i8 i16 i32 i64 f32 f64 pointer -- &primitives ]
+      [ [ decimalTypeTest__InlRef dttInlRef ]  &primitives -- &primitives ]
+    ] lib
+
+    8 16 32 64
+    80 160 320 640
+    32.123456789 32.123456789123456789
+    0
+    decimalTypeTest__ArgRef $: decimalTypeTestArgRefRes
+
+    [ 8 $: a
+      16 $: b
+      32 $: c
+      64 $: d
+      80 $: e
+      160 $: f
+      320 $: g
+      640 $: h
+      32.123456789 $: j
+      32.123456789123456789 $: k
+      0 $: l
+    ] obj primitives ffi:buildStruct&
+    dttInlRef $: decimalTypeTestInlRefRes
+
+    decimalTypeTestArgRefRes dttInlRef $: decimalTypeTestInlRes2
+
+    decimalTypeTestArgRefRes decimalTypeTestInlRefRes assert=
+    decimalTypeTestInlRefRes decimalTypeTestInlRes2 assert=
+
+    decimalTypeTestArgRefRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRefRes typedesc 'foreign struct view' assert=
+    decimalTypeTestInlRes2 typedesc 'foreign struct view' assert=
+
+    decimalTypeTestArgRefRes.a 8 assert=
+    decimalTypeTestArgRefRes.b 16 assert=
+    decimalTypeTestArgRefRes.c 32 assert=
+    decimalTypeTestArgRefRes.d 64 assert=
+    decimalTypeTestArgRefRes.e 80 assert=
+    decimalTypeTestArgRefRes.f 160 assert=
+    decimalTypeTestArgRefRes.g 320 assert=
+    decimalTypeTestArgRefRes.h 640 assert=
+    decimalTypeTestArgRefRes.j 32.123455 assert=
+    decimalTypeTestArgRefRes.k 32.12345678912346 assert=
+    decimalTypeTestArgRefRes.l 0 assert=
+
+    decimalTypeTestInlRefRes.a 8 assert=
+    decimalTypeTestInlRefRes.b 16 assert=
+    decimalTypeTestInlRefRes.c 32 assert=
+    decimalTypeTestInlRefRes.d 64 assert=
+    decimalTypeTestInlRefRes.e 80 assert=
+    decimalTypeTestInlRefRes.f 160 assert=
+    decimalTypeTestInlRefRes.g 320 assert=
+    decimalTypeTestInlRefRes.h 640 assert=
+    decimalTypeTestInlRefRes.j 32.123455 assert=
+    decimalTypeTestInlRefRes.k 32.12345678912346 assert=
+    decimalTypeTestInlRefRes.l 0 assert=
+  ]
+
+  it should 'point example: do math with Novika-built and C-built points' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32
+      y f32
+    ] ffi:createLayout $: pointStruct
+
+    pointStruct toQuote '⟪x=f32, y=f32⟫' assert=
+
+    [
+      [ "( X Y -- P ): leaves Point for X and Y."
+        [ Point_New point:new ]  f32 f32 -- &pointStruct ]
+      [ [ Point_Free point:free ]  &pointStruct -- nothing ]
+      [ [ Point_Subtract point:- ]  &pointStruct &pointStruct -- &pointStruct ]
+    ] lib
+
+    #point:new here desc '( X Y -- P ): leaves Point for X and Y.' assert=
+    #point:new here toQuote '[foreign function: Point_New]' assert=
+    #point:new here typedesc 'foreign function' assert=
+
+    123 456 point:new $: a
+
+    a.x 123 assert=
+    a.y 456 assert=
+    [ a.foo ] 'no value form for \'foo\'' assertDies
+    a toQuote '&⟨x=123.0_f32, y=456.0_f32⟩' assert=
+
+    234 568 point:new $: b
+
+    b.x 234 assert=
+    b.y 568 assert=
+    [ b.foo ] 'no value form for \'foo\'' assertDies
+    b toQuote '&⟨x=234.0_f32, y=568.0_f32⟩' assert=
+
+    b a point:- $: diff
+
+    diff.x 111 assert=
+    diff.y 112 assert=
+    diff toQuote '&⟨x=111.0_f32, y=112.0_f32⟩' assert=
+
+    a point:free
+    b point:free
+    diff point:free
+
+    """
+    Note: here, a, b, and diff are in an invalid state. This is
+    the reason you'd want to either:
+
+     a) transfer ownership of them to the GC;
+     b) make GC own them at the start;
+     c) have a wrapper to perform automatic clean-up, and, more
+        importantly, ensure they're impossible to access after
+        the clean-up, or
+     d) have a clean-up (deinit) word.
+
+    The latter is the worst solution because one may forget
+    to open the word.
+    """
+  ]
+
+  it should 'allow to build struct' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32
+      y f32
+    ] ffi:createLayout $: pointStruct
+
+    [
+      [ [ Point_New point:new ]  f32 f32 -- &pointStruct ]
+      [ [ Point_Free point:free ]  &pointStruct -- nothing ]
+      [ [ Point_Subtract point:- ]  &pointStruct &pointStruct -- &pointStruct ]
+    ] lib
+
+    "Note the custom point:new to get GC support"
+    [ asDecimal $: y
+      asDecimal $: x
+      this pointStruct ffi:buildStruct&
+    ] @: point:new
+
+    123 456 point:new $: a
+
+    a.x 123 assert=
+    a.y 456 assert=
+    a toQuote '&⟨x=123.0_f32, y=456.0_f32⟩' assert=
+
+    234 568 point:new $: b
+
+    b.x 234 assert=
+    b.y 568 assert=
+    b toQuote '&⟨x=234.0_f32, y=568.0_f32⟩' assert=
+
+    b a point:- $: diff
+
+    diff.x 111 assert=
+    diff.y 112 assert=
+    diff toQuote '&⟨x=111.0_f32, y=112.0_f32⟩' assert=
+
+    "Note that diff still needs to be freed manually!"
+    diff point:free
+  ]
+
+  it should 'pass strings from/to C' [
+    'ffi-test' ffi:getLibrary @: lib
+
+
+    [ len i32
+      str cstr
+    ] ffi:createLayout $: stringStruct
+
+     [
+      [ getstr  -- cstr ]
+      [ getstr_out pointer  -- nothing ]
+      [ makestr_inline cstr -- ~stringStruct ]
+      [ upcase cstr -- cstr ]
+      [ upcase_inline ~stringStruct -- ~stringStruct ]
+      [ downcase_ref &stringStruct -- &stringStruct ]
+    ] lib
+
+    "Make sure no segfaults/bad memory stuff etc... dumb huh?"
+    100 collect: [ getstr ] $: strs
+    strs [ 'hello from C' = ] all? true assert=
+
+    "FIXME: BELOW IS A MEMORY LEAK HELLHOLE"
+
+    'hello from Novika' upcase 'HELLO FROM NOVIKA' assert=
+    'hello from Novika' makestr_inline $: inl_ss
+    inl_ss.len 17 assert=
+    inl_ss.str 'hello from Novika' assert=
+    inl_ss toQuote '~⟨len=17_i32, str="hello from Novika"⟩' assert=
+
+    inl_ss upcase_inline $: upcased_inl_ss
+    upcased_inl_ss.len 17 assert=
+    upcased_inl_ss.str 'HELLO FROM NOVIKA' assert=
+
+    #~stringStruct ffi:hole $: strStruct__Hole "same as allocateStruct&"
+    strStruct__Hole getstr_out
+    strStruct__Hole open $: heapStr_hole
+
+    stringStruct ffi:allocateStruct& $: heapStrStruct
+    heapStrStruct getstr_out
+    heapStrStruct open $: heapStr
+    heapStr_hole heapStr assert=
+    heapStr.len 12 assert=
+    heapStr.str 'HELLO FROM C' assert=
+    heapStr downcase_ref $: heapStrLower
+    heapStrLower.str 'hello from c' assert=
+    heapStrLower.len 12 assert=
+    heapStrLower toQuote '&⟨len=12_i32, str="hello from c"⟩' assert=
+
+  ]
+
+  it should 'implement ffi:addressof' [
+    [ 123 ffi:addressof ] 'bad type: decimal, expected: a hole or foreign struct view' assertDies
+    [ 'hello' ffi:addressof ] 'bad type: quote, expected: a hole or foreign struct view' assertDies
+
+    [
+      x i32
+      y i32
+    ] ffi:createLayout $: pt
+
+    [ pt ffi:addressof ] 'bad type: foreign struct layout, expected: a hole or foreign struct view' assertDies
+
+    pt ffi:allocateStruct~ $: pt-inl
+    pt-inl ffi:addressof decimal? true assert= "can't really check the addr because it's always different"
+    pt ffi:allocateStruct& $: pt-ref
+    pt-ref ffi:addressof decimal? true assert=
+    pt-inl pt-ref bi*: ffi:addressof = false assert=
+  ]
+
+  it should 'implement flat struct layout equality' [
+    [ a i32 ] ffi:createLayout
+    [ a i32 b pointer ] ffi:createLayout
+    = false assert=
+
+    [ a i64 b pointer ] ffi:createLayout
+    [ b pointer ] ffi:createLayout
+    = false assert=
+
+    [ a i32 b pointer ] ffi:createLayout
+    [ a i64 b pointer ] ffi:createLayout
+    = false assert=
+
+    [ a i32 b i64 ] ffi:createLayout
+    [ a i32 b pointer ] ffi:createLayout
+    = false assert=
+
+    [ a i32 b i32 ] ffi:createLayout
+    [ x i32 y i32 ] ffi:createLayout
+    = false assert=
+
+    [ a i32 b i32 ] ffi:createLayout
+    [ a i32 b i32 ] ffi:createLayout
+    = false assert= "ref equality"
+  ]
+
+  it should 'implement nested struct layout equality' [
+    [ x f64 y f64 ] ffi:createLayout $: pointF64
+    [ x i64 y i64 ] ffi:createLayout $: pointI64
+
+    [ origin &pointF64 extent ~pointF64 ] ffi:createLayout $: rectA
+    [ origin ~pointF64 extent &pointF64 ] ffi:createLayout $: rectB
+
+    rectA rectA assert=
+    rectB rectB assert=
+    rectA rectB = false assert=
+    rectB rectA = false assert=
+
+    [ origin ~pointF64 extent ~pointI64 ] ffi:createLayout
+    [ origin ~pointI64 extent ~pointI64 ] ffi:createLayout
+    = false assert=
+
+    [ origin ~pointI64 extent ~pointI64 ] ffi:createLayout
+    [ origin ~pointI64 extent &pointF64 ] ffi:createLayout
+    = false assert=
+
+    [ origin &pointF64 extent &pointF64 ] ffi:createLayout
+    [ origin &pointF64 extent &pointF64 ] ffi:createLayout
+    = false assert= "ref equality"
+
+    [ origin ~pointI64 extent ~pointI64 ] ffi:createLayout
+    [ origin ~pointI64 extent ~pointI64 ] ffi:createLayout
+    = false assert= "ref equality"
+  ]
+
+  it should 'support recursive struct layout equality' [
+    [ it &recStruct ] ffi:createLayout $: recStruct
+    [ it &recStruct2 ] ffi:createLayout $: recStruct2
+
+    recStruct recStruct =
+    recStruct recStruct2 = false assert= "ref equality"
+    [ x i32 ] recStruct = false assert=
+    [ it pointer ] recStruct = false assert=
+  ]
+
+  it should 'support mutually recursive struct layout equality' [
+    [ bar &bar ] ffi:createLayout $: foo
+    [ foo &foo ] ffi:createLayout $: bar
+
+    [ quuz &quuz ] ffi:createLayout $: quux
+    [ quux &quux ] ffi:createLayout $: quuz
+
+    foo bar = false assert=
+    foo foo assert=
+    foo quux = false assert= "ref equality"
+    bar bar assert=
+    bar quuz = false assert= "ref equality"
+  ]
+
+  it should 'catch inline struct cycle' [
+    [ a i32 x ~foo ] ffi:createLayout $: foo
+    [ foo ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&foo⸥) for \'x\'' assertDies
+
+    [ foobar ~s ] ffi:createLayout $: s
+    [ s ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&s⸥) for \'foobar\'' assertDies
+
+    [ foobar ?u ] ffi:createLayout $: u
+    [ u ffi:allocateUnion ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&u⸥) for \'foobar\'' assertDies
+
+    [ barbaz &xyzzy ] ffi:createLayout $: xyzzy
+    xyzzy ffi:allocateStruct& toQuote '&⟨barbaz=(none)⟩' assert=
+
+    [ a ~l1 ] ffi:createLayout $: l0
+    [ b ~l2 ] ffi:createLayout $: l1
+    [ c ~l3 ] ffi:createLayout $: l2
+    [ d ~l1 ] ffi:createLayout $: l3
+    [ l0 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l1⸥) for \'d\'' assertDies
+    [ l1 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l1⸥) for \'d\'' assertDies
+    [ l2 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l2⸥) for \'b\'' assertDies
+    [ l3 ffi:allocateStruct~ ] 'inline struct cycle detected: consider using reference type (⸢pointer⸥ or ⸢&l3⸥) for \'c\'' assertDies
+  ]
+
+  it should 'allow to output primitive types into hole' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      [ output_primitives
+
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        pointer
+        --
+        nothing
+      ]
+    ] lib
+
+    #u8 ffi:hole $: a
+    #u16 ffi:hole $: b
+    #u32 ffi:hole $: c
+    #u64 ffi:hole $: d
+    #i8 ffi:hole $: e
+    #i16 ffi:hole $: f
+    #i32 ffi:hole $: g
+    #i64 ffi:hole $: h
+    #f32 ffi:hole $: j
+    #f64 ffi:hole $: k
+    #pointer ffi:hole $: l
+
+    a b c d e f g h j k l
+    output_primitives
+
+    a typedesc 'hole' assert=
+    a toQuote '[u8 hole: 0x' keep: [ count fromLeft* ] assert= "TODO: startsWith?"
+    a toQuote 0 fromRight ']' assert= "TODO: endsWith?"
+    "TODO: surroundedBy?"
+
+    a open 8 assert=
+    b open 16 assert=
+    c open 32 assert=
+    d open 64 assert=
+    e open 80 assert=
+    f open 160 assert=
+    g open 320 assert=
+    h open 640 assert=
+    j open 32.123455 assert=
+    k open 32.12345678912346 assert=
+    l open a ffi:addressof assert=
+  ]
+
+  it should 'allow to output cstr into hole' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      [ output_cstr
+
+        cstr
+        pointer
+        pointer
+        --
+        nothing
+      ]
+    ] lib
+
+    #cstr ffi:hole $: a
+    #cstr ffi:hole $: b
+
+    'hello from novika thru c'
+    a b
+    output_cstr
+
+    a open 'hello from C' assert=
+    b open 'HELLO FROM NOVIKA THRU C' assert=
+  ]
+
+  it should 'allow to get size of primitive types' [
+    #u8 ffi:sizeof 1 assert=
+    #u16 ffi:sizeof 2 assert=
+    #u32 ffi:sizeof 4 assert=
+    #u64 ffi:sizeof 8 assert=
+
+    #i8 ffi:sizeof 1 assert=
+    #i16 ffi:sizeof 2 assert=
+    #i32 ffi:sizeof 4 assert=
+    #i64 ffi:sizeof 8 assert=
+
+    #f32 ffi:sizeof 4 assert=
+    #f64 ffi:sizeof 8 assert=
+
+    #pointer ffi:sizeof 8 assert= "depends on the system but Novika is 64-bit-only => 8 bytes"
+    #cstr ffi:sizeof #pointer ffi:sizeof assert=
+  ]
+
+  it should 'allow to get size of inline structs' [
+    [ x f64 y i32 ] ffi:createLayout $: point
+    [ a ~point b ~point ] ffi:createLayout $: rect
+
+    #~point ffi:sizeof 16 assert= "12 but due to alignment = 16"
+    #~rect ffi:sizeof 32 assert= "same"
+  ]
+
+  it should 'allow to get size of struct reference' [
+    [ x f64 y i32 ] ffi:createLayout $: point
+    [ a ~point b ~point ] ffi:createLayout $: rect
+
+    #&point ffi:sizeof #pointer ffi:sizeof assert=
+    #&rect ffi:sizeof #pointer ffi:sizeof assert=
+  ]
+
+  it should 'allow to deref pointer to primitive type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      a pointer "to u8"
+      b pointer "to u16"
+      c pointer "to u32"
+      d pointer "to u64"
+      e pointer "to i8"
+      f pointer "to i16"
+      g pointer "to i32"
+      h pointer "to i64"
+      j pointer "to f32"
+      k pointer "to f64"
+      l pointer "to pointer"
+    ] ffi:createLayout $: outputStruct
+
+    [ [ output_struct_of_pointers -- ~outputStruct "type of struct doesn't matter" ]
+    ] lib
+
+    output_struct_of_pointers $: s
+
+    s.a #u8 ffi:unbox 8 assert=
+    s.b #u16 ffi:unbox 16 assert=
+    s.c #u32 ffi:unbox 32 assert=
+    s.d #u64 ffi:unbox 64 assert=
+    s.e #i8 ffi:unbox  80 assert=
+    s.f #i16 ffi:unbox 160 assert=
+    s.g #i32 ffi:unbox 320 assert=
+    s.h #i64 ffi:unbox 640 assert=
+    s.j #f32 ffi:unbox 32.123455 assert=
+    s.k #f64 ffi:unbox 32.12345678912346 assert=
+    s.l #pointer ffi:unbox s.a assert=
+
+    [ s.a #nothing ffi:unbox ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+  ]
+
+  it should 'allow to deref pointer to cstr type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ output_str_ptr -- pointer ] ] lib
+
+    output_str_ptr #cstr ffi:unbox 'Hello from C!' assert=
+  ]
+
+  it should 'allow to output struct reference pointer into hole & deref via asStruct' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: pointStruct
+
+    [ [ output_point  f32 f32 pointer -- nothing ] [ [ Point_Free point:free ] &pointStruct -- nothing ]] lib
+
+    #pointer ffi:hole $: pointPtr
+
+    123 456 pointPtr output_point
+
+    pointPtr open pointStruct ffi:asStruct& $: pt
+
+    pt.x 123 assert=
+    pt.y 456 assert=
+    pt toQuote '&⟨x=123.0_f32, y=456.0_f32⟩' assert=
+
+    pt point:free
+  ]
+
+  it should 'allow to output inline struct into hole & deref via asStruct' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: pointStruct
+
+    [ [ output_point_inl  f32 f32 pointer -- nothing ] ] lib
+
+    #pointer ffi:hole $: pointPtr
+
+    567 789 pointPtr output_point_inl
+
+    pointPtr ffi:addressof "note how we use the hole itself rather than its content"
+      pointStruct ffi:asStruct~ $: pt
+    "this basically emulates struct references"
+
+    pt.x 567 assert=
+    pt.y 789 assert=
+    pt toQuote '~⟨x=567.0_f32, y=789.0_f32⟩' assert=
+  ]
+
+  it should 'allow to allocate primitive' [
+    "allocateprimitive is basically allocateprimitivehole with a value"
+    8 #u8 ffi:box
+      #u8 ffi:unbox 8 assert=
+
+    16 #u16 ffi:box
+       #u16 ffi:unbox 16 assert=
+
+    32 #u32 ffi:box
+       #u32 ffi:unbox 32 assert=
+
+    64 #u64 ffi:box
+       #u64 ffi:unbox 64 assert=
+
+    80 #i8 ffi:box
+       #i8 ffi:unbox 80 assert=
+
+    160 #i16 ffi:box
+        #i16 ffi:unbox 160 assert=
+
+    320 #i32 ffi:box
+        #i32 ffi:unbox 320 assert=
+
+    640 #i64 ffi:box
+        #i64 ffi:unbox 640 assert=
+
+    32.123456789 #f32 ffi:box
+      #f32 ffi:unbox 32.123455 assert=
+
+    32.123456789123456789 #f64 ffi:box
+      #f64 ffi:unbox 32.12345678912346 assert=
+
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+  ]
+
+  it should 'allow to box cstr' [
+    'hello world' #cstr ffi:box
+                  #cstr ffi:unbox
+    'hello world' assert=
+  ]
+
+  it should 'allow to box inline struct/struct reference' [
+    [ x f32 y f32 ] ffi:createLayout $: point
+
+    100 $: x
+    200 $: y
+
+    this point ffi:buildStruct~ $: s1
+    this point ffi:buildStruct& $: s2
+
+    s1 #~point ffi:box #~point ffi:unbox $: p1
+    s2 #&point ffi:box #&point ffi:unbox $: p2
+
+    p1.x 100 assert=
+    p1.y 200 assert=
+    p1 toQuote '~⟨x=100.0_f32, y=200.0_f32⟩' assert=
+    p2.x 100 assert=
+    p2.y 200 assert=
+    p2 toQuote '&⟨x=100.0_f32, y=200.0_f32⟩' assert=
+  ]
+
+  it should 'properly handle nested structs' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [ a i32
+      origin &point
+      extent &point
+      b i32
+    ] ffi:createLayout $: rect_ref_s
+
+    [ a f64
+      origin ~point
+      ref &rect_ref_s
+      ref2 ~rect_ref_s
+      b i64
+    ] ffi:createLayout $: rect_inl_s
+
+    [
+      [ get_rect_ref -- &rect_ref_s ]
+      [ get_rect_inl &rect_ref_s -- ~rect_inl_s ]
+    ] lib
+
+    get_rect_ref $: rect_ref
+    rect_ref get_rect_inl $: rect_inl
+
+    rect_ref.a 100 assert=
+    rect_ref.origin.x 8.123457 assert=
+    rect_ref.origin.y 16.123457 assert=
+    rect_ref.extent.x 32.123455 assert=
+    rect_ref.extent.y 64.12346 assert=
+    rect_ref.b 200 assert=
+    rect_ref toQuote '&⟨a=100_i32, origin=&⟨x=8.123457_f32, y=16.123457_f32⟩, extent=&⟨x=32.123455_f32, y=64.12346_f32⟩, b=200_i32⟩' assert=
+
+    rect_inl.ref rect_ref assert=
+    rect_inl.ref toQuote rect_ref toQuote assert=
+    rect_inl.ref2 rect_ref assert=
+    rect_inl.ref2 toQuote '~⟨a=100_i32, origin=&⟨x=8.123457_f32, y=16.123457_f32⟩, extent=&⟨x=32.123455_f32, y=64.12346_f32⟩, b=200_i32⟩' assert=
+    rect_inl.origin.x 32.123455 assert=
+    rect_inl.origin.y 64.12346 assert=
+    rect_inl.a 32.12345678912346 assert=
+    rect_inl.b 300 assert=
+    rect_inl toQuote '~⟨a=32.12345678912346_f64, origin=~⟨x=32.123455_f32, y=64.12346_f32⟩, ref=&⟨a=100_i32, origin=&⟨x=8.123457_f32, y=16.123457_f32⟩, extent=&⟨x=32.123455_f32, y=64.12346_f32⟩, b=200_i32⟩, ref2=~⟨a=100_i32, origin=&⟨x=8.123457_f32, y=16.123457_f32⟩, extent=&⟨x=32.123455_f32, y=64.12346_f32⟩, b=200_i32⟩, b=300_i64⟩' assert=
+  ]
+
+  it should 'support self-referencing struct layouts & views' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      payload i32
+      self &self_ref_s
+    ] ffi:createLayout $: self_ref_s
+
+    [
+      [ get_self_ref_s -- &self_ref_s ]
+      [ get_self_ref_s_over &self_ref_s -- &self_ref_s ]
+    ] lib
+
+    self_ref_s toQuote '⟪payload=i32, self=&[reflection]⟫' assert=
+
+    get_self_ref_s $: self-ref
+    self-ref.payload 1234 assert=
+
+    self-ref.self self-ref assert=
+    self-ref.self.payload 1234 assert=
+    self-ref.self.self self-ref assert=
+
+    "... etc"
+    self-ref toQuote '&⟨payload=1234_i32, self=[reflection]⟩' assert=
+  ]
+
+  it should 'support deep self-referential structs' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      sub &self_ref_substruct
+      payload f32
+    ] ffi:createLayout $: self_ref_s2
+
+    [
+      s2 &self_ref_s2
+    ] ffi:createLayout $: self_ref_substruct
+
+    [ [ get_self_ref_s2 -- &self_ref_s2 ]
+    ] lib
+
+    get_self_ref_s2 $: ref_s2
+
+    ref_s2 ref_s2 assert= "sanity"
+
+    "self_ref_s2#1[1234] -> substruct#2 -> self_ref_s2#3[5678] -> substruct#4 -> self_ref_s2#1"
+    ref_s2 toQuote '&⟨sub=&⟨s2=&⟨sub=&⟨s2=[reflection]⟩, payload=5678.0_f32⟩⟩, payload=1234.0_f32⟩' assert=
+    ref_s2.sub.s2 toQuote '&⟨sub=&⟨s2=&⟨sub=&⟨s2=[reflection]⟩, payload=1234.0_f32⟩⟩, payload=5678.0_f32⟩' assert=
+    ref_s2.payload 1234 assert=
+    ref_s2.sub.s2.payload 5678 assert=
+    ref_s2.sub.s2.sub.s2 ref_s2 assert=
+    ref_s2.sub.s2.sub.s2.payload 1234 assert=
+    ref_s2.sub.s2.sub.s2.sub.s2 ref_s2.sub.s2 assert=
+  ]
+
+  it should 'support mutually recursive structs' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      snd &mut_r_s2
+    ] ffi:createLayout $: mut_r_s1
+
+    [
+      fst &mut_r_s1
+    ] ffi:createLayout $: mut_r_s2
+
+    [ [ get_mut_r_s1 -- &mut_r_s1 ]
+    ] lib
+
+    get_mut_r_s1 $: s1
+
+    "sanity"
+    s1 s1 assert=
+    s1.snd s1.snd assert=
+    s1 s1.snd = false assert=
+    s1.snd s1 = false assert=
+
+    s1 s1.snd.fst assert=
+    s1.snd s1.snd.fst.snd assert=
+
+    s1 toQuote '&⟨snd=&⟨fst=[reflection]⟩⟩' assert=
+    s1.snd toQuote '&⟨fst=&⟨snd=[reflection]⟩⟩' assert=
+  ]
+
+  it should 'run example: create linked list in C and traverse in Novika' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ payload i32
+      nxt &ll_node_s
+    ] ffi:createLayout $: ll_node_s
+
+    [
+      [ ll_create_n i32 -- &ll_node_s ]
+      [ ll_traverse_free &ll_node_s -- i32 ]
+    ] lib
+
+    5 ll_create_n $: lst
+
+    lst toQuote '&⟨payload=0_i32, nxt=&⟨payload=1_i32, nxt=&⟨payload=2_i32, nxt=&⟨payload=3_i32, nxt=&⟨payload=4_i32, nxt=(none)⟩⟩⟩⟩⟩' assert=
+
+    lst.payload 0 assert=
+    lst.nxt.payload 1 assert=
+    lst.nxt.nxt.payload 2 assert=
+    lst.nxt.nxt.nxt.payload 3 assert=
+    lst.nxt.nxt.nxt.nxt.payload 4 assert=
+    "none (nullptr) is represented with false in Novika FFI,
+     since no other type maps to false (&/ true for that matter)"
+    lst.nxt.nxt.nxt.nxt.nxt 0 assert=
+
+    lst $: cur
+    [ ] $: items
+
+    until: [ cur zero? ] [
+      items cur.payload shove
+      cur.nxt =: cur
+    ]
+
+    items [ 0 1 2 3 4 ] assert=
+
+    lst ll_traverse_free
+  ]
+
+  it should 'run example: create linked list in Novika and traverse in C' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ payload i32
+      nxt &ll_node_s
+    ] ffi:createLayout $: ll_node_s
+
+    [
+      [ ll_traverse_sum &ll_node_s -- i32 ]
+    ] lib
+
+    "I know that's ugly but it's Novika and you can always
+     make a DSL!"
+    [
+      11 $: payload
+      [
+        22 $: payload
+        [
+          33 $: payload
+          [
+            44 $: payload
+            "nxt should be picked up as none automatically,
+             since no other type fits for structptr"
+          ] obj ll_node_s ffi:buildStruct& $: nxt
+        ] obj ll_node_s ffi:buildStruct& $: nxt
+      ] obj ll_node_s ffi:buildStruct& $: nxt
+    ] obj ll_node_s ffi:buildStruct& $: nodes
+
+    nodes toQuote '&⟨payload=11_i32, nxt=&⟨payload=22_i32, nxt=&⟨payload=33_i32, nxt=&⟨payload=44_i32, nxt=(none)⟩⟩⟩⟩' assert=
+    nodes ll_traverse_sum 110 assert=
+
+    "Note: struct built with buildstruct& are allocated by the GC,
+     therefore, you can't free them using stdlib's free() but that's
+     alright since the GC will collect them sometime anyway (hopefully!!)"
+  ]
+
+  it should 'run example: doubly circular linked list construct in c and traverse in Nk' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ data i32
+      next &DCLL_node
+      prev &DCLL_node
+    ] ffi:createLayout $: DCLL_node
+
+    [
+      [ insertEnd pointer i32 -- nothing ]
+      [ insertBegin pointer i32 -- nothing ]
+      [ insertAfter pointer i32 i32 -- nothing ]
+    ] lib
+
+    #&DCLL_node ffi:hole $: start
+
+    start 11 insertEnd
+    start 22 insertEnd
+    start 33 insertEnd
+    start 44 insertEnd
+    start 23 insertBegin
+    start "insert" 34 "after" 23 insertAfter
+
+    start open $: start
+
+    start $: cur
+    [ ] $: fwd
+
+    "Traverse forward"
+    "this thing uses '=' on structs but in reality, ffi:addressof-s
+     should be '='d. This thing uses '=' to stress-test it."
+    until: [ cur.next start = ] [
+      fwd cur.data shove
+      cur.next =: cur
+    ]
+    fwd cur.data shove
+
+    start $: cur
+    [ ] $: bwd
+
+    "Traverse backward"
+    "this thing uses '=' on structs but in reality, ffi:addressof-s
+     should be '='d. This thing uses '=' to stress-test it."
+    start.prev dup $: last $: cur
+    until: [ cur.prev last = ] [
+      bwd cur.data shove
+      cur.prev =: cur
+    ]
+    bwd cur.data shove
+
+    fwd [ 23 34 11 22 33 44 ] assert=
+    bwd [ 44 33 22 11 34 23 ] assert=
+
+    "there are a lot of reflections in these because, well, this is
+     a circular list..."
+    start toQuote '&⟨data=23_i32, next=&⟨data=34_i32, next=&⟨data=11_i32, next=&⟨data=22_i32, next=&⟨data=33_i32, next=&⟨data=44_i32, next=[reflection], prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=&⟨data=44_i32, next=[reflection], prev=&⟨data=33_i32, next=[reflection], prev=&⟨data=22_i32, next=[reflection], prev=&⟨data=11_i32, next=[reflection], prev=&⟨data=34_i32, next=[reflection], prev=[reflection]⟩⟩⟩⟩⟩⟩' assert=
+    last toQuote '&⟨data=44_i32, next=&⟨data=23_i32, next=&⟨data=34_i32, next=&⟨data=11_i32, next=&⟨data=22_i32, next=&⟨data=33_i32, next=[reflection], prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=&⟨data=33_i32, next=[reflection], prev=&⟨data=22_i32, next=[reflection], prev=&⟨data=11_i32, next=[reflection], prev=&⟨data=34_i32, next=[reflection], prev=&⟨data=23_i32, next=[reflection], prev=[reflection]⟩⟩⟩⟩⟩⟩' assert=
+  ]
+
+  it should 'run example: doubly circular linked list construction in Nk and traverse in c' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ data i32
+      next &DCLL_node
+      prev &DCLL_node
+    ] ffi:createLayout $: DCLL_node
+
+    [
+      [ dcll_sum &DCLL_node -- i32 ]
+    ] lib
+
+    "this one would fancy some automation though..."
+
+    [ obj DCLL_node ffi:buildStruct& ] @: createNode
+
+    [ 11 $: data ] createNode $: n0
+    [ 22 $: data ] createNode $: n1
+    [ 33 $: data ] createNode $: n2
+    [ 44 $: data ] createNode $: n3
+
+
+    n0 #next n1 entry:submit
+    n1 #next n2 entry:submit
+    n2 #next n3 entry:submit
+    n3 #next n0 entry:submit
+
+    n0 #prev n3 entry:submit
+    n1 #prev n0 entry:submit
+    n2 #prev n1 entry:submit
+    n3 #prev n2 entry:submit
+
+    n0 dcll_sum 110 assert=
+
+    n0 toQuote '&⟨data=11_i32, next=&⟨data=22_i32, next=&⟨data=33_i32, next=&⟨data=44_i32, next=[reflection], prev=[reflection]⟩, prev=[reflection]⟩, prev=[reflection]⟩, prev=&⟨data=44_i32, next=[reflection], prev=&⟨data=33_i32, next=[reflection], prev=&⟨data=22_i32, next=[reflection], prev=[reflection]⟩⟩⟩⟩' assert=
+  ]
+
+  it should 'support entry:submit on Novika-defined struct views' [
+    [ x i32
+      y i32
+    ] ffi:createLayout $: point
+
+    [
+      100 $: x
+      200 $: y
+    ] obj point ffi:buildStruct& $: s_ref
+
+    [
+      300 $: x
+      400 $: y
+    ] obj point ffi:buildStruct~ $: s_inl
+
+    s_ref -> [x y] [100 200] assert=
+    s_ref #x 123 entry:submit
+    s_ref #y 456 entry:submit
+    s_ref -> [x y] [123 456] assert=
+
+    s_inl -> [x y] [300 400] assert=
+    s_inl #x 345 entry:submit
+    s_inl #y 567 entry:submit
+    s_inl -> [x y] [345 567] assert=
+  ]
+
+  it should 'support entry:submit on C-defined struct views' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [ [ Point_New  f32 f32 -- &point ]
+      [ Point_Inl  f32 f32 -- ~point ]
+      [ Point_Subtract &point &point -- &point ]
+     ] lib
+
+    100 200 Point_New $: pt1
+    300 400 Point_New $: pt2
+
+    pt1 -> [x y] [100 200] assert=
+    pt2 -> [x y] [300 400] assert=
+
+    pt1 #x 123 entry:submit
+    pt1 #y 456 entry:submit
+    pt2 #x 567 entry:submit
+    pt2 #y 890 entry:submit
+    pt2 pt1 Point_Subtract $: res
+    res -> [x y] [444 434] assert=
+
+    100 200 Point_Inl $: pti1
+    300 400 Point_Inl $: pti2
+
+    pti1 -> [x y] [100 200] assert=
+    pti2 -> [x y] [300 400] assert=
+
+    pti1 #x 123 entry:submit
+    pti2 #y 456 entry:submit
+
+    pti1 -> [x y] [123 200] assert=
+    pti2 -> [x y] [300 456] assert=
+
+    pti1 #~point ffi:box point ffi:asStruct& $: boxed_pti1
+    pti2 #~point ffi:box point ffi:asStruct& $: boxed_pti2
+    boxed_pti2 boxed_pti1 Point_Subtract $: res2
+    res2 -> [x y] [177 256] assert=
+
+    res #x 1000 entry:submit
+
+    res2 ffi:addressof #~point ffi:unbox $: res2_inl
+    res2_inl -> [x y] res2 -> [x y] assert=
+  ]
+
+  it should 'allow to retrieve struct layout from struct view' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32
+      y f32 ] ffi:createLayout $: point
+
+    [
+      [ Point_New f32 f32 -- &point ]
+      [ Point_Free &point -- nothing ]
+    ] lib
+
+    100 200 Point_New $: pt
+    pt ffi:viewLayout point assert=
+    pt Point_Free
+
+    [ 100 $: x
+      200 $: y ]
+    obj point ffi:buildStruct~ $: pt_inl
+
+    pt_inl ffi:viewLayout point assert=
+  ]
+
+  it should 'allow to write/read none to structs' [
+    [ foo pointer ] ffi:createLayout $: struct
+
+    "note how we are not setting foo here:"
+    [ ] struct ffi:buildStruct& $: struct1_ref
+    [ ] struct ffi:buildStruct~ $: struct1_inl
+
+    struct1_ref.foo 0 assert=
+    struct1_inl.foo 0 assert=
+
+    [ 0 #pointer ffi:unbox ] 'attempt to unbox none (C nullptr)' assertDies
+
+    [ 1234 $: foo ] struct ffi:buildStruct& $: struct2_ref
+    [ 5678 $: foo ] struct ffi:buildStruct~ $: struct2_inl
+
+    struct2_ref #foo 0 entry:submit
+    struct2_inl #foo 0 entry:submit
+
+    struct2_ref.foo 0 assert=
+    struct2_inl.foo 0 assert=
+
+  ]
+
+  it should 'forbid nothing as value' [
+    'ffi-test' ffi:getLibrary @: lib
+    [ [ foo nothing ] ffi:createLayout "force layout creation->" toQuote ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:box ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ 1234 #nothing ffi:unbox ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ #nothing ffi:hole ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+    [ [ [ dummy nothing -- nothing ] ] lib ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+  ]
+
+  it should 'catch invalid struct typenames' [
+    "Argument typename:"
+    [ #& ffi:hole ] 'could not recognize foreign type. Did you mean ⸢~&⸥ (inline struct), ⸢&&⸥ (reference to struct), or ⸢?&⸥ (union)?' assertDies
+    [ #~ ffi:hole ] 'could not recognize foreign type. Did you mean ⸢~~⸥ (inline struct), ⸢&~⸥ (reference to struct), or ⸢?~⸥ (union)?' assertDies
+
+    "Struct layout typename:"
+    [ [ x & ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean ⸢~&⸥ (inline struct), ⸢&&⸥ (reference to struct), or ⸢?&⸥ (union)?' assertDies
+    [ [ x ~ ] ffi:createLayout "force layout creation->" toQuote ] 'could not recognize foreign type. Did you mean ⸢~~⸥ (inline struct), ⸢&~⸥ (reference to struct), or ⸢?~⸥ (union)?' assertDies
+  ]
+
+  it should 'typecheck function args' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: point
+
+    [
+      [ Point_New f32 f32 -- &point ]
+      [ Point_Inl f32 f32 -- ~point ]
+      [ Point_Subtract &point &point -- &point ]
+    ] lib
+
+    [ 'foo' 34 Point_New ] 'could not convert \'foo\' to foreign type f32' assertDies
+    [ 34 'foo' Point_New ] 'could not convert \'foo\' to foreign type f32' assertDies
+
+    12 34 Point_New $: x
+    56 78 Point_Inl $: y
+
+    [ 123 y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+    [ x 456 Point_Subtract ] 'could not convert 456 to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ 'foo' y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+    [ x 'foo' Point_Subtract ] 'could not convert \'foo\' to foreign type &⟪x=f32, y=f32⟫' assertDies
+    [ x y Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+    [ y x Point_Subtract ] '&⟪x=f32, y=f32⟫ is incompatible with ~⟨x=56.0_f32, y=78.0_f32⟩' assertDies
+  ]
+
+  it should 'die when implicitly taking a pointer of non-reference struct view' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [
+      [ Point_Subtract pointer pointer -- &point ]
+    ] lib
+
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct& $: ref1
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct& $: ref2
+    [ 100 $: x 200 $: y ] obj point ffi:buildStruct~ $: inl
+
+    ref1 ref2 Point_Subtract -> [x y] [0 0] assert=
+    [ inl ref2 Point_Subtract ] 'cannot implicitly take pointer of struct view that is not a reference struct view' assertDies
+    [ ref1 inl Point_Subtract ] 'cannot implicitly take pointer of struct view that is not a reference struct view' assertDies
+  ]
+
+  it should 'die if missing field when doing buildStruct' [
+    [ foo i32 ] ffi:createLayout $: layout
+    [ [ ] layout ffi:buildStruct& ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
+    [ [ ] layout ffi:buildStruct~ ] 'block is missing field \'foo\'. Note that none (C nullptr) as default value is only supported for untyped pointers (`pointer`) and struct references (`&name`)' assertDies
+  ]
+
+  it should 'call variadic function with one allowed type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ sum_variadic i32 [ i32 ] -- i64 ]
+      [ swap_muladd_variadic i32 i32 u32 [ i32 ] -- i64 ]
+    ] lib
+
+    0 [ ] sum_variadic 0 assert=
+    1 [ 123 ] sum_variadic 123 assert=
+    3 [ 1 3 5 ]  sum_variadic 9 assert=
+
+    2 3 6 [ 0 1 2 3 4 5 ] swap_muladd_variadic
+      "0 * 2 + 1 * 3 + 2 * 2 + 3 * 3 + 4 * 2 + 5 * 3"
+      39 assert=
+  ]
+
+  it should 'call variadic function with n allowed types' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ sum_count_or_self u32 u32 [ i32 cstr ] -- i64 ]
+    ] lib
+
+    0 "<- sum count" 3 "<- how many"  [ 'hello world' 'bye world' 'salam' ] sum_count_or_self 25 assert=
+    1 "<- sum self" 3 "<- how many" [ 2 3 6 ] sum_count_or_self 11 assert=
+  ]
+
+  it should 'parse variadic decl and die where appropriate' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ [ dummy [ ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
+    [ [ [ dummy [ i32 ] -- nothing ] ] lib ] 'function declaration must have at least one fixed argument other than varargs' assertDies
+    [ [ [ dummy [ i32 ] i32 -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy i32 [ i32 ] i32 -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy i32 [ i32 ] -- [ i32 ] ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy [ i32 ] [ i32 ] -- nothing ] ] lib ] 'bad type: block, expected: a word' assertDies
+    [ [ [ dummy i32 [ nothing ] -- nothing ] ] lib ] 'nothing is not a value type. Did you mean ⸢pointer⸥ (an untyped pointer)?' assertDies
+
+  ]
+
+  it should 'die when argument not of allowed type/conflicting in variadic call' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [ [ [ dummy dummy:a ] i32 [ i32 cstr ] -- i64 ]
+      [ [ dummy dummy:b ] i32 [ i32 f64 ] -- i64 ]
+    ] lib
+
+    [ x i32 ] ffi:createLayout $: foo
+
+    [ 1 [ [ ] ] dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ [ 123 $: x ] obj foo ffi:buildStruct& ] vals dummy:a ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 'hello world' ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+    [ 1 [ 1234 ] dummy:b ] 'unable to convert to foreign value: too many or no type candidates for form. Make sure you\'ve specified the corresponding foreign type in the variadic function\'s list of allowed types, and no conflicts between types exist (e.g. both i32 and i64; this is currently unsupported)' assertDies
+  ]
+
+  it should 'allow to pass inline & ref structs in varargs' [
+     'ffi-test' ffi:getLibrary @: lib
+
+    [ x f32 y f32 ] ffi:createLayout $: point
+
+    [ [ [ scaled_sum_structs_variadic sssv:inl ] u32 u32 f64 [ ~point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:ref ] u32 u32 f64 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype1 ] u8 u32 f64 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype2 ] u32 u32 f32 [ &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype3 ] u32 u32 f64 [ i16 &point ] -- f32 ]
+      [ [ scaled_sum_structs_variadic sssv:bad_argtype4 ] u32 u32 f64 [ f32 &point ] -- f32 ]
+    ] lib
+
+    "0 2
+     2 3
+     4 4
+     6 5
+     8 6"
+    5 collect: [ $: i
+      i 2 * $: x
+      i 2 + $: y
+      this $: self
+
+      [ self point ffi:buildStruct& $: ref
+        self point ffi:buildStruct~ $: inl
+      ] obj
+    ] $: varargs
+
+    "2.34 * (0 + 2) + 2.34 * (2 + 3) + 2.34 * (4 + 4) + 2.34 * (6 + 5) + 2.34 * (8 + 6)"
+    varargs count  0  2.34  varargs map: [ .ref ]  sssv:ref $: sum_ref
+                  "^-- is inline? no"
+
+    "5.67 * (0 + 2) + 5.67 * (2 + 3) + 5.67 * (4 + 4) + 5.67 * (6 + 5) + 5.67 * (8 + 6)"
+    varargs count  1  5.67  varargs map: [ .inl ]  sssv:inl $: sum_inl
+                  "^-- is inline? yes"
+
+    sum_ref 93.6 assert=
+    sum_inl 226.8 assert=
+
+    [ varargs count 1 5.67 varargs map: [.inl] sssv:bad_argtype1 ] 'bad argtype in variadic call: promote to i32 first: 5_u8' assertDies
+    [ varargs count 1 5.67 varargs map: [.inl] sssv:bad_argtype2 ] 'bad argtype in variadic call: promote to f64 first: 5.67_f32' assertDies
+    [ varargs count 1 5.67 [ 1234 ] sssv:bad_argtype3 ] 'bad argtype in variadic call: promote to i32 first: 1234_i16' assertDies
+    [ varargs count 1 5.67 [ 1234 ] sssv:bad_argtype4 ] 'bad argtype in variadic call: promote to f64 first: 1234.0_f32' assertDies
+  ]
+
+  it should 'support basic union construction in Novika' [
+    [
+      foo cstr
+      bar i32
+      baz f64
+    ] ffi:createLayout $: myNiceUnion
+
+    #?myNiceUnion ffi:sizeof 8 assert= "f64 is the largest type, its sizeof = 8 => union sizeof is 8"
+
+    [
+      'hello world' $: foo
+      123 $: bar
+    ] obj myNiceUnion ffi:buildUnion $: u1
+    u1 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u1.foo 'hello world' assert=
+
+    [
+      123 $: bar
+    ] obj myNiceUnion ffi:buildUnion $: u2
+    u2 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u2.bar 123 assert=
+
+    [
+      123.456 $: baz
+    ] obj myNiceUnion ffi:buildUnion $: u3
+    u3 toQuote '⋃⟪foo=cstr, bar=i32, baz=f64⟫'
+    u3.baz 123.456 assert=
+  ]
+
+  it should 'support union inside struct, struct inside union' [
+    [
+      x f32
+      y f32
+    ] ffi:createLayout $: point
+
+    [ obj point ffi:buildStruct& ] @: pointRef
+    [ obj point ffi:buildStruct~ ] @: pointInl
+
+    [
+      a ~point
+      b &point
+      c i32
+      d cstr
+    ] ffi:createLayout $: test_union
+
+    [
+      det u32
+      xyzzy ?test_union
+    ] ffi:createLayout $: structWithDet
+
+    [
+      0 $: det
+      [
+        [ 123 $: x 456 $: y ] pointInl $: a
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_a
+
+    with_union_a toQuote '&⟨det=0_u32, xyzzy=(⋃ ⟪a=~⟪x=f32, y=f32⟫, b=&⟪x=f32, y=f32⟫, c=i32, d=cstr⟫)⟩' assert=
+
+    [
+      1 $: det
+      [
+        [ 567 $: x 890 $: y ] pointRef $: b
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_b
+
+    [
+      2 $: det
+      [
+        12  $: c
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_c
+
+    [
+      3 $: det
+      [
+        'hello world' $: d
+      ] obj test_union ffi:buildUnion $: xyzzy
+    ] obj structWithDet ffi:buildStruct& $: with_union_d
+
+    [ $: with_union
+
+      with_union.det
+      [
+        0 [ with_union.xyzzy.a ]
+        1 [ with_union.xyzzy.b ]
+        2 [ with_union.xyzzy.c ]
+        3 [ with_union.xyzzy.d ]
+      ] choose
+    ] @: byDet
+
+    with_union_a byDet -> [x y] [123 456] assert=
+    with_union_b byDet -> [x y] [567 890] assert=
+    with_union_c byDet 12 assert=
+    with_union_d byDet 'hello world' assert=
+  ]
+
+  it should 'accept C unions' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      addr pointer
+      str cstr
+    ] ffi:createLayout $: testu
+
+    [
+      [ Get_Union_Inl_Str -- ?testu ]
+      [ Get_Union_Ref_Str cstr -- pointer ]
+    ] lib
+
+    Get_Union_Inl_Str $: u1
+    'hello world' Get_Union_Ref_Str testu ffi:asUnion $: u2
+
+    u1.str 'hello world' assert=
+    u2.str 'hello world' assert=
+  ]
+
+  it should 'allow to send unions to C' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      addr pointer
+      str cstr
+    ] ffi:createLayout $: testu
+
+    [
+      [ Get_Union_Ref_Str cstr -- pointer ]
+      [ Get_Str_From_TestU ?testu -- cstr ]
+    ] lib
+
+    'hello world' Get_Union_Ref_Str testu ffi:asUnion $: u2
+    [ u2.addr "yup this unsafe!!!" $: addr ] obj testu ffi:buildUnion $: testu_inst
+    testu_inst Get_Str_From_TestU 'hello world' assert=
+  ]
+
+  it should 'support C char type' [
+    'ffi-test' ffi:getLibrary @: lib
+
+    [
+      x u8
+      ch char
+    ] ffi:createLayout $: char_union
+
+    [
+      [ Get_First_Char cstr -- char ]
+      [ Get_U8_Char char -- u8 ]
+      [ Get_Char_Union -- ?char_union ]
+      [ [ Get_Char_From_Union gcfu:u8 ] ?char_union -- u8 ]
+      [ [ Get_Char_From_Union gcfu:char ] ?char_union -- char ]
+    ] lib
+
+    'hello world' Get_First_Char 'h' assert=
+    'h' Get_U8_Char 104 assert=
+    Get_Char_Union $: u
+    u.x 65 assert=
+    u.ch 'A' assert=
+
+    u #x 66 entry:submit
+    u.ch 'B' assert=
+
+    u #ch 'c' entry:submit
+    u gcfu:u8  99 assert=
+    u gcfu:char 'c' assert=
+  ]
+
+  it should 'allow to write at pointer unsafely' [
+    [ x i32 y i32 ] ffi:createLayout $: point
+
+    point ffi:allocateStruct~ $: s
+
+    s ffi:addressof $: s_addr
+
+    s_addr 100 #i32 ffi:unsafeWrite
+    s_addr #i32 ffi:sizeof + 200 #i32 ffi:unsafeWrite
+
+    s.x 100 assert=
+    s.y 200 assert=
+  ]
+
+  it should 'stringify pointer correctly' [
+    [ x pointer ] ffi:createLayout $: foo
+    foo ffi:allocateStruct~ $: s
+    s #x 1234 entry:submit
+    s.x 1234 assert=
+    s toQuote '~⟨x=(0x4d2)⟩' assert=
+  ]
+
+  it should 'implement predicates for foreign forms' [
+    [ x i32 ] ffi:createLayout $: x
+
+    123 ffi:layout? false assert=
+    "...etc"
+    x ffi:layout? true assert=
+
+    x ffi:allocateStruct& $: x&
+    x ffi:allocateStruct~ $: x~
+    x ffi:allocateUnion $: xU
+
+    123 ffi:struct&? false assert=
+    x~ ffi:struct&? false assert=
+    "...etc"
+    x& ffi:struct&? true assert=
+
+    123 ffi:struct~? false assert=
+    x& ffi:struct~? false assert=
+    "...etc"
+    x~ ffi:struct~? true assert=
+
+    123 ffi:union? false assert=
+    x& ffi:union? false assert=
+    x~ ffi:union? false assert=
+    "...etc"
+    xU ffi:union? true assert=
+
+    #i32 ffi:hole $: h
+
+    123 ffi:hole? false assert=
+    h ffi:hole? true assert=
+    x& ffi:hole? false assert=
+    x~ ffi:hole? false assert=
+    xU ffi:hole? false assert=
+  ]
+]

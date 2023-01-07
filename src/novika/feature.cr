@@ -75,6 +75,7 @@ module Novika
       @bb = Block.new(parent)
       @classes = {} of String => IFeatureClass
       @objects = {} of String => Feature
+      @libraries = {} of String => Library
     end
 
     # Returns an array of feature classes that are enabled
@@ -85,14 +86,20 @@ module Novika
 
     # Returns whether this bundle has the feature class with
     # the given *id* enabled.
-    def has_enabled?(id : String)
+    def has_feature_enabled?(id : String)
       @objects.has_key?(id)
     end
 
     # Returns whether this bundle includes a feature class
     # with the given *id*.
-    def includes?(id : String)
+    def has_feature?(id : String)
       @classes.has_key?(id)
+    end
+
+    # Returns whether this bundle includes a library with the
+    # given *id*.
+    def has_library?(id : String)
+      @libraries.has_key?(id)
     end
 
     # Enables a feature class with the given *id*.
@@ -147,6 +154,46 @@ module Novika
       @objects[feature.id]?.try &.as(T)
     end
 
+    # Returns the library with the given *id*. Returns nil if there
+    # is no such library in this bundle.
+    def get_library?(id : String)
+      @libraries[id]?
+    end
+
+    @load_library_callbacks = [] of String -> Library?
+
+    # Subscribes *callback* to library load requests, so that
+    # whenever the runtime needs a library, *callback* gets a
+    # chance to be invoked and load it.
+    #
+    # *callback* is only going to be invoked if all previously
+    # defined callbacks failed (returned nil).
+    #
+    # *callback* should return a `Library` if it successfully
+    # loaded it; otherwise, it should return nil.
+    def on_load_library?(&callback : String -> Library?)
+      @load_library_callbacks << callback
+    end
+
+    # Tries to load a library (aka shared object) with the given
+    # *id*. Returns the resulting `Library` object, or nil. The
+    # library object is cached: further calls to `load_library?`
+    # and `get_library?` will return that library object.
+    #
+    # Usually, bundle is used as a dumb-ish container for features
+    # and libraries that were loaded beforehand, by the frontend of
+    # choice. `load_library?` breaks this habit, and allows bundle
+    # users to request new stuff from the frontend at runtime.
+    def load_library?(id : String) : Library?
+      @libraries.fetch(id) do
+        @load_library_callbacks.each do |callback|
+          if library = callback.call(id)
+            return @libraries[id] = library
+          end
+        end
+      end
+    end
+
     # Yields the feature instance of the given *feature* class
     # to the block, if one can be found in this bundle.
     #
@@ -160,6 +207,12 @@ module Novika
     # Adds a feature class to this bundle.
     def <<(feature : IFeatureClass)
       @classes[feature.id] = feature
+    end
+
+    # Adds a *library* to this bundle. Overwrites any previous
+    # library with the same id.
+    def <<(library : Library)
+      @libraries[library.id] = library
     end
 
     # Creates a bundle, and adds features that are on by

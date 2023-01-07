@@ -222,7 +222,7 @@ module Novika
     # Schedules *form* for opening in *stack*.
     #
     # Same as `schedule(form, stack)`.
-    def schedule!(form : Builtin | QuotedWord, stack)
+    def schedule!(form : Builtin | QuotedWord | Library | ForeignFunction | Hole, stack)
       unless stack.same?(self.stack)
         # Schedule a fictious entry. Note how we do *not* set
         # the cursor to 0. This handles two things:
@@ -290,7 +290,7 @@ module Novika
     # had been found, returns nil.
     def drop_until_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
-        entry = block.at?(Word::DIED)
+        entry = block.entry_for?(Word::DIED)
         conts.drop
 
         next unless entry

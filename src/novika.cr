@@ -1,6 +1,8 @@
 require "big"
 require "colorize"
 
+require "./ext/dlfcn"
+
 # Order is important!
 require "./novika/forms/form"
 require "./novika/image"
@@ -9,6 +11,7 @@ require "./novika/classifier"
 require "./novika/error"
 require "./novika/tape"
 require "./novika/dict"
+require "./novika/ffi"
 require "./novika/forms/*"
 require "./novika/engine"
 require "./novika/feature"
