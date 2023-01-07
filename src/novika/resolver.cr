@@ -60,15 +60,16 @@ module Novika
     getter folders = [] of Folder
 
     # Holds platform-specific, `dlopen`-able shared objects
-    # (.so in Linux, .dll and .lib in Windows), later consumed
-    # by the library machinery.
+    # (.so in Linux, .dll in Windows, .dylib in MacOS), later
+    # consumed by the FFI/library machinery.
     #
     # Note that we don't actually check whether they *are* shared
-    # objects or are simply files with an so (dll, lib) file
+    # objects or are simply files with an .so (.dll, .dylib) file
     # extension.
     #
     # Mostly for safety, shared objects are not loaded automatically.
-    # You need to list them by hand in the initial runnable list.
+    # You need to list them by hand in the initial runnable list; or
+    # manually ask feature ffi to get them, in code.
     getter shared_objects = [] of Path
 
     # Holds feature ids identified in the initial list of
