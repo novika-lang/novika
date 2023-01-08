@@ -6,6 +6,7 @@ Ok  Created an empty project in current directory.
 $ novika
 Hello World
 """
+needsFeature: disk
 
 [ "( M C -- ): logs Message emphasized, and painted with Color."
   withEchoFg withEmphasisAppendEcho dropEchoFg

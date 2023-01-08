@@ -11,7 +11,7 @@ module Novika::Features
     end
 
     def self.on_by_default? : Bool
-      true
+      false
     end
 
     # Returns whether *path* exists and is readable.
