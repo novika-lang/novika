@@ -79,7 +79,13 @@ module Novika
         io.puts
       end
 
-      io << "Sorry: ".colorize.red.bold << details << "."
+      io << "Sorry: ".colorize.red.bold << details
+
+      case details.byte_at?(details.bytesize - 1)
+      when '!', '?', '.'
+      else
+        io << '.'
+      end
       io.puts
     end
 
