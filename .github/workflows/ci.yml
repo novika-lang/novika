@@ -19,4 +19,4 @@ jobs:
       - name: Install dependencies
         run: shards install --without-development
       - name: Run language tests
-        run: crystal run src/cli.cr -- ffi ffi-test.so tests tests.nk
+        run: crystal run src/cli.cr -- ffi ffi-test.so tests

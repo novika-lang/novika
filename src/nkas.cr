@@ -117,7 +117,7 @@ module Novika::Frontend::Nkas
     paths = [] of Path
 
     resolver.folders.each do |folder|
-      folder.entry.try { |entry| paths << entry }
+      folder.entry?.try { |entry| paths << entry }
       paths.concat(folder.files)
     end
 
@@ -126,8 +126,8 @@ module Novika::Frontend::Nkas
     end
 
     resolver.apps.each do |app|
-      app.entry.try { |entry| paths << entry }
       paths.concat(app.files)
+      app.entry?.try { |entry| paths << entry }
     end
 
     # Slurp into One Big Block.

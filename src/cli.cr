@@ -21,13 +21,30 @@ module Novika::Frontend::CLI
     toplevel.import!(from: block)
   end
 
-  # Runs *folder*. First, its entry file is run (if any). Then,
-  # all other files are run.
+  # Runs the given *folder*.
+  #
+  # If *folder* is an app, all other files in it (if any) are
+  # run first, then its entry file (again, only if it exists).
+  #
+  # If *folder* is a lib, its entry file is run first (if it
+  # exists), followed by all other files.
+  #
+  # The "philosophy" is as follows:
+  #
+  # * For apps, it's all other files contributing to the entry
+  #   file, which generally contains run instructions.
+  #
+  # * For libs, it's the lib's entry file contributing to all
+  #   other files -- allowing to share code in load order-
+  #   agnostic way.
   def run(engine : Engine, toplevel : Block, folder : Folder)
-    if entry = folder.entry
+    run(engine, toplevel, folder.files) if folder.app?
+
+    if entry = folder.entry?
       run(engine, toplevel, entry)
     end
-    run(engine, toplevel, folder.files)
+
+    run(engine, toplevel, folder.files) unless folder.app?
   end
 
   # Runs an array of *paths* (each is assumed to be a file).
@@ -151,7 +168,7 @@ module Novika::Frontend::CLI
     # to be picked up implicitly; the price of ignoring it is
     # less than that of an explicitly specified app).
     if resolver.apps.size > 1
-      resolver.apps.reject!(&.core)
+      resolver.apps.reject!(&.core?)
     end
 
     # If still more than one, then we don't know what to do
@@ -203,9 +220,9 @@ module Novika::Frontend::CLI
       toplevel = Block.new(bundle.bb)
 
       resolver.features.each { |feature_id| bundle.enable(feature_id) }
-      resolver.folders.each { |folder| run(engine, toplevel, folder) }
-      resolver.files.each { |file| run(engine, toplevel, file) }
-      resolver.apps.each { |app| run(engine, toplevel, app) }
+      run(engine, toplevel, resolver.folders)
+      run(engine, toplevel, resolver.files)
+      run(engine, toplevel, resolver.apps)
     end
   rescue e : Error
     e.report(STDERR)

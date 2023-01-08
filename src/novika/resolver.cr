@@ -1,18 +1,32 @@
 module Novika
-  # Specifies what a folder is, for Novika.
-  #
-  # Namely that it's found at `path`, contains an `entry`
-  # file (if any; e.g., `core.nk` inside a folder named
-  # `core`), and paths for all other `files` (if any).
-  #
-  # Whether the folder is recognized as an `app`, and/or
-  # whether it is the `core` folder, is also noted.
-  record Folder,
-    path : Path,
-    entry : Path? = nil,
-    files = [] of Path,
-    app = false,
-    core = false
+  # Specifies what a particular folder is, for Novika.
+  struct Folder
+    # Returns the path to this folder.
+    getter path : Path
+
+    # Returns full path to the entry file, found inside this
+    # folder. For example, given this folder is called `foo`,
+    # its entry file is going to be called `foo.nk`.
+    #
+    # Returns nil if there is no entry file.
+    getter? entry : Path?
+
+    # Returns full paths to *files* found in this folder.
+    getter files : Array(Path)
+
+    # Returns whether this folder is an app folder.
+    #
+    # An app folder is that which contains a `.nk.app` file.
+    getter? app : Bool
+
+    # Returns whether this folder is a core folder.
+    #
+    # A core folder is that which has the name 'core'.
+    getter? core : Bool
+
+    def initialize(@path, @entry = nil, @files = [] of Path, @app = false, @core = false)
+    end
+  end
 
   # `RunnableResolver`'s (or resolver's for short) main
   # objective is -- who'd have guessed it! -- to *resolve* a
@@ -271,7 +285,7 @@ module Novika
       # Move apps from folders to the dedicated apps array.
       folders.reject! do |folder|
         # Reject if folder.app is true.
-        folder.app.tap { |is_app| apps << folder if is_app }
+        folder.app?.tap { |app| apps << folder if app }
       end
 
       true
