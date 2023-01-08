@@ -15,8 +15,8 @@ jobs:
           version: latest
           platform: x64
       - name: Build ffi-test
-        run: gcc -shared -o ffi-test.so tests/res/ffi-test.c
+        run: gcc -shared -o tests/res/ffi-test.so tests/res/ffi-test.c
       - name: Install dependencies
         run: shards install --without-development
       - name: Run language tests
-        run: crystal run src/cli.cr -- ffi ffi-test.so tests
+        run: crystal run src/cli.cr -- ffi tests

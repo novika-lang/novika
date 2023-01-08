@@ -171,6 +171,13 @@ module Novika::Frontend::CLI
       resolver.apps.reject! do |app|
         next if !app.core? || app.explicit?
 
+        # Also reject features that the app requested!
+        resolver.features.reject! do |feature|
+          next if feature.manual?
+
+          feature.root == app.path
+        end
+
         true
       end
     end
@@ -184,6 +191,9 @@ module Novika::Frontend::CLI
 
     # Found a bunch of unknown... things. We don't know what
     # to do with them either.
+    #
+    # TODO: this takes into account things from .nk.app and .nk.lib
+    # files, which makes everything a bit confusing.
     unless resolver.unknowns.empty?
       resolver.unknowns.each do |arg|
         Frontend.errln(
@@ -223,7 +233,20 @@ module Novika::Frontend::CLI
       # Image emission, saving some time and space!
       toplevel = Block.new(bundle.bb)
 
-      resolver.features.each { |feature_id| bundle.enable(feature_id) }
+      resolver.features.each do |req|
+        allowed =
+          req.allowed? do
+            # If we've got it here, then it's in the bundle, therefore,
+            # the feature class exists.
+            purpose = bundle.get_feature_class?(req.id).not_nil!.purpose
+
+            print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
+            (gets.try &.downcase) == "y"
+          end
+
+        bundle.enable(req.id) if allowed
+      end
+
       run(engine, toplevel, resolver.folders)
       run(engine, toplevel, resolver.files)
       run(engine, toplevel, resolver.apps)

@@ -1,4 +1,13 @@
+require "csv"
+
 module Novika
+  MANIFEST_APP         = ".nk.app"
+  MANIFEST_LIB         = ".nk.lib"
+  MANIFEST_PERMISSIONS = "permissions"
+
+  PERMISSION_YES = "1"
+  PERMISSION_NO  = "0"
+
   # Specifies what a particular folder is, for Novika.
   struct Folder
     # Returns the path to this folder.
@@ -14,10 +23,9 @@ module Novika
     # Returns full paths to *files* found in this folder.
     getter files : Set(Path)
 
-    # Returns whether this folder is an app folder.
-    #
-    # An app folder is that which contains a `.nk.app` file.
-    getter? app : Bool
+    # Returns the path to the app manifest file. If non-nil,
+    # then this folder is considered a Novika app.
+    getter? app : Path?
 
     # Returns whether this folder is a core folder.
     #
@@ -31,12 +39,110 @@ module Novika
     def initialize(@path,
                    @entry = nil,
                    @files = Set(Path).new,
-                   @app = false,
+                   @app = nil,
                    @core = false,
                    @explicit = true)
     end
 
+    # Returns the path to the lib manifest file. If non-nil,
+    # then this folder is considered a Novika app.
+    def lib?
+      path / MANIFEST_LIB unless app?
+    end
+
+    # Reads and returns the contents of '.nk.app' or '.nk.lib',
+    # depending on the type of this folder (app or otherwise).
+    #
+    # Returns nil if neither exists.
+    def manifest?
+      if (mpath = app? || lib?) && File.readable?(mpath)
+        File.read(mpath)
+      end
+    end
+
     def_equals_and_hash path, explicit?
+  end
+
+  # Holds information about a feature request.
+  struct FeatureRequest
+    # Returns the path to the folder for which the feature
+    # was requested.
+    getter root : Path
+
+    # Returns the identifier of the feature.
+    getter id : String
+
+    # Returns whether the request was typed in maually (true),
+    # or picked up from a .nk.lib or .nk.app file (false).
+    getter? manual : Bool
+
+    def initialize(@resolver : RunnableResolver, @id, @manual)
+      @root = resolver.cwd
+    end
+
+    # Returns whether this feature request is allowed by the user.
+    #
+    # This feature request is always allowed if it is provided
+    # manually.
+    #
+    # If not, tries reading the permissions file in the Novika
+    # environment directory. If the user had made the decision
+    # already, returns that decision. Otherwise, yields, assuming
+    # the block will ask the user to decide. If the return value
+    # of the block is true, it is written as the decision to the
+    # permissions file. The decision is returned.
+    #
+    # *always_ask* can be used to force the user to decide with the
+    # help of the block, regardless of what is in the permissions
+    # file. The new decision will then be written to the
+    # permissions file.
+    #
+    # If the permissions file is invalid for some reason, it
+    # is left intact; in such case, the user will have to decide
+    # anew every time, as if there was no permissions file at all.
+    def allowed?(always_ask = false, & : self -> Bool) : Bool
+      return true if manual?
+
+      @resolver.permissions do |io|
+        rows = CSV.parse(io)
+
+        # Verification pass. Ensure all rows have three elements,
+        # and permission is a '0' or '1'.
+        valid =
+          rows.all? do |row|
+            row.size == 3 && row[2].in?(PERMISSION_NO, PERMISSION_YES)
+          end
+
+        if valid && always_ask
+          # In always ask mode, we'll need to clear the previous
+          # row (if any).
+          rows.reject! { |(root, id)| p({root, id} == {@root.to_s, @id}) }
+        elsif valid
+          # Otherwise, we need to find & return the existing
+          # permission (again, if any).
+          rows.each do |(root, id, perm)|
+            return perm == PERMISSION_YES if {root, id} == {@root.to_s, @id}
+          end
+        end
+
+        # In any other case, ask the user.
+        perm = yield self
+
+        return perm unless valid
+
+        io.rewind
+        CSV.build(io) do |csv|
+          rows.each { |row| csv.row(row) }
+          csv.row(@root, @id, PERMISSION_YES) if perm
+        end
+
+        return perm
+      end
+
+      false
+    end
+
+    def_equals_and_hash root, id
   end
 
   # `RunnableResolver`'s (or resolver's for short) main
@@ -97,18 +203,25 @@ module Novika
     # manually ask feature ffi to get them, in code.
     getter shared_objects = Set(Path).new
 
-    # Holds feature ids identified in the initial list of
-    # runnables by this resolver.
+    # Holds feature requests identified in the initial list of
+    # runnables by this resolver (those with manual set to true),
+    # as well as features requested in lib or app manifests
+    # (those with manual set to false).
     #
     # Note: resolver uses bundle in a read-only manner. You
     # will have to enable the features yourself (if that's
     # what you want to do).
-    getter features = Set(String).new
+    getter features = Set(FeatureRequest).new
 
     # Holds runnables which have not been identified. You
     # can handle them as you wish: as per this resolver,
     # they are unrelated to Novika.
     getter unknowns = Set(String).new
+
+    # Returns the current working directory for this resolver.
+    #
+    # May change as resolution progresses.
+    getter cwd : Path
 
     # Initializes a `RunnableResolver`.
     #
@@ -180,7 +293,7 @@ module Novika
 
     # Returns whether *path* is an app directory (contains '.nk.app').
     private def app?(path : Path)
-      File.file?(path / ".nk.app")
+      File.file?(path / MANIFEST_APP)
     end
 
     # Returns whether *path* is a 'core' directory.
@@ -201,6 +314,28 @@ module Novika
       {% end %}
     end
 
+    # Reads (creates, if necessary) a permissions file in the
+    # Novika environment directory. Yields IO to the block.
+    def permissions
+      io = nil
+
+      env.try do |env|
+        unless File.exists?(env / MANIFEST_PERMISSIONS)
+          File.touch(env / MANIFEST_PERMISSIONS)
+        end
+
+        io = File.open(env / MANIFEST_PERMISSIONS, "r+")
+      end
+
+      io ||= IO::Memory.new
+
+      begin
+        yield io
+      ensure
+        io.close
+      end
+    end
+
     # Recursively visits directories starting at, and
     # including, *root*, and creates `Folder`s for their
     # corresponding paths.
@@ -208,7 +343,7 @@ module Novika
     # Subdirectories that are apps themselves are skipped
     # entirely. Subdirectories called 'core' are autoloaded
     # as expected.
-    private def load(store : Hash(Path, Folder), root : Path, app : Bool, core : Bool, explicit = true)
+    private def load(store : Hash(Path, Folder), root : Path, app : Path?, core : Bool, explicit : Bool)
       return if store.has_key?(root)
 
       entry = root / "#{root.stem}.nk"
@@ -219,6 +354,19 @@ module Novika
         core: core,
         explicit: explicit,
       )
+
+      if manifest = folder.manifest?
+        _cwd, @cwd = @cwd, root
+
+        manifest.each_line do |runnable|
+          # Comments are allowed in the manifest files.
+          next if runnable.starts_with?('#')
+
+          resolve(runnable, manual: false)
+        end
+
+        @cwd = _cwd
+      end
 
       Dir.glob(root / "*.nk") do |path|
         # Skip entry path. We've looked at it above.
@@ -232,12 +380,12 @@ module Novika
 
         # Disallow apps but allow core. This configuration
         # seems to work, but still smells weirdly!
-        load(store, path, app: false, core: core?(path), explicit: explicit)
+        load(store, path, app: nil, core: core?(path), explicit: explicit)
       end
     end
 
     # :ditto:
-    private def load(path : Path, app = false, core = false, explicit = true)
+    private def load(path : Path, app = nil, core = false, explicit = true)
       store = {} of Path => Folder
       load(store, path, app, core, explicit)
       store.each_value do |folder|
@@ -245,7 +393,38 @@ module Novika
       end
     end
 
-    # Resolves: finda
+    private def resolve(runnable : String, *, manual = true)
+      if @bundle.has_feature?(runnable)
+        features << FeatureRequest.new(self, runnable, manual)
+        return
+      end
+
+      # Unless runnable exists as a directory/file in current
+      # working directory, or in Novika environment directory,
+      # mark as unknown.
+      unless path = expand_runnable_path?(Path[runnable])
+        unknowns << runnable
+        return
+      end
+
+      if File.directory?(path)
+        load(path, app: app?(path) ? path / MANIFEST_APP : nil)
+        return
+      end
+
+      unless File.file?(path)
+        unknowns << runnable
+        return
+      end
+
+      if shared_object?(path)
+        shared_objects << path
+        return
+      end
+
+      files << path
+    end
+
     def resolve? : Bool
       return false if @runnables.empty? && (!env_core || !cwd_core)
 
@@ -258,40 +437,23 @@ module Novika
       # Autoload 'core' in the current working directory, if
       # there is 'core' there.
       #
-      # This 'core' is allowed to be an app.
-      cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd), explicit: false) }
+      # This 'core' is allowed to be an app, but that should
+      # be declared in the parent directory (cwd).
+      cwd_core.try do |dir|
+        load(dir, core: true,
+          app: app?(@cwd) ? @cwd / MANIFEST_APP : nil,
+          explicit: false
+        )
+      end
 
-      @runnables.each do |runnable|
-        if @bundle.has_feature?(runnable)
-          features << runnable
-          next
+      @runnables.each { |runnable| resolve(runnable) }
+
+      # If the user had manually enabled a feature, we enable
+      # it for everyone.
+      features.select(&.manual?).each do |feature|
+        features.reject! do |other|
+          feature.id == other.id && !other.manual?
         end
-
-        # Unless runnable exists as a directory/file in
-        # current working directory, or in Novika
-        # environment directory, mark as unknown and go
-        # to the next runnable.
-        unless path = expand_runnable_path?(Path[runnable])
-          unknowns << runnable
-          next
-        end
-
-        if File.directory?(path)
-          load(path, app: app?(path))
-          next
-        end
-
-        unless File.file?(path)
-          unknowns << runnable
-          next
-        end
-
-        if shared_object?(path)
-          shared_objects << path
-          next
-        end
-
-        files << path
       end
 
       # Move apps from folders to the dedicated apps array.

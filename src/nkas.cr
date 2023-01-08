@@ -111,7 +111,7 @@ module Novika::Frontend::Nkas
       exit(1)
     end
 
-    resolver.features.each { |feature| bundle.enable(feature) }
+    resolver.features.each { |req| bundle.enable(req.id) }
 
     # Flatten to paths in proper order!
     paths = [] of Path

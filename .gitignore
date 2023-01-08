@@ -2,6 +2,7 @@
 /lib/
 /bin/
 !/bin/dl.dll
+/env/permissions
 /.shards/
 *.dwarf
 cachegrind.out.*

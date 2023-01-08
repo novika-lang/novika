@@ -115,7 +115,7 @@ module Novika
     # Returns whether there is a feature with the given *id*.
     def enable(id : String) : Bool
       return true if @objects.has_key?(id)
-      return false unless feature = @classes[id]?
+      return false unless feature = get_feature_class?(id)
 
       object = feature.new(self)
       object.inject(bb)
@@ -158,6 +158,12 @@ module Novika
     # is no such library in this bundle.
     def get_library?(id : String)
       @libraries[id]?
+    end
+
+    # Returns the feature class with the given *id*. Returns nil
+    # if there is no such feature class in this bundle.
+    def get_feature_class?(id : String)
+      @classes[id]?
     end
 
     @load_library_callbacks = [] of String -> Library?
