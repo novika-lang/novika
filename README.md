@@ -268,7 +268,7 @@ Building:
 2. Make sure your working directory is this repo.
 3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
   (that's smart huh?).
-4. On Windows, type the following command (**temporarily doesn't work**):
+4. On Windows, type the following command:
     `shards build --without-development --release --progress --no-debug`
 
     On Unix, type the following command:
@@ -479,10 +479,14 @@ Theory:
 
 * Look at the source. Explore `crystal docs`.
 
-* Read [Novika's Approach To Loops](https://github.com/novika-lang/novika/blob/rev10/doc/novikas-approach-to-loops.md)
-  and suggest fixes for my spelling and grammar mistakes!
+* Look at the GitHub Wiki. Maybe there is something there.
+
+* (Try to) read things in `doc/`.
 
 Practice:
+
+* To run the tests, use `/path/to/novika tests` or simply `novika tests` (if
+  you've added the binary to PATH) from the repo root.
 
 * `crystal run src/cli.cr -Dnovika_console -Dnovika_readline -- file.nk`.
    Make it break. See where and why. Easy, huh? Build in release. `flamegraph` it?
