@@ -1,16 +1,3 @@
-class String
-  # Returns whether this string starts with *prefix* but also
-  # has other characters after it.
-  def prefixed_by?(prefix : String) : Bool
-    bytesize > prefix.bytesize && starts_with?(prefix)
-  end
-
-  # :ditto:
-  def prefixed_by?(prefix : Char) : Bool
-    bytesize > 1 && starts_with?(prefix)
-  end
-end
-
 module Novika
   # Words open entries they're assigned to in the dictionary
   # of their enclosing block.

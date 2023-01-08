@@ -3,6 +3,18 @@ require "colorize"
 
 require "./ext/dlfcn"
 
+class String
+  # Returns whether this string starts with *prefix* but also
+  # has other characters after it.
+  def prefixed_by?(prefix : String) : Bool
+    bytesize > prefix.bytesize && starts_with?(prefix)
+  end
+
+  # :ditto:
+  def prefixed_by?(prefix : Char) : Bool
+    bytesize > 1 && starts_with?(prefix)
+  end
+end
 
 struct Set(T)
   delegate :reject!, to: @hash
