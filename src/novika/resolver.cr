@@ -12,7 +12,7 @@ module Novika
     getter? entry : Path?
 
     # Returns full paths to *files* found in this folder.
-    getter files : Array(Path)
+    getter files : Set(Path)
 
     # Returns whether this folder is an app folder.
     #
@@ -24,8 +24,19 @@ module Novika
     # A core folder is that which has the name 'core'.
     getter? core : Bool
 
-    def initialize(@path, @entry = nil, @files = [] of Path, @app = false, @core = false)
+    # Returns whether this folder was specified in the runnable
+    # list, explicitly.
+    getter? explicit : Bool
+
+    def initialize(@path,
+                   @entry = nil,
+                   @files = Set(Path).new,
+                   @app = false,
+                   @core = false,
+                   @explicit = true)
     end
+
+    def_equals_and_hash path, explicit?
   end
 
   # `RunnableResolver`'s (or resolver's for short) main
@@ -63,15 +74,15 @@ module Novika
     #
     # This is determined by the presence of `.nk.app`, in
     # what would be otherwise considered a folder.
-    getter apps = [] of Folder
+    getter apps = Set(Folder).new
 
     # Holds paths to Novika files in the initial list of
     # runnables, as per this resolver.
-    getter files = [] of Path
+    getter files = Set(Path).new
 
     # Holds non-application folders in the initial list of
     # runnables, as per this resolver.
-    getter folders = [] of Folder
+    getter folders = Set(Folder).new
 
     # Holds platform-specific, `dlopen`-able shared objects
     # (.so in Linux, .dll in Windows, .dylib in MacOS), later
@@ -84,7 +95,7 @@ module Novika
     # Mostly for safety, shared objects are not loaded automatically.
     # You need to list them by hand in the initial runnable list; or
     # manually ask feature ffi to get them, in code.
-    getter shared_objects = [] of Path
+    getter shared_objects = Set(Path).new
 
     # Holds feature ids identified in the initial list of
     # runnables by this resolver.
@@ -92,12 +103,12 @@ module Novika
     # Note: resolver uses bundle in a read-only manner. You
     # will have to enable the features yourself (if that's
     # what you want to do).
-    getter features = [] of String
+    getter features = Set(String).new
 
     # Holds runnables which have not been identified. You
     # can handle them as you wish: as per this resolver,
     # they are unrelated to Novika.
-    getter unknowns = [] of String
+    getter unknowns = Set(String).new
 
     # Initializes a `RunnableResolver`.
     #
@@ -197,7 +208,7 @@ module Novika
     # Subdirectories that are apps themselves are skipped
     # entirely. Subdirectories called 'core' are autoloaded
     # as expected.
-    private def load(store : Hash(Path, Folder), root : Path, app : Bool, core : Bool)
+    private def load(store : Hash(Path, Folder), root : Path, app : Bool, core : Bool, explicit = true)
       return if store.has_key?(root)
 
       entry = root / "#{root.stem}.nk"
@@ -206,6 +217,7 @@ module Novika
         entry: File.file?(entry) ? entry : nil,
         app: app,
         core: core,
+        explicit: explicit,
       )
 
       Dir.glob(root / "*.nk") do |path|
@@ -220,14 +232,14 @@ module Novika
 
         # Disallow apps but allow core. This configuration
         # seems to work, but still smells weirdly!
-        load(store, path, app: false, core: core?(path))
+        load(store, path, app: false, core: core?(path), explicit: explicit)
       end
     end
 
     # :ditto:
-    private def load(path : Path, app = false, core = false)
+    private def load(path : Path, app = false, core = false, explicit = true)
       store = {} of Path => Folder
-      load(store, path, app, core)
+      load(store, path, app, core, explicit)
       store.each_value do |folder|
         folders << folder
       end
@@ -239,15 +251,15 @@ module Novika
 
       # Autoload 'core' in the Novika environment directory.
       #
-      # Note that '~/.novika' is never an app, even if
-      # there's a '.nk.app' file around.
-      env_core.try { |dir| load(dir, core: true) }
+      # Note that '~/.novika' is never an app, even if there's
+      # a '.nk.app' file there.
+      env_core.try { |dir| load(dir, core: true, explicit: false) }
 
-      # Autoload 'core' in the current working directory,
-      # if there is 'core' there.
+      # Autoload 'core' in the current working directory, if
+      # there is 'core' there.
       #
       # This 'core' is allowed to be an app.
-      cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd)) }
+      cwd_core.try { |dir| load(dir, core: true, app: app?(@cwd), explicit: false) }
 
       @runnables.each do |runnable|
         if @bundle.has_feature?(runnable)

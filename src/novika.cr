@@ -3,6 +3,11 @@ require "colorize"
 
 require "./ext/dlfcn"
 
+
+struct Set(T)
+  delegate :reject!, to: @hash
+end
+
 # Order is important!
 require "./novika/forms/form"
 require "./novika/image"

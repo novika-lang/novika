@@ -47,13 +47,13 @@ module Novika::Frontend::CLI
     run(engine, toplevel, folder.files) unless folder.app?
   end
 
-  # Runs an array of *paths* (each is assumed to be a file).
-  def run(engine : Engine, toplevel : Block, paths : Array(Path))
+  # Runs each of the *paths* (each is assumed to be a file).
+  def run(engine : Engine, toplevel : Block, paths : Set(Path))
     paths.each { |path| run(engine, toplevel, path) }
   end
 
-  # Runs an array of *folders*.
-  def run(engine : Engine, toplevel : Block, folders : Array(Folder))
+  # Runs each of the *folders*.
+  def run(engine : Engine, toplevel : Block, folders : Set(Folder))
     folders.each { |folder| run(engine, toplevel, folder) }
   end
 
@@ -165,10 +165,14 @@ module Novika::Frontend::CLI
     end
 
     # If more than one app, try to reject core (it is assumed
-    # to be picked up implicitly; the price of ignoring it is
+    # to be picked up implicitly; the "cost" of ignoring it is
     # less than that of an explicitly specified app).
     if resolver.apps.size > 1
-      resolver.apps.reject!(&.core?)
+      resolver.apps.reject! do |app|
+        next if !app.core? || app.explicit?
+
+        true
+      end
     end
 
     # If still more than one, then we don't know what to do
