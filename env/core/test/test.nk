@@ -90,11 +90,12 @@ orphan $: _groups
 [ """( describe Dq B -- ): groups multiple test cases (listed
    in Block) under a single Description quote.
 
-  Describes can be grouped under the so-called *test groups*. By
-  default, they are grouped under the test group called 'global'.
+  Describes can be grouped under so-called *test groups*. Unless
+  you provide a group (or several) yourself, the describe will
+  belong to the test group called 'rogue'.
 
-  You can group under a different test group using `in`. The
-  following describes are grouped under 'global':
+  You can specify one or more groups the describe will belong
+  to using `in`. The following describes are grouped under 'rogue':
 
   ```
   describe 'Foo' [
@@ -126,11 +127,31 @@ orphan $: _groups
 
   You can run a test group using the word `runTestsInGroup:`.
   It will run all tests and echo the test report to the standard
-  output on the fly. With tests describes as above, you can
-  run them with:
+  output on the fly. With describes as above, that is, belonging
+  to the group 'foo', you can run them like so:
 
   ```
   runTestsInGroup: foo
+  ```
+
+  Describes can belong to multiple groups:
+
+  ```
+  describe 'Foo' [
+    in a
+    in b
+
+    it should 'happy path' [ true true assert= ]
+  ]
+
+  describe 'Bar' [
+    in a
+
+    it should 'sad path' [ true false assert= ]
+  ]
+
+  runTestsInGroup: a  \"runs Foo and Bar\"
+  runTestsInGroup: b  \"runs Foo\"
   ```
   """
   ahead thru asQuote $: describeDesc
@@ -139,10 +160,13 @@ orphan $: _groups
   this $: self
 
   "A list of test case instances in the test pool of this describe."
-  #nil $: cases
+  [ ] $: cases
 
-  "Current test pool block. `global` is the default (fallback) pool."
-  #nil $: testGroup
+  "A list of groups this describe belongs to. `rogue` is the default
+   (fallback) group. It's not set here to save on computation; rather,
+   it's set by the first 'it' (unless there are other groups at that
+   time already, of course)."
+  [ ] $: testGroups
 
 
   [ "( -- Rb ): runs this test case. Leaves Report block which
@@ -327,8 +351,9 @@ orphan $: _groups
      and `createItDies` for usage examples of both."
     ahead dup thru asWord $: det
 
-    "If test group is still unset, use `in` to set it to global."
-    testGroup #nil = => [ in open global ]
+    "If no test groups were set before the first 'it', use `in`
+     and group under 'rogue'."
+    testGroups empty? => [ in open rogue ]
 
     det #should = => [ createItShould cases gulp ^ ]
     det   #dies = => [   createItDies cases gulp ^ ]
@@ -339,15 +364,15 @@ orphan $: _groups
 
   [ "( in Nw -- ): moves this test group to the test group under
      the given Name."
-    ahead thru asWord _fetchTestGroup
-      dup.cases =: cases
-                =: testGroup
+    ahead thru asWord _fetchTestGroup testGroups gulp
   ] $: in
 
 
   _describeBody #it it opens
   _describeBody #in in opens
   _describeBody do
+
+  testGroups each: [ .cases cases concat! ]
 ] @: describe
 
 
