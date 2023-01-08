@@ -139,12 +139,57 @@ describe 'round' [
 ]
 
 
+describe 'floor' [
+  in lang
+
+  it should 'round decimals down' [
+    1 floor 1 assert=
+    1.23 floor 1 assert=
+    1.67 floor 1 assert=
+    2.5 floor 2 assert=
+  ]
+
+  it should 'round negative decimals down' [
+    -1 floor -1 assert=
+    -1.23 floor -2 assert=
+    -1.67 floor -2 assert=
+    -2.5 floor -3 assert=
+  ]
+]
+
+
+describe 'ceil' [
+  in lang
+
+  it should 'round decimals up' [
+    1 ceil 1 assert=
+    1.23 ceil 2 assert=
+    1.67 ceil 2 assert=
+    2.5 ceil 3 assert=
+  ]
+
+  it should 'round negative decimals up' [
+    -1 ceil -1 assert=
+    -1.23 ceil -1 assert=
+    -1.67 ceil -1 assert=
+    -2.5 ceil -2 assert=
+  ]
+]
+
+
 describe 'trunc' [
   it should 'truncate decimals' [
     1 trunc 1 assert=
     1.23 trunc 1 assert=
     1.67 trunc 1 assert=
     2.5 trunc 2 assert=
+  ]
+
+  it should 'truncate negative decimals' [
+    -1 trunc 1 assert=
+    -1.23 trunc -1 assert=
+    -1.67 trunc -1 assert=
+    -2.5 trunc -2 assert=
   ]
 ]
 

@@ -986,8 +986,8 @@ module Novika::Features::Impl
       1 round leaves: 1
       1.23 round leaves: 1
 
-      1.67 round leaves: 2
       1.5 round leaves: 2
+      1.67 round leaves: 2
 
       2.5 round leaves: 2 "rounds towards the even neighbor"
       ```
@@ -997,15 +997,60 @@ module Novika::Features::Impl
         decimal.round.onto(stack)
       end
 
+      target.at("floor", <<-END
+      ( D -- Rd ): rounds Decimal *down* towards the nearest integer,
+       leaves the corresoinding Rounded decimal.
+
+      ```
+      1 floor leaves: 1
+      1.23 floor leaves: 1
+
+      1.5 floor leaves: 1
+      1.67 floor leaves: 1
+
+      2.5 floor leaves: 2
+
+      -2.5 floor leaves: -3 "rounds down!"
+      ```
+      END
+      ) do |_, stack|
+        decimal = stack.drop.a(Decimal)
+        decimal.floor.onto(stack)
+      end
+
+      target.at("ceil", <<-END
+      ( D -- Rd ): rounds Decimal *up* towards the nearest integer,
+       leaves the corresoinding Rounded decimal.
+
+      ```
+      1 ceil leaves: 1
+      1.23 ceil leaves: 2
+
+      1.5 ceil leaves: 2
+      1.67 ceil leaves: 2
+
+      2.5 ceil leaves: 3
+
+      -2.5 ceil leaves: -2 "rounds up!"
+      ```
+      END
+      ) do |_, stack|
+        decimal = stack.drop.a(Decimal)
+        decimal.ceil.onto(stack)
+      end
+
       target.at("trunc", <<-END
-      ( D -- Td ): omits all past the '.' in Decimal, leaves
-       the resulting Truncated decimal.
+      ( D -- Rd ): rounds Decimal towards zero, leaves the resulting
+       Rounded decimal.
 
       ```
       1 trunc leaves: 1
       1.23 trunc leaves: 1
+      1.5 trunc leaves: 1
       1.67 trunc leaves: 1
       2.5 trunc leaves: 2
+
+      -2.3 trunc leaves:  -2
       ```
       END
       ) do |_, stack|

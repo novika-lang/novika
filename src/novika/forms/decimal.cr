@@ -102,6 +102,11 @@ module Novika
       Decimal.new(val.floor)
     end
 
+    # Rounds this decimal up.
+    def ceil : Decimal
+      Decimal.new(val.ceil)
+    end
+
     # Treats this decimal as radians, and returns cosine.
     def rad_cos : Decimal
       Decimal.new(Math.cos(val))
