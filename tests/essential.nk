@@ -178,6 +178,8 @@ describe 'ceil' [
 
 
 describe 'trunc' [
+  in lang
+
   it should 'truncate decimals' [
     1 trunc 1 assert=
     1.23 trunc 1 assert=
@@ -186,7 +188,7 @@ describe 'trunc' [
   ]
 
   it should 'truncate negative decimals' [
-    -1 trunc 1 assert=
+    -1 trunc -1 assert=
     -1.23 trunc -1 assert=
     -1.67 trunc -1 assert=
     -2.5 trunc -2 assert=
