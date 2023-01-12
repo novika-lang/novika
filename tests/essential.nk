@@ -883,6 +883,24 @@ describe 'count' [
   ]
 ]
 
+describe 'chr' [
+  in lang
+
+  it should 'leave quote corresponding to codepoint' [
+    65 chr 'A' assert=
+    '👨‍👧‍👦' ord chr '👨' assert= "only the first codepoint"
+  ]
+]
+
+describe 'ord' [
+  in lang
+
+  it should 'leave codepoint corresponding to quote' [
+    'A' ord 65 assert=
+    '👨‍👧‍👦' ord 128104 assert=
+  ]
+]
+
 describe 'fromLeft' [
   in lang
 

@@ -1109,6 +1109,30 @@ module Novika::Features::Impl
         Decimal.new(form.count).onto(stack)
       end
 
+      target.at("chr", <<-END
+      ( Uc -- Q ): leaves a quote that consists of a single
+       character with the given Unicode codepoint.
+      END
+      ) do |_, stack|
+        ord = stack.drop.a(Decimal)
+
+        Quote.new(ord.chr).onto(stack)
+      end
+
+      target.at("ord", <<-END
+      ( Q -- Uc ): leaves the Unicode codepoint for the first
+       character in Quote. Dies if Quote is empty.
+      END
+      ) do |_, stack|
+        quote = stack.drop.a(Quote)
+
+        unless ord = quote.ord?
+          quote.die("ord: quote must contain at least one character")
+        end
+
+        Decimal.new(ord).onto(stack)
+      end
+
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |_, stack|
         block = stack.drop.a(Block)
         cursor = Decimal.new(block.cursor)

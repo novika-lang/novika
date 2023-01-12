@@ -102,6 +102,12 @@ module Novika
       string.byte_at?(0)
     end
 
+    # Returns the Unicode codepoint for the first character in
+    # this quote, or nil if this quote is empty.
+    def ord? : Int32?
+      string[0].ord unless empty?
+    end
+
     # Stitches (concatenates) this and *other* quote variants,
     # and returns the resulting quote.
     def stitch(other : Quote) : Quote

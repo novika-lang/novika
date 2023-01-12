@@ -25,7 +25,12 @@ module Novika
       "decimal"
     end
 
-    # Returns whether this decimal is in the bounds of `Intr64`.
+    # Returns the character corresponding to this decimal.
+    def chr : Char
+      to_i.chr
+    end
+
+    # Returns whether this decimal is in the bounds of `Int64`.
     def i64?
       val.scale.zero? && Int64::MIN <= val <= Int64::MAX
     end
