@@ -116,7 +116,7 @@ module Novika
         if valid && always_ask
           # In always ask mode, we'll need to clear the previous
           # row (if any).
-          rows.reject! { |(root, id)| p({root, id} == {@root.to_s, @id}) }
+          rows.reject! { |(root, id)| {root, id} == {@root.to_s, @id} }
         elsif valid
           # Otherwise, we need to find & return the existing
           # permission (again, if any).
