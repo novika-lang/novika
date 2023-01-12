@@ -18,7 +18,9 @@ module Novika
     delegate :to_f32, :to_f64, to: val
 
     def desc(io : IO)
-      io << "decimal number " << val
+      io << "decimal number "
+
+      to_s(io)
     end
 
     def self.typedesc
@@ -138,7 +140,7 @@ module Novika
     end
 
     def to_s(io)
-      io << val
+      io << (val.scale.zero? ? val.value : val)
     end
 
     def_equals_and_hash val
