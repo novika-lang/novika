@@ -2,7 +2,7 @@
    Entries at the same time, and in the 'human-readable' order.
 
   ```
-  [ $( x y ) this ] @: point
+  [ ${ x y } this ] @: point
 
   100 200 point -> [ x y ]
     leaves: [ [ 100 200 ] ]
@@ -11,5 +11,5 @@
   stack $: cStack
   ahead $: cCode
 
-  cCode |after!: #) <-| [ cCode swap cStack cherry pushes ] drop
-] @: $(
+  cCode |after!: #} <-| [ cCode swap cStack cherry pushes ] drop
+] @: ${

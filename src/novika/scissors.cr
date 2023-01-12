@@ -143,6 +143,14 @@ struct Novika::Scissors
         thru
         yield start, length, @dot
         cut
+      when '(', ')'
+        # () are like single-character comments of themselves.
+        # They are completely ignored. It is left unchecked  whether
+        # one '(' has the matching ')'.
+        yield start, length, @dot unless length.zero?
+        cut
+        thru
+        cut
       when '.'
         # Remember where the first dot was. This is nil-led
         # in `cut`.

@@ -8,7 +8,7 @@ this $: _toplevel
 ] @: ensureEndsWithNewline
 
 
-[ $( name stackEffect description )
+[ ${ name stackEffect description }
 
   description # [ '\n' = ] $: lineCount
 
@@ -23,7 +23,7 @@ this $: _toplevel
       * cornerX
       * cornerY
     """
-    $( topX topY maxH yOff )
+    ${ topX topY maxH yOff }
 
     "Current width and height:"
     0 $: width

@@ -238,7 +238,7 @@ orphan $: operators
   ] @: cursorX
 
   [ "( X Y -- ): draws this prompt at X, Y position."
-    $( x y )
+    ${ x y }
 
     DIM_FG withEchoFg
       prompt x y     console:appendEcho
@@ -272,7 +272,7 @@ orphan $: operators
 ] @: createMathPromptNode
 
 
-[ $( document caption )
+[ ${ document caption }
 
       1 $: height
   false $: canBeMovedTo?
