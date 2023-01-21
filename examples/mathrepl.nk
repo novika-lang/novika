@@ -382,9 +382,7 @@ orphan $: operators
 
 
   document 'Interactive infix math DSL, backed by Novika.' createLabelNode document.insert
-  document 'Available words: ' context   ls sepBy: ' ' ~
-                            operators ls sepBy: ' ' ~
-                            createLabelNode document.insert
+  document 'Available words: ' context   ls sepBy: ' ' ~ createLabelNode document.insert
 
   document createMathPromptNode document.insert
 
