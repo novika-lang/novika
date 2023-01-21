@@ -1,3 +1,16 @@
+class Array(T)
+  def unsafe_concat(other : Array(T), index, other_start, other_insert_count)
+    resize_if_cant_insert(other_insert_count)
+
+    (@buffer + index).move_to(@buffer + index + other_insert_count, @size - index)
+    (@buffer + index).copy_from(other.to_unsafe + other_start, other_insert_count)
+
+    @size += other_insert_count
+
+    self
+  end
+end
+
 module Novika
   # Substrate is a fast, low-level copy-on-write wrapper for
   # an array.
@@ -65,6 +78,13 @@ module Novika
     # Returns a copy of this substrate.
     abstract def copy
 
+    # Pastes *count* elements of other starting at *b*egin, to
+    # *dest* index in self, without doing any checks whatsoever.
+    #
+    # A lot of undefined behavior unless you are sure all
+    # numbers are good.
+    abstract def unsafe_paste(other : Substrate(T), index, other_start, other_insert_count)
+
     # Replaces elements of this substrate with the result of the
     # block. If the result is nil, leaves the original element.
     abstract def map!(& : T -> T?)
@@ -94,7 +114,7 @@ module Novika
 
     # Makes a copy of the referenced substrate, and calls this
     # method on it.
-    delegate :set?, :insert?, :delete?, :map!, :sort_using!, to: begin
+    delegate :unsafe_paste, :insert?, :delete?, :map!, :sort_using!, to: begin
       deref
 
       RealSubstrate.new(array.dup)
@@ -157,6 +177,12 @@ module Novika
         mutee.array.sort! do |a, b|
           cmp.call(a, b)
         end
+      end
+    end
+
+    def unsafe_paste(other : Substrate(T), index, other_start, other_insert_count)
+      mutate do |mutee|
+        mutee.array.unsafe_concat(other.array, index, other_start, other_insert_count)
       end
     end
 

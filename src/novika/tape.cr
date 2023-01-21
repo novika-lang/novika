@@ -56,6 +56,18 @@ module Novika
       Tape.new(substrate.insert?(cursor, element).not_nil!, cursor + 1)
     end
 
+    # Adds elements before cursor in *elements* to this tape.
+    # Advances the cursor.
+    def paste(elements : Tape(T))
+      Tape.new(
+        substrate.unsafe_paste(elements.substrate,
+          index: cursor,
+          other_start: 0,
+          other_insert_count: elements.cursor
+        ), cursor + elements.cursor
+      )
+    end
+
     # Removes the element before the cursor, and moves the cursor
     # back once. Returns the resulting tape.
     def drop?

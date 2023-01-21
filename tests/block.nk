@@ -1573,7 +1573,7 @@ describe 'concat!' [
     a 1 |to
     b 2 |to
     a b concat!
-    a |at 4 assert=
+    a [ 1 4 5 2 3 ] dup 3 |to assert=
     b |at 2 assert=
   ]
 ]

@@ -306,6 +306,14 @@ module Novika
       self
     end
 
+    # Mutably adds elements before the cursor in *elems* block's
+    # tape after the cursor in this block's tape.
+    def paste(elems : Block)
+      return if elems.count.zero?
+
+      self.tape = tape.paste(elems.tape)
+    end
+
     # Returns the top form, dies if none.
     def top : Form
       die("no top for block") unless has_tape?

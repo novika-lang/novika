@@ -1352,14 +1352,16 @@
       @: join:
 
 
-[ """( B1 B2 -- B1 ): adds elements from B2 into B1.
+[ """( B1 B2 -- B1 ): adds elements before cursor in B2
+   after cursor in B1. Advances the cursor in B1 by the
+   number of added elements.
 
   ```
   [ 1 2 3 ] [ 4 5 6 ] concat!
     leaves: [ [ 1 2 3 4 5 6 ] ]
   ```
   """
-  [ << ] rot reduce
+  nup shove*
 ] @: concat!
 
 

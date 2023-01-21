@@ -1182,6 +1182,28 @@ module Novika::Features::Impl
         stack.drop.onto(stack.drop.a(Block))
       end
 
+      target.at("shove*", <<-END
+      ( [ ...bl | ...br ]B [ ...el | ...er ]Eb ~> [ ...bl ...el | ...br ]B -- ): adds
+       elements before cursor in Element block after the cursor in Block.
+
+      ```
+      [ 1 2 3 ] $: xs
+      xs [ 4 5 6 ] shove*
+      xs leaves: [ [ 1 2 3 4 5 6 "|" ] ]
+
+      [ 1 2 3 ] $: ys
+      ys 1 |to "[ 1 | 2 3 ]"
+      ys [ 100 200 300 ] shove* "[ 1 100 200 300 | 2 3 ]"
+      ys dup count |to
+      ys leaves: [ [ 1 100 200 300 2 3 ] ]
+      ```
+      END
+      ) do |_, stack|
+        elems = stack.drop.a(Block)
+        block = stack.drop.a(Block)
+        block.paste(elems)
+      end
+
       target.at("eject", <<-END
       ( [ ... | F ... ]B ~> [ ... | ... ]B -- F ): drops and
        leaves the Form after cursor in Block.
