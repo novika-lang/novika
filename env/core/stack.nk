@@ -25,13 +25,23 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: nip
 
 
+[ """( A B -- A A B ): duplicates a form under the top.
+
+  ```
+  1 2 nup leaves: [ 1 1 2 ]
+  ```
+  """
+  <| dup |>
+] @: nup
+
+
 [ """( A B -- A B A ): duplicates a form over the top.
 
   ```
   1 2 over leaves: [ 1 2 1 ]
   ```
   """
-  <| dup |> swap
+  nup swap
 ] @: over
 
 

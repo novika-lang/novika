@@ -7,6 +7,15 @@ describe 'tuck' [
 ]
 
 
+describe 'nup' [
+  in lang
+
+  it should 'dup before top' [
+    [ 1 2 nup ] vals [ 1 1 2 ] assert=
+  ]
+]
+
+
 describe 'dip' [
   in lang
 
