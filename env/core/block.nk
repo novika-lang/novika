@@ -52,6 +52,28 @@
 ] @: |+
 
 
+[ """( B N -- ): moves the cursor in Block to N. If N
+   is negative, the cursor is moved to 0. If N is greater
+   than the amount of forms in Block, the cursor is moved
+   to the end of Block.
+
+  ```
+  [ 1 2 3 ] $: x
+  x 1 |clamp
+  x toQuote leaves: '[ 1 | 2 3 ]'
+  x 1000 |clamp
+  x toQuote leaves: '[ 1 2 3 ]'
+  x -1000 |clamp
+  x toQuote leaves: '[ | 1 2 3 ]'
+  ```
+  """
+  asDecimal $: cursor
+  asBlock   $: block
+
+  block (cursor clamp: 0 [ block count ]) |to
+] @: |clamp
+
+
 [ """( F B -- ): `shove`s Form into Block, drops both.
 
   ```

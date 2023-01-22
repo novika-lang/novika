@@ -98,6 +98,26 @@ describe '|+' [
   ]
 ]
 
+describe '|clamp' [
+  in lang
+
+  it should 'perform clamped |to' [
+    [ [ 1 2 3 ] 'hello' |clamp ] 'bad type: quote, expected: a decimal' assertDies
+    [ 'hello world' 2 |clamp ] 'bad type: quote, expected: a block' assertDies
+
+    [ ] dup 0 |clamp [ ] assert=
+    [ ] dup -123 |clamp [ ] assert=
+    [ ] dup 123 |clamp [ ] assert=
+
+    [ 1 2 3 ] dup -123 |clamp toQuote '[ | 1 2 3 ]' assert=
+    [ 1 2 3 ] dup 0 |clamp toQuote '[ | 1 2 3 ]' assert=
+    [ 1 2 3 ] dup 1 |clamp toQuote '[ 1 | 2 3 ]' assert=
+    [ 1 2 3 ] dup 2 |clamp toQuote '[ 1 2 | 3 ]' assert=
+    [ 1 2 3 ] dup 3 |clamp toQuote '[ 1 2 3 ]' assert=
+    [ 1 2 3 ] dup 123 |clamp toQuote '[ 1 2 3 ]' assert=
+  ]
+]
+
 describe 'gulp' [
   in lang
 
