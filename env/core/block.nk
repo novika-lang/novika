@@ -74,6 +74,36 @@
 ] @: |clamp
 
 
+[ """( Lb N B -- ): moves the cursor in List block to N,
+   then hydrates List block with Block. After Block had
+   executed *successfully*, moves the cursor in List
+   block back to where it was before `|hydrate` (clamped
+   to either end, if necessary).
+
+  ```
+  [ 1 2 3 ] $: x
+
+  x 1 |to
+  x toQuote leaves: '[ 1 | 2 3 ]'
+
+  x 2 [ + ] |hydrate
+  x toQuote leaves: '[ 3 | 3 ]'
+
+  x 2 [ 2drop ] |hydrate
+  x toQuote leaves: '[ ]'
+  ```
+  """
+  asBlock   $: body
+  asDecimal $: cursor
+  asBlock   $: block
+
+  block |at $: tmp
+  block cursor |to
+  block body hydrate
+  block tmp |clamp
+] @: |hydrate
+
+
 [ """( F B -- ): `shove`s Form into Block, drops both.
 
   ```
