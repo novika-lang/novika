@@ -2,18 +2,81 @@
 
 <img src="img/logo.svg" align=right>
 
-Novika is a novel interpreted programming language, somewhat related
-to Forth, Red/Rebol, Self, and Lisp.
+Novika is a free-form, moldable, interpreted programming language.
+
+## Hi!
+
+Uhmm... yeah, I have no idea what the sentence above means either.
+
+Novika belongs to no single paradigm. Instead, I'd say it's a mix of functional, object-oriented, and procedural paradigms — although by no means am I an expert on such things.
+
+Novika borrows from Lisp, Forth, and Factor — and takes inspiration from Self, Red/Rebol, and Smalltalk.
+
+Novika blocks are closures and objects simultaneously — they can relate, talk, and encapsulate. Blocks are code, too. In Novika, data is code, and code is data. And what are objects? Objects are data — and therefore, code.
+
+Blocks can form friendships with each other, become parents of one another, and intercept, well, anything — feel free to slap some Pythonesque dunders on top of all I've said!
+
+The block tree (or the block graph, depending on how you look at it) is yours — you are free to take over it anytime. The engine is yours, too — blocks are the code, and code is run by the engine.
+
+Semantically, Novika is like Lisp set in motion by Lisp — but with objects, stack(s), and so, so much more!
+
+And the syntax of Novika? Well, there is no syntax. That is to say, almost no syntax. Syntactically, Novika lies somewhere between Lisp and Forth. And Forth — Forth has no syntax.
+
+### Trade-offs
+
+Of course, I had to make some trade-offs to achieve such a peculiar arrangement!
+
+#### Negative performance
+
+*Wait, what?*
+
+See, good compilers/interpreters live well in the positives. That is to say they remove irrelevant runtime. Bad compilers and “normal” interpreters live near zero, at the very least getting rid of the notion of parsing.
+
+And what about Novika? Novika is deep in the negatives. Novika *parses* at runtime. Yup, you’ve heard it right.
+
+Waging wars with FFI will give you performance, sure (that is, will move you closer to zero from the negative side!) But then, why not simply use C, Rust, Crystal, or any other fancy-schmancy programming language — especially if you're doing something *serious*?
+
+#### Readability
+
+*It's up to you.*
+
+Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.
+
+But wait, why is that? Why is Novika not *designed* to be readable? Isn't that popular nowadays?
+
+See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. Again, it’s up to you. Either you have their syntax and their performance, or your syntax and your performance.
+
+#### Big projects
+
+*Never.*
+
+I have no clue what big projects are, or what they need. There are enough smart people in this world already.
+
+I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a full-featured programming language in the 21st century is hard ­— there's just so much it must be able to do! Maintaining an innovative one — that's a thousand times harder.
 
 ## Examples
 
-Sieve of Eratosthenes: prints prime numbers in [2; 120].
+1. Hello World:
 
 ```novika
-2 to: 120 ||-> [ $: n stack without: [ n /? ] asStack n ] each: echo
+'Hello World' echo
 ```
 
-First 100 Fizz buzz rounds:
+2. Factorial:
+
+```novika
+"Parentheses () do not mean anything in Novika. They're like single-character comments."
+
+(5 to: 1) product "120"
+```
+
+3. Sieve of Eratosthenes: prints prime numbers in `[2; 120]`.
+
+```novika
+2 to: 120 ||-> [ $: n (stack without: [ n /? ]) asStack n ] each: echo
+```
+
+4. First 100 Fizz buzz rounds:
 
 ```novika
 1 to: 100 each: [
@@ -24,7 +87,7 @@ First 100 Fizz buzz rounds:
 ]
 ```
 
-A tiny DSL for counting average number:
+5. A tiny DSL for counting the average of a bunch of numbers:
 
 ```novika
 [ ahead |before: [ decimal? not ] bi: sum count / ] @: avg:
@@ -33,485 +96,162 @@ avg: 1 2 3      echo "STDOUT: 2⏎"
 avg: 100 4 6 5  echo "STDOUT: 28.75⏎"
 ```
 
-`definfix` and `withInfixMath` DSL to create words with precedence, in
-this case for evaluating simple math expressions. It's 35 lines if you
-remove comments and empty lines, and 27 if you remove the examples.
-Quite short for bootstrapping precedence parsing (but could be shorter,
-I agree).
+Now, if you want to look at something a bit more elaborate, there's:
 
-```novika
-[ "( Cb B P N -- ): defines an infix operator in caller: assigns
-   it given Precedence, and saves it under Name in caller, and
-   in Context dict block (used for looking up information about
-   the available operators). Code Block will be executed when
-   this operator terminates."
-  $: ctx @: code asDecimal $: prec asWord $: name
+* A snake game [example](https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk)
+* A simple [documentation viewer](https://github.com/novika-lang/novika/blob/rev10/examples/docuview.nk)
+* A [prompt](https://github.com/novika-lang/novika/blob/rev10/examples/lch-prompt.nk) that blinks in colors from the LCH color space
+* A TDD-d [observable](https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk)
+* A [live REPL interface](https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk) to a DSL for infix math expressions
 
-  ctx name this pushes "Register operator in the database block."
+## Installing Novika
 
-  ahead name [
-    "This block is run when you *use* an operator."
-    ahead $: caller
+Download and unpack the [latest release](https://github.com/novika-lang/novika/releases/latest) for your system.
 
-    "In this case, |before? will collect (group) until another
-     operator has *less* precedence than we."
-    caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |before? not
-      => [ caller 1 |+ ]
+1. If you don't want to do a system-wide install, simply use `bin/novika` *while in the directory of the release*.
 
-    "When we've met end-of-block or an operator with less precedence,
-     execute code block in the caller context, passing it all we've
-     gathered so far.."
-    caller reparent vals last code
-  ] opens
-] @: definfix
+2. Otherwise, move the `env` folder to your user's home directory, and rename it to `.novika`. Optionally, add `bin/novika` to your PATH.
 
+**Note**: Novika is developed at a rather fast pace, and releases are made every month or so — therefore, the latest release will probably miss all them fancy features. I'd recommend you to build Novika from source.
 
-[ $: block
+## Building Novika from source
 
-  0 $: _SUM
-  1 $: _FACTOR
-  2 $: _POWER
+You will need to have [Crystal](https://crystal-lang.org/install/) installed.
 
-  [ ] $: _ctx
+1. Clone this repository:
 
-  "Save old (stack) operators. There are better ways, but this
-   will do too. Note that these won't be available inside the
-   block passed to withInfixMath: this could be a point to
-   address in case this gets into the standard library."
-   #+ here @: _+
-   #- here @: _-
-   #* here @: _*
-   #/ here @: _/
-  #** here @: _**
-
-  #+     _SUM [ 2val _+  ] _ctx definfix
-  #-     _SUM [ 2val _-  ] _ctx definfix
-  #*  _FACTOR [ 2val _*  ] _ctx definfix
-  #/  _FACTOR [ 2val _/  ] _ctx definfix
-  #**  _POWER [ 2val _** ] _ctx definfix
-
-  this block parent befriend
-  block this reparent
-] @: withInfixMath
-
-
-[ [ 3 * 8 + 5 ] + 2 + 3 ] withInfixMath val echo "STDOUT: 34⏎"
-[ [ 3 * 8 + 5 ] + 2 + 3 ] withInfixMath val echo "STDOUT: 34⏎"
-[ 100 * [ 1 / 4 ] ] withInfixMath val echo "STDOUT: 25⏎"
-[ 2 + 3 ** 8 + 6 * 3 ] withInfixMath val echo "STDOUT: 6581⏎"
-"...etc. Any simple math expression will work."
-
-
-"Fragments between the operators are blocks of their own right,
- thereby allowing:"
-
-[ "Leaves a 2D point object." $: x ahead thruVal $: y this ] @: @
-
-100 @ 200 $: A
-300 @ 50  $: B
-
-"Euclidean distance between A and B:"
-[ [B.x - A.x] ** 2 + [B.y - A.y] ** 2 ] withInfixMath val sqrt echo "STDOUT: 250⏎"
+```
+git clone https://github.com/novika-lang/novika.git
 ```
 
-## A short story
+2. Go there:
 
-Welcome to Novika!
-
-Since we all (surely!) hate the technical smart-speak, here's an artistic introduction to Novika.
-
-1. Imagine that Novika is a kind of plasticine. "Heat" it up a bit, and bend it to any shape you can imagine! Anything, really: a bretzel, an abstract mathematical *thing*... any... thing.
-
-2. Let's say you've decided to make a little plasticine gnome from it.
-
-3. A few days have passed, and now you're the proud owner of a plasticine gnome, George!
-
-4. Don't like George? **Hate** George? His nose is good enough, though, as well as his hat. You cut them off George and put them aside. You mold a new gnome from the plasticine, let's call him David; you then attach what remains of George -- his hat and his nose -- to David. Now they're David's.
-
-5. Want an army of gnomes now, don't you? A Gnome Army? Each one a bit different, but with the same kind of hat, and with the same kind of nose, isn't it? Sure thing!
-
-6. The plasticine kit came with a few magic boxes. They have the word *"opener*" written on all four sides.
-
-7. Make your *prototype* hat and your *prototype* nose, put them each in their own magic box, and close the lids.
-
-8. Mysteriously enough, big red buttons appear on the lids out of thin air. You can't believe your eyes!
-
-9. You press the button on the hat box, and it gives you a plasticine hat! Struck by inspiration, you forget about the magic, and mold it to your liking; some hats you leave as they were, in their *prototype* form.
-
-10. Need a nose? Press the button again, this time on the nose box. An *instance* of nose appears right in your hand! The nose looks just like the *prototype*  nose you put in the box.
-
-11. Now you can arm your gnome army with hats and noses!
-
-12. TODO
-
-13. Oh no! You forgot you've put David the Gnome on the sofa!.. Now he's gone, a blob of plasticine on your butt. You can still make a new gnome from the plasticine, though, when inspiration strikes. No David, but still. At least there's no less plasticine!
-
-14. You go to your professional friend. His beard is so long he needs to dress it in his pants. He is smart! His name is Mr. Bean.
-
-15. No plasticine toys anymore! Mr. Bean makes his living by making big statues. If you accidentally fell on one of his statues, you're the one who's going to break -- not the statue.
-
-16. Knowing that, you ask Mr. Bean, "What material do you use? What is the material that makes your statues look so grandióse, so monumental?"
-
-17. Mr. Bean says, "For these statues -- he motioned his hand -- I use C. For this one -- his eyes on the base of a statue, its top lost in the "ceiling haze" -- I used C++. For these smaller ones, I've used Java."
-18. "What if you hit the statues really-really hard," you ask Mr. Bean.
-
-19. You like breaking and fixing things to learn how they work. That's the best way to learn, isn't it?
-
-20. "Well, if they're well made, they'll withstand the hit", Mr. Bean said.
-
-21. "But if they're not?"
-
-22. "They'll shatter and crush or cut you to death."
-
-TODO
-
-## Introduction
-
-> Novika [organizes](doc/BlockOrg.pdf) and evaluates forms.
-
-This branch is the most recent (10th) prototype implementation of Novika.
-
-Most notable features of Novika include:
-
-* It's weird, one of the weirdest languages you'd find. Brainfuck was a joke,
-  but Novika isn't. Novika seems simple to explain (speaking from personal
-  experience here), but in reality, it damn isn't. At the extremes, simplicity
-  comes at a cost.
-
-* Almost no syntax: Novika is tokenized, but there is not much syntax to talk
-  about. There is only one kind of syntax error, missing closing bracket.
-
-* Small amount of core *forms*: blocks, decimals (aka numbers), quotes (aka strings), booleans, and
-  a few more. *Block* is something you are going to see a lot in Novika.
-
-* Code is data, and data is code. Homoiconicity is a polluted term, but you knew
-  this would be coming in such kind of language didn't you? :)
-
-* As data, blocks can be arrays, or stacks with an insertion point, or dictionaries
-  (ordered hash maps mapping form to form), or anything in-between. Blocks also
-  hold continuations. Individual continuations are blocks as well. Each consists
-  of two sub-blocks: the stack block (a block used as a stack), and a code block
-  (the block whose contents is executed). See, blocks are everywhere.
-
-* Blocks are also objects in Self sense of the word, if you manage to capture them.
-  And at runtime, they may act as symbol tables for code in them. If seen as symbol
-  tables, blocks are lexical in terms of hierarchy, but dynamic in terms of scope
-  contents. In other words, the content of scopes does not get captured; instead,
-  their hierarchy does and is exactly the *block hierarchy*.
-
-* Runtime macros: you can access your caller and (literally) modify it so that it
-  executes what you want next. Or do something to its stack. After all, everything
-  is a block.
-
-* In spirit of Forth, it can rise in level quite quickly. You start with `swap`s
-  and `rot`s and `dup`s and `|to`s (read: cursor tos), and through `|slideRight`s
-  (cursor slide rights) and `ahead`s and smaller infixes like `each:` and `map:`
-  get to expressions like `1 to: 100 map: [ 1 + ] without: even? each: echo`, then
-  find yourself writing HTML `html [ h1 [ 'Hello World!' class: 'fg-red-300' ] ]`,
-  and finally arrive at translating words with Google Translate and exploring synonyms
-  for similarity with words already in the Novika dictionary using Wiktionary — and
-  writing code in Icelandic, Spanish, Chinese, or Ithkuil. Words can parse and/or
-  interpret all words that follow — they can contextualize what follows, through
-  parsing literally or changing state, and such contextualization may or may not
-  be deterministic.
-
-Yup. It's damn hard to even introduce.
-
-## Stability and progress
-
-Almost every commit *could or could not* break something. If there was
-that something, of course: since the language isn't used anywhere other
-than in examples and tests, this isn't a problem *right now*. At this
-point, though, I won't recommend depending on Novika or writing code that
-is important to you in any way, because the next day, you wake up and
-it doesn't work (or does!).
-
-Changes in Novika are incorporated rather rapidly. Monthly releases are
-therefore very outdated, and I'm too inexperienced to set up some nightly
-building infrastructure. If you want the freshest experience, clone and
-build Novika yourself (see below). If you want a working Windows or Linux
-executable *right now*, and don't have the will or capabilities to build,
-then use the [latest release](https://github.com/novika-lang/novika/releases/latest).
-
-I'm working on features that'd allow to browse the environment. Writing
-changelogs is unfortunately just *too* much work for me. The bigger the
-project becomes... You know how it goes. It's overwhelming.
-
-And there's still no docs and no website!
-
-## Using Novika as a library
-
-I don't know why you would need that, but there is some API and if you don't inject the
-features, you'd get bare-bones Novika. But then you'd be better off with splitting a
-string on whitespaces and fetching each word from a hashmap.
-
-```yml
-dependencies:
-  novika:
-    github: novika-lang/novika
+```
+cd novika
 ```
 
-## Is it serious?
+### Windows
 
-Yes and no. It's a project done with smart look on the face, but
-honestly, I see little or no ways Novika can actually be used in
-practice, mainly in money-making practice. So it's pure language
-research and experimentation thingy for now.
+Follow these commands:
 
-## How can I build and run Novika?
-
-The [latest release](https://github.com/novika-lang/novika/releases/latest) is available. It should just work.
-
-Building:
-
-1. Clone or download his repo: `git clone https://github.com/novika-lang/novika`.
-2. Make sure your working directory is this repo.
-3. On Windows, get rid of `shard.yml` and rename `shard.windows.yml` to `shard.yml`
-  (that's smart huh?).
-4. On Windows, type the following command:
-    `shards build --without-development --release --progress --no-debug`
-
-    On Unix, type the following command:
-    `shards build --without-development --release --progress --no-debug -Dnovika_console -Dnovika_readline`.
-
-5. If you're installing Novika, you should either make a copy of, or a link to, the `env`
-   directory, and put it in your user's home directory, calling it `.novika`. You should also consider copying (or linking) the
-   Novika binary where your system can see it (e.g. `~/.local/bin`).
-
-Wondering about the `-D`s?
-
-* `-Dnovika_readline`: use linenoise instead of `gets`.
-
-* `-Dnovika_console`: enables the default console feature implementation which uses
-  [termbox2](https://github.com/homonoidian/termbox2.cr). The latter doesn't support Windows so
-  you'd also have to drop it.
-
-## How can I play with Novika?
-
-`examples/` directory is the best place to go. There, the best example
-is `snake.nk`. Most of the code is documented, but that documentation
-uses some Novika terms that require clarification (mainly because I'm
-also just exploring the language, so explaining it will require some time).
-Plus, there is a lot of implicit expectations in code (this would be
-partially resolved later with a dynamic (runtime) type check system),
-and in docs too.
-
-You can run REPL with: `novika repl`
-
-## How can I learn Novika?
-
-> Docs are in progress, but not really.
-
-Check out the Wiki page at GitHub. Build and run Novika, open the REPL,
-type `?`, and look at how you can explore the environment. All I can say
-right now, really. Currently, there are no language docs. The closest to
-that would be `crystal docs`.
-
-## Syntax highlighting
-
-There's a `sublime-syntax` file in `syn/`, for Sublime Text (I used ST 4).
-
-## Pros/cons
-
-It so happens that I am writing Novika code from time to time,
-so here's what I can say.
-
-### Pros
-
-It's too early to say. Brevity? Homoiconicity squared? I. e.,
-runtime homoiconicity too? WTF?
-
-> Of interest: Novika seems to be one of the best languages to
-> explain continations with. But I haven't tried yet, so... :)
-
-### Cons
-
-* A mish-mash of everything. Specialization and strict separation
-  of concerns helps thought, generalization doesn't. It doesn't
-  make programs run fast either. The latter is a huge problem in
-  Novika. It's very slow. Very.
-
-* Novika is one of the purest expressions of dynamism (or, more
-  specifically, *doesn't-give-a-f\*ck-ism*), on par with maybe
-  Forth, but in Forth it's more dangerous because it can make
-  your computer explode (I'm joking, of course). Note that I only
-  learned a bit of Forth's philosophy, and haven't written even
-  a line of it for myself.
-
-* If you write bad code, it'll break somewhere else, and throw
-  you a hundred-line-long stack trace. At least it really shows
-  where the error happened HUH?
-
-* You'll have to train your intuition to find where an error occured
-  (you'd be able to do it in one-two months), because *Novika doesn't
-  show nor store line numbers and filenames*
-  :) Maybe this will change, I mean it must change!
-
-* Your brain will explode trying to keep track of the stack, them
-  Forth critics say. In Novika, you'd also have to keep track of
-  the so-called *cursor*, and, if that sounds easy, of the block
-  that's used as the stack. Two-three months for this.
-
-* Some words open your blocks with a new stack (e.g., `loop`),
-  and some do not (e.g., `br`). This is mostly documented (and
-  must be!), but sometimes may still cause a lot of confusion.
-
-* Mutation: Novika's take on mutation is very unsafe one. It's not
-  one of those languages that surround you with a safety bubble
-  from mutations, side effects, etc. Forget about that.
-
-**Remember these are the language's cons**. If you want an objective
-critique of the language, you'd need to take these into account. But
-don't be toxic taking criticism as specification.
-
-## Performance
-
-TLDR: It's slow, very-very-very slow.
-
-A prototype shoudn't necessarily be fast, however. And this particular
-implementation is a prototype. It's written up to the point that it works,
-and can be supported and updated rather easily.
-
-The code is naïve. No compilation. No fancy-shmancy JIT -- all that would
-require rewriting the thing in C or even assembly (not because Crystal is
-slow, but because C and assembly *force* you to write fast and/or optimizable
-code, and Crystal does not).
-
-> Performance would require knowledge and experience that I sadly do not posess
-> at the moment. Performance would slow down the tempo. Performance would interfere
-> with the artistic aspect -- and I think of Novika more as a piece of art
-> (however good or bad it may be) than an industrial-strength programming
-> lanugage. Novika does, however subtly, represent my personality.
->
-> **Perhaps it will represent yours as well.**
-
-## Language notes
-
-These are a bit outdated. Look into the Wiki, perhaps it would be updated,
-perhaps it would not.
-
-* Novika has *words* and *blocks*. Together they are known as *forms*.
-Forms are *enclosed* in blocks by being surrounded with `[]`s:
-
-  ```novika
-  [ 1 2 + ]
-  ```
-
-* Words are immutable. Block is the only mutable kind of form.
-
-* Words are separated by whitespaces. In this sense, Novika is
-  whitespace-sensitive. Word is an umbrella for:
-  * Word: `foo bar +baz 2dup a.Ny.Comb-ina+t\iOn`
-  * Quoted word: `#foo`
-  * Number: `123`
-  * Quote: `'hello world'`
-
-* Comments = double quotes: `1 "I'm a comment" 2 +`
-
-* Blocks consist of a *tape* and a *dictionary*.
-  * Block tape is an ordered list plus an insertion point called *cursor*.
-  * Block dictionary is an ordered hash map mapping form to form.
-
-* `open` (opening) = evaluate (evaluating).
-
-* Words have definitions. Definitions can be pushed onto the stack, or
-  opened. Definitions are fetched from the block enclosing the word when
-  that block is opened.
-
-* If definition is not found in the enclosing block, the parent block
-  (one that encloses the enclosing block) is checked, etc. When the
-  parent block is reached and the definition is still not found, the
-  `*fallback` word is opened in the original block, with quoted word
-  on the stack.
-
-* The described process as a whole is called *resolution*.
-
-* All forms except words are pushed onto the stack. Stack holds
-  intermediate results. Stack is a block. With `there`, custom
-  stack block may be specified.
-
-    ```novika
-    [ ] [ 1 2 + ] there echo "[ 3 ]"
-    ```
-
-* Blocks need to be opened explicitly unless they are under a word/
-  definition that does that:
-
-    ```novika
-    [ 1 2 + ] open "3"
-
-    [ 1 2 + ] @: 1+2
-
-    1+2 "3"
-    ```
-
-* Blocks are objects. Blocks are instantiated upon opening. `this`
-  pushes the instance. `this prototype` pushes the prototype block,
-  which is the block you see with your eyes in this example:
-
-  ```novika
-  [ $: y $: x
-    this
-  ] @: newPoint
-
-  1 2 newPoint $: pt
-  pt echo "[ · x y ]"
-  pt -> x echo "1"
-  pt -> y echo "2"
-  ```
-
-* `this` is also the current continuation, so it's dirty. Cursor
-  there is placed before the currently opened word.
-
-Working with the insertion point:
-
-```novika
-  [ 1 2 3 ] "[ 1 2 3 ]"
-  [ 1 2 3 ] [ <| ] there "[ 1 2 | 3 ]
-  [ + ] there  "[ 3 | 3 ]"
-  [ echo ] there "Prints 3 ;; [ | 3]"
-  open "3"
+```
+mv shard.yml shard.old.yml
+mv shard.windows.yml shard.yml
+shards build --without-development --release --progress --no-debug
 ```
 
-## Development
+### Linux
 
-Theory:
+```
+shards build --without-development --release --progress --no-debug -Dnovika_console -Dnovika_readline
+```
 
-* Look at the source. Explore `crystal docs`.
+### What do the `-D`s mean?
 
-* Look at the GitHub Wiki. Maybe there is something there.
+* `-Dnovika_readline`: use [linenoise](https://github.com/antirez/linenoise) instead of `gets` for `readLine`.
+* `-Dnovika_console`: use [termbox2.cr](https://github.com/homonoidian/termbox2.cr) as the backend for feature console.  Otherwise, feature console won't be available. Since [termbox2](https://github.com/termbox/termbox2) doesn't support Windows, you have to drop the flag when compiling for/under it.
 
-* (Try to) read things in `doc/`.
+### What's next?
 
-Practice:
+You can optionally add `bin/novika` to PATH, and/or create a symbolic link for `env` called `.novika` in your user's home directory, like so:
 
-* To run the tests, use `/path/to/novika tests` or simply `novika tests` (if
-  you've added the binary to PATH) from the repo root.
+```
+ln -s /path/to/novika/repo/env /home/<your-user>/.novika
+```
 
-* `crystal run src/cli.cr -Dnovika_console -Dnovika_readline -- file.nk`.
-   Make it break. See where and why. Easy, huh? Build in release. `flamegraph` it?
+I'd recommend you to run the tests with `bin/novika tests`. If something seems wrong, [file an issue](https://github.com/novika-lang/novika/issues/new).
 
-Seriously, this is a huge TODO.
+## Running the examples
 
-## What's a revision, for Novika?
+Try to run one of the [examples](#examples). Some of them contain instructions on how you can run them. In general, you can use:
 
-It's a major reconsideration of the language's core ideas and core
-code. Major is when you start with an empty directory.
+```
+bin/novika path/to/example.nk
+```
 
-Current revision (rev10) is pretty stable, but unbearably slow. This
-is due to my naïve code, of course, but also due to Novika's design
-itself. I'm not going to make any more compromises on the design
-part though, so when it crystalizes (and it more or less did), there
-are going to be thorough language specs.
+If it's yelling at you in red that you need *console*, use:
 
-And then we all will **embrace the design**. This could be Novika's
-motto, huh? Do programming languages have mottos?
+```
+bin/novika console path/to/example.nk
+```
 
-That is, further implementations (if they won't go nuclear) must
-work hard to make the most stupid and naive code run relatively
-fast. Everything else will follow.
+(unless you're on Windows; Novika on Windows doesn't support console yet)
+
+## Playing with the REPL
+
+To run the REPL, use:
+
+```
+bin/novika repl
+```
+
+To list all available words, use `la`:
+
+```
+>>> la
+```
+
+To see documentation for a particular word, use `help` followed by the word that you're interested in:
+
+```
+>>> help toOrphan
+...
+>>> help 123
+decimal number 123
+>>> help 'Who am I?'
+quote 'Who am I?'
+```
+
+To get a string description of a thing's type, use `typedesc`:
+
+```
+>>> 123 typedesc
+... 'decimal' ...
+>>> ##foobar typedesc
+... 'quoted word' ...
+```
+
+## Learning Novika
+
+1. Explore files in `tests/` to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.
+2. Explore `help` messages of various words.
+3. Explore files in `env/core`, the language's standard library.
+4. Explore the [Wiki](https://github.com/novika-lang/novika/wiki).
+
+I know there aren't a lot of materials here nor anywhere that'd teach you the language. After all, this is a personal project. I'd be happy if it wasn't a personal project, but here the loop closes! I'm doing this alone, get burned out quite often, etc., etc. And what a f--king time are we living in, me saying this from [Crimea](https://en.wikipedia.org/wiki/Annexation_of_Crimea_by_the_Russian_Federation)!.. Hopefully, there will be more stuff here someday.
 
 ## Contributing
+
+First of all, thank you for even getting this far! Even if you didn't read the whole document, thank you. Seriously :)
+
+### Where do I start?
+
+1. Try exploring [features](https://github.com/novika-lang/novika/tree/rev10/src/novika/features) and their [implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/features/impl). This is where native code words like `dup` and `appendEcho` are defined. This is also a nice *starting point* to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.
+2. Try looking through the [interpreter code](https://github.com/novika-lang/novika/tree/rev10/src/novika) in general. I do have a compulsion to write comments, so most of the code is documented. How well documented is not for me to decide, but documented it is.
+3. If you're someone who knows something about optimization, your eyes will hurt! Believe me :)
+
+### What happens where?
+
+When you do your `bin/novika hello.nk`, here's *roughly* the order in which various components get invoked:
+
+1. [The command-line interface](https://github.com/novika-lang/novika/blob/rev10/src/cli.cr) frontend is what greets you (or doesn't) and sets everything up.
+2. [Resolver](https://github.com/novika-lang/novika/blob/rev10/src/novika/resolver.cr) knows where everything is on the disk.
+3. [Feature bundle](https://github.com/novika-lang/novika/blob/rev10/src/novika/feature.cr) allows to control the capabilities of this particular invokation of the language/capabilities of the language overall. For example, this component is aware of you droping the `-Dnovika_console` flag.
+4. [Feature interfaces and feature implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/features) describe and implement those capabilities.
+5. [Scissors](https://github.com/novika-lang/novika/blob/rev10/src/novika/scissors.cr) cut the contents of `hello.nk` (or any other blob of source code) into pieces called *unclassified forms*
+6. [Classifier](https://github.com/novika-lang/novika/blob/rev10/src/novika/classifier.cr) classifies them, and shoves the resulting [forms](https://github.com/novika-lang/novika/tree/rev10/src/novika/forms) into a *file block*.
+7. [Blocks](https://github.com/novika-lang/novika/blob/rev10/src/novika/forms/block.cr) are *the* most important forms in Novika.
+7. [Engine](https://github.com/novika-lang/novika/blob/rev10/src/novika/engine.cr) [runs](https://github.com/novika-lang/novika/blob/db440e7f8ba4342a9eaacf77f76b6c59bc49528f/src/novika/engine.cr#L307) file blocks and all blocks "subordinate" to them. **This is the entrypoint for code execution, and one of the cornerstones of Novika**.
+8. [Errors](https://github.com/novika-lang/novika/blob/rev10/src/novika/error.cr) happen. Or don't.
+
+Note that most of these components interact with each other, making this list pretty pointless "for science".
+
+### XXX: the hottest files in Novika
+
+* Block [dictionary implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/dict.cr), `Dict`, is simply a wrapper around `Hash(K, V)`.
+* Current [substrate implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/substrate.cr) is a *veerry* dumb copy-on-write array. Here's a helpful "formula": `block = ... + tape + dict + ...; tape = substrate + cursor`
+
+### And the usual procedure...
 
 1. Fork it (<https://github.com/novika-lang/novika/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
