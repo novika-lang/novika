@@ -1,0 +1,120 @@
+"""
+Snake game rewritten using more up-to-date vocabulary.
+
+  $ novika console examples/snake.nk
+"""
+
+needsFeature: console
+
+
+[ "( X Y -- P ): leaves a console Point object for the given X, Y position."
+  ${ x y }
+
+  [ "( Q -- ): prints Quote in console at the X, Y of this point."
+    x y console:appendEcho
+  ] @: put
+
+  [ "( O -- true/false ): leaves whether this and Other points are equal."
+    bi: [ .x x = ] [ .y y = ] and
+  ] @: equal?
+
+  [ "( O -- true/false ): leaves whether this and Other points have opposite
+     component signs, and therefore, whether they are opposite to each other."
+    bi: [ .x x * negative? ] [ .y y * negative? ] or
+  ] @: opposite?
+
+  [ "( O -- P ): sums the components of this and Other points, and leaves
+     the resulting Point."
+    bi: [ .x x + console:width  mod ]
+        [ .y y + console:height mod ]
+    console:point
+  ] @: addWithWrap
+
+  [ "( -- ): sets this point's X and Y components to random values within
+     console bounds."
+    0 console:width  randFromTo =: x
+    0 console:height randFromTo =: y
+  ] @: moveToRandomPosition
+
+  [ [ x '@' y ] ~* ] @: *asQuote
+
+  this
+] @: console:point
+
+
+[ "( -- ): starts the snake game."
+    (1 0) console:point $: heading
+    (0 0) console:point $: apple
+  [ (0 0) console:point ] vals $: snake
+
+  [ "( -- P ): leaves the snake's head Point."
+    snake first
+  ] @: head
+
+  [ "( -- true/false ): leaves whether the snake is dead."
+    snake # [ head.equal? ] 1 >
+  ] @: dead?
+
+  [ "( -- ): adds a point to the snake's body."
+    snake (dup count) [ dup ] |hydrate
+  ] @: grow
+
+  [ "( H -- ): sets Heading unless it is opposite of the current heading."
+    dup heading.opposite? br: drop [ =: heading ]
+  ] @: setHeading
+
+  [ "( -- ): executes a tick of the game."
+    head heading.addWithWrap $: head
+
+    snake ||~> [ head swap =: head ]
+  ] @: tick
+
+  [ "( -- ): puts the characters on the screen."
+    ('O' head.put) (snake |~> [ 'o' over.put ]) ('@' apple.put)
+  ] @: render
+
+  [ "( -- ): handles keyboard input."
+    console:hadCtrlPressed? (console:getCharPressed 'c' =) and
+      => stopGameLoop
+
+    console:hadUpPressed?    => [ ( 0 -1) console:point setHeading ^ ]
+    console:hadDownPressed?  => [ ( 0 +1) console:point setHeading ^ ]
+    console:hadLeftPressed?  => [ (-1  0) console:point setHeading ^ ]
+    console:hadRightPressed? => [ (+1  0) console:point setHeading ^ ]
+  ] @: handleKeyboardInput
+
+  [ "( -- ): the game loop. `stopGameLoop` can be used to pause
+     the game loop, and `startGame` can be used to start/re-start."
+    console:readKey
+
+    dead? => stopGameLoop
+    apple head.equal? => [ (grow) (apple.moveToRandomPosition) ]
+
+    handleKeyboardInput
+    tick
+    console:clear
+      render
+    console:present
+
+    20 nap
+  ] createLoop
+    drop
+    @: stopGameLoop
+    @: startGameLoop
+
+  "Die gracefully in case an error occurs. Otherwise, the terminal
+   will be messed up and most of the error will be omitted."
+  [ console:off die ] @: *died
+
+  console:on
+    0 console:setTimeout "Do not wait for input."
+    apple.moveToRandomPosition
+    startGameLoop
+  console:off
+] @: game
+
+
+game
+
+
+'Bye!' echo
