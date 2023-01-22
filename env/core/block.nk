@@ -460,6 +460,25 @@
 ] @: |->
 
 
+[ """( Lb |~> B -- Lb ): similar to `|->`, but remembers the
+   cursor position in List block and restores it after all
+   items were visited by Block (clamping to either end,
+   if necessary).
+
+  ```
+  [ 1 2 3 ] $: x
+
+  x 1 |to
+  x toQuote leaves: '[ 1 | 2 3 ]'
+
+  x |~> [ 1 + ]
+  x toQuote leaves: '[ 1 | 3 4 ]'
+  ```
+  """
+  ahead thruBlock over |at <| |slideRight dup |> |clamp
+] @: |~>
+
+
 [ """( Lb ||-> B -- Lb ): same as `|->`, but moves the cursor
    to the start of List block first, then executes Block and
    so on. See `|->` and especially `|slideRight` for more
@@ -471,6 +490,25 @@
   """
   dup 0 |to ahead thruBlock |slideRight
 ] @: ||->
+
+
+[ """( Lb |~> B -- Lb ): similar to `||->`, but remembers
+   the cursor position in List block and restores it after
+   all items were visited by Block (clamping to either end,
+   if necessary).
+
+  ```
+  [ 1 2 3 ] $: x
+
+  x 1 |to
+  x toQuote leaves: '[ 1 | 2 3 ]'
+
+  x ||~> [ 1 + ]
+  x toQuote leaves: '[ 2 | 3 4 ]'
+  ```
+  """
+  ahead thruBlock over |at <| over 0 |to |slideRight dup |> |clamp
+] @: ||~>
 
 
 [ "( Lb B -- Lb ): similar to `|->`, but slides the cursor
