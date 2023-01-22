@@ -214,7 +214,7 @@ To get a string description of a thing's type, use `typedesc`:
 ## Learning Novika
 
 1. Explore files in `tests/` to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.
-2. Explore `help` messages of various words.
+2. Explore `help` messages of various words. A less up-to-date but more convenient way to do the same is to read word documentation [here](https://novika-lang.github.io/words/).
 3. Explore files in `env/core`, the language's standard library.
 4. Explore the [Wiki](https://github.com/novika-lang/novika/wiki).
 
