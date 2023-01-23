@@ -67,26 +67,77 @@ module Novika::Frontend::CLI
       on = "on by default".colorize.bold
 
       io << <<-END
-      novika - command-line frontend to the Novika programming language [#{VERSION}].
+      novika - command-line frontend for Novika #{VERSION}
 
-      #{" Syntax              ".colorize.reverse.bold}
+      Syntax:
 
         novika [switches] [runnables]
 
-      #{" Switches            ".colorize.reverse.bold}
+      Switches:
 
-        -h, --help, h, help, ?\tprints this message
+        -h, --help, h, help, ?  prints this message
 
-      #{" Runnables           ".colorize.reverse.bold}
+      Runnables:
 
-      * When #{"runnable".colorize.bold} is a file, it is run.
+        #{"file".colorize.bold}
 
-      * When #{"runnable".colorize.bold} is a directory, *.nk files in it are run. First, <directory-name>.nk
-        file is run (if it exists), then, all other files are run. Lastly, this process is
-        repeated on sub-directories (if any).
+          When runnable is a file, that file is read and run.
 
-      * When #{"runnable".colorize.bold} is a feature, its words are exposed to all other files and features
-        run. Here is a list of available features:
+          Examples:
+
+            $ novika hello.nk
+            $ novika a.nk b.nk c.nk
+            # Note: order matters. That is, a.nk <- b.nk <- c.nk,
+            # where '<-' means "is executed before & visible to"
+
+        #{"library directory".colorize.bold}
+
+          Any directory is implicitly a library directory. A directory may be
+          explicitly marked as a library directory by putting a .nk.lib manifest
+          file inside it.
+
+          When runnable is a library directory, *.nk files in it are run. First,
+          <directory-name>.nk file is run (if it exists), then, all other files are
+          run. Lastly, this process is repeated on sub-directories (if any).
+
+          Examples:
+
+            $ mkdir foo
+            $ echo "'Hi from lib core!' echo" > foo/foo.nk
+            $ echo "'Salutations from lib slave!' echo" > foo/slave.nk
+            $ novika foo
+            Hi from lib core!
+            Salutations from lib slave!
+
+        #{"application directory".colorize.bold}
+
+          Mostly similar to library directories. Marked by .nk.app manifest file
+          inside the directory. Note that:
+
+          * For appplication directories, <directory-name>.nk file is run last
+            rather than first.
+
+          * You cannot provide more than one application directory.
+
+          Examples:
+
+            $ mkdir bar
+            $ touch bar/.nk.app
+            $ echo "'Hi from app core!' echo" > bar/bar.nk
+            $ echo "'Salutations from app slave!' echo" > bar/slave.nk
+            $ novika bar
+            Salutations from app slave!
+            Hi from app core!
+
+        #{"feature id".colorize.bold}
+
+          When runnable is a feature id, the words of the corresponding feature are exposed
+          to all other files and features run (and everyone is allowed to use them).
+
+          A runnable might ask you for permission to use a feature or two (for example, disk
+          and/or ffi). Your choice to allow is remembered; your choice to deny isn't.
+
+          Here is a list of available features:
 
       END
 
@@ -94,52 +145,47 @@ module Novika::Frontend::CLI
 
       features.select(&.on_by_default?).each do |feature|
         io.puts
-        io << "    - " << on << " " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << on << " " << feature.id << " (" << feature.purpose << ")"
       end
 
       features.reject(&.on_by_default?).each do |feature|
         io.puts
-        io << "    - " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << feature.id << " (" << feature.purpose << ")"
       end
 
       io.puts
 
       io << <<-END
 
-      #{" Autoloading         ".colorize.reverse.bold}
+      Autoloading:
 
-      Novika autoloads (implicitly loads) the directory named 'core' in the current
-      working directory, and the directory named 'core' in '~/.novika' (assuming they
-      exist at their respective locations.)
+        Novika autoloads (implicitly loads) the directory named 'core' in the
+        current working directory, and the directory named 'core' in '~/.novika'
+        (assuming they exist at their respective locations.)
 
-      #{" Home directory      ".colorize.reverse.bold}
+      Home directory:
 
-      Novika home directory, '~/.novika', is where globally accessible runnables
-      are found. When a runnable cannot be found in the current working directory,
-      '~/.novika' is searched.
+        Novika home directory, '~/.novika', is where globally accessible runnables
+        are found. When a runnable cannot be found in the current working directory,
+        '~/.novika' is searched.
 
-      #{" Usage examples      ".colorize.reverse.bold}
+      Examples:
 
-      $ novika hello repl.nk
-               ----- -------
-               (1)    (2)
+        Run the Novika REPL:
+          $ novika repl
 
-      Here is what it does. First,
+        Run the REPL, but preload a file first:
+          $ novika foo.nk repl
 
-      (1) runs the directory called 'hello', found in the working directory or in '~/.novika'; then
-      (2) runs the file called 'repl.nk', found in the working directory.
+        Create a Novika app (you must be inside an empty directory)
+          $ novika new
 
-      $ novika console examples/snake.nk
-               ------- -----------------
-               (1)     (2)
+        Run the snake example:
+          $ novika console examples/snake.new.nk
 
-      Here is what it does. First,
+      Something doesn't seem to work right?
 
-      (1) enables the console feature (it's off by default), then
-      (2) runs the file called 'snake.nk', found in directory 'examples'.
-
-      If you're having any issues, head out to https://github.com/novika-lang/novika/issues,
-      and click "New issue".
+        Feel free to file an issue at https://github.com/novika-lang/novika/issues/new.
 
       END
     end
