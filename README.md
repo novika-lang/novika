@@ -248,8 +248,15 @@ Note that most of these components interact with each other, making this list pr
 
 ### XXX: the hottest files in Novika
 
+Hottest as in load and load as in performance, of course!
+
 * Block [dictionary implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/dict.cr), `Dict`, is simply a wrapper around `Hash(K, V)`.
 * Current [substrate implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/substrate.cr) is a *veerry* dumb copy-on-write array. Here's a helpful "formula": `block = ... + tape + dict + ...; tape = substrate + cursor`
+
+### Stuff you might want to... borrow!
+
+* LCH/HSL/HSV <-> RGB conversion code: [Novika's color form](https://github.com/novika-lang/novika/blob/rev10/src/novika/forms/color.cr) filled with awful lot of math.
+* A self-sufficient FFI [wrapper](https://github.com/novika-lang/novika/blob/rev10/src/novika/ffi.cr) only a few edits away!
 
 ### And the usual procedure...
 
