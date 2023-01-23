@@ -63,26 +63,59 @@ struct Novika::Scissors
     grow
   end
 
+  # Saves scissors state, and tries to advance through (see `thru`)
+  # *amt* consequtive *char*s. If there aren't *amt* consequtive *char*s,
+  # returns false and restores the state to that before this method.
+  # Otherwise, returns true and doesn't restore the state.
+  private def nthru?(char : Char, amt : Int)
+    tmp_pos = @reader.pos
+    tmp_dot = @dot
+    tmp_start = @start
+    tmp_cursor = @cursor
+
+    amt.times do
+      unless chr == char
+        @dot = tmp_dot
+        @start = tmp_start
+        @cursor = tmp_cursor
+        @reader.pos = tmp_pos
+        return false
+      end
+      thru
+    end
+
+    true
+  end
+
   # Advances through (see `thru`) until an instance of *endswith*
   # which is *not* preceded by *escape* is found.
   #
+  # *amt* is the amount of *endswith* characters to match.
+  #
   # Raises if reached the end without matching *endswith*.
   @[AlwaysInline]
-  private def thru(endswith : Char, escape = '\\')
+  private def thru(endswith : Char, escape = '\\', amt = 1)
     until at_end?
       thru if chr == escape
       if at_end?
         # May happen in cases like '\<EOF> or "\<EOF>
-        raise Novika::Error.new("excerpt ended suddenly: expected escape sequence, grapheme, or ⸢#{endswith}⸥")
+        raise Novika::Error.new(
+          "excerpt ended suddenly: expected escape sequence, grapheme, \
+           or ⸢#{endswith.to_s * amt}⸥")
       end
       thru
       if chr == endswith
-        thru
+        if amt == 1
+          thru
+        elsif !nthru?(endswith, amt)
+          thru
+          next
+        end
         return
       end
     end
 
-    raise Novika::Error.new("unterminated excerpt: no matching ⸢#{endswith}⸥")
+    raise Novika::Error.new("unterminated excerpt: no matching ⸢#{endswith.to_s * amt}⸥")
   end
 
   # Cuts the source string into a series of *unclassified forms*;
@@ -131,8 +164,17 @@ struct Novika::Scissors
         # because their content still could be of relevance.
         yield start, length, @dot unless length.zero?
         cut
-        thru endswith: it
-        yield start, length, @dot
+        if nthru?(it, amt: 3)
+          thru endswith: it, amt: 3
+          # Omit two quotes from the start and the end.
+          #
+          # This makes the rest of the system think '''s and """s are
+          # simply 's and "s.
+          yield start + 2, length - 4, @dot
+        else
+          thru endswith: it
+          yield start, length, @dot
+        end
         cut
       when '[', ']'
         # Block brackets [] are special in that they don't require any

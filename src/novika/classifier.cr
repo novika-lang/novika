@@ -192,6 +192,15 @@ struct Novika::Classifier
 
     byte = @bytes[start]
 
+    # TODO: dedent if triplequote/triplecomment.
+    #
+    # Possibly by passing classify() an UnclassifiedForm() struct
+    # rather than start, count, dot, i.e., having more verbose
+    # communication with scissors.
+    #
+    # Preempt classification (e.g. quote or not) could also
+    # board the struct.
+
     case byte
     when '[' then nest
     when ']' then unnest

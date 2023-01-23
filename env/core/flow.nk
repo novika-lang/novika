@@ -40,7 +40,7 @@
     begin to: end
   ] @: from:
 
-  from: 1 to: 100 leaves: [ 1 2 3 \"…\" 98 99 100 ]
+  from: 1 to: 100 leaves: [ 1 2 3 "…" 98 99 100 ]
   ```
   """
   ahead thruWord $: exp
@@ -65,7 +65,7 @@
    Instance of Block. Equivalent to `[ <Block> this ] do`.
 
   ```
-  [ 100 $: x 200 $: y ] obj \"[ 100 $: x 200 $: y · ${x :: 100} {y :: 200} ]\"
+  [ 100 $: x 200 $: y ] obj "[ 100 $: x 200 $: y · ${x :: 100} {y :: 200} ]"
 
   bi: [ .x ] [ .y ] leaves: [ 100 200 ]
   ```

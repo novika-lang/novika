@@ -99,12 +99,12 @@ orphan $: _groups
 
   ```
   describe 'Foo' [
-    it should 'work' [ \"...\" ]
+    it should 'work' [ "..." ]
   ]
 
   describe 'Bar' [
-    it should 'a' [ \"...\" ]
-    it should 'b' [ \"...\" ]
+    it should 'a' [ "..." ]
+    it should 'b' [ "..." ]
   ]
   ```
 
@@ -114,14 +114,14 @@ orphan $: _groups
   describe 'Foo' [
     in foo
 
-    it should 'work' [ \"...\" ]
+    it should 'work' [ "..." ]
   ]
 
   describe 'Bar' [
     in foo
 
-    it should 'a' [ \"...\" ]
-    it should 'b' [ \"...\" ]
+    it should 'a' [ "..." ]
+    it should 'b' [ "..." ]
   ]
   ```
 
@@ -150,8 +150,8 @@ orphan $: _groups
     it should 'sad path' [ true false assert= ]
   ]
 
-  runTestsInGroup: a  \"runs Foo and Bar\"
-  runTestsInGroup: b  \"runs Foo\"
+  runTestsInGroup: a  "runs Foo and Bar"
+  runTestsInGroup: b  "runs Foo"
   ```
   """
   ahead thru asQuote $: describeDesc
@@ -382,9 +382,9 @@ orphan $: _groups
    where N is the amount of items in Block.
 
   ```
-  100 leaves: [ 100 ] \"Stack has 100 now.\"
-  200 leaves: [ 100 200 ] \"Stack has 100 and 200.\"
-  300 leaves: [ 300 ] \"Stack has 100 and 200 and 300\"
+  100 leaves: [ 100 ] "Stack has 100 now."
+  200 leaves: [ 100 200 ] "Stack has 100 and 200."
+  300 leaves: [ 300 ] "Stack has 100 and 200 and 300"
   ```
   """
   stack shallowCopy $: actual

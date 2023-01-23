@@ -2,8 +2,8 @@
    Status boolean for whether Form exists in Block.
 
   ```
-  [ 1 2 3 ] 1 |to \"[ 1 | 2 3 ]\" peek? leaves: [ 2 true ]
-  [ 1 2 3 ] \"[ 1 2 3 | ]\" peek? leaves: [ false ]
+  [ 1 2 3 ] 1 |to "[ 1 | 2 3 ]" peek? leaves: [ 2 true ]
+  [ 1 2 3 ] "[ 1 2 3 | ]" peek? leaves: [ false ]
   ```
   """
   dup |at over count = => [ drop false ^ ]
@@ -15,10 +15,10 @@
    cursor back N times in Block.
 
   ```
-  \"Note: `toQuote` is simply the most compact way to
+  "Note: `toQuote` is simply the most compact way to
    present the result. It doesn't do anything to the
-   cursor.\"
-  [ 1 2 3 ] \"[ 1 2 3 | \" dup 2 |- toQuote leaves: '[ 1 | 2 3 ]'
+   cursor."
+  [ 1 2 3 ] "[ 1 2 3 | " dup 2 |- toQuote leaves: '[ 1 | 2 3 ]'
   ```
   """
 
@@ -328,9 +328,9 @@
 
   point -> x leaves: 100
   point -> y leaves: 200
-  point -> sum leaves: [ [ x y + ] ] \"Beware!\"
+  point -> sum leaves: [ [ x y + ] ] "Beware!"
 
-  \"Note that we still can open it and get the result:\"
+  "Note that we still can open it and get the result:"
   open leaves: 300
   ```
 
@@ -546,9 +546,9 @@
 
   ```
   [ 1 2 3 ] [ 2echo ] eachWithIndex
-  \"STDOUT: 0 1⏎\"
-  \"STDOUT: 1 2⏎\"
-  \"STDOUT: 2 3⏎\"
+  "STDOUT: 0 1⏎"
+  "STDOUT: 1 2⏎"
+  "STDOUT: 2 3⏎"
   ```
   """
   $: body $: list 0 $: index
@@ -566,9 +566,9 @@
 
   ```
   [ 1 2 3 ] [ echo ] each
-  \"STDOUT: 1⏎\"
-  \"STDOUT: 2⏎\"
-  \"STDOUT: 3⏎\"
+  "STDOUT: 1⏎"
+  "STDOUT: 2⏎"
+  "STDOUT: 3⏎"
   ```
   """
   $: body $: list 0 $: index
@@ -584,9 +584,9 @@
 
   ```
   [ 1 2 3 ] each: [ echo ]
-  \"STDOUT: 1⏎\"
-  \"STDOUT: 2⏎\"
-  \"STDOUT: 3⏎\"
+  "STDOUT: 1⏎"
+  "STDOUT: 2⏎"
+  "STDOUT: 3⏎"
   ```
   """
   ahead thruBlock each
@@ -597,9 +597,9 @@
 
   ```
   [ 1 2 3 ] eachWithIndex: [ 2echo ]
-  \"STDOUT: 0 1⏎\"
-  \"STDOUT: 1 2⏎\"
-  \"STDOUT: 2 3⏎\"
+  "STDOUT: 0 1⏎"
+  "STDOUT: 1 2⏎"
+  "STDOUT: 2 3⏎"
   ```
   """
   ahead thruBlock eachWithIndex
@@ -613,8 +613,8 @@
 
   ```
   [ 1 2 3 4 ] [ + echo ] pairs
-  \"STDOUT: 3⏎ (i.e., 1 + 2)\"
-  \"STDOUT: 7⏎ (i.e., 3 + 4)\"
+  "STDOUT: 3⏎ (i.e., 1 + 2)"
+  "STDOUT: 7⏎ (i.e., 3 + 4)"
   ```
   """
   $: block
@@ -638,8 +638,8 @@
 
   ```
   [ 1 2 3 4 ] pairs: [ + echo ]
-  \"STDOUT: 3⏎\"
-  \"STDOUT: 7⏎\"
+  "STDOUT: 3⏎"
+  "STDOUT: 7⏎"
   ```
   """
   ahead thruBlock pairs
@@ -653,14 +653,14 @@
   ```
   [ ] [ + echo ] consPairs
   [ 1 ] [ + echo ] consPairs
-  \"Both do nothing!\"
+  "Both do nothing!"
 
   [ 1 2 ] [ + echo ] consPairs
-  \"STDOUT: 3⏎ (i.e, 1 + 2)\"
+  "STDOUT: 3⏎ (i.e, 1 + 2)"
 
   [ 1 2 3 ] [ + echo ] consPairs
-  \"STDOUT: 3⏎ (i.e., 1 + 2)\"
-  \"STDOUT: 5⏎ (i.e., 2 + 3)\"
+  "STDOUT: 3⏎ (i.e., 1 + 2)"
+  "STDOUT: 5⏎ (i.e., 2 + 3)"
   ```
   """
   $: block
@@ -683,8 +683,8 @@
 
   ```
   [ 1 2 3 ] consPairs: [ + echo ]
-  \"STDOUT: 3⏎\"
-  \"STDOUT: 5⏎\"
+  "STDOUT: 3⏎"
+  "STDOUT: 5⏎"
   ```
   """
   ahead thruBlock consPairs
@@ -697,10 +697,10 @@
    Modified list block. `break` and `next` are available.
 
   ```
-  [ 1 2 3 ] [ 1 + ] map leaves: [ [ 2 3 4 ] ] \"(a different block!)\"
+  [ 1 2 3 ] [ 1 + ] map leaves: [ [ 2 3 4 ] ] "(a different block!)"
 
   [ 1 2 3 ] $: a
-  a [ 1 + ] map leaves: [ [ 2 3 4 ] ] \"(a different block!)\"
+  a [ 1 + ] map leaves: [ [ 2 3 4 ] ] "(a different block!)"
   a leaves: [ [ 1 2 3 ] ]
   ```
   """
@@ -740,10 +740,10 @@
 
   ```
   [ ] [ 100 > ] only
-    leaves: [ [ ] ] \"(a different block!)\"
+    leaves: [ [ ] ] "(a different block!)"
 
   [ 1 2 3 ] [ ] only
-    leaves: [ [ 1 2 3 ] ] \"(a different block!)\"
+    leaves: [ [ 1 2 3 ] ] "(a different block!)"
 
   [ 1 100 2 300 4 600 10 ] [ 100 > ] only
     leaves: [ [ 300 600 ] ]
@@ -805,7 +805,7 @@
     leaves:  0
 
   [ 1 ] [ + ] 0 reduce
-    leaves: 1 \"(i.e., 0 + 1)\"
+    leaves: 1 "(i.e., 0 + 1)"
 
   [ 1 2 3 ] [ + ] 0 reduce
     leaves: 6
@@ -866,7 +866,7 @@
   [ 1 2 3 ] [ 2 > ] amount leaves: 1
   [ 1 2 3 ] [ 100 > ] amount leaves: 0
   [ 1 5000 2 4400 1 100 102 ] [ 100 <= ] amount
-    leaves: 4 \"(i.e., 1, 2, 1, 100)\"
+    leaves: 4 "(i.e., 1, 2, 1, 100)"
   """
   $: block $: list
 
@@ -902,10 +902,10 @@
    an empty stack.
 
   ```
-  [ ] [ 100 < ] all? leaves: true \"BEWARE!\"
+  [ ] [ 100 < ] all? leaves: true "BEWARE!"
   [ 1 2 3 ] [ 100 < ] all? leaves: true
   [ 101 2 3 4 ] [ 100 < ] all?
-    leaves: false \"(i.e., because of 101)\"
+    leaves: false "(i.e., because of 101)"
   ```
   """
   @: block true $: status
@@ -923,7 +923,7 @@
    empty stack.
 
   ```
-  [ ] [ 100 < ] any? leaves: false \"BEWARE!\"
+  [ ] [ 100 < ] any? leaves: false "BEWARE!"
   [ 1 2 3 ] [ 3 = ] any? leaves: true
   [ 101 3 2000 ] [ 100 < ] any? leaves: true
   [ 1002 350 2000 ] [ 100 < ] any? leaves: false
@@ -1034,7 +1034,7 @@
     leaves: [ [ 1 2 + dup + [ #foo echo ] #open ] ]
 
   open leaves: 6
-  \"STDOUT: foo⏎\"
+  "STDOUT: foo⏎"
   ```
   """
   swap $: source
@@ -1058,7 +1058,7 @@
   [ x y plus #dup plus [ ##foo #echo ] #open ] here
     leaves: [ [ 1 2 + dup + [ #foo echo ] #open ] ]
 
-  open leaves: 6 \"STDOUT: foo⏎\"
+  open leaves: 6 "STDOUT: foo⏎"
   ```
   """
   ahead swap conjure
@@ -1226,7 +1226,7 @@
    to `sumBy`.
 
   ```
-  [ 'dave' 'john' ] [ count ] productBy leaves: 16 \"4 * 4\"
+  [ 'dave' 'john' ] [ count ] productBy leaves: 16 "4 * 4"
   ```
   """
   $: transformer
@@ -1238,7 +1238,7 @@
 [ """( Lb productBy: Tb -- Sum ): infix version of `productBy`.
 
   ```
-  [ 'dave' 'john' ] productBy: count leaves: 16 \"4 * 4\"
+  [ 'dave' 'john' ] productBy: count leaves: 16 "4 * 4"
   ```
   """
   ahead thruBlock productBy
@@ -1302,7 +1302,7 @@
   [ 1 2 3 ] [ 1 <= ] groupBy leaves: [ [ [ 1 ] [ 2 3 ] ] ]
 
   [ 1 2 3 ] [ 1 <= ] groupBy [ .id ] map
-    leaves: [ [ true false ] ] \"The two groups, true and false\".
+    leaves: [ [ true false ] ] "The two groups, true and false."
 
   [ 1 2 3 ] [ 1 <= 'foo' 'bar' sel ] groupBy [ dup .id 2enclose ] map
     leaves: [ [ [ [ 1 ] 'foo' ] [ [ 2 3 ] 'bar' ] ] ]
@@ -1353,12 +1353,12 @@
    [E; B] if  E < B.
 
   ```
-  \"Note: `...` means there's more. These 'leaves:'
-   expressions won't run right away.\"
+  "Note: `...` means there's more. These 'leaves:'
+   expressions won't run right away."
 
-  1 100 range leaves: [ 1 2 3 \"...\" 98 99 100 ]
-  -10 10 range leaves: [ -10 -9 -8 \"...\" 8 9 10 ]
-  10 0 range leaves: [ 10 9 8 \"...\" 0 ]
+  1 100 range leaves: [ 1 2 3 "..." 98 99 100 ]
+  -10 10 range leaves: [ -10 -9 -8 "..." 8 9 10 ]
+  10 0 range leaves: [ 10 9 8 "..." 0 ]
   ```
   """
   $: e $: b
@@ -1373,11 +1373,11 @@
 [ """( B to: E -- Rb ): infix version of `range`.
 
   ```
-  \"Note: `...` means there's more. These 'leaves:'
-   expressions won't run right away.\"
+  "Note: `...` means there's more. These 'leaves:'
+   expressions won't run right away."
 
-  1 to: 100 leaves: [ 1 2 3 \"...\" 98 99 100 ]
-  10 to: 0 leaves: [ 10 9 8 \"...\" 0 ]
+  1 to: 100 leaves: [ 1 2 3 "..." 98 99 100 ]
+  10 to: 0 leaves: [ 10 9 8 "..." 0 ]
   ```
   """
   ahead thruVal range
@@ -1459,7 +1459,7 @@
 
   ```
   [ 1 2 3 ] [ 4 5 6 ] concat
-    leaves: [ [ 1 2 3 4 5 6 ] \"(a new block!)\" ]
+    leaves: [ [ 1 2 3 4 5 6 ] "(a new block!)" ]
   ```
   """
   <| shallowCopy |> concat!
@@ -1470,7 +1470,7 @@
    defined (*resolvable*) in caller and in its relatives.
 
   ```
-  0 $: y [ 1 $: x ls* ] open leaves: [ [ \"...\" y x ] ]
+  0 $: y [ 1 $: x ls* ] open leaves: [ [ "..." y x ] ]
   ```
 
   As opposed to `ls`, which leaves only block's own words:
@@ -1517,7 +1517,7 @@
   [ 4 = ] |after? leaves: [ [ 2 3 ] true ]
 
   a echo
-  \"STDOUT: [ 1 2 3 4 | 5 6 ]⏎\"
+  "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
   ```
   """
   ahead $: caller
@@ -1556,7 +1556,7 @@
 
   a 4 |after! leaves: [ [ 2 3 ] ]
   a echo
-  \"STDOUT: [ 1 2 3 4 | 5 6 ]⏎\"
+  "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
   ```
   """
   dup $: cond
@@ -1599,7 +1599,7 @@
 
   a 4 |before? leaves: [ [ 2 3 ] ]
   a echo
-  \"STDOUT: [ 1 2 3 | 4 5 6 ]⏎\"
+  "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
   ```
   """
   over $: list
@@ -1625,7 +1625,7 @@
 
   a 4 |before! leaves: [ [ 2 3 ] ]
   a echo
-  \"STDOUT: [ 1 2 3 | 4 5 6 ]⏎\"
+  "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
   ```
   """
   over $: list
@@ -1658,11 +1658,11 @@
 
   ```
   [ 1 2 2 3 3 2 1 ] [ swap 2echo ] tally
-  \"STDOUT: 2⏎ 1⏎ (two ones)\"
-  \"STDOUT: 3⏎ 2⏎ (three twos\"
-  \"STDOUT: 2⏎ 3⏎ (two threes)\"
+  "STDOUT: 2⏎ 1⏎ (two ones)"
+  "STDOUT: 3⏎ 2⏎ (three twos"
+  "STDOUT: 2⏎ 3⏎ (two threes)"
 
-  leaves: [ ] \"all were consumed by 2echo\"
+  leaves: [ ] "all were consumed by 2echo"
   ```
   """
   over empty? => [ 2drop orphan ^ ]
@@ -1749,8 +1749,8 @@
   ```
   [ 1 2 3 4 ] $: block
   block 2 |to
-  block echo \"STDOUT: [ 1 2 | 3 4 ]⏎ \"
-  block 2 |around echo \"STDOUT: [ 2 3 · ${start :: 1} ${end :: 3} ]⏎ \"
+  block echo "STDOUT: [ 1 2 | 3 4 ]⏎ "
+  block 2 |around echo "STDOUT: [ 2 3 · ${start :: 1} ${end :: 3} ]⏎ "
   ```
   """
 
@@ -1844,7 +1844,7 @@
   And in code:
 
   ```
-  [ 1 2 3 \"|\" 4 5 6 ] dup 3 |to $: block
+  [ 1 2 3 "|" 4 5 6 ] dup 3 |to $: block
 
   block 1 |ring toQuote leaves: '[ 3 | 4 · ${firstAt :: 2} ${lastAt :: 3} ]'
   block 2 |ring toQuote leaves: '[ 2 3 | 4 5 · ${firstAt :: 1} ${lastAt :: 4} ]'

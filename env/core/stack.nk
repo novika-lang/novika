@@ -174,8 +174,8 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
   ```
   [ 1 2 ] [ 3 4 ] [ first ] [ last ] bi* leaves: [ 1 4 ]
 
-  \"Note how we use the result of the first block in the
-   second block:\"
+  "Note how we use the result of the first block in the
+   second block:"
   [ 1 2 ] [ 3 4 ] [ first ] [ last + ] bi* leaves: [ 5 ]
   ```
   """

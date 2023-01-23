@@ -135,7 +135,7 @@ PI 180 / $: PI/180
   100  0 100  1.5 255  rangesMap leaves: 255
     0  0 100  1.5 255  rangesMap leaves: 1.5
 
-  \"Reverse range:\"
+  "Reverse range:"
 
   10  0 100  100 0  rangesMap leaves: 90
   ```
@@ -176,13 +176,13 @@ PI 180 / $: PI/180
   See `rangesMap` for more details.
 
   ```
-  \"...etc..\"
+  "...etc.."
   -100  0 100  mapToRange leaves: 0
      0  0 100  mapToRange leaves: 0
    0.1  0 100  mapToRange leaves: 10
      1  0 100  mapToRange leaves: 100
      2  0 100  mapToRange leaves: 100
-  \"...etc..\"
+  "...etc.."
   ```
   """
   $: rangeEnd
@@ -204,7 +204,7 @@ PI 180 / $: PI/180
    range. Human percentage is clamped to 0-100.
 
   ```
-  \"What is 30% of John's salary, $10 000? \"
+  "What is 30% of John's salary, $10 000? "
   30 %->: 0   10_000  leaves: 3000
   60 %->: 64  255     leaves: 178.6
   ```
@@ -223,7 +223,7 @@ PI 180 / $: PI/180
   ```
   100 ->%: 0 256 leaves: 39.0625
 
-  \"Can be checked like so:\"
+  "Can be checked like so:"
   39.0625 %->: 0 256 leaves: 100
   ```
   """

@@ -51,7 +51,7 @@
 
   [ 'foo = ' foo ] ~* leaves: 'foo = [ 1 2 + ]'
 
-  \"You can use this if you want to evaluate first:\"
+  "You can use this if you want to evaluate first:"
   [ 'foo = ' foo ] vals join leaves: 'foo = 3'
   ```
   """

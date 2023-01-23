@@ -118,7 +118,7 @@ console:truecolor
 
   "How much to wait before the animation starts again.
    Frame durations are subtracted from this entry's value
-   form until it becomes 0 <=, hence the use of \"sink\".
+   form until it becomes 0 <=, hence the use of 'sink'.
    NOTE: it is not reset in any way automatically."
   0 $: sinkBeforeAnimationMs
 

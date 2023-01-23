@@ -24,16 +24,16 @@ this #@: [
    corresponding Form.
 
   ```
-  \"Blocks are evaluated (opened) when the opener entry
-  they're stored under is opened.\"
+  "Blocks are evaluated (opened) when the opener entry
+  they're stored under is opened."
   [ 1 2 + ] @: getThree
   getThree leaves: [ 3 ]
 
-  \"Builtins also get opened when under an opener entry.\"
+  "Builtins also get opened when under an opener entry."
   #+ here @: myAddAlias
   1 2 myAddAlias leaves: [ 3 ]
 
-  \"Any other form is left as-is, even if it is a word.\"
+  "Any other form is left as-is, even if it is a word."
   3 @: litThree
   #+ @: litPlus
   litThree leaves: [ 3 ]
@@ -58,8 +58,8 @@ this #@: [
 
   [ 1 2 + ] $: getThree
 
-  \"Nope! In this case, use `@:` if you want the block to be
-   opened (evaluated).\"
+  "Nope! In this case, use `@:` if you want the block to be
+   opened (evaluated)."
   getThree leaves: [ 1 2 + ]
   ```
   """
@@ -76,10 +76,10 @@ this #@: [
   importantly, *entry type is preserved.*
 
   ```
-  \"Note, by the way, that order doesn't matter. What
+  "Note, by the way, that order doesn't matter. What
    matters is for `x` to be there at the time of calling
    `addOneToX`. In other words, `addOneToX` must be able to
-   find `x` when it's opened.\"
+   find `x` when it's opened."
 
   100 $: x
 
@@ -88,7 +88,7 @@ this #@: [
   x leaves: 100
   addOneToX
   x leaves: 101
-  \"...\"
+  "..."
   ```
   """
   ahead swap ahead thru swap entry:submit
@@ -100,7 +100,7 @@ this #@: [
    the death message.
 
   ```
-  'expected foobar, got: ' 100 2die \"Sorry: expected foobar, got: 100.\"
+  'expected foobar, got: ' 100 2die "Sorry: expected foobar, got: 100."
   ```
   """
   toQuote stitch die
