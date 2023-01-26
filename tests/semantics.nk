@@ -140,4 +140,29 @@ describe 'block friends' [
     boo friends 100 shove
     [ boo.explode! ] 'expected a block, got decimal for a friend' assertDies
   ]
+
+  it should 'ask all friends first before going deeper' [
+    [ 'Hey' $: foo ] obj $: fooizer
+    [ 'Bye' $: bar ] obj $: barizer
+
+    [ 100 $: x ] obj $: x
+    x fooizer befriend
+
+    [ 200 $: y ] obj $: y
+    y barizer befriend
+
+    orphan $: myBlock
+
+    myBlock x befriend
+    myBlock y befriend
+
+    myBlock.x 100 assert=
+    myBlock.y 200 assert=
+    myBlock.foo 'Hey' assert=
+    x.foo 'Hey' assert=
+    [ y.foo ] 'no value form for \'foo\'' assertDies
+    myBlock.bar 'Bye' assert=
+    y.bar 'Bye' assert=
+    [ x.bar ] 'no value form for \'bar\'' assertDies
+  ]
 ]

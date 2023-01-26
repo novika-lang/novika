@@ -411,10 +411,17 @@ module Novika
     # *skip* can be used to disable exploration of specific blocks,
     # together with their (unexplored) vertical and horizontal
     # hierarchy.
-    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil) forall T
+    #
+    # *skip_self* can be set to true to disable calling *payload* for
+    # this block, and only in this particular `each_relative` call.
+    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil, skip_self = false) forall T
       return if skip.try &.has_key?(object_id)
 
-      block = self
+      if !skip_self && (value = payload.call(self)) # Fast path.
+        return value
+      end
+
+      block = parent?
       while block
         break if skip.try &.has_key?(block.object_id)
 
@@ -431,7 +438,12 @@ module Novika
         unless skip.has_key?(block.object_id)
           skip[block.object_id] = block
           block.each_friend do |friend|
-            return friend.each_relative(payload, skip) || next
+            if value = payload.call(friend)
+              return value
+            end
+          end
+          block.each_friend do |friend|
+            return friend.each_relative(payload, skip, skip_self: true) || next
           end
         end
         block = block.parent?
@@ -439,7 +451,7 @@ module Novika
     end
 
     # :ditto:
-    def each_relative(skip = nil, &payload : Block -> T?) forall T
+    def each_relative(skip = nil, skip_self = false, &payload : Block -> T?) forall T
       each_relative(payload, skip)
     end
 
@@ -513,7 +525,11 @@ module Novika
     # `each_relative` for a detailed description of lookup
     # order etc.
     def entry_for?(name : Form) : Entry?
-      each_relative &.flat_at?(name)
+      if entry = flat_at?(name) # Fast path.
+        return entry
+      end
+
+      each_relative(skip_self: true, &.flat_at?(name))
     end
 
     def has_form_for?(name : Form) : Bool
