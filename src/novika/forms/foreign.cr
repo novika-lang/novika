@@ -494,7 +494,7 @@ module Novika
       # is, really.
       unless sym = LibDl.dlsym(@handle, foreign_name.id)
         message = String.new(LibDl.dlerror)
-        message = message.lstrip("#{@path.expand}: ")
+        message = message.lchop("#{@path.expand}: ")
         fdecl.die("malformed function declaration: #{message}")
       end
 

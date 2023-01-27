@@ -259,7 +259,7 @@ module Novika::Frontend::CLI
     #
     # Err if a library with the same id exists already.
     resolver.shared_objects.each do |shared_object|
-      id = shared_object.stem.lstrip("lib")
+      id = shared_object.stem.lchop("lib")
 
       if bundle.has_library?(id)
         Frontend.errln("multiple libraries with the same id: #{id}")
