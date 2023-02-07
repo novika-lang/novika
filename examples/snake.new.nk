@@ -1,7 +1,7 @@
 """
 Snake game rewritten using more up-to-date vocabulary.
 
-  $ novika console examples/snake.nk
+  $ novika console examples/snake.new.nk
 """
 
 needsFeature: console
@@ -32,8 +32,8 @@ needsFeature: console
 
   [ "( -- ): sets this point's X and Y components to random values within
      console bounds."
-    0 console:width  randFromTo =: x
-    0 console:height randFromTo =: y
+    0 randTo: [ console:width 1 - ] =: x
+    0 randTo: [ console:height 1 - ] =: y
   ] @: moveToRandomPosition
 
   [ [ x '@' y ] ~* ] @: *asQuote

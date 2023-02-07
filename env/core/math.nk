@@ -63,8 +63,13 @@ PI 180 / $: PI/180
 [ "( L H -- N ): generates random Number between Low and
    High, *including* both Low and High."
   "Formula: rand * (max - min) + min"
-  over - + rand * trunc
+  1 + over - + rand * trunc
 ] @: randFromTo
+
+
+[ "( L randTo: H -- N ): infix version of `randFromTo`."
+  ahead thruVal randFromTo
+] @: randTo:
 
 
 [ """( N clamp: L H -- N/L/H ): clamps Number between Low and
