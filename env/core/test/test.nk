@@ -184,17 +184,19 @@ orphan $: _groups
       * `assertApprox=`
       * `assertDies`
 
-    >>> it should 'do math' [ 1 2 + 3 assert= ]
-    [ok]
+    ```
+    it should 'do math' [ 1 2 + 3 assert= ]
+    "[ok]"
 
-    >>> it should 'do math' [ 1 2 + 5 assert= ]
-    [fail]
+    it should 'do math' [ 1 2 + 5 assert= ]
+    "[fail]"
 
-    >>> it should 'do boo' [ [ 'boo' die ] 'boo' assertDies ]
-    [ok]
+    it should 'do boo' [ [ 'boo' die ] 'boo' assertDies ]
+    "[ok]"
 
-    >>> it should 'do boo' [ [ 'boo' ] 'boo' assertDies ]
-    [fail]
+    it should 'do boo' [ [ 'boo' ] 'boo' assertDies ]
+    "[fail]"
+    ```
     """
     dup thru asQuote $: desc
         thru asBlock $: block
@@ -218,11 +220,13 @@ orphan $: _groups
          equal (using `=`). If they are, that is counted as
          success. If they aren't, that is counted as failure.
 
-        >>> 1 2 assert=
-        [test case fails]
+        ```
+        1 2 assert=
+        "[test case fails]"
 
-        >>> 1 1 assert=
-        [test case succeeds]
+        1 1 assert=
+        "[test case succeeds]"
+        ```
         """
         2dup = br: 2drop
           [ $: b $: a [ 'Assert: expected ⸢' b '⸥, got: ⸢' a '⸥' ] ~* _fail ]
@@ -234,15 +238,24 @@ orphan $: _groups
           [ $: b $: a [ 'Assert: expected ⸢' a '⸥ to be approximately equal to ⸢' b '⸥' ] ~* _fail ]
       ] $: assertApprox=
 
-      [ """( B M -- ): asserts that Block dies with Message
-         set as the error's message (aka its details, obtained
-         via `getErrorDetails`).
+      [ """( B M -- ): asserts that Block dies with Message set as the
+         error message (aka its details, obtained via `getErrorDetails`).
 
-        >>> [ #foo asWord ] 'bad type: decimal, expected: a word' assertDies
-        [test case fails]
+        ```
+        [ #foo asWord ] 'bad type: decimal, expected: a word' assertDies
+        "[test case fails]"
 
-        >>> [ 123 asWord ] 'bad type: decimal, expected: a word' assertDies
-        [test case succeeds]
+        [ 123 asWord ] 'bad type: decimal, expected: a word' assertDies
+        "[test case succeeds]"
+        ```
+
+        If Message is a block, error message is passed to it; `assertDies`
+        then asserts that the block returns a truthy form.
+
+        ```
+        [ 123 asWord ] [ 'bad type' startsWith? ] assertDies
+        "[test case succeeds]"
+        ```
         """
         $: message new $: block
 
@@ -252,7 +265,17 @@ orphan $: _groups
           getErrorDetails =: errorDetails
         ] deathHandlerDo: [ block do ]
 
-        errorDetails message assert= open
+        errorDetails
+
+        message block? br:
+          [ "Message is a block, pass it the details. Assertion below should
+             then check whether the result of the block is truthy, hence the
+             'true? true' thingy"
+            enclose message there top true? true ]
+          "Message is something else, simply compare it against errorDetails."
+          message
+
+        assert= open
       ] $: assertDies
 
       [ "A stack of death handler blocks in this test run.
@@ -308,11 +331,13 @@ orphan $: _groups
   [ """( A -- O ): code implementation and Object for the 'it dies'
      test case. Takes Ahead (i.e., a block expected to be `ahead`).
 
-    >>> it dies 'when du' [ 'xyzzy' die ]
-    [ok]
+    ```
+    it dies 'when du' [ 'xyzzy' die ]
+    "[ok]"
 
-    >>> it dies 'when fu' [ ]
-    [fail]
+    it dies 'when fu' [ ]
+    "[fail]"
+    ```
 
     Note: scheduled for removal. Prefer using 'it should' together
     with `assertDies`.

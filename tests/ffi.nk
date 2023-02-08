@@ -46,11 +46,12 @@ describe 'Feature FFI' [
     [ [ [ dummy -- nothing ] maurice ] lib ] 'bad type: word, expected: a block' assertDies
   ]
 
-  it dies 'when function doesn\'t exist in the library' [
+  it should 'die when function doesn\'t exist in the library' [
     'ffi-test' ffi:getLibrary @: lib
-    "TODO: .startsWith"
-    "TODO: [ ... ] [ \"(Em --): Error message\" ... ] assertDies"
-    [ [ [ foobar barbaz ] -- i32 ] maurice ] lib
+
+    [ [ [ [ foobar barbaz ] -- i32 ] maurice ] lib ] [
+      'malformed function declaration' startsWith?
+    ] assertDies
   ]
 
   it should 'parse struct layout decl properly' [
