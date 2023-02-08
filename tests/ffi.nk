@@ -536,9 +536,7 @@ describe 'Feature FFI' [
     output_primitives
 
     a typedesc 'hole' assert=
-    a toQuote '[u8 hole: 0x' keep: [ count fromLeft* ] assert= "TODO: startsWith?"
-    a toQuote 0 fromRight ']' assert= "TODO: endsWith?"
-    "TODO: surroundedBy?"
+    a toQuote '[u8 hole: 0x' ']' surroundedBy? true assert=
 
     a open 8 assert=
     b open 16 assert=

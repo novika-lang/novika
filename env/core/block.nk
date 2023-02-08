@@ -104,6 +104,21 @@
 ] @: |hydrate
 
 
+[ """( -- ): swaps the item before and after cursor in the
+   active stack.
+
+  ```
+  [ 1 2 3 ] $: block
+  block 1 |-
+  block toQuote leaves: '[ 1 2 | 3 ]'
+  block [ |swap ] there
+  block toQuote leaves: '[ 1 3 | 2 ]'
+  ```
+  """
+  |> swap <|
+] @: |swap
+
+
 [ """( F B -- ): `shove`s Form into Block, drops both.
 
   ```
@@ -294,6 +309,19 @@
 
   '`endsWith?`: expected quote or block' die
 ] @: endsWith?
+
+
+[ """( B/Q Bf/Bq Ef/Eq -- true/false ): leaves whether Block/Quote
+   starts with Begin form/Begin quote, and ends with End form/
+   End quote.
+
+  ```
+  [ 1 2 3 ] 1 3 surroundedBy? leaves: true
+  '[[hello world]]' '[[' ']]' surroundedBy? leaves: true
+  ```
+  """
+  <| nup startsWith? |swap endsWith? |> and
+] @: surroundedBy?
 
 
 [ "( P C -- C ): same as `reparent`, but in different order."

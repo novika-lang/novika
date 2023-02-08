@@ -159,6 +159,14 @@ describe '|hydrate' [
   ]
 ]
 
+describe '|swap' [
+  in lang
+
+  it should 'swap before&after cursor in stack' [
+    [ 1 2 3 ] [ <| |swap |> ] there [ 1 3 2 ] assert=
+  ]
+]
+
 describe 'gulp' [
   in lang
 
@@ -349,6 +357,32 @@ describe 'endsWith?' [
     [ 0 [ 1 2 ] ] [ 1 2 ] endsWith? true assert=
 
     [ 123 456 endsWith? ] '`endsWith?`: expected quote or block' assertDies
+  ]
+]
+
+
+describe 'surroundedBy?' [
+  in lang
+
+  it should 'check if block/quote starts and ends with something' [
+    '' 123 456 surroundedBy? false assert=
+    '' '' 456 surroundedBy? false assert=
+    '' '' '' surroundedBy? true assert=
+    'hello' '' '' surroundedBy? true assert=
+    '[hello]' 'hello' '' surroundedBy? false assert=
+    '[hello]' '' 'hello' surroundedBy? false assert=
+    '[hello]' 'hello' 'hello' surroundedBy? false assert=
+    '[hello]' '[' '' surroundedBy? true assert=
+    '[hello]' '' ']' surroundedBy? true assert=
+    '[hello]' '[' ']' surroundedBy? true assert=
+    '[hello]' '[' ')' surroundedBy? false assert=
+    '[hello]' '(' ']' surroundedBy? false assert=
+    'hellohelloworld' 'hello' 'world' surroundedBy? true assert=
+    '👨‍👧‍👦moonshine😼' '👨‍👧‍👦' '😼' surroundedBy? true assert=
+
+    [ 1 2 3 ] 1 3 surroundedBy? true assert=
+
+    [ 123 'x' 'y' surroundedBy? ] '`startsWith?`: expected quote or block' assertDies "nah"
   ]
 ]
 
