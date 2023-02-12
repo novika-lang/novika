@@ -24,13 +24,13 @@ module Novika::Features
     abstract def append_echo(engine, form : Form)
 
     # Enquotes and prints *prompt* to STDOUT. Waits for the
-    # user to answer, enquotes the answer and returns it
-    # together with a status boolean.
+    # user to answer, enquotes the answer (if any) and returns
+    # it together with a status boolean.
     #
     # If the user answered with EOF (e.g. CTRL-D), status bool
-    # is false and answer quote is empty. Else, answer quote
+    # is false and answer quote is nil. Else, answer quote
     # contains the answer and status bool is true.
-    abstract def readline(engine, prompt : Form) : {Quote, Boolean}
+    abstract def readline(engine, prompt : Form) : {Quote?, Boolean}
 
     # Reports abound an *error* to the standard error stream.
     abstract def report_error(engine, error : Error)
@@ -52,15 +52,15 @@ module Novika::Features
       ) { |engine, stack| append_echo(engine, stack.drop) }
 
       target.at("readLine", <<-END
-      ( Pf -- Aq Sb ): enquotes and prints Prompt form to the
-       standard output stream. Waits for the user to answer,
-       enquotes the answer and leaves it.
+      ( Pf -- Aq true / false ): enquotes and prints Prompt
+       form to the standard output stream. Waits for the user
+       to answer, enquotes the answer and leaves it.
 
-      If user answered with EOF, Answer quote is empty and
-      Status boolean is false. Else, Status boolean is true.
+      If user answered the prompt, leaves Answer quote followed
+      by boolean true. Otherwise, leaves boolean false.
 
       ```
-      'What is your name? ' readLine br: echo drop
+      'What is your name? ' readLine => echo
 
       "INPUT: What is your name? John Doe⏎"
       "STDOUT: John Doe⏎"
@@ -71,7 +71,7 @@ module Novika::Features
       END
       ) do |engine, stack|
         answer, status = readline(engine, stack.drop)
-        answer.onto(stack)
+        answer.onto(stack) if answer
         status.onto(stack)
       end
 

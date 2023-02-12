@@ -1280,7 +1280,7 @@
    Block.
 
   ```
-  3 [ readLine br: [ stack swap slurp ] [ drop 0 ] ] collect
+  3 [ readLine br: [ stack swap slurp ] 0 ] collect
   INPUT: 0 3
   INPUT: 1 5
   INPUT: 2 12

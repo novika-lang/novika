@@ -12,7 +12,7 @@ module Novika::Features::Impl
       print form.to_quote.string
     end
 
-    def readline(engine, prompt : Form) : {Quote, Boolean}
+    def readline(engine, prompt : Form) : {Quote?, Boolean}
       string = prompt.to_quote.string
       answer = nil
       {% if flag?(:novika_readline) %}
@@ -25,7 +25,7 @@ module Novika::Features::Impl
         print string
         answer = gets
       {% end %}
-      {Quote.new(answer || ""), Boolean[!!answer]}
+      {answer ? Quote.new(answer) : nil, Boolean[!!answer]}
     end
 
     def report_error(engine, error : Error)
