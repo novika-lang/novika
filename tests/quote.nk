@@ -81,3 +81,36 @@ describe '~*' [
     [ [ x y ] ' :: ' x ' @ ' y ] ~* '[ x y ] :: 100 @ 200' assert=
   ]
 ]
+
+
+describe 'parseDecimal' [
+  in lang
+
+  it should 'parse decimal numbers and err when could not' [
+    [ '' parseDecimal ] 'expected decimal number in quote' assertDies
+    '0' parseDecimal 0 assert=
+    '0.0' parseDecimal 0 assert=
+    '1234' parseDecimal 1234 assert=
+    '-1234' parseDecimal -1234 assert=
+    '+1234' parseDecimal 1234 assert=
+    '1234.567' parseDecimal 1234.567 assert=
+    '-1234.567' parseDecimal -1234.567 assert=
+    '+1234.567' parseDecimal 1234.567 assert=
+    '1_000_000' parseDecimal 1000000 assert=
+    '1__000_000' parseDecimal 1000000 assert=
+    '1.234_567' parseDecimal 1.234567 assert=
+
+    [ '-' parseDecimal ] 'bad type: word, expected: a decimal' assertDies
+    [ '+' parseDecimal ] 'bad type: word, expected: a decimal' assertDies
+    [ '--123' parseDecimal ] 'bad type: word, expected: a decimal' assertDies
+    [ '+-123' parseDecimal ] 'bad type: word, expected: a decimal' assertDies
+    [ '.123' parseDecimal ] 'expected decimal number in quote' assertDies
+    [ '123.' parseDecimal ] 'expected decimal number in quote' assertDies
+    [ '123..456' parseDecimal ] 'expected decimal number in quote' assertDies
+    [ '1.2.3' parseDecimal ] 'expected decimal number in quote' assertDies
+    [ '.' parseDecimal ] 'bad type: word, expected: a decimal' assertDies
+    [ '1_.234_567' parseDecimal ] 'expected decimal number in quote' assertDies
+    [ '1._234567' parseDecimal ] 'expected decimal number in quote' assertDies
+
+  ]
+]

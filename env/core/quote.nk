@@ -61,3 +61,21 @@
 
   [ dup word? => [ caller swap entry:fetch ] toQuote stitch ] '' reduce
 ] @: ~*
+
+
+[ """( Q -- D ): converts Quote to Decimal. Dies if Quote does
+   not contain a decimal, or if couldn't parse it out.
+
+  Quote is parsed by Novika. This word only ensures the result
+  of that is a decimal. Aside from error messages that leak
+  this fact, you generally shouldn't care about this.
+
+  ```
+  '1234' parseDecimal leaves: 1234
+  '-1234.5678' parseDecimal leaves: -1234.5678
+  ```
+  """
+  orphan swap slurp bi:
+    [ count 1 = not => [ 'expected decimal number in quote' die ] ]
+    [ top asDecimal ]
+] @: parseDecimal
