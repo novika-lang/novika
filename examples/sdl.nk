@@ -162,7 +162,6 @@ renderer not => [ sdl:error die ]
   ] @: background
 
   [
-    x $: x y $: y w $: w h $: h "TODO: support .schedule in buildStruct"
     this sdl:rect ffi:buildStruct&
   ] @: outline
 
