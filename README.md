@@ -2,6 +2,9 @@
 
 <img src="img/logo.svg" align=right>
 
+> A language that doesn't affect the way you think about programming, is not worth knowing.
+> ­— Alan J. Perlis
+
 Novika is a free-form, moldable, interpreted programming language.
 
 ## Hi!
