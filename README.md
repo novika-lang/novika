@@ -239,7 +239,7 @@ When you do your `bin/novika hello.nk`, here's *roughly* the order in which vari
 
 1. [The command-line interface](https://github.com/novika-lang/novika/blob/rev10/src/cli.cr) frontend is what greets you (or doesn't) and sets everything up.
 2. [Resolver](https://github.com/novika-lang/novika/blob/rev10/src/novika/resolver.cr) knows where everything is on the disk.
-3. [Capability bundle](https://github.com/novika-lang/novika/blob/rev10/src/novika/capability.cr) allows to control the capabilities of this particular invokation of the language/capabilities of the language overall. For example, this component is aware of you droping the `-Dnovika_console` flag.
+3. [Capability collection](https://github.com/novika-lang/novika/blob/rev10/src/novika/capability.cr) allows to control the capabilities of this particular invokation of the language/capabilities of the language overall. For example, this component is aware of you droping the `-Dnovika_console` flag.
 4. [Capability interfaces and implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities) describe and implement those capabilities.
 5. [Scissors](https://github.com/novika-lang/novika/blob/rev10/src/novika/scissors.cr) cut the contents of `hello.nk` (or any other blob of source code) into pieces called *unclassified forms*
 6. [Classifier](https://github.com/novika-lang/novika/blob/rev10/src/novika/classifier.cr) classifies them, and shoves the resulting [forms](https://github.com/novika-lang/novika/tree/rev10/src/novika/forms) into a *file block*.
