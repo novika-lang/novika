@@ -6,7 +6,7 @@ module Novika::Capabilities::Impl
 
     def capabilities(engine) : Block
       list = Block.new
-      bundle.enabled.each do |klass|
+      capabilities.enabled.each do |klass|
         list.add Quote.new(klass.id)
       end
       list

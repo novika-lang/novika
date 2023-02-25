@@ -15,10 +15,10 @@ module Novika
   # Instance-side (`include`) interface to a Novika capability.
   # All capability instances must be compatible with this module.
   module ICapability
-    # Returns the bundle this capability is a part of.
-    getter bundle : Bundle
+    # Returns the collection this capability is a part of.
+    getter capabilities : CapabilityCollection
 
-    def initialize(@bundle)
+    def initialize(@capabilities)
     end
 
     # Injects the vocabulary of this capability into the *target* block.
@@ -38,62 +38,64 @@ module Novika
   # A collection of language capability implementations.
   #
   # Capability implementations can indirectly (by id) interact
-  # with each other via bundles.
+  # with each other by sharing the capability collection they're
+  # members of.
   #
   # ```
   # # (!) Compile with -Dnovika_console
   #
-  # bundle = Bundle.new
+  # caps = CapabilityCollection.new
   #
   # # Add capability classes:
-  # bundle << Capabilities::Impl::Essential
-  # bundle << Capabilities::Impl::System
-  # bundle << Capabilities::Impl::Console
+  # caps << Capabilities::Impl::Essential
+  # caps << Capabilities::Impl::System
+  # caps << Capabilities::Impl::Console
   #
   # # Enable capabilities. At this point you kinda don't know
   # # which implementation is used under the hood, so you
   # # need to refer to the capability by its id.
-  # bundle.enable("essential")
-  # bundle.enable("system")
-  # bundle.enable("console")
+  # caps.enable("essential")
+  # caps.enable("system")
+  # caps.enable("console")
   #
-  # block = Block.new(bundle.bb)
+  # block = Block.new(caps.block)
   # block.slurp("console:on 1000 nap console:off")
   #
-  # Engine.exhaust(block, bundle)
+  # Engine.exhaust(block, caps)
   # ```
-  class Bundle
-    # Returns the bundle block: a block managed by this bundle,
-    # which includes all words injected by capabilities.
-    getter bb : Block
+  class CapabilityCollection
+    # Returns the *capability block*: a block managed by this
+    # collection, which includes the vocabulary injected by
+    # the enabled capabilities.
+    getter block : Block
 
     def initialize(parent : Block? = nil)
-      @bb = Block.new(parent)
+      @block = Block.new(parent)
       @classes = {} of String => ICapabilityClass
       @objects = {} of String => Capability
       @libraries = {} of String => Library
     end
 
     # Returns an array of capabilities that are enabled in this
-    # bundle at the moment.
+    # collection at the moment.
     def enabled
       @objects.values.map(&.class)
     end
 
-    # Returns whether this bundle has the capability with the
-    # given *id* enabled.
+    # Returns whether this collection has the capability with
+    # the given *id* enabled.
     def has_capability_enabled?(id : String)
       @objects.has_key?(id)
     end
 
-    # Returns whether this bundle includes a capability with
+    # Returns whether this collection includes a capability with
     # the given *id*.
     def has_capability?(id : String)
       @classes.has_key?(id)
     end
 
-    # Returns whether this bundle includes a library with the
-    # given *id*.
+    # Returns whether this collection includes a library with
+    # the given *id*.
     def has_library?(id : String)
       @libraries.has_key?(id)
     end
@@ -102,11 +104,12 @@ module Novika
     #
     # To enable a capability means to create an instance of the
     # corresponding implementation class, and use that instance
-    # to inject the capability vocabulary into the bundle block,
-    # `bb`. You can then access `bb` and inherit from it.
+    # to inject the capability vocabulary into this collection's
+    # *capabilities block*, `block`. You can then access `block`
+    # and e.g. inherit from it to access the vocabulary of the
+    # enabled capabilities.
     #
     # Does nothing if the capability is already enabled.
-    #
     # Does nothing if there is no capability with the given id.
     #
     # Returns whether there is a capability with the given *id*.
@@ -115,7 +118,7 @@ module Novika
       return false unless cap = get_capability_class?(id)
 
       object = cap.new(self)
-      object.inject(bb)
+      object.inject(block)
 
       @objects[id] = object
 
@@ -146,20 +149,20 @@ module Novika
     end
 
     # Returns the instance of the given capability class *cls*,
-    # if such instance can be found in this bundle. Otherwise,
+    # if such instance can be found in this collection. Otherwise,
     # returns nil.
     def []?(cls : T.class) : T? forall T
       @objects[cls.id]?.try &.as(T)
     end
 
     # Returns the library with the given *id*. Returns nil if there
-    # is no such library in this bundle.
+    # is no such library in this collection.
     def get_library?(id : String)
       @libraries[id]?
     end
 
     # Returns the capability class with the given *id*. Returns nil
-    # if there is no such capability class in this bundle.
+    # if there is no such capability class in this collection.
     def get_capability_class?(id : String)
       @classes[id]?
     end
@@ -180,14 +183,10 @@ module Novika
     end
 
     # Tries to load a library (aka shared object) with the given
-    # *id*. Returns the resulting `Library` object, or nil. The
-    # library object is cached: further calls to `load_library?`
-    # and `get_library?` will return that library object.
+    # *id*. Returns the resulting `Library` object, or nil.
     #
-    # Usually, bundle is used as a dumb-ish container for capabilities
-    # and libraries that were loaded beforehand, by the frontend of
-    # choice. `load_library?` breaks this habit, and allows bundle
-    # users to request new stuff from the frontend at runtime.
+    # The library object is cached: further calls to `load_library?`
+    # and `get_library?` will return that library object.
     def load_library?(id : String) : Library?
       @libraries.fetch(id) do
         @load_library_callbacks.each do |callback|
@@ -200,7 +199,7 @@ module Novika
 
     # Yields the capability instance of the given capability
     # class *cls* to the block, if such instance can be found
-    # in this bundle.
+    # in this collection.
     #
     # Returns the result of the block, or nil.
     def fetch(cls : T.class, & : T -> U) : U? forall T, U
@@ -209,47 +208,47 @@ module Novika
       end
     end
 
-    # Adds a capability class *cls* to this bundle.
+    # Adds a capability class *cls* to this collection.
     def <<(cls : ICapabilityClass)
       @classes[cls.id] = cls
     end
 
-    # Adds a *library* to this bundle. Overwrites any previous
+    # Adds a *library* to this collection. Overwrites any previous
     # library with the same id.
     def <<(library : Library)
       @libraries[library.id] = library
     end
 
-    # Creates a bundle, and adds capabilities that are on by
-    # default. Doesn't enable any. Returns the resulting bundle.
+    # Creates a capability collection, and adds capabilities that
+    # are on by default. Doesn't enable any. Returns the resulting
+    # capability collection.
     def self.with_default
-      bundle = Bundle.new
-      capabilities.each do |cap|
-        if cap.on_by_default?
-          bundle << cap
-        end
+      caps = CapabilityCollection.new
+      available.each do |cap|
+        next unless cap.on_by_default?
+        caps << cap
       end
-      bundle
+      caps
     end
 
-    # Creates a bundle, and adds *all* registered capabilities
-    # (see `Bundle.capabilities`). Doesn't enable any. Returns
-    # the resulting bundle.
-    def self.with_all
-      bundle = Bundle.new
-      capabilities.each do |cap|
-        bundle << cap
-      end
-      bundle
+    # Creates a capability collection, and adds *all* available
+    # capabilities (see `CapabilityCollection.available`). Does
+    # not enable any of them.
+    #
+    # Returns the resulting capability collection.
+    def self.with_available
+      caps = CapabilityCollection.new
+      available.each { |cap| caps << cap }
+      caps
     end
 
-    # Lists *all* registered (available) capability classes.
+    # Lists *all* available (registered) capability classes.
     #
     # For a capability class to be registered (available), it
     # should be the last subclass of a `Capability` includer
     # (subclass depth is irrelevant), or have no subclasses
     # and directly include `Capability`.
-    def self.capabilities : Array(ICapabilityClass)
+    def self.available : Array(ICapabilityClass)
       {% begin %}
         [{% for capability in Capability.includers %}
           {% subclasses = capability.all_subclasses %}

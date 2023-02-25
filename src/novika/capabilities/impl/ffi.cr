@@ -104,7 +104,7 @@ module Novika::Capabilities::Impl
       END
       ) do |engine, stack|
         id = stack.drop.a(Quote)
-        if library = engine.bundle.load_library?(id.string)
+        if library = engine.capabilities.load_library?(id.string)
           library.onto(stack)
         end
         Boolean[!!library].onto(stack)
@@ -127,7 +127,7 @@ module Novika::Capabilities::Impl
       END
       ) do |engine, stack|
         id = stack.drop.a(Quote)
-        unless library = engine.bundle.load_library?(id.string)
+        unless library = engine.capabilities.load_library?(id.string)
           id.die("no such library")
         end
         library.onto(stack)
@@ -270,7 +270,7 @@ module Novika::Capabilities::Impl
           layout.each_desc_with_index do |desc|
             entry = block.entry_for? Word.new(desc.id)
             if entry
-              entry_stack = Engine.exhaust(entry, bundle: @bundle)
+              entry_stack = Engine.exhaust(entry, capabilities: capabilities)
               view[desc.id] = desc.type.from(entry_stack.top)
             elsif desc.type.is_a?(Novika::FFI::UntypedPointer.class) || desc.type.is_a?(Novika::FFI::StructReferenceType)
               view[desc.id] = Novika::FFI::UntypedPointer.none
@@ -399,7 +399,7 @@ module Novika::Capabilities::Impl
         layout.each_desc_with_index do |desc|
           entry = block.entry_for? Word.new(desc.id)
           if entry
-            entry_stack = Engine.exhaust(entry, bundle: @bundle)
+            entry_stack = Engine.exhaust(entry, capabilities: capabilities)
             view[desc.id] = desc.type.from(entry_stack.top)
             had_entry = true
             break

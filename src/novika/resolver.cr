@@ -161,12 +161,14 @@ module Novika
   # arrays as appropriate.
   #
   # ```
-  # resolver = RunnableResolver.new(["repl"], bundle, Path[Dir.current], Path.home)
+  # # caps : CapabilityCollection
+  #
+  # resolver = RunnableResolver.new(["repl"], caps, Path[Dir.current], Path.home)
   # unless resolver.resolve?
   #   abort "Failed to resolve!"
   # edn
   #
-  # resolver.capabilities.each { |cap_id| bundle.enable(cap_id) }
+  # resolver.capabilities.each { |cap_id| caps.enable(cap_id) }
   # resolver.unknowns.each { |unknown| puts "Not a runnable, skip: #{unknown}" }
   #
   # # resolver.folders.each { |folder| ... }
@@ -208,9 +210,9 @@ module Novika
     # as well as capabilities requested in lib or app manifests
     # (those with manual set to false).
     #
-    # Note: resolver uses bundle in a read-only manner. You
-    # will have to enable the capabilities yourself (if that's
-    # what you want to do).
+    # Note: resolver uses the capability collection it is given in
+    # a read-only manner. You will have to enable the capabilities
+    # yourself (if that's what you want to do).
     getter capabilities = Set(CapabilityRequest).new
 
     # Holds runnables which have not been identified. You
@@ -227,8 +229,8 @@ module Novika
     #
     # *runnables* is the list of runnables to resolve.
     #
-    # *bundle* is the bundle that will be used to verify
-    # whether a runnable is a capability ids.
+    # *caps* is the capability collection that will be used to
+    # verify whether a runnable is a capability id.
     #
     # *cwd* specifies the directory that this resolver will
     # consider its current working directory.
@@ -238,7 +240,7 @@ module Novika
     # Defaults for the last two are sane enough.
     def initialize(
       @runnables : Array(String),
-      @bundle : Bundle,
+      @caps : CapabilityCollection,
       @cwd = Path[Dir.current],
       @userhome = Path.home
     )
@@ -394,7 +396,7 @@ module Novika
     end
 
     private def resolve(runnable : String, *, manual = true)
-      if @bundle.has_capability?(runnable)
+      if @caps.has_capability?(runnable)
         capabilities << CapabilityRequest.new(self, runnable, manual)
         return
       end

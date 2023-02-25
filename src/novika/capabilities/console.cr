@@ -169,12 +169,12 @@ module Novika::Capabilities
 
     # Returns the active primary foreground color.
     def fg
-      bundle.fetch(IInk, &.fg.last?) || FG_DEFAULT
+      capabilities.fetch(IInk, &.fg.last?) || FG_DEFAULT
     end
 
     # Returns the active primary background color.
     def bg
-      bundle.fetch(IInk, &.bg.last?) || BG_DEFAULT
+      capabilities.fetch(IInk, &.bg.last?) || BG_DEFAULT
     end
 
     def inject(into target)

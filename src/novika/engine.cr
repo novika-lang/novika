@@ -44,11 +44,11 @@ module Novika
   # block empty. This is why the method is called "exhaust".
   #
   # ```
-  # bundle = Bundle.with_default.enable_all
-  # block = Block.new(bundle.bb).slurp("1 2 +")
+  # caps = CapabilityCollection.with_default.enable_all
+  # block = Block.new(caps.block).slurp("1 2 +")
   # stack = Block.new
   #
-  # engine = Engine.new(bundle)
+  # engine = Engine.new(caps)
   # engine.schedule(block, stack)
   # engine.exhaust
   #
@@ -56,10 +56,10 @@ module Novika
   #
   # # Or, shorter:
   #
-  # bundle = Bundle.with_default.enable_all
-  # block = Block.new(bundle.bb).slurp("1 2 +")
+  # caps = CapabilityCollection.with_default.enable_all
+  # block = Block.new(caps.block).slurp("1 2 +")
   #
-  # puts Engine.exhaust(block, bundle: bundle) # [ 3 ]
+  # puts Engine.exhaust(block, caps: caps) # [ 3 ]
   # ```
   class Engine
     # Maximum amount of scheduled continuations in `conts`. After
@@ -81,6 +81,9 @@ module Novika
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
 
+    # Capability collection used by default.
+    DEFAULT_CAPS = CapabilityCollection.with_default.enable_all
+
     # Holds Engine depth.
     class_getter depth = 0
 
@@ -92,20 +95,20 @@ module Novika
       @@depth = other
     end
 
-    # Returns the capability bundle this engine is running over.
-    getter bundle : Bundle
+    # Returns the capability collection used by this engine.
+    getter capabilities : CapabilityCollection
 
     # Holds the continuations block (aka continuations stack).
     property conts = Block.new
 
-    private def initialize(@bundle : Bundle)
+    private def initialize(@capabilities : CapabilityCollection)
     end
 
     # Yields an instance of `Engine`.
-    def self.new(bundle : Bundle)
+    def self.new(capabilities : CapabilityCollection)
       Engine.depth += 1
 
-      yield new(bundle)
+      yield new(capabilities)
     ensure
       Engine.depth -= 1
     end
@@ -127,9 +130,9 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust!(form, stack = nil, bundle = Bundle.with_default) : Block
+    def self.exhaust!(form, stack = nil, capabilities = DEFAULT_CAPS) : Block
       stack ||= Block.new
-      Engine.new(bundle) do |engine|
+      Engine.new(capabilities) do |engine|
         engine.schedule!(form, stack)
         engine.exhaust
       end
@@ -137,12 +140,12 @@ module Novika
     end
 
     # :ditto:
-    def self.exhaust!(entry : OpenEntry, stack = nil, bundle = Bundle.with_default) : Block
-      exhaust!(entry.form, stack, bundle)
+    def self.exhaust!(entry : OpenEntry, stack = nil, capabilities = DEFAULT_CAPS) : Block
+      exhaust!(entry.form, stack, capabilities)
     end
 
     # :ditto:
-    def self.exhaust!(entry : Entry, stack = nil, bundle = nil) : Block
+    def self.exhaust!(entry : Entry, stack = nil, capabilities = nil) : Block
       stack ||= Block.new
       entry.onto(stack)
       stack
@@ -156,9 +159,9 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust(form, stack = nil, bundle = Bundle.with_default) : Block
+    def self.exhaust(form, stack = nil, capabilities = DEFAULT_CAPS) : Block
       stack ||= Block.new
-      Engine.new(bundle) do |engine|
+      Engine.new(capabilities) do |engine|
         engine.schedule(form, stack)
         engine.exhaust
       end
@@ -166,13 +169,13 @@ module Novika
     end
 
     # :ditto:
-    def self.exhaust(form entry : OpenEntry, stack = nil, bundle = Bundle.with_default) : Block
-      exhaust(entry.form, stack, bundle)
+    def self.exhaust(form entry : OpenEntry, stack = nil, capabilities = DEFAULT_CAPS) : Block
+      exhaust(entry.form, stack, capabilities)
     end
 
     # :ditto:
-    def self.exhaust(form entry : Entry, stack = nil, bundle = Bundle.with_default) : Block
-      exhaust!(entry, stack, bundle)
+    def self.exhaust(form entry : Entry, stack = nil, capabilities = DEFAULT_CAPS) : Block
+      exhaust!(entry, stack, capabilities)
     end
 
     # Returns the active continuation.

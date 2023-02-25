@@ -33,7 +33,7 @@ module Novika::Capabilities::Impl
           bytes.die("apparently, this byteslice is not a Novika image")
         end
 
-        image.to_block(engine.bundle).onto(stack)
+        image.to_block(engine.capabilities).onto(stack)
       end
 
       target.at("nki:captureAll", <<-END
@@ -54,7 +54,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::GzipFast,
           mode: CaptureMode::CaptureAll,
         )
@@ -99,7 +99,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::GzipFast,
           mode: CaptureMode::CaptureNeighborhood,
         )
@@ -114,7 +114,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::None,
           mode: CaptureMode::CaptureAll,
         )
@@ -129,7 +129,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::None,
           mode: CaptureMode::CaptureNeighborhood,
         )
@@ -144,7 +144,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::GzipBest,
           mode: CaptureMode::CaptureAll,
         )
@@ -159,7 +159,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::GzipBest,
           mode: CaptureMode::CaptureNeighborhood,
         )
@@ -174,7 +174,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::BrotliFast,
           mode: CaptureMode::CaptureAll,
         )
@@ -189,7 +189,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::BrotliFast,
           mode: CaptureMode::CaptureNeighborhood,
         )
@@ -204,7 +204,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::BrotliBest,
           mode: CaptureMode::CaptureAll,
         )
@@ -219,7 +219,7 @@ module Novika::Capabilities::Impl
       ) do |engine, stack|
         block = stack.drop.a(Block)
 
-        image = Image.new(block, engine.bundle,
+        image = Image.new(block, engine.capabilities,
           compression: Image::CompressionType::BrotliBest,
           mode: CaptureMode::CaptureNeighborhood,
         )

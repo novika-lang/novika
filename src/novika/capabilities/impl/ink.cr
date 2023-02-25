@@ -22,7 +22,7 @@ module Novika::Capabilities::Impl
     }
 
     private def append_echo(engine, object)
-      engine.die(NO_SYSTEM_ECHO_ERROR) unless system = bundle[ISystem]?
+      engine.die(NO_SYSTEM_ECHO_ERROR) unless system = capabilities[ISystem]?
 
       system.append_echo(engine, Quote.new(object.to_s))
     end

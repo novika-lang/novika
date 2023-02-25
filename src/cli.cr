@@ -143,14 +143,14 @@ module Novika::Frontend::CLI
 
       END
 
-      caps = Bundle.capabilities
+      available_caps = CapabilityCollection.available
 
-      caps.select(&.on_by_default?).each do |cap|
+      available_caps.select(&.on_by_default?).each do |cap|
         io.puts
         io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
       end
 
-      caps.reject(&.on_by_default?).each do |cap|
+      available_caps.reject(&.on_by_default?).each do |cap|
         io.puts
         io << "      - " << cap.id << " (" << cap.purpose << ")"
       end
@@ -200,12 +200,14 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    # Populate the bundle with all capabilities. Only enable
-    # default ones. We'll then enable those that the user wants.
-    bundle = Bundle.with_all
-    bundle.enable_default
+    # Populate the capability collection with all available
+    # capabilities. Only enable default ones.
+    #
+    # We'll then enable those that the user wants.
+    caps = CapabilityCollection.with_available
+    caps.enable_default
 
-    resolver = RunnableResolver.new(args, bundle, cwd)
+    resolver = RunnableResolver.new(args, caps, cwd)
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
@@ -251,7 +253,7 @@ module Novika::Frontend::CLI
     end
 
     # Create a library for each shared object, and put it in
-    # the bundle.
+    # the capability collection.
     #
     # For each shared object, a library ID is made by taking the stem
     # of path to the object and stripping it of the lib prefix, if it
@@ -262,36 +264,36 @@ module Novika::Frontend::CLI
     resolver.shared_objects.each do |shared_object|
       id = shared_object.stem.lchop("lib")
 
-      if bundle.has_library?(id)
+      if caps.has_library?(id)
         Frontend.errln("multiple libraries with the same id: #{id}")
         exit(1)
       end
 
-      bundle << Library.new(id, shared_object)
+      caps << Library.new(id, shared_object)
     end
 
-    bundle.on_load_library? do |id|
+    caps.on_load_library? do |id|
       Library.new?(id, resolver)
     end
 
-    Engine.new(bundle) do |engine|
-      # Important: wrap bundle block in another block! This is
-      # required to make it possible to ignore bundle block in
+    Engine.new(caps) do |engine|
+      # Important: wrap capability block in another block! This is
+      # required to make it possible to ignore capability block in
       # Image emission, saving some time and space!
-      toplevel = Block.new(bundle.bb)
+      toplevel = Block.new(caps.block)
 
       resolver.capabilities.each do |req|
         allowed =
           req.allowed? do
-            # If we've got it here, then it's in the bundle, therefore,
-            # the capability class exists.
-            purpose = bundle.get_capability_class?(req.id).not_nil!.purpose
+            # If we've got it here, then it's in the capability
+            # collection, therefore, the capability class exists.
+            purpose = caps.get_capability_class?(req.id).not_nil!.purpose
 
             print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
             (gets.try &.downcase) == "y"
           end
 
-        bundle.enable(req.id) if allowed
+        caps.enable(req.id) if allowed
       end
 
       run(engine, toplevel, resolver.folders)

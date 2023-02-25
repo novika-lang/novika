@@ -112,7 +112,7 @@ module Novika::Capabilities
         form = stack.drop
         if enabled?
           with_emphasis_append_echo(engine, fg.last?, bg.last?, form)
-        elsif system = bundle[ISystem]?
+        elsif system = capabilities[ISystem]?
           system.append_echo(engine, form)
         else
           form.die(NO_SYSTEM_ECHO_ERROR)
@@ -139,7 +139,7 @@ module Novika::Capabilities
           # If color output is enabled and either foreground
           # or background is set, output with color.
           with_color_append_echo(engine, fg.last?, bg.last?, form)
-        elsif system = bundle[ISystem]?
+        elsif system = capabilities[ISystem]?
           # Use system echo as a fallback (colorless) echo.
           system.append_echo(engine, form)
         else

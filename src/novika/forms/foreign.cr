@@ -297,9 +297,9 @@ module Novika
   #
   # For more details, see Novika's `ffi:getLibrary`.
   #
-  # Internally, library objects are created by the frontend and
-  # fed to `Bundle`. When needed, they are retrieved from the
-  # bundle. Prefer this access pattern.
+  # Internally, library objects are created by the frontend and fed
+  # to the capability collection `caps`. When needed, they are
+  # retrieved from this capability collection.
   class Library
     include Form
 
