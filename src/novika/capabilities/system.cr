@@ -1,4 +1,4 @@
-module Novika::Features
+module Novika::Capabilities
   # TODO: maybe readLine should have something like Fancyline
   # has, i.e. return some sort of status {Accepted | Rejected
   # (CTRL-C) | EOF (CTRL-D), Quote?}.
@@ -6,7 +6,7 @@ module Novika::Features
   # Then IOs#readline() should return record Response(status, response)
 
   abstract class ISystem
-    include Feature
+    include Capability
 
     def self.id : String
       "system"

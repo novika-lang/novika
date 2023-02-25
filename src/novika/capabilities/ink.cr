@@ -1,4 +1,4 @@
-module Novika::Features
+module Novika::Capabilities
   # Enables colorful output using `withColorAppendEcho` and friends.
   #
   # Exposed vocabulary:
@@ -12,10 +12,10 @@ module Novika::Features
   # * `withReverseAppendEcho`, generic implementation; when no
   #   colors given by the use, `with_reverse_append_echo` is used.
   abstract class IInk
-    include Feature
+    include Capability
 
-    NO_SYSTEM_ECHO_ERROR = "with...Echo words need 'echo' from feature system, " \
-                           "but no instance of feature system was found"
+    NO_SYSTEM_ECHO_ERROR = "with...Echo words need 'echo' from capability 'system', " \
+                           "but this capability is not available"
 
     def self.id : String
       "ink"
@@ -47,7 +47,7 @@ module Novika::Features
 
     # Same as `with_color_append_echo`, but also emphasizes
     # echo of *form*. Bold style is used by default, but
-    # feature implementors may choose e.g .italic.
+    # implementors may choose e.g. italic.
     abstract def with_emphasis_append_echo(engine, fg : Color?, bg : Color?, form : Form)
 
     # Appends *form* with inverse style (background color is
@@ -105,8 +105,8 @@ module Novika::Features
 
       target.at("withEmphasisAppendEcho", <<-END
       ( F -- ): same as `withColorAppendEcho`, but also emphasizes
-       echo of Form. Bold style is used by default, but feature
-       implementors may choose e.g. italic.
+       echo of Form. Bold style is used by default, but implementors
+       may choose e.g. italic.
       END
       ) do |engine, stack|
         form = stack.drop
@@ -130,7 +130,7 @@ module Novika::Features
       colors to system's basic 16 colors for compatibility &
       portability. If you want more cross-platform control over
       colors (and pretty much everything else), take a look at
-      feature console.
+      console capability.
       END
       ) do |engine, stack|
         form = stack.drop

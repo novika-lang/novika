@@ -1,4 +1,4 @@
-module Novika::Features
+module Novika::Capabilities
   # Enables the console API.
   #
   # Exposed vocabulary:
@@ -32,7 +32,7 @@ module Novika::Features
   # * `console:present`, implemented by `present`
   # * `console:clear`, implemented by `clear`
   abstract class IConsole
-    include Feature
+    include Capability
 
     # Foreground color used when there is no user-provided
     # foreground color.

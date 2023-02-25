@@ -5,7 +5,7 @@ memory used is negligible). Neither the C code for this test
 nor this test itself were written to be leak-free.
 """
 
-describe 'Feature FFI' [
+describe 'FFI capability' [
   in lang
 
   it should 'find library provided by frontend' [

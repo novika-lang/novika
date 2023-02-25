@@ -106,12 +106,12 @@ module Novika::Frontend::Nkas
 
     unless resolver.unknowns.empty?
       resolver.unknowns.each do |arg|
-        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or feature")
+        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or capability id")
       end
       exit(1)
     end
 
-    resolver.features.each { |req| bundle.enable(req.id) }
+    resolver.capabilities.each { |req| bundle.enable(req.id) }
 
     # Flatten to paths in proper order!
     paths = [] of Path

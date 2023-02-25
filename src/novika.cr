@@ -31,9 +31,9 @@ require "./novika/dict"
 require "./novika/ffi"
 require "./novika/forms/*"
 require "./novika/engine"
-require "./novika/feature"
-require "./novika/features/*"
-require "./novika/features/impl/*"
+require "./novika/capability"
+require "./novika/capabilities/*"
+require "./novika/capabilities/impl/*"
 require "./novika/resolver"
 
 module Novika

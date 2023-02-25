@@ -1,4 +1,4 @@
-needsFeature: console
+needsCapability: console
 
 
 "Some constants for you to tweak:"

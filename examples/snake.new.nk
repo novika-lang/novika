@@ -4,7 +4,7 @@ Snake game rewritten using more up-to-date vocabulary.
   $ novika console examples/snake.new.nk
 """
 
-needsFeature: console
+needsCapability: console
 
 
 [ "( X Y -- P ): leaves a console Point object for the given X, Y position."

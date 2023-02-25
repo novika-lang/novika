@@ -1,6 +1,6 @@
-module Novika::Features::Impl
+module Novika::Capabilities::Impl
   class Colors
-    include Feature
+    include Capability
 
     def self.id : String
       "colors"

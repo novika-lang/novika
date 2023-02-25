@@ -1,6 +1,6 @@
 require "colorize"
 
-module Novika::Features::Impl
+module Novika::Capabilities::Impl
   class Ink < IInk
     COMPAT = {
       Color.rgb(0x00, 0x00, 0x00) => :black,

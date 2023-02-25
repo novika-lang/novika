@@ -1,6 +1,6 @@
 require "file_utils"
 
-module Novika::Features::Impl
+module Novika::Capabilities::Impl
   class Disk < IDisk
     def can_read?(engine, path : Quote) : Boolean
       Boolean[File.readable?(path.string)]

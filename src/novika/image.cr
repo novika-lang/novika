@@ -235,7 +235,7 @@ module Novika
   # Note: builtins aren't actually serialized, only their
   # identifies are. Assuming the contract between the image
   # emitter and image consumer is held, that builtin ids in
-  # features are the same and unique -- this works.
+  # capabilities are the same and unique -- this works.
   #
   # But not builtins created dynamically! Such builtins are
   # not easy nor safe to serialize.
@@ -373,7 +373,7 @@ module Novika
     # :ditto:
     def self.new(form : Library | ForeignFunction | StructViewForm | StructLayoutForm)
       raise Error.new(
-        "serialization of ffi features is unsafe and disabled anyway. Try \
+        "serialization of ffi capabilities is unsafe and disabled anyway. Try \
         searializing 'how' you create FFI objects rather than 'what' objects \
         you create")
     end
@@ -554,8 +554,7 @@ module Novika
     private class BlockAssembler
       @frozen : Hash(UInt64, FrozenBlock)
 
-      # Holds the bundle block, used to resolve feature
-      # builtins etc.
+      # Holds the bundle block, used to resolve capability words etc.
       getter bb : Block
 
       def initialize(@pool : Array(FrozenBlock), @bb)
@@ -745,12 +744,11 @@ module Novika
     # Holds the pivot block id.
     uint64 :pivot
 
-    # Holds the bundle block id. Even though during
-    # serialization, bundle block is skipped (as serializing
-    # it would be of no particular use), its id is still
-    # stored so that client-side (nki-side), it can be
-    # replaced with the client bundle block, hopefully with
-    # all necessary features.
+    # Holds the bundle block id. Even though during serialization,
+    # bundle block is skipped (as serializing it would be of no
+    # particular use), its id is still stored so that client-side
+    # (nki-side), it can be replaced with the client bundle block,
+    # hopefully with all necessary capabilities.
     uint64 :bb
 
     # Holds the amount of blocks in this pool.
@@ -790,7 +788,7 @@ module Novika
 
   # Normally compressed and/or encrypted, image payload
   # holds the version of Novika it was created with, a list
-  # of features it requires, and, finally, `BlockPool`,
+  # of capabilities it requires, and, finally, `BlockPool`,
   # which is used to reconstruct the hierarchy (parents,
   # prototypes, friends, and so on, recursively), tape, and
   # dictionary of some pivot block.
@@ -812,7 +810,7 @@ module Novika
     # Monthly increment of the current Novika version.
     MONTHLY = VERSION_MATCH[3].to_u8
 
-    private class FeatureId < BinData
+    private class CapabilityId < BinData
       endian :big
       string :id
 
@@ -848,13 +846,13 @@ module Novika
       uint8 :monthly, value: ->{ MONTHLY }
     end
 
-    # Holds information about the features required to run
+    # Holds information about the capabilities required to run
     # this image.
-    group :features do
-      # Holds the amount of required features.
+    group :capabilities do
+      # Holds the amount of required capabilities.
       uint64 :count, value: ->{ required.size }
-      # Holds IDs of required features (namely `IFeatureClass.id`).
-      array required : FeatureId, length: ->{ count }
+      # Holds IDs of required capabilities (namely `ICapabilityClass.id`).
+      array required : CapabilityId, length: ->{ count }
     end
 
     # Holds the block pool.
@@ -863,11 +861,11 @@ module Novika
     # Converts this image payload to a block, aided by
     # *bundle*. See `Image#to_block`.
     def to_block(bundle : Bundle)
-      # Verify that all required features are enabled/can be
+      # Verify that all required capabilities are enabled/can be
       # enabled (in this case enable them right away!).
-      features.required.each do |fid|
-        unless bundle.has_feature?(fid.id)
-          raise Novika::Error.new("image requires feature '#{fid.id}', but it isn't available")
+      capabilities.required.each do |fid|
+        unless bundle.has_capability?(fid.id)
+          raise Novika::Error.new("image requires capability '#{fid.id}', but it isn't available")
         end
 
         # Trust it's a noop if already enabled...
@@ -880,7 +878,7 @@ module Novika
 
     def self.new(pivot : Block, bundle : Bundle, mode = CaptureMode::CaptureAll)
       image = new
-      image.features.required = bundle.enabled.map { |fcls| FeatureId.new(fcls.id) }
+      image.capabilities.required = bundle.enabled.map { |fcls| CapabilityId.new(fcls.id) }
       image.pool = BlockPool.new(pivot, bundle, mode)
       image
     end
@@ -928,11 +926,11 @@ module Novika
     # Holds the payload, which may or may not be compressed.
     remaining_bytes :payload
 
-    # Reconstructs the pivot block and its hierarchy from
-    # this image. Returns the resulting block.
+    # Reconstructs the pivot block and its hierarchy from this
+    # image. Returns the resulting block.
     #
-    # *bundle* is required to make sure all required
-    # features are enabled/available.
+    # *bundle* is required to make sure all required capabilities
+    # are enabled/available.
     def to_block(bundle : Bundle)
       buffer = IO::Memory.new(payload)
 
@@ -986,18 +984,16 @@ module Novika
       image
     end
 
-    # Returns the `Image` formed with this block as the
-    # pivot block. Needs access to current feature *bundle*
-    # to read which features are going to be required to
-    # run it.
+    # Returns the `Image` formed with this block as the pivot
+    # block. Needs access to the current *bundle* to read which
+    # capabilities are going to be required to run the image.
     #
     # You can optionally specify the *compression* method
     # used. For a list of available compression methods, see
     # the `CompressionType` enum.
     #
-    # You can optionally specify *mode*. See
-    # `BlockVisitor::VisitMode` for a list of available
-    # visit modes.
+    # You can optionally specify *mode*. See `BlockVisitor::VisitMode`
+    # for a list of available visit modes.
     def self.new(block : Block, bundle : Bundle, compression = CompressionType::GzipFast, mode = CaptureMode::CaptureAll)
       new(ImagePayload.new(block, bundle, mode), compression)
     end

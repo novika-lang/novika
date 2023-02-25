@@ -129,28 +129,30 @@ module Novika::Frontend::CLI
             Salutations from app slave!
             Hi from app core!
 
-        #{"feature id".colorize.bold}
+        #{"capability id".colorize.bold}
 
-          When runnable is a feature id, the words of the corresponding feature are exposed
-          to all other files and features run (and everyone is allowed to use them).
+          When runnable is a capability id, the corresponding capability is enabled
+          to all other files and capabilities run (that is, everyone is allowed to
+          use it).
 
-          A runnable might ask you for permission to use a feature or two (for example, disk
-          and/or ffi). Your choice to allow is remembered; your choice to deny isn't.
+          A runnable might ask you for permission to enable a capability or two
+          (for example, disk and/or ffi). Your choice to allow is remembered;
+          your choice to deny isn't.
 
-          Here is a list of available features:
+          Here is a list of available capabilities:
 
       END
 
-      features = Bundle.features
+      caps = Bundle.capabilities
 
-      features.select(&.on_by_default?).each do |feature|
+      caps.select(&.on_by_default?).each do |cap|
         io.puts
-        io << "      - " << on << " " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
       end
 
-      features.reject(&.on_by_default?).each do |feature|
+      caps.reject(&.on_by_default?).each do |cap|
         io.puts
-        io << "      - " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << cap.id << " (" << cap.purpose << ")"
       end
 
       io.puts
@@ -198,9 +200,8 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    # Populate the bundle with all features. Only enable
-    # default ones. We'll then enable those that the user
-    # wants.
+    # Populate the bundle with all capabilities. Only enable
+    # default ones. We'll then enable those that the user wants.
     bundle = Bundle.with_all
     bundle.enable_default
 
@@ -217,11 +218,11 @@ module Novika::Frontend::CLI
       resolver.apps.reject! do |app|
         next if !app.core? || app.explicit?
 
-        # Also reject features that the app requested!
-        resolver.features.reject! do |feature|
-          next if feature.manual?
+        # Also reject capabilities that the app requested!
+        resolver.capabilities.reject! do |cap|
+          next if cap.manual?
 
-          feature.root == app.path
+          cap.root == app.path
         end
 
         true
@@ -244,7 +245,7 @@ module Novika::Frontend::CLI
       resolver.unknowns.each do |arg|
         Frontend.errln(
           "could not resolve runnable #{arg.colorize.bold}: it's not a file, \
-           directory, shared object, Novika app, or feature ID")
+           directory, shared object, Novika app, or capability id")
       end
       exit(1)
     end
@@ -279,12 +280,12 @@ module Novika::Frontend::CLI
       # Image emission, saving some time and space!
       toplevel = Block.new(bundle.bb)
 
-      resolver.features.each do |req|
+      resolver.capabilities.each do |req|
         allowed =
           req.allowed? do
             # If we've got it here, then it's in the bundle, therefore,
-            # the feature class exists.
-            purpose = bundle.get_feature_class?(req.id).not_nil!.purpose
+            # the capability class exists.
+            purpose = bundle.get_capability_class?(req.id).not_nil!.purpose
 
             print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
             (gets.try &.downcase) == "y"

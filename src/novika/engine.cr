@@ -92,7 +92,7 @@ module Novika
       @@depth = other
     end
 
-    # Returns the feature bundle this engine is running over.
+    # Returns the capability bundle this engine is running over.
     getter bundle : Bundle
 
     # Holds the continuations block (aka continuations stack).

@@ -1,6 +1,6 @@
 [ dup empty? not => [ dup count 1 - sliceQuoteAt drop ] ] @: rchop
 
-needsFeature: console
+needsCapability: console
 
  33  33  33 rgb $: BG
 224 224 224 rgb $: FG
