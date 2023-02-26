@@ -152,7 +152,7 @@ shards build --without-development --release --progress --no-debug -Dnovika_cons
 ### What do the `-D`s mean?
 
 * `-Dnovika_readline`: use [linenoise](https://github.com/antirez/linenoise) instead of `gets` for `readLine`.
-* `-Dnovika_console`: use [termbox2.cr](https://github.com/homonoidian/termbox2.cr) as the backend for feature console.  Otherwise, feature console won't be available. Since [termbox2](https://github.com/termbox/termbox2) doesn't support Windows, you have to drop the flag when compiling for/under it.
+* `-Dnovika_console`: use [termbox2.cr](https://github.com/homonoidian/termbox2.cr) as the backend for capability *console*.  Otherwise, *console* won't be available. Since [termbox2](https://github.com/termbox/termbox2) doesn't support Windows, you have to drop the flag when compiling for/under it.
 
 ### What's next?
 
@@ -229,7 +229,7 @@ First of all, thank you for even getting this far! Even if you didn't read the w
 
 ### Where do I start?
 
-1. Try exploring [features](https://github.com/novika-lang/novika/tree/rev10/src/novika/features) and their [implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/features/impl). This is where native code words like `dup` and `appendEcho` are defined. This is also a nice *starting point* to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.
+1. Try exploring [capabilities](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities) and their [implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities/impl). This is where native code words like `dup` and `appendEcho` are defined. This is also a nice *starting point* to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.
 2. Try looking through the [interpreter code](https://github.com/novika-lang/novika/tree/rev10/src/novika) in general. I do have a compulsion to write comments, so most of the code is documented. How well documented is not for me to decide, but documented it is.
 3. If you're someone who knows something about optimization, your eyes will hurt! Believe me :)
 
@@ -239,8 +239,8 @@ When you do your `bin/novika hello.nk`, here's *roughly* the order in which vari
 
 1. [The command-line interface](https://github.com/novika-lang/novika/blob/rev10/src/cli.cr) frontend is what greets you (or doesn't) and sets everything up.
 2. [Resolver](https://github.com/novika-lang/novika/blob/rev10/src/novika/resolver.cr) knows where everything is on the disk.
-3. [Feature bundle](https://github.com/novika-lang/novika/blob/rev10/src/novika/feature.cr) allows to control the capabilities of this particular invokation of the language/capabilities of the language overall. For example, this component is aware of you droping the `-Dnovika_console` flag.
-4. [Feature interfaces and feature implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/features) describe and implement those capabilities.
+3. [Capability collection](https://github.com/novika-lang/novika/blob/rev10/src/novika/capability.cr) allows to control the capabilities of this particular invokation of the language/capabilities of the language overall. For example, this component is aware of you droping the `-Dnovika_console` flag.
+4. [Capability interfaces and implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities) describe and implement those capabilities.
 5. [Scissors](https://github.com/novika-lang/novika/blob/rev10/src/novika/scissors.cr) cut the contents of `hello.nk` (or any other blob of source code) into pieces called *unclassified forms*
 6. [Classifier](https://github.com/novika-lang/novika/blob/rev10/src/novika/classifier.cr) classifies them, and shoves the resulting [forms](https://github.com/novika-lang/novika/tree/rev10/src/novika/forms) into a *file block*.
 7. [Blocks](https://github.com/novika-lang/novika/blob/rev10/src/novika/forms/block.cr) are *the* most important forms in Novika.

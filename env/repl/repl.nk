@@ -10,7 +10,7 @@ favorite shell:
 
 "REPL root block, also persisted for the entire REPL session.
  A child of the block this comment is part of, and so inherits
- all imported features/files (such as core) and essential."
+ all imported capabilities/files (such as core) and essential."
 this child $: _pgRoot
 
 
@@ -70,7 +70,7 @@ _pgRoot #? [
    $: ( F $: N -- )
    =: ( V =: N -- )
    2die ( Q F -- )
-   needsFeature: ( needsFeature: Id -- )
+   needsCapability: ( needsCapability: Id -- )
    withColorEcho ( F -- )
    ...
 

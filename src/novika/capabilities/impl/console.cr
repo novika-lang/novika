@@ -2,7 +2,7 @@
 
 require "termbox2"
 
-module Novika::Features::Impl
+module Novika::Capabilities::Impl
   class Console < IConsole
     private M8_A   = Termbox::Color::M8_COLORS.map { |rgb| Color.rgb(*rgb) }.to_a
     private M256_A = Termbox::Color::M256_COLORS.map { |rgb| Color.rgb(*rgb) }.to_a

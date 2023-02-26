@@ -63,13 +63,13 @@ module Novika
     def_equals_and_hash path, explicit?
   end
 
-  # Holds information about a feature request.
-  struct FeatureRequest
-    # Returns the path to the folder for which the feature
+  # Holds information about a capability request.
+  struct CapabilityRequest
+    # Returns the path to the folder for which the capability
     # was requested.
     getter root : Path
 
-    # Returns the identifier of the feature.
+    # Returns the identifier of the capability.
     getter id : String
 
     # Returns whether the request was typed in maually (true),
@@ -80,9 +80,9 @@ module Novika
       @root = resolver.cwd
     end
 
-    # Returns whether this feature request is allowed by the user.
+    # Returns whether this capability request is allowed by the user.
     #
-    # This feature request is always allowed if it is provided
+    # This capability request is always allowed if it is provided
     # manually.
     #
     # If not, tries reading the permissions file in the Novika
@@ -148,25 +148,27 @@ module Novika
   # `RunnableResolver`'s (or resolver's for short) main
   # objective is -- who'd have guessed it! -- to *resolve* a
   # list of *runnables* to the appropriate file paths,
-  # `Folder`s, apps, and feature requests.
+  # `Folder`s, apps, and capability requests.
   #
   # It also puts them in different lists, so that it's a bit
   # easier for you to take care of them, after resolver has
   # done its job.
   #
   # Immediately after `resolve?`, all `folders`, `apps`,
-  # `files`, and `features` identified by this resolver
+  # `files`, and `capabilities` identified by this resolver
   # are guaranteed to exist. If an all-time guarantee is
   # required, you should establish watchers and diff the
   # arrays as appropriate.
   #
   # ```
-  # resolver = RunnableResolver.new(["repl"], bundle, Path[Dir.current], Path.home)
+  # # caps : CapabilityCollection
+  #
+  # resolver = RunnableResolver.new(["repl"], caps, Path[Dir.current], Path.home)
   # unless resolver.resolve?
   #   abort "Failed to resolve!"
   # edn
   #
-  # resolver.features.each { |feature_id| bundle.enable(feature_id) }
+  # resolver.capabilities.each { |cap_id| caps.enable(cap_id) }
   # resolver.unknowns.each { |unknown| puts "Not a runnable, skip: #{unknown}" }
   #
   # # resolver.folders.each { |folder| ... }
@@ -200,18 +202,18 @@ module Novika
     #
     # Mostly for safety, shared objects are not loaded automatically.
     # You need to list them by hand in the initial runnable list; or
-    # manually ask feature ffi to get them, in code.
+    # manually ask capability ffi to get them, in code.
     getter shared_objects = Set(Path).new
 
-    # Holds feature requests identified in the initial list of
+    # Holds capability requests identified in the initial list of
     # runnables by this resolver (those with manual set to true),
-    # as well as features requested in lib or app manifests
+    # as well as capabilities requested in lib or app manifests
     # (those with manual set to false).
     #
-    # Note: resolver uses bundle in a read-only manner. You
-    # will have to enable the features yourself (if that's
-    # what you want to do).
-    getter features = Set(FeatureRequest).new
+    # Note: resolver uses the capability collection it is given in
+    # a read-only manner. You will have to enable the capabilities
+    # yourself (if that's what you want to do).
+    getter capabilities = Set(CapabilityRequest).new
 
     # Holds runnables which have not been identified. You
     # can handle them as you wish: as per this resolver,
@@ -227,8 +229,8 @@ module Novika
     #
     # *runnables* is the list of runnables to resolve.
     #
-    # *bundle* is the bundle that will be used to verify
-    # whether a runnable is a feature ids.
+    # *caps* is the capability collection that will be used to
+    # verify whether a runnable is a capability id.
     #
     # *cwd* specifies the directory that this resolver will
     # consider its current working directory.
@@ -238,7 +240,7 @@ module Novika
     # Defaults for the last two are sane enough.
     def initialize(
       @runnables : Array(String),
-      @bundle : Bundle,
+      @caps : CapabilityCollection,
       @cwd = Path[Dir.current],
       @userhome = Path.home
     )
@@ -394,8 +396,8 @@ module Novika
     end
 
     private def resolve(runnable : String, *, manual = true)
-      if @bundle.has_feature?(runnable)
-        features << FeatureRequest.new(self, runnable, manual)
+      if @caps.has_capability?(runnable)
+        capabilities << CapabilityRequest.new(self, runnable, manual)
         return
       end
 
@@ -448,11 +450,11 @@ module Novika
 
       @runnables.each { |runnable| resolve(runnable) }
 
-      # If the user had manually enabled a feature, we enable
+      # If the user had manually enabled a capability, we enable
       # it for everyone.
-      features.select(&.manual?).each do |feature|
-        features.reject! do |other|
-          feature.id == other.id && !other.manual?
+      capabilities.select(&.manual?).each do |cap|
+        capabilities.reject! do |other|
+          cap.id == other.id && !other.manual?
         end
       end
 

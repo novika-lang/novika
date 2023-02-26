@@ -1,4 +1,4 @@
-module Novika::Features
+module Novika::Capabilities
   # Enables the console API.
   #
   # Exposed vocabulary:
@@ -32,7 +32,7 @@ module Novika::Features
   # * `console:present`, implemented by `present`
   # * `console:clear`, implemented by `clear`
   abstract class IConsole
-    include Feature
+    include Capability
 
     # Foreground color used when there is no user-provided
     # foreground color.
@@ -169,12 +169,12 @@ module Novika::Features
 
     # Returns the active primary foreground color.
     def fg
-      bundle.fetch(IInk, &.fg.last?) || FG_DEFAULT
+      capabilities.fetch(IInk, &.fg.last?) || FG_DEFAULT
     end
 
     # Returns the active primary background color.
     def bg
-      bundle.fetch(IInk, &.bg.last?) || BG_DEFAULT
+      capabilities.fetch(IInk, &.bg.last?) || BG_DEFAULT
     end
 
     def inject(into target)

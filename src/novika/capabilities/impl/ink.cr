@@ -1,6 +1,6 @@
 require "colorize"
 
-module Novika::Features::Impl
+module Novika::Capabilities::Impl
   class Ink < IInk
     COMPAT = {
       Color.rgb(0x00, 0x00, 0x00) => :black,
@@ -22,7 +22,7 @@ module Novika::Features::Impl
     }
 
     private def append_echo(engine, object)
-      engine.die(NO_SYSTEM_ECHO_ERROR) unless system = bundle[ISystem]?
+      engine.die(NO_SYSTEM_ECHO_ERROR) unless system = capabilities[ISystem]?
 
       system.append_echo(engine, Quote.new(object.to_s))
     end

@@ -54,12 +54,12 @@ module Novika::Frontend::Nki
     end
 
     conts = ARGV.delete("-c")
-    bundle = Novika::Bundle.with_all
+    caps = Novika::CapabilityCollection.with_available
 
     filepath = ARGV[-1]
     filedir = Path[filepath].expand.parent
 
-    bundle.on_load_library? do |id|
+    caps.on_load_library? do |id|
       paths = {filedir, filedir / "lib"}
 
       {% if flag?(:windows) %}
@@ -77,16 +77,16 @@ module Novika::Frontend::Nki
 
     File.open(filepath, "r") do |infile|
       image = infile.read_bytes(Novika::Image)
-      block = image.to_block(bundle)
+      block = image.to_block(caps)
 
       if conts
-        Novika::Engine.new(bundle) do |engine|
+        Novika::Engine.new(caps) do |engine|
           engine.conts = block
           engine.exhaust
         end
       else
-        block.parent = Block.new(bundle.bb)
-        Novika::Engine.exhaust!(block, bundle: bundle)
+        block.parent = Block.new(caps.block)
+        Novika::Engine.exhaust!(block, capabilities: caps)
       end
     rescue error : Novika::Error
       error.report(STDERR)

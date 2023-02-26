@@ -129,28 +129,30 @@ module Novika::Frontend::CLI
             Salutations from app slave!
             Hi from app core!
 
-        #{"feature id".colorize.bold}
+        #{"capability id".colorize.bold}
 
-          When runnable is a feature id, the words of the corresponding feature are exposed
-          to all other files and features run (and everyone is allowed to use them).
+          When runnable is a capability id, the corresponding capability is enabled
+          to all other files and capabilities run (that is, everyone is allowed to
+          use it).
 
-          A runnable might ask you for permission to use a feature or two (for example, disk
-          and/or ffi). Your choice to allow is remembered; your choice to deny isn't.
+          A runnable might ask you for permission to enable a capability or two
+          (for example, disk and/or ffi). Your choice to allow is remembered;
+          your choice to deny isn't.
 
-          Here is a list of available features:
+          Here is a list of available capabilities:
 
       END
 
-      features = Bundle.features
+      available_caps = CapabilityCollection.available
 
-      features.select(&.on_by_default?).each do |feature|
+      available_caps.select(&.on_by_default?).each do |cap|
         io.puts
-        io << "      - " << on << " " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
       end
 
-      features.reject(&.on_by_default?).each do |feature|
+      available_caps.reject(&.on_by_default?).each do |cap|
         io.puts
-        io << "      - " << feature.id << " (" << feature.purpose << ")"
+        io << "      - " << cap.id << " (" << cap.purpose << ")"
       end
 
       io.puts
@@ -198,13 +200,14 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    # Populate the bundle with all features. Only enable
-    # default ones. We'll then enable those that the user
-    # wants.
-    bundle = Bundle.with_all
-    bundle.enable_default
+    # Populate the capability collection with all available
+    # capabilities. Only enable default ones.
+    #
+    # We'll then enable those that the user wants.
+    caps = CapabilityCollection.with_available
+    caps.enable_default
 
-    resolver = RunnableResolver.new(args, bundle, cwd)
+    resolver = RunnableResolver.new(args, caps, cwd)
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
@@ -217,11 +220,11 @@ module Novika::Frontend::CLI
       resolver.apps.reject! do |app|
         next if !app.core? || app.explicit?
 
-        # Also reject features that the app requested!
-        resolver.features.reject! do |feature|
-          next if feature.manual?
+        # Also reject capabilities that the app requested!
+        resolver.capabilities.reject! do |cap|
+          next if cap.manual?
 
-          feature.root == app.path
+          cap.root == app.path
         end
 
         true
@@ -244,13 +247,13 @@ module Novika::Frontend::CLI
       resolver.unknowns.each do |arg|
         Frontend.errln(
           "could not resolve runnable #{arg.colorize.bold}: it's not a file, \
-           directory, shared object, Novika app, or feature ID")
+           directory, shared object, Novika app, or capability id")
       end
       exit(1)
     end
 
     # Create a library for each shared object, and put it in
-    # the bundle.
+    # the capability collection.
     #
     # For each shared object, a library ID is made by taking the stem
     # of path to the object and stripping it of the lib prefix, if it
@@ -261,36 +264,36 @@ module Novika::Frontend::CLI
     resolver.shared_objects.each do |shared_object|
       id = shared_object.stem.lchop("lib")
 
-      if bundle.has_library?(id)
+      if caps.has_library?(id)
         Frontend.errln("multiple libraries with the same id: #{id}")
         exit(1)
       end
 
-      bundle << Library.new(id, shared_object)
+      caps << Library.new(id, shared_object)
     end
 
-    bundle.on_load_library? do |id|
+    caps.on_load_library? do |id|
       Library.new?(id, resolver)
     end
 
-    Engine.new(bundle) do |engine|
-      # Important: wrap bundle block in another block! This is
-      # required to make it possible to ignore bundle block in
+    Engine.new(caps) do |engine|
+      # Important: wrap capability block in another block! This is
+      # required to make it possible to ignore capability block in
       # Image emission, saving some time and space!
-      toplevel = Block.new(bundle.bb)
+      toplevel = Block.new(caps.block)
 
-      resolver.features.each do |req|
+      resolver.capabilities.each do |req|
         allowed =
           req.allowed? do
-            # If we've got it here, then it's in the bundle, therefore,
-            # the feature class exists.
-            purpose = bundle.get_feature_class?(req.id).not_nil!.purpose
+            # If we've got it here, then it's in the capability
+            # collection, therefore, the capability class exists.
+            purpose = caps.get_capability_class?(req.id).not_nil!.purpose
 
             print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
             (gets.try &.downcase) == "y"
           end
 
-        bundle.enable(req.id) if allowed
+        caps.enable(req.id) if allowed
       end
 
       run(engine, toplevel, resolver.folders)

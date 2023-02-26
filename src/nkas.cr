@@ -88,10 +88,10 @@ module Novika::Frontend::Nkas
       exit(1)
     end
 
-    bundle = Bundle.with_all
-    bundle.enable_default
+    caps = CapabilityCollection.with_available
+    caps.enable_default
 
-    resolver = RunnableResolver.new(runnables, bundle)
+    resolver = RunnableResolver.new(runnables, caps)
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
@@ -106,12 +106,12 @@ module Novika::Frontend::Nkas
 
     unless resolver.unknowns.empty?
       resolver.unknowns.each do |arg|
-        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or feature")
+        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or capability id")
       end
       exit(1)
     end
 
-    resolver.features.each { |req| bundle.enable(req.id) }
+    resolver.capabilities.each { |req| caps.enable(req.id) }
 
     # Flatten to paths in proper order!
     paths = [] of Path
@@ -141,7 +141,7 @@ module Novika::Frontend::Nkas
     # Write the image.
     File.open(img = ARGV[-1], "w") do |file|
       Frontend.wait("Writing image #{img}...", ok: "Wrote image #{img}") do
-        file.write_bytes(Novika::Image.new(mod, bundle, compression))
+        file.write_bytes(Novika::Image.new(mod, caps, compression))
       end
     end
   end
