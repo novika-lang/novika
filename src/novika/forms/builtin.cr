@@ -13,6 +13,9 @@ module Novika
     def initialize(@id : String, @desc : String, @code)
     end
 
+    def initialize(@id, @desc, &@code : Engine, Block ->)
+    end
+
     def desc(io : IO)
       io << @desc
     end
