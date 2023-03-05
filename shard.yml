@@ -18,6 +18,8 @@ dependencies:
     github: homonoidian/termbox2.cr
   bindata:
     github: spider-gazelle/bindata
+  lch:
+    github: homonoidian/lch.cr
 
 development_dependencies:
   ameba:

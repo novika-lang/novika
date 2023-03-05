@@ -1,3 +1,5 @@
+require "lch"
+
 module Novika
   struct Color
     include Form
@@ -41,9 +43,9 @@ module Novika
 
     # Returns a tuple with L, C, H of this color.
     def lch : {Decimal, Decimal, Decimal}
-      l, c, h = Color.rgb2lch(r.to_f64, g.to_f64, b.to_f64)
+      l, c, h = LCH.rgb2lch(r.to_i, g.to_i, b.to_i)
 
-      {Decimal.new(l), Decimal.new(c), Decimal.new(h)}
+      {Decimal.new(l.round), Decimal.new(c.round), Decimal.new(h.round)}
     end
 
     # Returns the color closest to this color from *palette*.
@@ -214,145 +216,8 @@ module Novika
       l = l.to_f64
       c = c.to_f64
       h = h.to_f64
-      r, g, b = lch2rgb(l, c, h)
+      r, g, b = LCH.lch2rgb(l, c, h)
       new(Decimal.new(r), Decimal.new(g), Decimal.new(b))
-    end
-
-    # Implementation (pretty much) copy-pasted from
-    #
-    # https://github.com/gka/chroma.js
-
-    # D65 standard referent
-
-    private D65_X = 0.950470
-    private D65_Y =        1
-    private D65_Z = 1.088830
-
-    private LAB_T0 = 4 / 29
-    private LAB_T1 = 6 / 29
-    private LAB_T2 = 3 * LAB_T1 ** 2
-    private LAB_T3 = LAB_T1 ** 3
-
-    # --- LCH -> RGB ---------------------------------------
-
-    private def self.lab_xyz(t)
-      t > LAB_T1 ? t * t * t : LAB_T2 * (t - LAB_T0)
-    end
-
-    private def self.xyz_srgb(n)
-      n <= 0.00304 ? 12.92 * n : 1.055 * n**(1 / 2.4) - 0.055
-    end
-
-    private def self.lab2srgb(l, a, b)
-      y = (l + 16) / 116
-      x = y + a / 500
-      z = y - b / 200
-
-      y = D65_Y * lab_xyz(y)
-      x = D65_X * lab_xyz(x)
-      z = D65_Z * lab_xyz(z)
-
-      r = xyz_srgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z) # D65 -> sRGB
-      g = xyz_srgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z)
-      b = xyz_srgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z)
-
-      {r, g, b}
-    end
-
-    private def self.lch2lab(l, c, h)
-      h = h * Math::PI / 180
-      {l, Math.cos(h) * c, Math.sin(h) * c}
-    end
-
-    private def self.lch2srgb_impl(l, c, h)
-      lab2srgb *lch2lab(l, c, h)
-    end
-
-    # The two methods below are copied from tabatkins's commit
-    # from:
-    #
-    # https://github.com/LeaVerou/css.land/pull/3/commits/d2ec6bdb80317358e2e2e5826b01e87130afd238
-    #
-    # I'm too dumb for all this math stuff so these are pretty
-    # mach copy-pastes, just a bit crystalized.
-
-    # Returns whether an *l*, *c*, *h* color is inside of the
-    # sRGB gamut.
-    private def self.lch_in_srgb?(l, c, h)
-      ε = 0.000005
-      r, g, b = lch2srgb_impl(l, c, h)
-      r.in?(-ε..1 + ε) && g.in?(-ε..1 + ε) && b.in?(-ε..1 + ε)
-    end
-
-    private def self.force_into_srgb(l, c, h)
-      return {l, c, h} if lch_in_srgb?(l, c, h)
-
-      hi_c = c
-      lo_c = 0
-      c /= 2
-
-      while hi_c - lo_c > 0.0001
-        if lch_in_srgb?(l, c, h)
-          lo_c = c
-        else
-          hi_c = c
-        end
-        c = (hi_c + lo_c)/2
-      end
-
-      {l, c, h}
-    end
-
-    # Returns an RGB tuple for the given LCH color.
-    #
-    # The color is forced into the sRGB gamut.
-    protected def self.lch2rgb(l, c, h)
-      r, g, b = lch2srgb_impl *force_into_srgb(l, c, h)
-      {(255 * r).round,
-       (255 * g).round,
-       (255 * b).round}
-    end
-
-    # --- RGB -> LCH ---------------------------------------
-
-    private def self.lab2lch(l, a, b)
-      c = Math.sqrt(a ** 2 + b ** 2)
-      h = (Math.atan2(b, a) * 180 / Math::PI + 360) % 360
-      {l, c, h}
-    end
-
-    private def self.rgb_xyz(n)
-      (n /= 255) <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055)**2.4
-    end
-
-    private def self.xyz_lab(t)
-      t > LAB_T3 ? Math.cbrt(t) : t / LAB_T2 + LAB_T0
-    end
-
-    private def self.rgb2xyz(r, g, b)
-      r = rgb_xyz(r)
-      g = rgb_xyz(g)
-      b = rgb_xyz(b)
-
-      x = xyz_lab((0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / D65_X)
-      y = xyz_lab((0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / D65_Y)
-      z = xyz_lab((0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / D65_Z)
-
-      {x, y, z}
-    end
-
-    private def self.rgb2lab(r, g, b)
-      x, y, z = rgb2xyz(r, g, b)
-      l = 116 * y - 16
-      {l < 0 ? 0 : l, 500 * (x - y), 200 * (y - z)}
-    end
-
-    # Returns an LCH tuple for an RGB color.
-    protected def self.rgb2lch(r, g, b)
-      l, a, b = lab2lch *rgb2lab(r, g, b)
-      {l.round,
-       a.round,
-       b.round}
     end
   end
 end

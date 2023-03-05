@@ -258,7 +258,6 @@ Hottest as in load and load as in performance, of course!
 
 ### Stuff you might want to... borrow!
 
-* LCH/HSL/HSV <-> RGB conversion code: [Novika's color form](https://github.com/novika-lang/novika/blob/rev10/src/novika/forms/color.cr) filled with awful lot of math.
 * A self-sufficient FFI [wrapper](https://github.com/novika-lang/novika/blob/rev10/src/novika/ffi.cr) only a few edits away!
 
 ### And the usual procedure...

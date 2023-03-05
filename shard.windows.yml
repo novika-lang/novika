@@ -16,6 +16,8 @@ targets:
 dependencies:
   bindata:
     github: spider-gazelle/bindata
+  lch:
+    github: homonoidian/lch.cr
 
 development_dependencies:
   ameba:
