@@ -315,12 +315,14 @@ module Novika
       end
 
       if hook = flat_at?(META_ON_SHOVE)
-        default = Builtin.new("__defaultpush__",
-          desc: "( F -- ): default push implementation. Pushes Form to block it was captured in."
+        default = Builtin.new("*-shove",
+          desc: <<-END
+          ( F -- ): default *-shove implementation. Pushes Form to
+           the block it was captured in.
+          END
         ) { |_, stack| impl.call(stack.drop) }
 
-        # TODO: pass capabilities from the engine
-        Engine.exhaust(hook, Block[form, default])
+        Engine.exhaust(Engine.current.capabilities, hook, stack: Block[form, default])
       else
         impl.call(form)
       end
@@ -374,12 +376,11 @@ module Novika
       end
 
       if hook = flat_at?(META_ON_CHERRY)
-        default = Builtin.new("__defaultdrop__",
-          desc: "( -- ): default drop implementation."
+        default = Builtin.new("*-cherry",
+          desc: "( -- ): default *-cherry implementation."
         ) { |_, stack| impl.call }
 
-        # TODO: pass capabilities from the engine
-        Engine.exhaust(hook, Block[default]).top
+        Engine.exhaust(Engine.current.capabilities, hook, Block[default]).top
       else
         impl.call
       end
@@ -742,7 +743,7 @@ module Novika
       end
 
       entry = flat_at?(name) || return
-      result = Engine.exhaust(entry, Block.new.add(self)).top
+      result = Engine.exhaust(Engine.current.capabilities, entry, Block[self]).top
 
       if result.is_a?(Block) && !same?(result)
         # Result is a different block. Increment depth to handle

@@ -39,7 +39,6 @@ describe 'essential lookup' [
 ]
 
 
-
 describe 'block friends' [
   in lang
 
@@ -164,5 +163,127 @@ describe 'block friends' [
     myBlock.bar 'Bye' assert=
     y.bar 'Bye' assert=
     [ x.bar ] 'no value form for \'bar\'' assertDies
+  ]
+]
+
+
+describe 'Engine recursion handling' [
+  in lang
+
+  it should 'die when engine recursion limit is exceeded' [
+    [ [ bI ] @: *asDecimal this ] @: a
+    [ [ aI ] @: *asDecimal this ] @: b
+
+    a $: aI
+    b $: bI
+
+    [ aI bI + ] 'bad engine depth: maybe deep recursion in *as...?' assertDies
+  ]
+]
+
+describe 'Block metawords' [
+  in lang
+
+  it should 'support *-shove and *-cherry' [
+    [
+      [ ] $: controlledStack
+
+      [ "Triggered on shove into this block."
+
+        "default implementation" desc
+          '( F -- ): default *-shove implementation' startsWith? true assert=
+
+        controlledStack gulp
+      ] @: *-shove
+
+      [ "Triggered on cherry from this block."
+
+        "default implementation" desc
+          '( -- ): default *-cherry implementation' startsWith? true assert=
+
+        controlledStack cherry
+      ] @: *-cherry
+
+      [ [ '<controlled stack: ' controlledStack '>' ] ~* ] @: *asQuote
+    ] obj $: b
+
+    b [ 1 2 drop 3 ] there
+    b toQuote '<controlled stack: [ 1 3 ]>' assert=
+  ]
+]
+
+
+describe 'Metawords capability inheritance' [
+  in lang
+
+  it should 'allow metawords to inherit capabilities' [
+    __path__ 'res' disk:join 'decimalA.txt' disk:join $: pathToA
+    __path__ 'res' disk:join 'decimalB.txt' disk:join $: pathToB
+
+    pathToA disk:read '123.456\n' assert=
+    pathToB disk:read '456.123\n' assert=
+
+    [ $: qPath
+
+      this $: self
+
+      [
+        qPath disk:read $: qDecimal
+        qDecimal parseDecimal
+      ] @: *asDecimal
+
+      [
+        nip self 1 + swap open "remove original form, shove self decimal + 1"
+      ] @: *-shove
+
+      [
+        drop self 1 - "remove original cherry impl; give them self decimal - 1"
+      ] @: *-cherry
+
+      this
+    ] @: myDecimalOnDisk
+
+    pathToA myDecimalOnDisk $: a
+    pathToB myDecimalOnDisk $: b
+
+    a prototype (this -> myDecimalOnDisk prototype) same? true assert=
+    b prototype (this -> myDecimalOnDisk prototype) same? true assert=
+
+    a asDecimal a same? true assert=
+    b asDecimal b same? true assert=
+
+    a b + 579.579 assert=
+
+    "shove"
+
+    a [ 1 2 3 ] there 3 fromRight* [ 124.456 124.456 124.456 ] assert=
+
+    b 4 shove
+    b 5 shove
+    b 6 shove
+    b 3 fromRight* [ 457.123 457.123 457.123 ] assert=
+
+    "cherry"
+
+    a [ 1 drop ] there 0 fromRight 124.456 assert=
+    a cherry 122.456 assert=
+    b cherry 455.123 assert=
+  ]
+
+  it should 'allow FFI buildStruct/buildUnion words to inherit capabilities' [
+    __path__ 'res' disk:join 'decimalA.txt' disk:join $: pathToA
+    __path__ 'res' disk:join 'decimalB.txt' disk:join $: pathToB
+
+    [ pathToA disk:read parseDecimal ] @: x
+    [ pathToB disk:read parseDecimal ] @: y
+
+    [ x f64
+      y f64
+    ] ffi:createLayout $: point
+
+    this point ffi:buildStruct~ $: s
+
+    s.x 123.456 assert=
+    s.y 456.123 assert=
   ]
 ]

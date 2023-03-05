@@ -1326,7 +1326,7 @@ module Novika::Capabilities::Impl
         block = stack.top.a(Block)
         block.sort_using! do |a, b|
           # Hacky hack, see the comment above.
-          Engine.exhaust(cmp, Block[a, b]).top.a(Decimal).to_i
+          Engine.exhaust(Engine.current.capabilities, cmp, Block[a, b]).top.a(Decimal).to_i
         end
       end
 
