@@ -1,0 +1,22 @@
+name: Deploy Crystal docs
+on:
+  push:
+    branches: [rev10]
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download source
+        uses: actions/checkout@v3
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+      - name: Install dependencies
+        run: shards install --without-development
+      - name: Build docs
+        run: crystal docs -Dnovika_console
+      - name: Deploy docs
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs
