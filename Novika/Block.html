@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Crystal Docs 1.6.2">
+<meta name="crystal_docs.project_version" content="rev10-dev">
+<meta name="crystal_docs.project_name" content="novika">
+
+
+
+<link href="../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../js/doc.js"></script>
+
+  <meta name="repository-name" content="novika">
+  <title>Novika::Block - novika rev10-dev</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../index.html">
+          novika
+        </a>
+      </h1>
+
+      <span class="project-version">
+        rev10-dev
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="novika/toplevel" data-name="top level namespace">
+      <a href="../toplevel.html">Top Level Namespace</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Array" data-name="array(t)">
+      <a href="../Array.html">Array</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/LibDl" data-name="libdl">
+      <a href="../LibDl.html">LibDl</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="novika/Novika" data-name="novika">
+      <a href="../Novika.html">Novika</a>
+      
+        <ul>
+  
+  <li class=" current" data-id="novika/Novika/Block" data-name="novika::block">
+      <a href="../Novika/Block.html">Block</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockIdMap" data-name="novika::blockidmap">
+      <a href="../Novika/BlockIdMap.html">BlockIdMap</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockPool" data-name="novika::blockpool">
+      <a href="../Novika/BlockPool.html">BlockPool</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockRefSnapshot" data-name="novika::blockrefsnapshot">
+      <a href="../Novika/BlockRefSnapshot.html">BlockRefSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Boolean" data-name="novika::boolean">
+      <a href="../Novika/Boolean.html">Boolean</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BooleanSnapshot" data-name="novika::booleansnapshot">
+      <a href="../Novika/BooleanSnapshot.html">BooleanSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Builtin" data-name="novika::builtin">
+      <a href="../Novika/Builtin.html">Builtin</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BuiltinSnapshot" data-name="novika::builtinsnapshot">
+      <a href="../Novika/BuiltinSnapshot.html">BuiltinSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Byteslice" data-name="novika::byteslice">
+      <a href="../Novika/Byteslice.html">Byteslice</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BytesliceSnapshot" data-name="novika::byteslicesnapshot">
+      <a href="../Novika/BytesliceSnapshot.html">BytesliceSnapshot</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Capabilities" data-name="novika::capabilities">
+      <a href="../Novika/Capabilities.html">Capabilities</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IConsole" data-name="novika::capabilities::iconsole">
+      <a href="../Novika/Capabilities/IConsole.html">IConsole</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IDisk" data-name="novika::capabilities::idisk">
+      <a href="../Novika/Capabilities/IDisk.html">IDisk</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IFrontend" data-name="novika::capabilities::ifrontend">
+      <a href="../Novika/Capabilities/IFrontend.html">IFrontend</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IInk" data-name="novika::capabilities::iink">
+      <a href="../Novika/Capabilities/IInk.html">IInk</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Capabilities/Impl" data-name="novika::capabilities::impl">
+      <a href="../Novika/Capabilities/Impl.html">Impl</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Colors" data-name="novika::capabilities::impl::colors">
+      <a href="../Novika/Capabilities/Impl/Colors.html">Colors</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Console" data-name="novika::capabilities::impl::console">
+      <a href="../Novika/Capabilities/Impl/Console.html">Console</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Disk" data-name="novika::capabilities::impl::disk">
+      <a href="../Novika/Capabilities/Impl/Disk.html">Disk</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Essential" data-name="novika::capabilities::impl::essential">
+      <a href="../Novika/Capabilities/Impl/Essential.html">Essential</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/FFI" data-name="novika::capabilities::impl::ffi">
+      <a href="../Novika/Capabilities/Impl/FFI.html">FFI</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Frontend" data-name="novika::capabilities::impl::frontend">
+      <a href="../Novika/Capabilities/Impl/Frontend.html">Frontend</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Ink" data-name="novika::capabilities::impl::ink">
+      <a href="../Novika/Capabilities/Impl/Ink.html">Ink</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Nki" data-name="novika::capabilities::impl::nki">
+      <a href="../Novika/Capabilities/Impl/Nki.html">Nki</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/System" data-name="novika::capabilities::impl::system">
+      <a href="../Novika/Capabilities/Impl/System.html">System</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
+      <a href="../Novika/Capabilities/ISystem.html">ISystem</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capability" data-name="novika::capability">
+      <a href="../Novika/Capability.html">Capability</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/CapabilityCollection" data-name="novika::capabilitycollection">
+      <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/CapabilityRequest" data-name="novika::capabilityrequest">
+      <a href="../Novika/CapabilityRequest.html">CapabilityRequest</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/CaptureMode" data-name="novika::capturemode">
+      <a href="../Novika/CaptureMode.html">CaptureMode</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Classifier" data-name="novika::classifier">
+      <a href="../Novika/Classifier.html">Classifier</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Color" data-name="novika::color">
+      <a href="../Novika/Color.html">Color</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ColorSnapshot" data-name="novika::colorsnapshot">
+      <a href="../Novika/ColorSnapshot.html">ColorSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Decimal" data-name="novika::decimal">
+      <a href="../Novika/Decimal.html">Decimal</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Dict" data-name="novika::dict">
+      <a href="../Novika/Dict.html">Dict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Engine" data-name="novika::engine">
+      <a href="../Novika/Engine.html">Engine</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Entry" data-name="novika::entry">
+      <a href="../Novika/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Error" data-name="novika::error">
+      <a href="../Novika/Error.html">Error</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/False" data-name="novika::false">
+      <a href="../Novika/False.html">False</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FFI" data-name="novika::ffi">
+      <a href="../Novika/FFI.html">FFI</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FFI/Cchar" data-name="novika::ffi::cchar">
+      <a href="../Novika/FFI/Cchar.html">Cchar</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Cstr" data-name="novika::ffi::cstr">
+      <a href="../Novika/FFI/Cstr.html">Cstr</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/DefaultTypeParser" data-name="novika::ffi::defaulttypeparser">
+      <a href="../Novika/FFI/DefaultTypeParser.html">DefaultTypeParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/F32" data-name="novika::ffi::f32">
+      <a href="../Novika/FFI/F32.html">F32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/F64" data-name="novika::ffi::f64">
+      <a href="../Novika/FFI/F64.html">F64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/FixedArityFunction" data-name="novika::ffi::fixedarityfunction">
+      <a href="../Novika/FFI/FixedArityFunction.html">FixedArityFunction</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ForeignType" data-name="novika::ffi::foreigntype">
+      <a href="../Novika/FFI/ForeignType.html">ForeignType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ForeignValue" data-name="novika::ffi::foreignvalue">
+      <a href="../Novika/FFI/ForeignValue.html">ForeignValue</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Function" data-name="novika::ffi::function">
+      <a href="../Novika/FFI/Function.html">Function</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I16" data-name="novika::ffi::i16">
+      <a href="../Novika/FFI/I16.html">I16</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I32" data-name="novika::ffi::i32">
+      <a href="../Novika/FFI/I32.html">I32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I64" data-name="novika::ffi::i64">
+      <a href="../Novika/FFI/I64.html">I64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I8" data-name="novika::ffi::i8">
+      <a href="../Novika/FFI/I8.html">I8</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/InlineStructType" data-name="novika::ffi::inlinestructtype">
+      <a href="../Novika/FFI/InlineStructType.html">InlineStructType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/InlineStructView" data-name="novika::ffi::inlinestructview">
+      <a href="../Novika/FFI/InlineStructView.html">InlineStructView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Nothing" data-name="novika::ffi::nothing">
+      <a href="../Novika/FFI/Nothing.html">Nothing</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructFieldDesc" data-name="novika::ffi::structfielddesc">
+      <a href="../Novika/FFI/StructFieldDesc.html">StructFieldDesc</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructLayout" data-name="novika::ffi::structlayout">
+      <a href="../Novika/FFI/StructLayout.html">StructLayout</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructReferenceType" data-name="novika::ffi::structreferencetype">
+      <a href="../Novika/FFI/StructReferenceType.html">StructReferenceType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructReferenceView" data-name="novika::ffi::structreferenceview">
+      <a href="../Novika/FFI/StructReferenceView.html">StructReferenceView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructType" data-name="novika::ffi::structtype">
+      <a href="../Novika/FFI/StructType.html">StructType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructView" data-name="novika::ffi::structview">
+      <a href="../Novika/FFI/StructView.html">StructView</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FFI/TypeParser" data-name="novika::ffi::typeparser">
+      <a href="../Novika/FFI/TypeParser.html">TypeParser</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FFI/TypeParser/ForbidsNothing" data-name="novika::ffi::typeparser::forbidsnothing">
+      <a href="../Novika/FFI/TypeParser/ForbidsNothing.html">ForbidsNothing</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U16" data-name="novika::ffi::u16">
+      <a href="../Novika/FFI/U16.html">U16</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U32" data-name="novika::ffi::u32">
+      <a href="../Novika/FFI/U32.html">U32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U64" data-name="novika::ffi::u64">
+      <a href="../Novika/FFI/U64.html">U64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U8" data-name="novika::ffi::u8">
+      <a href="../Novika/FFI/U8.html">U8</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UnionType" data-name="novika::ffi::uniontype">
+      <a href="../Novika/FFI/UnionType.html">UnionType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UnionView" data-name="novika::ffi::unionview">
+      <a href="../Novika/FFI/UnionView.html">UnionView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UntypedPointer" data-name="novika::ffi::untypedpointer">
+      <a href="../Novika/FFI/UntypedPointer.html">UntypedPointer</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ValueTypeParser" data-name="novika::ffi::valuetypeparser">
+      <a href="../Novika/FFI/ValueTypeParser.html">ValueTypeParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/VariadicFunction" data-name="novika::ffi::variadicfunction">
+      <a href="../Novika/FFI/VariadicFunction.html">VariadicFunction</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Folder" data-name="novika::folder">
+      <a href="../Novika/Folder.html">Folder</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ForeignFunction" data-name="novika::foreignfunction">
+      <a href="../Novika/ForeignFunction.html">ForeignFunction</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Form" data-name="novika::form">
+      <a href="../Novika/Form.html">Form</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Frontend" data-name="novika::frontend">
+      <a href="../Novika/Frontend.html">Frontend</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Frontend/CLI" data-name="novika::frontend::cli">
+      <a href="../Novika/Frontend/CLI.html">CLI</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Frontend/Nkas" data-name="novika::frontend::nkas">
+      <a href="../Novika/Frontend/Nkas.html">Nkas</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Frontend/Nki" data-name="novika::frontend::nki">
+      <a href="../Novika/Frontend/Nki.html">Nki</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FrozenBlock" data-name="novika::frozenblock">
+      <a href="../Novika/FrozenBlock.html">FrozenBlock</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Dict" data-name="novika::frozenblock::dict">
+      <a href="../Novika/FrozenBlock/Dict.html">Dict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Friends" data-name="novika::frozenblock::friends">
+      <a href="../Novika/FrozenBlock/Friends.html">Friends</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Tape" data-name="novika::frozenblock::tape">
+      <a href="../Novika/FrozenBlock/Tape.html">Tape</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenEntry" data-name="novika::frozenentry">
+      <a href="../Novika/FrozenEntry.html">FrozenEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Hole" data-name="novika::hole">
+      <a href="../Novika/Hole.html">Hole</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ICapability" data-name="novika::icapability">
+      <a href="../Novika/ICapability.html">ICapability</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ICapabilityClass" data-name="novika::icapabilityclass">
+      <a href="../Novika/ICapabilityClass.html">ICapabilityClass</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IDict" data-name="novika::idict">
+      <a href="../Novika/IDict.html">IDict</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Image" data-name="novika::image">
+      <a href="../Novika/Image.html">Image</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Image/CompressionType" data-name="novika::image::compressiontype">
+      <a href="../Novika/Image/CompressionType.html">CompressionType</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/ImagePayload" data-name="novika::imagepayload">
+      <a href="../Novika/ImagePayload.html">ImagePayload</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/ImagePayload/Capabilities" data-name="novika::imagepayload::capabilities">
+      <a href="../Novika/ImagePayload/Capabilities.html">Capabilities</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ImagePayload/Ver" data-name="novika::imagepayload::ver">
+      <a href="../Novika/ImagePayload/Ver.html">Ver</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IReadableStore" data-name="novika::ireadablestore">
+      <a href="../Novika/IReadableStore.html">IReadableStore</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ISubmittableStore" data-name="novika::isubmittablestore">
+      <a href="../Novika/ISubmittableStore.html">ISubmittableStore</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/LargeDecimalSnapshot" data-name="novika::largedecimalsnapshot">
+      <a href="../Novika/LargeDecimalSnapshot.html">LargeDecimalSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Library" data-name="novika::library">
+      <a href="../Novika/Library.html">Library</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/OpenEntry" data-name="novika::openentry">
+      <a href="../Novika/OpenEntry.html">OpenEntry</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Quote" data-name="novika::quote">
+      <a href="../Novika/Quote.html">Quote</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Quote/GraphemeQuote" data-name="novika::quote::graphemequote">
+      <a href="../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Quote/StringQuote" data-name="novika::quote::stringquote">
+      <a href="../Novika/Quote/StringQuote.html">StringQuote</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuotedWord" data-name="novika::quotedword">
+      <a href="../Novika/QuotedWord.html">QuotedWord</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuotedWordSnapshot" data-name="novika::quotedwordsnapshot">
+      <a href="../Novika/QuotedWordSnapshot.html">QuotedWordSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuoteSnapshot" data-name="novika::quotesnapshot">
+      <a href="../Novika/QuoteSnapshot.html">QuoteSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/RunnableResolver" data-name="novika::runnableresolver">
+      <a href="../Novika/RunnableResolver.html">RunnableResolver</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Scissors" data-name="novika::scissors">
+      <a href="../Novika/Scissors.html">Scissors</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/SmallDecimalSnapshot" data-name="novika::smalldecimalsnapshot">
+      <a href="../Novika/SmallDecimalSnapshot.html">SmallDecimalSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Snapshot" data-name="novika::snapshot">
+      <a href="../Novika/Snapshot.html">Snapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/SnapshotType" data-name="novika::snapshottype">
+      <a href="../Novika/SnapshotType.html">SnapshotType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructLayoutForm" data-name="novika::structlayoutform">
+      <a href="../Novika/StructLayoutForm.html">StructLayoutForm</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructLayoutParser" data-name="novika::structlayoutparser">
+      <a href="../Novika/StructLayoutParser.html">StructLayoutParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructViewForm" data-name="novika::structviewform">
+      <a href="../Novika/StructViewForm.html">StructViewForm</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Substrate" data-name="novika::substrate(t)">
+      <a href="../Novika/Substrate.html">Substrate</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Tape" data-name="novika::tape(t)">
+      <a href="../Novika/Tape.html">Tape</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/True" data-name="novika::true">
+      <a href="../Novika/True.html">True</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/TypedSnapshot" data-name="novika::typedsnapshot">
+      <a href="../Novika/TypedSnapshot.html">TypedSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Word" data-name="novika::word">
+      <a href="../Novika/Word.html">Word</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/WordSnapshot" data-name="novika::wordsnapshot">
+      <a href="../Novika/WordSnapshot.html">WordSnapshot</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Set" data-name="set(t)">
+      <a href="../Set.html">Set</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/String" data-name="string">
+      <a href="../String.html">String</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Union" data-name="union(*t)">
+      <a href="../Union.html">Union</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Novika::Block
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/Block.html">Novika::Block</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>Blocks are fundamental to Novika.</p>
+<p>They are a kind of AST node, they hold continuations and
+are continuations, they are arrays, stacks, and hash tables,
+all at the same time.</p>
+<p>In this sense, blocks have <em>roles</em>. But any block can be
+any role, and change its role as often and whenever it
+wants or needs to.</p>
+
+
+
+
+
+  <h2>
+    <a id="included-modules" class="anchor" href="#included-modules">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Included Modules
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type"><a href="../Novika/Form.html">Novika::Form</a></li>
+    
+      <li class="other-type"><a href="../Novika/IReadableStore.html">Novika::IReadableStore</a></li>
+    
+      <li class="other-type"><a href="../Novika/ISubmittableStore.html">Novika::ISubmittableStore</a></li>
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      novika/forms/block.cr
+    
+    <br/>
+  
+
+
+
+  
+    <h2>
+      <a id="constant-summary" class="anchor" href="#constant-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+      Constant Summary
+    </h2>
+  
+  <dl>
+    
+      <dt class="entry-const" id="AS_BOOLEAN">
+        <strong>AS_BOOLEAN</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asBoolean&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to boolean hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_BYTESLICE">
+        <strong>AS_BYTESLICE</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asByteslice&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to byteslice hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_COLOR">
+        <strong>AS_COLOR</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asColor&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to color hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_DECIMAL">
+        <strong>AS_DECIMAL</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asDecimal&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to decimal hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_QUOTE">
+        <strong>AS_QUOTE</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asQuote&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to quote hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_QUOTED_WORD">
+        <strong>AS_QUOTED_WORD</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asQuotedWord&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to quoted word hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="AS_WORD">
+        <strong>AS_WORD</strong> = <code><span class="t">Word</span>.new(<span class="s">&quot;*asWord&quot;</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Block to word hook name.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="MAX_COUNT_TO_S">
+        <strong>MAX_COUNT_TO_S</strong> = <code><span class="n">128</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Maximum amount of forms to display in block string representation.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="MAX_NESTED_COUNT_TO_S">
+        <strong>MAX_NESTED_COUNT_TO_S</strong> = <code><span class="n">12</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Maximum amount of forms to display in string representation
+of <em>nested</em> blocks.</p>
+      </dd>
+      
+    
+  </dl>
+
+
+
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28parent%3ABlock%7CNil%3Dnil%2Cprototype%3ANil%7CNovika%3A%3ABlock%3Dself%2Ctape%3ANovika%3A%3ATape%28Novika%3A%3AForm%29%7CNil%3Dnil%2Cdict%3ANovika%3A%3AIDict%7CNil%3Dnil%29-class-method" class="signature"><strong>.new</strong>(parent : Block | Nil = <span class="n">nil</span>, prototype : Nil | Novika::Block = <span class="k">self</span>, tape : Novika::Tape(Novika::Form) | Nil = <span class="n">nil</span>, dict : Novika::IDict | Nil = <span class="n">nil</span>)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <h2>
+    <a id="class-method-summary" class="anchor" href="#class-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#%5B%5D%28%2Aforms%3AForm%29-class-method" class="signature"><strong>.[]</strong>(*forms : Form)</a>
+        
+          <div class="summary"><p>Creates and returns an orphan block whose tape will contain <em>forms</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#typedesc-class-method" class="signature"><strong>.typedesc</strong></a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method" class="signature"><strong>.with</strong>(array : Array(Form), leaf : Bool | Nil = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>Creates and returns an orphan block with <em>array</em> being its tape substrate's container.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#%3D%3D%28other%29-instance-method" class="signature"><strong>#==</strong>(other)</a>
+        
+          <div class="summary"><p>Loose equality: for two blocks to be loosely equal, their tapes and their dictionaries must be loosely equal.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#a%28type%3AT.class%2C_depth%3D0%29%3ATforallT-instance-method" class="signature"><strong>#a</strong>(type : <span class="t">T</span>.<span class="k">class</span>, _depth = <span class="n">0</span>) : T forall T</a>
+        
+          <div class="summary"><p>Converts this block into the given <em>type</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#add%28form%3AForm%29%3Aself-instance-method" class="signature"><strong>#add</strong>(form : Form) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Adds <em>form</em> to the tape.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28b%3AInt32%2Ce%3AInt32%29-instance-method" class="signature"><strong>#at</strong>(b : Int32, e : Int32)</a>
+        
+          <div class="summary"><p>Returns a block of forms between <em>b</em> and <em>e</em>, both inclusive.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28name%3AForm%2Centry%3AEntry%29%3Aself-instance-method" class="signature"><strong>#at</strong>(name : Form, entry : Entry) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Binds <em>name</em> to <em>entry</em> in this block's dictionary.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28name%3AForm%2Cform%3AForm%29%3Aself-instance-method" class="signature"><strong>#at</strong>(name : Form, form : Form) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Binds <em>name</em> to <em>form</em> in this block's dictionary.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28index%3AInt32%29%3AForm-instance-method" class="signature"><strong>#at</strong>(index : Int32) : Form</a>
+        
+          <div class="summary"><p>Returns the form at <em>index</em> in the tape.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28name%3AString%2Cdesc%3D%22abuiltin%22%2C%26code%3AEngine%2CBlock-%3E%29%3Aself-instance-method" class="signature"><strong>#at</strong>(name : String, desc = <span class="s">&quot;a builtin&quot;</span>, &code : Engine, Block -> ) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Makes an <code><a href="../Novika/OpenEntry.html">OpenEntry</a></code> called <em>name</em> for <em>code</em> wrapped in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%28name%3AWord%2Cdesc%3D%22abuiltin%22%2C%26code%3AEngine%2CBlock-%3E%29%3Aself-instance-method" class="signature"><strong>#at</strong>(name : Word, desc = <span class="s">&quot;a builtin&quot;</span>, &code : Engine, Block -> ) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Makes an <code><a href="../Novika/OpenEntry.html">OpenEntry</a></code> called <em>name</em> for <em>code</em> wrapped in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#at%3F%28index%29-instance-method" class="signature"><strong>#at?</strong>(index)</a>
+        
+          <div class="summary"><p>Returns the form at <em>index</em>, or nil.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#befriend%28other%3ABlock%29-instance-method" class="signature"><strong>#befriend</strong>(other : Block)</a>
+        
+          <div class="summary"><p>Adds <em>other</em> to the friendlist of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#can_be%3F%28type%3AT.class%29forallT-instance-method" class="signature"><strong>#can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) forall T</a>
+        
+          <div class="summary"><p>Returns whether this block implements hook(s) needed for behaving like <em>type</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#count-instance-method" class="signature"><strong>#count</strong></a>
+        
+          <div class="summary"><p>Returns the amount of forms in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cursor-instance-method" class="signature"><strong>#cursor</strong></a>
+        
+          <div class="summary"><p>Returns the cursor position in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#desc%28io%3AIO%29-instance-method" class="signature"><strong>#desc</strong>(io : IO)</a>
+        
+          <div class="summary"><p>Appends a string description of this form to <em>io</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#describe_with%3F%28comment%3AString%2Cforce%3Dfalse%29%3AString%7CNil-instance-method" class="signature"><strong>#describe_with?</strong>(comment : String, force = <span class="n">false</span>) : String | Nil</a>
+        
+          <div class="summary"><p>Sets the block comment of this block to <em>comment</em> in case it doesn't have a comment already.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#drop%3AForm-instance-method" class="signature"><strong>#drop</strong> : Form</a>
+        
+          <div class="summary"><p>Removes and returns the top form.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#dupe%3Aself-instance-method" class="signature"><strong>#dupe</strong> : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Duplicates the form before the cursor, dies if none.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each%28%26%29-instance-method" class="signature"><strong>#each</strong>(&)</a>
+        
+          <div class="summary"><p>Yields all forms in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_friend%28%26%29-instance-method" class="signature"><strong>#each_friend</strong>(&)</a>
+        
+          <div class="summary"><p>Yields friends of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_neighbor%28payload%3ABlock-%3ET%7CNil%2Cvisited%3ABlockIdMap%7CNil%3Dnil%29forallT-instance-method" class="signature"><strong>#each_neighbor</strong>(payload : Block -> T | Nil, visited : BlockIdMap | Nil = <span class="n">nil</span>) forall T</a>
+        
+          <div class="summary"><p>Explores neighbor blocks of this block, calls <em>payload</em> with each such neighbor block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_neighbor%28visited%3ABlockIdMap%7CNil%3Dnil%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method" class="signature"><strong>#each_neighbor</strong>(visited : BlockIdMap | Nil = <span class="n">nil</span>, &payload : Block -> T | Nil) forall T</a>
+        
+          <div class="summary"><p>Explores neighbor blocks of this block, calls <em>payload</em> with each such neighbor block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method" class="signature"><strong>#each_relative</strong>(payload : Block -> T | Nil, skip : BlockIdMap | Nil = <span class="n">nil</span>, skip_self = <span class="n">false</span>) forall T</a>
+        
+          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy neighbors, calls <em>payload</em> with each such relative.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_relative%28skip%3Dnil%2Cskip_self%3Dfalse%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method" class="signature"><strong>#each_relative</strong>(skip = <span class="n">nil</span>, skip_self = <span class="n">false</span>, &payload : Block -> T | Nil) forall T</a>
+        
+          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy neighbors, calls <em>payload</em> with each such relative.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#effect%28io%29-instance-method" class="signature"><strong>#effect</strong>(io)</a>
+        
+          <div class="summary"><p>Generates and returns a description for the stack effect of this form.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#eject%3AForm-instance-method" class="signature"><strong>#eject</strong> : Form</a>
+        
+          <div class="summary"><p>Drops and returns the element after the cursor.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#entry_for%3F%28name%3AForm%29%3AEntry%7CNil-instance-method" class="signature"><strong>#entry_for?</strong>(name : Form) : Entry | Nil</a>
+        
+          <div class="summary"><p>Returns the dictionary entry for <em>name</em>, or nil.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#flat_at%3F%28name%3AForm%29%3AEntry%7CNil-instance-method" class="signature"><strong>#flat_at?</strong>(name : Form) : Entry | Nil</a>
+        
+          <div class="summary"><p>Returns the dictionary entry corresponding to <em>name</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#flat_has%3F%28name%3AForm%29%3ABool-instance-method" class="signature"><strong>#flat_has?</strong>(name : Form) : Bool</a>
+        
+          <div class="summary"><p>Returns whether this block's (and this block's only) dictionary has an entry corresponding to <em>name</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#form_for%3F%28name%3AForm%29%3AForm%7CNil-instance-method" class="signature"><strong>#form_for?</strong>(name : Form) : Form | Nil</a>
+        
+          <div class="summary"><p>Returns the value form for an entry with the given <em>name</em>, or nil if no such entry exists.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_comment%3F%3ABool-instance-method" class="signature"><strong>#has_comment?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns whether this block has a comment.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_dict%3F%3ABool-instance-method" class="signature"><strong>#has_dict?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns whether this block has a dict.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_form_for%3F%28name%3AForm%29%3ABool-instance-method" class="signature"><strong>#has_form_for?</strong>(name : Form) : Bool</a>
+        
+          <div class="summary"><p>Returns whether this store has an entry with the given <em>name</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_friends%3F-instance-method" class="signature"><strong>#has_friends?</strong></a>
+        
+          <div class="summary"><p>Returns whether this block has any friends.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_tape%3F%3ABool-instance-method" class="signature"><strong>#has_tape?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns whether this block has a tape.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#import%21%28fromdonor%3ABlock%29%3Aself-instance-method" class="signature"><strong>#import!</strong>(from donor : Block) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Imports entries from <em>donor</em> to this block's dictionary by mutating this block's dictionary.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#includes%3F%28other%3AForm%29-instance-method" class="signature"><strong>#includes?</strong>(other : Form)</a>
+        
+          <div class="summary"><p>Returns whether the tape of this block includes <em>other</em>, as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#inject%28form%3AForm%29-instance-method" class="signature"><strong>#inject</strong>(form : Form)</a>
+        
+          <div class="summary"><p>Adds <em>form</em> after the cursor.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#instance%28parentnew_parent%3ABlock%3Dself%2C__tr%3Dnil%29%3ABlock-instance-method" class="signature"><strong>#instance</strong>(parent new_parent : Block = <span class="k">self</span>, __tr = <span class="n">nil</span>) : Block</a>
+        
+          <div class="summary"><p>Creates and returns an instance of this block, under the given <em>parent</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#ls%3AArray%28Form%29-instance-method" class="signature"><strong>#ls</strong> : Array(Form)</a>
+        
+          <div class="summary"><p>Lists all name forms in this block's dictionary.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#next%3F%3AForm%7CNil-instance-method" class="signature"><strong>#next?</strong> : Form | Nil</a>
+        
+          <div class="summary"><p>See <code><a href="../Novika/Tape.html#next%3F-instance-method">Tape#next?</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#on_open%28engine%3AEngine%2Cstack%3ABlock%3Dengine.stack%29%3Aself-instance-method" class="signature"><strong>#on_open</strong>(engine : Engine, stack : Block = engine.stack) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Schedules this block for execution in <em>engine</em> using the safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code>).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#opens%3F%28name%3AForm%29-instance-method" class="signature"><strong>#opens?</strong>(name : Form)</a>
+        
+          <div class="summary"><p>Returns whether <em>name</em> opens its value form, as defined in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#parent%3ABlock%7CNil-instance-method" class="signature"><strong>#parent</strong> : Block | Nil</a>
+        
+          <div class="summary"><p>Holds a reference to the parent block (them all in a linked list of ancestors).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#parent%3D%28parent%3ABlock%7CNil%29-instance-method" class="signature"><strong>#parent=</strong>(parent : Block | Nil)</a>
+        
+          <div class="summary"><p>Holds a reference to the parent block (them all in a linked list of ancestors).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#parent%3F%3ABlock%7CNil%7CNil-instance-method" class="signature"><strong>#parent?</strong> : Block | Nil | Nil</a>
+        
+          <div class="summary"><p>Holds a reference to the parent block (them all in a linked list of ancestors).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#paste%28elems%3ABlock%29-instance-method" class="signature"><strong>#paste</strong>(elems : Block)</a>
+        
+          <div class="summary"><p>Mutably adds elements before the cursor in <em>elems</em> block's tape after the cursor in this block's tape.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#prototype%3ABlock-instance-method" class="signature"><strong>#prototype</strong> : Block</a>
+        
+          <div class="summary"><p>Returns the prototype of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#prototype%3D%28prototype%3ABlock%29-instance-method" class="signature"><strong>#prototype=</strong>(prototype : Block)</a>
+        
+          <div class="summary"><p>Returns the prototype of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#prototype%3F%3ABlock%7CNil-instance-method" class="signature"><strong>#prototype?</strong> : Block | Nil</a>
+        
+          <div class="summary"><p>Returns the prototype of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pushes%3F%28name%3AForm%29-instance-method" class="signature"><strong>#pushes?</strong>(name : Form)</a>
+        
+          <div class="summary"><p>Returns whether <em>name</em> pushes its value form, as defined in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#resub%28other%3ABlock%29%3Aself-instance-method" class="signature"><strong>#resub</strong>(other : Block) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Replaces this block's tape with <em>other</em>'s.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#shallow%3ABlock-instance-method" class="signature"><strong>#shallow</strong> : Block</a>
+        
+          <div class="summary"><p>Returns a shallow copy of this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#slice%3ATuple%28Block%2CBlock%29-instance-method" class="signature"><strong>#slice</strong> : Tuple(Block, Block)</a>
+        
+          <div class="summary"><p>Slices this block at cursor.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#slurp%28source%3AString%29%3Aself-instance-method" class="signature"><strong>#slurp</strong>(source : String) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Parses all forms in string <em>source</em>, and adds them to this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29-instance-method" class="signature"><strong>#sort_using!</strong>(&cmp : Form, Form -> Int32)</a>
+        
+          <div class="summary"><p>Sorts this block's tape inplace, calls <em>cmp</em> comparator proc for each form pair for a comparison integer -1, 0, or 1.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#spot%28io%2Cvicinity%3D10%29-instance-method" class="signature"><strong>#spot</strong>(io, vicinity = <span class="n">10</span>)</a>
+        
+          <div class="summary"><p>Appends a string representation of this block to <em>io</em> in which only forms in the negative and positive <em>vicinity</em> of this block's cursor are present, and the word before the cursor is emphasized.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#submit%3F%28name%3AForm%2Cform%3AForm%29-instance-method" class="signature"><strong>#submit?</strong>(name : Form, form : Form)</a>
+        
+          <div class="summary"><p>Submits value <em>form</em> to an entry with the given <em>name</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#swap%3Aself-instance-method" class="signature"><strong>#swap</strong> : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Swaps two forms before the cursor, dies if none.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#thru-instance-method" class="signature"><strong>#thru</strong></a>
+        
+          <div class="summary"><p>Returns form after cursor, and moves cursor past it.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to%28index%3AInt32%29%3Aself-instance-method" class="signature"><strong>#to</strong>(index : Int32) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Moves tape cursor to <em>index</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_quote%3AQuote-instance-method" class="signature"><strong>#to_quote</strong> : Quote</a>
+        
+          <div class="summary"><p>Returns this form's quote representation.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_s%28io%29-instance-method" class="signature"><strong>#to_s</strong>(io)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_tape_block%3Aself-instance-method" class="signature"><strong>#to_tape_block</strong> : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Returns tape block for this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#top%3AForm-instance-method" class="signature"><strong>#top</strong> : Form</a>
+        
+          <div class="summary"><p>Returns the top form, dies if none.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#unfriend%28other%3ABlock%29-instance-method" class="signature"><strong>#unfriend</strong>(other : Block)</a>
+        
+          <div class="summary"><p>Removes <em>other</em> from the friendlist of this block.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../Novika/ISubmittableStore.html">Novika::ISubmittableStore</a></code></h3>
+  
+  
+    <a href="../Novika/ISubmittableStore.html#submit%28name%3AForm%2Cform%3AForm%29-instance-method" class="tooltip">
+      <span>submit(name : Form, form : Form)</span>
+    submit</a>, 
+    
+  
+    <a href="../Novika/ISubmittableStore.html#submit%3F%28name%3AForm%2Cform%3AForm%29-instance-method" class="tooltip">
+      <span>submit?(name : Form, form : Form)</span>
+    submit?</a>
+    
+  
+
+
+    
+
+
+    
+
+  <h3>Class methods inherited from module <code><a href="../Novika/ISubmittableStore.html">Novika::ISubmittableStore</a></code></h3>
+  
+  
+    <a href="../Novika/ISubmittableStore.html#typedesc-class-method" class="tooltip">
+      <span>typedesc</span>
+    typedesc</a>
+    
+  
+
+
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../Novika/IReadableStore.html">Novika::IReadableStore</a></code></h3>
+  
+  
+    <a href="../Novika/IReadableStore.html#form_for%28name%3AForm%29%3AForm-instance-method" class="tooltip">
+      <span>form_for(name : Form) : Form</span>
+    form_for</a>, 
+    
+  
+    <a href="../Novika/IReadableStore.html#form_for%3F%28name%3AForm%29%3AForm%7CNil-instance-method" class="tooltip">
+      <span>form_for?(name : Form) : Form | Nil</span>
+    form_for?</a>, 
+    
+  
+    <a href="../Novika/IReadableStore.html#has_form_for%3F%28name%3AForm%29%3ABool-instance-method" class="tooltip">
+      <span>has_form_for?(name : Form) : Bool</span>
+    has_form_for?</a>, 
+    
+  
+    <a href="../Novika/IReadableStore.html#opens%3F%28name%3AForm%29-instance-method" class="tooltip">
+      <span>opens?(name : Form)</span>
+    opens?</a>, 
+    
+  
+    <a href="../Novika/IReadableStore.html#pushes%3F%28name%3AForm%29-instance-method" class="tooltip">
+      <span>pushes?(name : Form)</span>
+    pushes?</a>
+    
+  
+
+
+    
+
+
+    
+
+  <h3>Class methods inherited from module <code><a href="../Novika/IReadableStore.html">Novika::IReadableStore</a></code></h3>
+  
+  
+    <a href="../Novika/IReadableStore.html#typedesc-class-method" class="tooltip">
+      <span>typedesc</span>
+    typedesc</a>
+    
+  
+
+
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../Novika/Form.html">Novika::Form</a></code></h3>
+  
+  
+    <a href="../Novika/Form.html#a%28type%3AT.class%29%3ATforallT-instance-method" class="tooltip">
+      <span>a(type : <span class="t">T</span>.<span class="k">class</span>) : T forall T</span>
+    a</a>, 
+    
+  
+    <a href="../Novika/Form.html#desc%28io%3AIO%29-instance-method" class="tooltip">
+      <span>desc(io : IO)<br/>desc : String</span>
+    desc</a>, 
+    
+  
+    <a href="../Novika/Form.html#die%28details%3AString%29-instance-method" class="tooltip">
+      <span>die(details : String)</span>
+    die</a>, 
+    
+  
+    <a href="../Novika/Form.html#effect%28io%29-instance-method" class="tooltip">
+      <span>effect(io)<br/>effect</span>
+    effect</a>, 
+    
+  
+    <a href="../Novika/Form.html#on_open%28engine%3AEngine%29%3Aself-instance-method" class="tooltip">
+      <span>on_open(engine : Engine) : <span class="k">self</span></span>
+    on_open</a>, 
+    
+  
+    <a href="../Novika/Form.html#on_parent_open%28engine%3AEngine%29%3Aself-instance-method" class="tooltip">
+      <span>on_parent_open(engine : Engine) : <span class="k">self</span></span>
+    on_parent_open</a>, 
+    
+  
+    <a href="../Novika/Form.html#onto%28block%3ABlock%29%3Aself-instance-method" class="tooltip">
+      <span>onto(block : Block) : <span class="k">self</span></span>
+    onto</a>, 
+    
+  
+    <a href="../Novika/Form.html#sel%28a%2Cb%29-instance-method" class="tooltip">
+      <span>sel(a, b)</span>
+    sel</a>, 
+    
+  
+    <a href="../Novika/Form.html#to_quote%3AQuote-instance-method" class="tooltip">
+      <span>to_quote : Quote</span>
+    to_quote</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(parent:Block|Nil=nil,prototype:Nil|Novika::Block=self,tape:Novika::Tape(Novika::Form)|Nil=nil,dict:Novika::IDict|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(parent : <a href="../Novika/Block.html">Block</a> | Nil = <span class="n">nil</span>, prototype : Nil | <a href="../Novika/Block.html">Novika::Block</a> = <span class="k">self</span>, tape : <a href="../Novika/Tape.html">Novika::Tape</a>(<a href="../Novika/Form.html">Novika::Form</a>) | Nil = <span class="n">nil</span>, dict : <a href="../Novika/IDict.html">Novika::IDict</a> | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28parent%3ABlock%7CNil%3Dnil%2Cprototype%3ANil%7CNovika%3A%3ABlock%3Dself%2Ctape%3ANovika%3A%3ATape%28Novika%3A%3AForm%29%7CNil%3Dnil%2Cdict%3ANovika%3A%3AIDict%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>
+    <a id="class-method-detail" class="anchor" href="#class-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Class Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="[](*forms:Form)-class-method">
+      <div class="signature">
+        
+        def self.<strong>[]</strong>(*forms : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#%5B%5D%28%2Aforms%3AForm%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates and returns an orphan block whose tape will
+contain <em>forms</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="typedesc-class-method">
+      <div class="signature">
+        
+        def self.<strong>typedesc</strong>
+
+        <a class="method-permalink" href="#typedesc-class-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="with(array:Array(Form),leaf:Bool|Nil=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>with</strong>(array : <a href="../Array.html">Array</a>(<a href="../Novika/Form.html">Form</a>), leaf : Bool | Nil = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates and returns an orphan block with <em>array</em> being
+its tape substrate's container. See <code><a href="../Novika/Tape.html#for%28elements%3AArray%28T%29%29-class-method">Tape.for</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="==(other)-instance-method">
+      <div class="signature">
+        
+        def <strong>==</strong>(other)
+
+        <a class="method-permalink" href="#%3D%3D%28other%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Loose equality: for two blocks to be loosely equal, their
+tapes and their dictionaries must be loosely equal.</p>
+<p>Supports recursive (reflection) equality, e.g.:</p>
+<pre><code class="language-novika">[ ] $: a
+a a shove
+a first a = &quot;=&gt; true&quot;</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="a(type:T.class,_depth=0):TforallT-instance-method">
+      <div class="signature">
+        
+        def <strong>a</strong>(type : <span class="t">T</span>.<span class="k">class</span>, _depth = <span class="n">0</span>) : T forall T
+
+        <a class="method-permalink" href="#a%28type%3AT.class%2C_depth%3D0%29%3ATforallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Converts this block into the given <em>type</em>. Code execution
+may be required, hence the need for <em>engine</em>. If failed,
+same as <code><a href="../Novika/Form.html#a%28type%3AT.class%29%3ATforallT-instance-method">Form#a</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="add(form:Form):self-instance-method">
+      <div class="signature">
+        
+        def <strong>add</strong>(form : <a href="../Novika/Form.html">Form</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#add%28form%3AForm%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adds <em>form</em> to the tape.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(b:Int32,e:Int32)-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(b : Int32, e : Int32)
+
+        <a class="method-permalink" href="#at%28b%3AInt32%2Ce%3AInt32%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns a block of forms between <em>b</em> and <em>e</em>, both
+inclusive. Clamps <em>b</em> and <em>e</em> to bounds.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(name:Form,entry:Entry):self-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(name : <a href="../Novika/Form.html">Form</a>, entry : <a href="../Novika/Entry.html">Entry</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#at%28name%3AForm%2Centry%3AEntry%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Binds <em>name</em> to <em>entry</em> in this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(name:Form,form:Form):self-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(name : <a href="../Novika/Form.html">Form</a>, form : <a href="../Novika/Form.html">Form</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#at%28name%3AForm%2Cform%3AForm%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Binds <em>name</em> to <em>form</em> in this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(index:Int32):Form-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(index : Int32) : <a href="../Novika/Form.html">Form</a>
+
+        <a class="method-permalink" href="#at%28index%3AInt32%29%3AForm-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the form at <em>index</em> in the tape. Dies if <em>index</em>
+is out of bounds. See <code><a href="../Novika/Tape.html#at%3F%28%2Aargs%2C%2A%2Aoptions%29-instance-method">Tape#at?</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(name:String,desc=&quot;abuiltin&quot;,&amp;code:Engine,Block-&gt;):self-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(name : <a href="../String.html">String</a>, desc = <span class="s">&quot;a builtin&quot;</span>, &code : <a href="../Novika/Engine.html">Engine</a>, <a href="../Novika/Block.html">Block</a> -> ) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#at%28name%3AString%2Cdesc%3D%22abuiltin%22%2C%26code%3AEngine%2CBlock-%3E%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Makes an <code><a href="../Novika/OpenEntry.html">OpenEntry</a></code> called <em>name</em> for <em>code</em> wrapped
+in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at(name:Word,desc=&quot;abuiltin&quot;,&amp;code:Engine,Block-&gt;):self-instance-method">
+      <div class="signature">
+        
+        def <strong>at</strong>(name : <a href="../Novika/Word.html">Word</a>, desc = <span class="s">&quot;a builtin&quot;</span>, &code : <a href="../Novika/Engine.html">Engine</a>, <a href="../Novika/Block.html">Block</a> -> ) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#at%28name%3AWord%2Cdesc%3D%22abuiltin%22%2C%26code%3AEngine%2CBlock-%3E%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Makes an <code><a href="../Novika/OpenEntry.html">OpenEntry</a></code> called <em>name</em> for <em>code</em> wrapped
+in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="at?(index)-instance-method">
+      <div class="signature">
+        
+        def <strong>at?</strong>(index)
+
+        <a class="method-permalink" href="#at%3F%28index%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the form at <em>index</em>, or nil.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="befriend(other:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>befriend</strong>(other : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#befriend%28other%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adds <em>other</em> to the friendlist of this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="can_be?(type:T.class)forallT-instance-method">
+      <div class="signature">
+        
+        def <strong>can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) forall T
+
+        <a class="method-permalink" href="#can_be%3F%28type%3AT.class%29forallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block implements hook(s) needed
+for behaving like <em>type</em>. See also: <code>a(type)</code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="count-instance-method">
+      <div class="signature">
+        
+        def <strong>count</strong>
+
+        <a class="method-permalink" href="#count-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the amount of forms in this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cursor-instance-method">
+      <div class="signature">
+        
+        def <strong>cursor</strong>
+
+        <a class="method-permalink" href="#cursor-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the cursor position in this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="desc(io:IO)-instance-method">
+      <div class="signature">
+        
+        def <strong>desc</strong>(io : IO)
+
+        <a class="method-permalink" href="#desc%28io%3AIO%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Form.html">Novika::Form</a>
+            </div>
+          
+          <p>Appends a string description of this form to <em>io</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="describe_with?(comment:String,force=false):String|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>describe_with?</strong>(comment : <a href="../String.html">String</a>, force = <span class="n">false</span>) : <a href="../String.html">String</a> | Nil
+
+        <a class="method-permalink" href="#describe_with%3F%28comment%3AString%2Cforce%3Dfalse%29%3AString%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Sets the block comment of this block to <em>comment</em> in
+case it doesn't have a comment already.</p>
+<p>Setting the comment can also be forced by making <em>force</em> true.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="drop:Form-instance-method">
+      <div class="signature">
+        
+        def <strong>drop</strong> : <a href="../Novika/Form.html">Form</a>
+
+        <a class="method-permalink" href="#drop%3AForm-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Removes and returns the top form. Dies if none.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="dupe:self-instance-method">
+      <div class="signature">
+        
+        def <strong>dupe</strong> : <span class="k">self</span>
+
+        <a class="method-permalink" href="#dupe%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Duplicates the form before the cursor, dies if none.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each</strong>(&)
+
+        <a class="method-permalink" href="#each%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields all forms in this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_friend(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_friend</strong>(&)
+
+        <a class="method-permalink" href="#each_friend%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields friends of this block. Asserts each is a block,
+otherwise, dies (e.g. the user may have mistakenly
+added some other form).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_neighbor(payload:Block-&gt;T|Nil,visited:BlockIdMap|Nil=nil)forallT-instance-method">
+      <div class="signature">
+        
+        def <strong>each_neighbor</strong>(payload : <a href="../Novika/Block.html">Block</a> -> T | Nil, visited : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>) forall T
+
+        <a class="method-permalink" href="#each_neighbor%28payload%3ABlock-%3ET%7CNil%2Cvisited%3ABlockIdMap%7CNil%3Dnil%29forallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Explores neighbor blocks of this block, calls <em>payload</em> with
+each such neighbor block. Records all neighbors it visited in
+<em>visited</em>.</p>
+<p><em>Explicitly adjacent</em> (marked as <em>ExA1-2</em> in the diagram below)
+neighbor blocks are blocks found in the dictionary and tape of
+this block (marked as <em>B</em> in the diagram below).</p>
+<p><em>Implicitly adjacent</em> (marked as <em>ImA1-4</em> in the diagram below)
+neighbor blocks are blocks in the tapes and dictionaries of
+explicitly adjacent neighbor blocks, and so on, recursively.</p>
+<pre><code class="language-text">┌───────────────────────────────────────┐
+│ B                                     │
+│  ┌───────────────┐ ┌───────────────┐  │
+│  │ ExA1          │ │ ExA2          │  │
+│  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
+│  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+│  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
+│  │    ...    ... │ │    ...    ... │  │
+│  └───────────────┘ └───────────────┘  │
+│                                       │
+└───────────────────────────────────────┘</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_neighbor(visited:BlockIdMap|Nil=nil,&amp;payload:Block-&gt;T|Nil)forallT-instance-method">
+      <div class="signature">
+        
+        def <strong>each_neighbor</strong>(visited : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, &payload : <a href="../Novika/Block.html">Block</a> -> T | Nil) forall T
+
+        <a class="method-permalink" href="#each_neighbor%28visited%3ABlockIdMap%7CNil%3Dnil%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Explores neighbor blocks of this block, calls <em>payload</em> with
+each such neighbor block. Records all neighbors it visited in
+<em>visited</em>.</p>
+<p><em>Explicitly adjacent</em> (marked as <em>ExA1-2</em> in the diagram below)
+neighbor blocks are blocks found in the dictionary and tape of
+this block (marked as <em>B</em> in the diagram below).</p>
+<p><em>Implicitly adjacent</em> (marked as <em>ImA1-4</em> in the diagram below)
+neighbor blocks are blocks in the tapes and dictionaries of
+explicitly adjacent neighbor blocks, and so on, recursively.</p>
+<pre><code class="language-text">┌───────────────────────────────────────┐
+│ B                                     │
+│  ┌───────────────┐ ┌───────────────┐  │
+│  │ ExA1          │ │ ExA2          │  │
+│  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
+│  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+│  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
+│  │    ...    ... │ │    ...    ... │  │
+│  └───────────────┘ └───────────────┘  │
+│                                       │
+└───────────────────────────────────────┘</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_relative(payload:Block-&gt;T|Nil,skip:BlockIdMap|Nil=nil,skip_self=false)forallT-instance-method">
+      <div class="signature">
+        
+        def <strong>each_relative</strong>(payload : <a href="../Novika/Block.html">Block</a> -> T | Nil, skip : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, skip_self = <span class="n">false</span>) forall T
+
+        <a class="method-permalink" href="#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Explores this block's relatives, i.e., its vertical (parent) and
+horizontal (friend) hierarchy neighbors, calls <em>payload</em> with
+each such relative.</p>
+<p>When <em>payload</em> returns a value of type <em>T</em> (a non-nil),
+exploration terminates. When <em>payload</em> returns nil, exploration
+continues.</p>
+<p>The order is as follows, and is exactly Novika's <em>lookup order</em>.
+Note that here, &quot;yielded X&quot; means &quot;called <em>payload</em> with X&quot;.</p>
+<ul>
+<li>First, this block is yielded.</li>
+<li>Then, the parent blocks of this block are yielded, starting
+from the immediate parent and ending with the toplevel (god)
+block.</li>
+<li>Then, this method recurses on friends of this block.</li>
+<li>Then, this method recurses on friends of parent blocks.</li>
+</ul>
+<p><em>skip</em> can be used to disable exploration of specific blocks,
+together with their (unexplored) vertical and horizontal
+hierarchy.</p>
+<p><em>skip_self</em> can be set to true to disable calling <em>payload</em> for
+this block, and only in this particular <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> call.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_relative(skip=nil,skip_self=false,&amp;payload:Block-&gt;T|Nil)forallT-instance-method">
+      <div class="signature">
+        
+        def <strong>each_relative</strong>(skip = <span class="n">nil</span>, skip_self = <span class="n">false</span>, &payload : <a href="../Novika/Block.html">Block</a> -> T | Nil) forall T
+
+        <a class="method-permalink" href="#each_relative%28skip%3Dnil%2Cskip_self%3Dfalse%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Explores this block's relatives, i.e., its vertical (parent) and
+horizontal (friend) hierarchy neighbors, calls <em>payload</em> with
+each such relative.</p>
+<p>When <em>payload</em> returns a value of type <em>T</em> (a non-nil),
+exploration terminates. When <em>payload</em> returns nil, exploration
+continues.</p>
+<p>The order is as follows, and is exactly Novika's <em>lookup order</em>.
+Note that here, &quot;yielded X&quot; means &quot;called <em>payload</em> with X&quot;.</p>
+<ul>
+<li>First, this block is yielded.</li>
+<li>Then, the parent blocks of this block are yielded, starting
+from the immediate parent and ending with the toplevel (god)
+block.</li>
+<li>Then, this method recurses on friends of this block.</li>
+<li>Then, this method recurses on friends of parent blocks.</li>
+</ul>
+<p><em>skip</em> can be used to disable exploration of specific blocks,
+together with their (unexplored) vertical and horizontal
+hierarchy.</p>
+<p><em>skip_self</em> can be set to true to disable calling <em>payload</em> for
+this block, and only in this particular <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> call.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="effect(io)-instance-method">
+      <div class="signature">
+        
+        def <strong>effect</strong>(io)
+
+        <a class="method-permalink" href="#effect%28io%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Form.html">Novika::Form</a>
+            </div>
+          
+          <p>Generates and returns a description for the stack effect
+of this form.</p>
+<p>For all forms except blocks and builtins, simply returns
+their string representation.</p>
+<p>For blocks and builtins, tries to extract a <code>( ... -- ... )</code>
+(but see <code><a href="../Novika.html#EFFECT_PATTERN">EFFECT_PATTERN</a></code>) from their corresponding
+comment. If could not extract or no comment, returns
+'a block' for blocks and 'native code' for builtins.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="eject:Form-instance-method">
+      <div class="signature">
+        
+        def <strong>eject</strong> : <a href="../Novika/Form.html">Form</a>
+
+        <a class="method-permalink" href="#eject%3AForm-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Drops and returns the element after the cursor. Dies if
+cursor is at the end.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="entry_for?(name:Form):Entry|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>entry_for?</strong>(name : <a href="../Novika/Form.html">Form</a>) : <a href="../Novika/Entry.html">Entry</a> | Nil
+
+        <a class="method-permalink" href="#entry_for%3F%28name%3AForm%29%3AEntry%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the dictionary entry for <em>name</em>, or nil. See
+<code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> for a detailed description of lookup
+order etc.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="flat_at?(name:Form):Entry|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>flat_at?</strong>(name : <a href="../Novika/Form.html">Form</a>) : <a href="../Novika/Entry.html">Entry</a> | Nil
+
+        <a class="method-permalink" href="#flat_at%3F%28name%3AForm%29%3AEntry%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the dictionary entry corresponding to <em>name</em>.
+Does not traverse the block hierarchy.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="flat_has?(name:Form):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>flat_has?</strong>(name : <a href="../Novika/Form.html">Form</a>) : Bool
+
+        <a class="method-permalink" href="#flat_has%3F%28name%3AForm%29%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block's (and this block's only)
+dictionary has an entry corresponding to <em>name</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="form_for?(name:Form):Form|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>form_for?</strong>(name : <a href="../Novika/Form.html">Form</a>) : <a href="../Novika/Form.html">Form</a> | Nil
+
+        <a class="method-permalink" href="#form_for%3F%28name%3AForm%29%3AForm%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
+            </div>
+          
+          <p>Returns the value form for an entry with the given <em>name</em>, or
+nil if no such entry exists.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_comment?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>has_comment?</strong> : Bool
+
+        <a class="method-permalink" href="#has_comment%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block has a comment.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_dict?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>has_dict?</strong> : Bool
+
+        <a class="method-permalink" href="#has_dict%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block has a dict.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_form_for?(name:Form):Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>has_form_for?</strong>(name : <a href="../Novika/Form.html">Form</a>) : Bool
+
+        <a class="method-permalink" href="#has_form_for%3F%28name%3AForm%29%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
+            </div>
+          
+          <p>Returns whether this store has an entry with the given <em>name</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_friends?-instance-method">
+      <div class="signature">
+        
+        def <strong>has_friends?</strong>
+
+        <a class="method-permalink" href="#has_friends%3F-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block has any friends.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_tape?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>has_tape?</strong> : Bool
+
+        <a class="method-permalink" href="#has_tape%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block has a tape.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="import!(fromdonor:Block):self-instance-method">
+      <div class="signature">
+        
+        def <strong>import!</strong>(from donor : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#import%21%28fromdonor%3ABlock%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Imports entries from <em>donor</em> to this block's dictionary
+by mutating this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="includes?(other:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>includes?</strong>(other : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#includes%3F%28other%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether the tape of this block includes <em>other</em>,
+as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="inject(form:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>inject</strong>(form : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#inject%28form%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adds <em>form</em> after the cursor.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="instance(parentnew_parent:Block=self,__tr=nil):Block-instance-method">
+      <div class="signature">
+        
+        def <strong>instance</strong>(parent new_parent : <a href="../Novika/Block.html">Block</a> = <span class="k">self</span>, __tr = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
+
+        <a class="method-permalink" href="#instance%28parentnew_parent%3ABlock%3Dself%2C__tr%3Dnil%29%3ABlock-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates and returns an instance of this block, under the
+given <em>parent</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="ls:Array(Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>ls</strong> : <a href="../Array.html">Array</a>(<a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#ls%3AArray%28Form%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Lists all name forms in this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="next?:Form|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>next?</strong> : <a href="../Novika/Form.html">Form</a> | Nil
+
+        <a class="method-permalink" href="#next%3F%3AForm%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>See <code><a href="../Novika/Tape.html#next%3F-instance-method">Tape#next?</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="on_open(engine:Engine,stack:Block=engine.stack):self-instance-method">
+      <div class="signature">
+        
+        def <strong>on_open</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a> = engine.stack) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#on_open%28engine%3AEngine%2Cstack%3ABlock%3Dengine.stack%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Schedules this block for execution in <em>engine</em> using the
+safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code>). Optionally,
+a <em>stack</em> block may be provided (otherwise, the <em>engine</em>'s
+current stack is used).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="opens?(name:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>opens?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#opens%3F%28name%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
+            </div>
+          
+          <p>Returns whether <em>name</em> opens its value form, as defined in
+this block. Returns false if <em>name</em> is not defined in the
+this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="parent:Block|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>parent</strong> : <a href="../Novika/Block.html">Block</a> | Nil
+
+        <a class="method-permalink" href="#parent%3ABlock%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds a reference to the parent block (them all in a
+linked list of ancestors).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="parent=(parent:Block|Nil)-instance-method">
+      <div class="signature">
+        
+        def <strong>parent=</strong>(parent : <a href="../Novika/Block.html">Block</a> | Nil)
+
+        <a class="method-permalink" href="#parent%3D%28parent%3ABlock%7CNil%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds a reference to the parent block (them all in a
+linked list of ancestors).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="parent?:Block|Nil|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>parent?</strong> : <a href="../Novika/Block.html">Block</a> | Nil | Nil
+
+        <a class="method-permalink" href="#parent%3F%3ABlock%7CNil%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds a reference to the parent block (them all in a
+linked list of ancestors).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="paste(elems:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>paste</strong>(elems : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#paste%28elems%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Mutably adds elements before the cursor in <em>elems</em> block's
+tape after the cursor in this block's tape.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="prototype:Block-instance-method">
+      <div class="signature">
+        
+        def <strong>prototype</strong> : <a href="../Novika/Block.html">Block</a>
+
+        <a class="method-permalink" href="#prototype%3ABlock-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the prototype of this block. Block instances return
+their prototype (AST) blocks, AST blocks return themselves.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="prototype=(prototype:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>prototype=</strong>(prototype : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#prototype%3D%28prototype%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the prototype of this block. Block instances return
+their prototype (AST) blocks, AST blocks return themselves.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="prototype?:Block|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>prototype?</strong> : <a href="../Novika/Block.html">Block</a> | Nil
+
+        <a class="method-permalink" href="#prototype%3F%3ABlock%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the prototype of this block. Block instances return
+their prototype (AST) blocks, AST blocks return themselves.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pushes?(name:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>pushes?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#pushes%3F%28name%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
+            </div>
+          
+          <p>Returns whether <em>name</em> pushes its value form, as defined in
+this block. Returns false if <em>name</em> is not defined in the
+this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="resub(other:Block):self-instance-method">
+      <div class="signature">
+        
+        def <strong>resub</strong>(other : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#resub%28other%3ABlock%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Replaces this block's tape with <em>other</em>'s.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="shallow:Block-instance-method">
+      <div class="signature">
+        
+        def <strong>shallow</strong> : <a href="../Novika/Block.html">Block</a>
+
+        <a class="method-permalink" href="#shallow%3ABlock-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns a shallow copy of this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="slice:Tuple(Block,Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>slice</strong> : Tuple(<a href="../Novika/Block.html">Block</a>, <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#slice%3ATuple%28Block%2CBlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Slices this block at cursor. This results in two halves,
+which are consequently returned.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="slurp(source:String):self-instance-method">
+      <div class="signature">
+        
+        def <strong>slurp</strong>(source : <a href="../String.html">String</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#slurp%28source%3AString%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Parses all forms in string <em>source</em>, and adds them to
+this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="sort_using!(&amp;cmp:Form,Form-&gt;Int32)-instance-method">
+      <div class="signature">
+        
+        def <strong>sort_using!</strong>(&cmp : <a href="../Novika/Form.html">Form</a>, <a href="../Novika/Form.html">Form</a> -> Int32)
+
+        <a class="method-permalink" href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Sorts this block's tape inplace, calls <em>cmp</em> comparator proc
+for each form pair for a comparison integer -1, 0, or 1.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="spot(io,vicinity=10)-instance-method">
+      <div class="signature">
+        
+        def <strong>spot</strong>(io, vicinity = <span class="n">10</span>)
+
+        <a class="method-permalink" href="#spot%28io%2Cvicinity%3D10%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Appends a string representation of this block to <em>io</em> in
+which only forms in the negative and positive <em>vicinity</em>
+of this block's cursor are present, and the word before
+the cursor is emphasized.</p>
+<p>Does not respect <code><a href="../Novika/Block.html#MAX_COUNT_TO_S">MAX_COUNT_TO_S</a></code>. Does not display quotes.
+Does not display nested blocks.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="submit?(name:Form,form:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>submit?</strong>(name : <a href="../Novika/Form.html">Form</a>, form : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#submit%3F%28name%3AForm%2Cform%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/ISubmittableStore.html">Novika::ISubmittableStore</a>
+            </div>
+          
+          <p>Submits value <em>form</em> to an entry with the given <em>name</em>.
+Returns nil if no such entry exists.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="swap:self-instance-method">
+      <div class="signature">
+        
+        def <strong>swap</strong> : <span class="k">self</span>
+
+        <a class="method-permalink" href="#swap%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Swaps two forms before the cursor, dies if none.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="thru-instance-method">
+      <div class="signature">
+        
+        def <strong>thru</strong>
+
+        <a class="method-permalink" href="#thru-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns form after cursor, and moves cursor past it.</p>
+<p>Similar to <code><a href="../Novika/Block.html#eject%3AForm-instance-method">#eject</a></code>, but doesn't modify the block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to(index:Int32):self-instance-method">
+      <div class="signature">
+        
+        def <strong>to</strong>(index : Int32) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#to%28index%3AInt32%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Moves tape cursor to <em>index</em>. Dies if <em>index</em> is out
+of bounds. See <code><a href="../Novika/Tape.html#to%3F%28cursorposition%29-instance-method">Tape#to?</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_quote:Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>to_quote</strong> : <a href="../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#to_quote%3AQuote-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Form.html">Novika::Form</a>
+            </div>
+          
+          <p>Returns this form's quote representation.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_s(io)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_s</strong>(io)
+
+        <a class="method-permalink" href="#to_s%28io%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_tape_block:self-instance-method">
+      <div class="signature">
+        
+        def <strong>to_tape_block</strong> : <span class="k">self</span>
+
+        <a class="method-permalink" href="#to_tape_block%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns tape block for this block. Tape block is an <em>orphan</em>
+block with a shallow copy of this block's tape set as its tape,
+and at all times no dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="top:Form-instance-method">
+      <div class="signature">
+        
+        def <strong>top</strong> : <a href="../Novika/Form.html">Form</a>
+
+        <a class="method-permalink" href="#top%3AForm-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the top form, dies if none.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="unfriend(other:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>unfriend</strong>(other : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#unfriend%28other%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Removes <em>other</em> from the friendlist of this block.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
