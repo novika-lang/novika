@@ -812,7 +812,7 @@ puts stack <span class="c"># [ 3 ]</span>
 caps <span class="o">=</span> <span class="t">CapabilityCollection</span>.with_default.enable_all
 block <span class="o">=</span> <span class="t">Block</span>.new(caps.block).slurp(<span class="s">&quot;1 2 +&quot;</span>)
 
-puts <span class="t">Engine</span>.exhaust(block, caps: caps) <span class="c"># [ 3 ]</span></code></pre>
+puts <span class="t">Engine</span>.exhaust(caps, block) <span class="c"># [ 3 ]</span></code></pre>
 
 
 
@@ -874,15 +874,6 @@ puts <span class="t">Engine</span>.exhaust(block, caps: caps) <span class="c"># 
       </dd>
       
     
-      <dt class="entry-const" id="DEFAULT_CAPS">
-        <strong>DEFAULT_CAPS</strong> = <code><span class="t">CapabilityCollection</span>.with_default.enable_all</code>
-      </dt>
-      
-      <dd class="entry-const-doc">
-        <p>Capability collection used by default.</p>
-      </dd>
-      
-    
       <dt class="entry-const" id="MAX_CONTS">
         <strong>MAX_CONTS</strong> = <code><span class="n">1024</span></code>
       </dt>
@@ -928,6 +919,13 @@ checks. See <code>Engine.count</code>.</p>
         
       </li>
     
+      <li class="entry-summary">
+        <a href="#push%28engine%3AEngine%29%3AEngine-class-method" class="signature"><strong>.push</strong>(engine : Engine) : Engine</a>
+        
+          <div class="summary"><p>Pushes <em>engine</em> onto the engine stack.</p></div>
+        
+      </li>
+    
   </ul>
 
 
@@ -950,51 +948,58 @@ checks. See <code>Engine.count</code>.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#depth-class-method" class="signature"><strong>.depth</strong></a>
+        <a href="#current-class-method" class="signature"><strong>.current</strong></a>
         
-          <div class="summary"><p>Holds Engine depth.</p></div>
+          <div class="summary"><p>Returns the current engine.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%28formentry%3AOpenEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(form entry : OpenEntry, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : Block</a>
+        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form entry : OpenEntry, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%28formentry%3AEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(form entry : Entry, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : Block</a>
+        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form entry : Entry, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%28form%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(form, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : Block</a>
+        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%21%28entry%3AOpenEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(entry : OpenEntry, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : Block</a>
+        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, entry : OpenEntry, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%21%28entry%3AEntry%2Cstack%3Dnil%2Ccapabilities%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(entry : Entry, stack = <span class="n">nil</span>, capabilities = <span class="n">nil</span>) : Block</a>
+        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, entry : Entry, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%21%28form%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(form, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : Block</a>
+        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, form, stack = <span class="n">nil</span>) : Block</a>
         
           <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pop%28engine%3AEngine%29%3AEngine%7CNil-class-method" class="signature"><strong>.pop</strong>(engine : Engine) : Engine | Nil</a>
+        
+          <div class="summary"><p>Pops <em>engine</em> from the engine stack.</p></div>
         
       </li>
     
@@ -1183,6 +1188,25 @@ checks. See <code>Engine.count</code>.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="push(engine:Engine):Engine-class-method">
+      <div class="signature">
+        
+        def self.<strong>push</strong>(engine : <a href="../Novika/Engine.html">Engine</a>) : <a href="../Novika/Engine.html">Engine</a>
+
+        <a class="method-permalink" href="#push%28engine%3AEngine%29%3AEngine-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Pushes <em>engine</em> onto the engine stack.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
 
 
 
@@ -1217,17 +1241,18 @@ second is called the <em>stack</em> block (found at <code><a href="../Novika/Eng
       </div>
     </div>
   
-    <div class="entry-detail" id="depth-class-method">
+    <div class="entry-detail" id="current-class-method">
       <div class="signature">
         
-        def self.<strong>depth</strong>
+        def self.<strong>current</strong>
 
-        <a class="method-permalink" href="#depth-class-method">#</a>
+        <a class="method-permalink" href="#current-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Holds Engine depth.</p>
+          <p>Returns the current engine. Raises a BUG exception if
+there is no current engine.</p>
         </div>
       
       <br/>
@@ -1236,12 +1261,12 @@ second is called the <em>stack</em> block (found at <code><a href="../Novika/Eng
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust(formentry:OpenEntry,stack=nil,capabilities=DEFAULT_CAPS):Block-class-method">
+    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,formentry:OpenEntry,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust</strong>(form entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%28formentry%3AOpenEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1260,12 +1285,12 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust(formentry:Entry,stack=nil,capabilities=DEFAULT_CAPS):Block-class-method">
+    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,formentry:Entry,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust</strong>(form entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%28formentry%3AEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1284,12 +1309,12 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust(form,stack=nil,capabilities=DEFAULT_CAPS):Block-class-method">
+    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,form,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust</strong>(form, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%28form%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1308,12 +1333,12 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust!(entry:OpenEntry,stack=nil,capabilities=DEFAULT_CAPS):Block-class-method">
+    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,entry:OpenEntry,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust!</strong>(entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%21%28entry%3AOpenEntry%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1332,12 +1357,12 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust!(entry:Entry,stack=nil,capabilities=nil):Block-class-method">
+    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,entry:Entry,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust!</strong>(entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>, capabilities = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%21%28entry%3AEntry%2Cstack%3Dnil%2Ccapabilities%3Dnil%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1356,12 +1381,12 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust!(form,stack=nil,capabilities=DEFAULT_CAPS):Block-class-method">
+    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,form,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust!</strong>(form, stack = <span class="n">nil</span>, capabilities = <span class="t">DEFAULT_CAPS</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%21%28form%2Cstack%3Dnil%2Ccapabilities%3DDEFAULT_CAPS%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
@@ -1372,6 +1397,27 @@ resulting <em>stack</em> (creates one if <code>nil</code>).</p>
 is evaluated.</p>
 <p>Useful for when you need the result of <em>form</em> immediately,
 especially from Crystal.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pop(engine:Engine):Engine|Nil-class-method">
+      <div class="signature">
+        
+        def self.<strong>pop</strong>(engine : <a href="../Novika/Engine.html">Engine</a>) : <a href="../Novika/Engine.html">Engine</a> | Nil
+
+        <a class="method-permalink" href="#pop%28engine%3AEngine%29%3AEngine%7CNil-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Pops <em>engine</em> from the engine stack. Raises a BUG exception
+(and does not pop!) if the current engine is not <em>engine</em>
+(or if it is absent).</p>
         </div>
       
       <br/>
