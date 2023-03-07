@@ -81,9 +81,6 @@ module Novika
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
 
-    # Capability collection used by default.
-    DEFAULT_CAPS = CapabilityCollection.with_default.enable_all
-
     @@stack = [] of Engine
 
     # Returns the current engine. Raises a BUG exception if
