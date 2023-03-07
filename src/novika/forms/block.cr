@@ -52,6 +52,14 @@ module Novika
     # Block to byteslice hook name.
     AS_BYTESLICE = Word.new("*asByteslice")
 
+    # On shove hook name.
+    META_ON_SHOVE = Word.new("*-shove")
+
+    # On cherry hook name. Cherry is like drop but it returns/
+    # leaves the form dropped, plus works on a particular block
+    # rather than on the stack.
+    META_ON_CHERRY = Word.new("*-cherry")
+
     # Whether this block is a leaf. A block is a leaf when
     # it has no blocks in its tape.
     protected property? leaf = true
@@ -301,8 +309,24 @@ module Novika
 
     # Adds *form* to the tape.
     def add(form : Form) : self
-      self.leaf = false if form.is_a?(Block)
-      self.tape = tape.add(form)
+      impl = ->(other : Form) do
+        self.leaf = false if other.is_a?(Block)
+        self.tape = tape.add(other)
+      end
+
+      if hook = flat_at?(META_ON_SHOVE)
+        default = Builtin.new("*-shove",
+          desc: <<-END
+          ( F -- ): default *-shove implementation. Pushes Form to
+           the block it was captured in.
+          END
+        ) { |_, stack| impl.call(stack.drop) }
+
+        Engine.exhaust(Engine.current.capabilities, hook, stack: Block[form, default])
+      else
+        impl.call(form)
+      end
+
       self
     end
 
@@ -347,7 +371,19 @@ module Novika
 
     # Removes and returns the top form. Dies if none.
     def drop : Form
-      top.tap { self.tape = tape.drop? || raise "unreachable" }
+      impl = ->do
+        top.tap { self.tape = tape.drop? || raise "unreachable" }
+      end
+
+      if hook = flat_at?(META_ON_CHERRY)
+        default = Builtin.new("*-cherry",
+          desc: "( -- ): default *-cherry implementation."
+        ) { |_, stack| impl.call }
+
+        Engine.exhaust(Engine.current.capabilities, hook, Block[default]).top
+      else
+        impl.call
+      end
     end
 
     # Sorts this block's tape inplace, calls *cmp* comparator proc
@@ -707,7 +743,7 @@ module Novika
       end
 
       entry = flat_at?(name) || return
-      result = Engine.exhaust(entry, Block.new.add(self)).top
+      result = Engine.exhaust(Engine.current.capabilities, entry, Block[self]).top
 
       if result.is_a?(Block) && !same?(result)
         # Result is a different block. Increment depth to handle

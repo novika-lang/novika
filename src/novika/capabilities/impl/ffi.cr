@@ -270,7 +270,7 @@ module Novika::Capabilities::Impl
           layout.each_desc_with_index do |desc|
             entry = block.entry_for? Word.new(desc.id)
             if entry
-              entry_stack = Engine.exhaust(entry, capabilities: capabilities)
+              entry_stack = Engine.exhaust(capabilities, entry)
               view[desc.id] = desc.type.from(entry_stack.top)
             elsif desc.type.is_a?(Novika::FFI::UntypedPointer.class) || desc.type.is_a?(Novika::FFI::StructReferenceType)
               view[desc.id] = Novika::FFI::UntypedPointer.none
@@ -399,7 +399,7 @@ module Novika::Capabilities::Impl
         layout.each_desc_with_index do |desc|
           entry = block.entry_for? Word.new(desc.id)
           if entry
-            entry_stack = Engine.exhaust(entry, capabilities: capabilities)
+            entry_stack = Engine.exhaust(capabilities, entry)
             view[desc.id] = desc.type.from(entry_stack.top)
             had_entry = true
             break

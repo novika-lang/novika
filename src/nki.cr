@@ -56,8 +56,8 @@ module Novika::Frontend::Nki
     conts = ARGV.delete("-c")
     caps = Novika::CapabilityCollection.with_available
 
-    filepath = ARGV[-1]
-    filedir = Path[filepath].expand.parent
+    filepath = Path[ARGV[-1]].expand
+    filedir = filepath.parent
 
     caps.on_load_library? do |id|
       paths = {filedir, filedir / "lib"}
@@ -86,7 +86,9 @@ module Novika::Frontend::Nki
         end
       else
         block.parent = Block.new(caps.block)
-        Novika::Engine.exhaust!(block, capabilities: caps)
+        block.at(Word.new("__path__"), Quote.new(filedir.to_s))
+        block.at(Word.new("__file__"), Quote.new(filepath.to_s))
+        Novika::Engine.exhaust!(caps, block)
       end
     rescue error : Novika::Error
       error.report(STDERR)

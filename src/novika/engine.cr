@@ -59,7 +59,7 @@ module Novika
   # caps = CapabilityCollection.with_default.enable_all
   # block = Block.new(caps.block).slurp("1 2 +")
   #
-  # puts Engine.exhaust(block, caps: caps) # [ 3 ]
+  # puts Engine.exhaust(caps, block) # [ 3 ]
   # ```
   class Engine
     # Maximum amount of scheduled continuations in `conts`. After
@@ -81,18 +81,34 @@ module Novika
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
 
-    # Capability collection used by default.
-    DEFAULT_CAPS = CapabilityCollection.with_default.enable_all
+    @@stack = [] of Engine
 
-    # Holds Engine depth.
-    class_getter depth = 0
+    # Returns the current engine. Raises a BUG exception if
+    # there is no current engine.
+    def self.current
+      @@stack.last? || raise "BUG: there is no current engine"
+    end
 
-    # :ditto:
-    protected def self.depth=(other)
-      unless other.in?(0..MAX_ENGINES)
-        raise Error.new("bad engine depth: maybe deep recursion in *as...?")
+    # Pushes *engine* onto the engine stack.
+    def self.push(engine : Engine) : Engine
+      unless @@stack.size.in?(0..MAX_ENGINES)
+        raise Error.new("bad engine stack depth: maybe deep recursion in *as...?")
       end
-      @@depth = other
+
+      @@stack << engine
+
+      engine
+    end
+
+    # Pops *engine* from the engine stack. Raises a BUG exception
+    # (and does not pop!) if the current engine is not *engine*
+    # (or if it is absent).
+    def self.pop(engine : Engine) : Engine?
+      unless current.same?(engine)
+        raise "BUG: lost track of the engine stack: unexpected engine on top!"
+      end
+
+      @@stack.pop
     end
 
     # Returns the capability collection used by this engine.
@@ -106,11 +122,15 @@ module Novika
 
     # Yields an instance of `Engine`.
     def self.new(capabilities : CapabilityCollection)
-      Engine.depth += 1
+      engine = new(capabilities)
 
-      yield new(capabilities)
-    ensure
-      Engine.depth -= 1
+      Engine.push(engine)
+
+      begin
+        yield engine
+      ensure
+        Engine.pop(engine)
+      end
     end
 
     # Creates and returns a canonical continuation block.
@@ -130,7 +150,11 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust!(form, stack = nil, capabilities = DEFAULT_CAPS) : Block
+    def self.exhaust!(
+      capabilities : CapabilityCollection,
+      form,
+      stack = nil
+    ) : Block
       stack ||= Block.new
       Engine.new(capabilities) do |engine|
         engine.schedule!(form, stack)
@@ -140,12 +164,20 @@ module Novika
     end
 
     # :ditto:
-    def self.exhaust!(entry : OpenEntry, stack = nil, capabilities = DEFAULT_CAPS) : Block
-      exhaust!(entry.form, stack, capabilities)
+    def self.exhaust!(
+      capabilities : CapabilityCollection,
+      entry : OpenEntry,
+      stack = nil
+    ) : Block
+      exhaust!(capabilities, entry.form, stack)
     end
 
     # :ditto:
-    def self.exhaust!(entry : Entry, stack = nil, capabilities = nil) : Block
+    def self.exhaust!(
+      capabilities : CapabilityCollection,
+      entry : Entry,
+      stack = nil
+    ) : Block
       stack ||= Block.new
       entry.onto(stack)
       stack
@@ -159,7 +191,11 @@ module Novika
     #
     # Useful for when you need the result of *form* immediately,
     # especially from Crystal.
-    def self.exhaust(form, stack = nil, capabilities = DEFAULT_CAPS) : Block
+    def self.exhaust(
+      capabilities : CapabilityCollection,
+      form,
+      stack = nil
+    ) : Block
       stack ||= Block.new
       Engine.new(capabilities) do |engine|
         engine.schedule(form, stack)
@@ -169,13 +205,21 @@ module Novika
     end
 
     # :ditto:
-    def self.exhaust(form entry : OpenEntry, stack = nil, capabilities = DEFAULT_CAPS) : Block
-      exhaust(entry.form, stack, capabilities)
+    def self.exhaust(
+      capabilities : CapabilityCollection,
+      form entry : OpenEntry,
+      stack = nil
+    ) : Block
+      exhaust(capabilities, entry.form, stack)
     end
 
     # :ditto:
-    def self.exhaust(form entry : Entry, stack = nil, capabilities = DEFAULT_CAPS) : Block
-      exhaust!(entry, stack, capabilities)
+    def self.exhaust(
+      capabilities : CapabilityCollection,
+      form entry : Entry,
+      stack = nil
+    ) : Block
+      exhaust!(capabilities, entry, stack)
     end
 
     # Returns the active continuation.
