@@ -180,6 +180,23 @@ struct Novika::Classifier
     true
   end
 
+  # If *string* is a base number literal, returns a tuple with
+  # the number part and the base (the latter an integer). Returns
+  # nil otherwise.
+  #
+  # This is the heavy artillery when it comes to classifying
+  # numbers. Consider running this after `decimal?` if you're
+  # matching Novika numbers to rule out the simple cases first.
+  private def number_with_base?(string)
+    return unless string =~ /^0(x[0-9A-Fa-f_]+|o[0-7_]+|b[01_]+)$/
+
+    case $1[0]
+    when 'x' then {$1.lchop, 16}
+    when 'o' then {$1.lchop, 8}
+    when 'b' then {$1.lchop, 2}
+    end
+  end
+
   # Classifies the subrange starting at byte index *start*,
   # and *count* bytes long. *dot* is the byte index of `'.'`.
   #
@@ -234,6 +251,10 @@ struct Novika::Classifier
         frag = build_raw(start, count)
         if decimal?(start, e, sign: true)
           add Novika::Decimal.new(frag)
+        elsif number_with_base = number_with_base?(frag)
+          number, base = number_with_base
+
+          add Novika::Decimal.new(number.to_big_i(base))
         else
           add Novika::Word.new(frag)
         end

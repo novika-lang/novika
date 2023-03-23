@@ -8,6 +8,27 @@ describe 'Decimal parsing' [
     1 12 123 1234567812345678 12_34_56 1_000_000 000_000_001 5__000
   ]
 
+  it should 'parse hex decimals' [
+    0x10 16 assert=
+    0xabcdef 11259375 assert=
+    0x0123456789_abcdef 81985529216486895 assert=
+    #0xbeef word? true assert=
+  ]
+
+  it should 'parse octal decimals' [
+    0o10 8 assert=
+    0o1234567 342391 assert=
+    0o012345_67 342391 assert=
+    #0o1234567 word? true assert=
+  ]
+
+  it should 'parse binary decimals' [
+    0b0 0 assert=
+    0b010101 21 assert=
+    0b0101_01 21 assert=
+    #0b010101 word? true assert=
+  ]
+
   it dies 'given "_" in simple decimal' [ _ ] "definition not found"
   it dies 'when leading underscore in simple decimal' [ _100 ] "definition not found"
   it dies 'when trailing underscore in simple decimal' [ 100_ ] "definition not found"
