@@ -32,33 +32,33 @@ module Novika
     MAX_NESTED_COUNT_TO_S = 12
 
     # Block to word hook name.
-    AS_WORD = Word.new("*asWord")
+    AS_WORD = Word.new("__asWord__")
 
     # Block to color hook name.
-    AS_COLOR = Word.new("*asColor")
+    AS_COLOR = Word.new("__asColor__")
 
     # Block to quote hook name.
-    AS_QUOTE = Word.new("*asQuote")
+    AS_QUOTE = Word.new("__asQuote__")
 
     # Block to decimal hook name.
-    AS_DECIMAL = Word.new("*asDecimal")
+    AS_DECIMAL = Word.new("__asDecimal__")
 
     # Block to boolean hook name.
-    AS_BOOLEAN = Word.new("*asBoolean")
+    AS_BOOLEAN = Word.new("__asBoolean__")
 
     # Block to quoted word hook name.
-    AS_QUOTED_WORD = Word.new("*asQuotedWord")
+    AS_QUOTED_WORD = Word.new("__asQuotedWord__")
 
     # Block to byteslice hook name.
-    AS_BYTESLICE = Word.new("*asByteslice")
+    AS_BYTESLICE = Word.new("__asByteslice__")
 
     # On shove hook name.
-    META_ON_SHOVE = Word.new("*-shove")
+    META_ON_SHOVE = Word.new("__shove__")
 
     # On cherry hook name. Cherry is like drop but it returns/
     # leaves the form dropped, plus works on a particular block
     # rather than on the stack.
-    META_ON_CHERRY = Word.new("*-cherry")
+    META_ON_CHERRY = Word.new("__cherry__")
 
     # Whether this block is a leaf. A block is a leaf when
     # it has no blocks in its tape.
@@ -739,7 +739,7 @@ module Novika
         # but we need to track cast depth.
         #
         # Give up when exceeded the max engine count.
-        die("bad engine depth: maybe deep recursion in *as...?")
+        die("bad engine depth: maybe deep recursion in __as...__?")
       end
 
       entry = flat_at?(name) || return

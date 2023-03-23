@@ -23,7 +23,7 @@
     pathQuote disk:hasSymlink?
   ] @: symlink?
 
-  [ '<Path: ' pathQuote stitch '>' stitch ] @: *asQuote
+  [ '<Path: ' pathQuote stitch '>' stitch ] @: __asQuote__
 
   this
 ] @: path

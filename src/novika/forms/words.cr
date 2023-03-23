@@ -5,10 +5,10 @@ module Novika
     include Form
 
     # Death hook name.
-    DIED = Word.new("*died")
+    DIED = Word.new("__died__")
 
     # Undefined word hook name.
-    TRAP = Word.new("*trap")
+    TRAP = Word.new("__trap__")
 
     # Returns the underlying string id.
     getter id : String
@@ -40,7 +40,7 @@ module Novika
 
       while block && (trap = block.entry_for?(TRAP))
         # A trap entry exists for this word in *block*. Traps are
-        # inherited as opposed to conversion words like *asDecimal.
+        # inherited as opposed to conversion words like __asDecimal__.
         form = trap.form
 
         if form.is_a?(Block) && form.prototype.same?(current.prototype)

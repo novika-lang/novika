@@ -92,7 +92,7 @@ module Novika
     # Pushes *engine* onto the engine stack.
     def self.push(engine : Engine) : Engine
       unless @@stack.size.in?(0..MAX_ENGINES)
-        raise Error.new("bad engine stack depth: maybe deep recursion in *as...?")
+        raise Error.new("bad engine stack depth: maybe deep recursion in __as...__?")
       end
 
       @@stack << engine

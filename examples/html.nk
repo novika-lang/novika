@@ -38,7 +38,7 @@
   "This word trap will catch literally all words opened in innerHTML,
    because htmlContext is an orphan. It isn't related in any way to
    innerHTML right now, but it will be just a moment later."
-  htmlContext #*trap [
+  htmlContext #__trap__ [
     """( <> B | <>: Q -- ): creates a tag with Block content.
      Block may contain other such tags, or attributes | Attaches
      an attribute with Quote value onto the wrapping tag.

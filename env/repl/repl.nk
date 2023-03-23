@@ -131,7 +131,7 @@ _pgRoot #? [
          will report the error when it happens."
         reportError true =: error
         self resume
-      ] @: *died
+      ] @: __died__
 
       [ pgStackCopy pgRootInstance line slurp hydrate! ] measure =: durationMs
     ] do

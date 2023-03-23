@@ -80,7 +80,7 @@ module Novika::Capabilities
        stream, given an Error object.
 
       You can obtain an error object by, e.g., catching it
-      in `*died`.
+      in `__died__`.
       END
       ) do |engine, stack|
         error = stack.drop.a(Error)
