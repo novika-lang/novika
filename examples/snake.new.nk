@@ -36,7 +36,7 @@ needsCapability: console
     0 randTo: [ console:height 1 - ] =: y
   ] @: moveToRandomPosition
 
-  [ [ x '@' y ] ~* ] @: __asQuote__
+  [ [ x '@' y ] ~* ] @: __quote__
 
   this
 ] @: console:point

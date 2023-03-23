@@ -40,7 +40,7 @@ module Novika
 
       while block && (trap = block.entry_for?(TRAP))
         # A trap entry exists for this word in *block*. Traps are
-        # inherited as opposed to conversion words like __asDecimal__.
+        # inherited as opposed to conversion words like __decimal__.
         form = trap.form
 
         if form.is_a?(Block) && form.prototype.same?(current.prototype)

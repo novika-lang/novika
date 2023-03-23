@@ -45,7 +45,7 @@ consProduct echo
   [
     [ ] x toQuote <<  ' @ ' << y toQuote <<
     [ stitch ] '' reduce
-  ] @: __asQuote__
+  ] @: __quote__
 
   this
 ] @: point

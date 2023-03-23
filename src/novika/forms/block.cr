@@ -32,25 +32,25 @@ module Novika
     MAX_NESTED_COUNT_TO_S = 12
 
     # Block to word hook name.
-    AS_WORD = Word.new("__asWord__")
+    AS_WORD = Word.new("__word__")
 
     # Block to color hook name.
-    AS_COLOR = Word.new("__asColor__")
+    AS_COLOR = Word.new("__color__")
 
     # Block to quote hook name.
-    AS_QUOTE = Word.new("__asQuote__")
+    AS_QUOTE = Word.new("__quote__")
 
     # Block to decimal hook name.
-    AS_DECIMAL = Word.new("__asDecimal__")
+    AS_DECIMAL = Word.new("__decimal__")
 
     # Block to boolean hook name.
-    AS_BOOLEAN = Word.new("__asBoolean__")
+    AS_BOOLEAN = Word.new("__boolean__")
 
     # Block to quoted word hook name.
-    AS_QUOTED_WORD = Word.new("__asQuotedWord__")
+    AS_QUOTED_WORD = Word.new("__quotedword__")
 
     # Block to byteslice hook name.
-    AS_BYTESLICE = Word.new("__asByteslice__")
+    AS_BYTESLICE = Word.new("__byteslice__")
 
     # On shove hook name.
     META_ON_SHOVE = Word.new("__shove__")
@@ -739,7 +739,7 @@ module Novika
         # but we need to track cast depth.
         #
         # Give up when exceeded the max engine count.
-        die("bad engine depth: maybe deep recursion in __as...__?")
+        die("bad engine depth: deep recursion in a __metaword__?")
       end
 
       entry = flat_at?(name) || return

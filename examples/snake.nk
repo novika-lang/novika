@@ -55,7 +55,7 @@ needsCapability: console
 
   [
     [ x '@' y ] ~*
-  ] @: __asQuote__
+  ] @: __quote__
 
   this
 ] @: tvec2

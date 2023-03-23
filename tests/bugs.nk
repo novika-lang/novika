@@ -41,23 +41,23 @@ describe 'Conversion words should not be inherited #25' [
   [
     [ ] $: x
 
-    'hello' $: __asQuote__
-    [ 100 1 + ] @: __asDecimal__
-    false $: __asBoolean__
-    [ ##fubar ] @: __asQuotedWord__
-    [ [ #baz $: __asWord__ this ] open ] @: __asWord__
+    'hello' $: __quote__
+    [ 100 1 + ] @: __decimal__
+    false $: __boolean__
+    [ ##fubar ] @: __quotedword__
+    [ [ #baz $: __word__ this ] open ] @: __word__
 
     this
   ] @: b
 
-  it dies 'because child doesn\'t inherit __asQuote__' [ b.x asQuote ]
-  it dies 'because child doesn\'t inherit __asDecimal__' [ b.x asDecimal ]
-  it dies 'because child doesn\'t inherit __asBoolean__' [ b.x asBoolean ]
-  it dies 'because child doesn\'t inherit __asQuotedWord__' [ b.x asQuotedWord ]
-  it dies 'because child doesn\'t inherit __asWord__' [ b.x asWord ]
+  it dies 'because child doesn\'t inherit __quote__' [ b.x asQuote ]
+  it dies 'because child doesn\'t inherit __decimal__' [ b.x asDecimal ]
+  it dies 'because child doesn\'t inherit __boolean__' [ b.x asBoolean ]
+  it dies 'because child doesn\'t inherit __quotedword__' [ b.x asQuotedWord ]
+  it dies 'because child doesn\'t inherit __word__' [ b.x asWord ]
 
-  [ [ ] $: x 'hello' $: __asQuote__ this ] @: issueEg1
-  [ [ ] $: x [ 100 1 + ] @: __asDecimal__ this ] @: issueEg2
+  [ [ ] $: x 'hello' $: __quote__ this ] @: issueEg1
+  [ [ ] $: x [ 100 1 + ] @: __decimal__ this ] @: issueEg2
 
   it should 'pass issue example #1' [ issueEg1 dup asQuote assert= ]
   it dies 'as expected in issue example #1' [ issueEg1.x asQuote ]
