@@ -4,12 +4,6 @@ module Novika
   struct Word
     include Form
 
-    # Death hook name.
-    DIED = Word.new("__died__")
-
-    # Undefined word hook name.
-    TRAP = Word.new("__trap__")
-
     # Returns the underlying string id.
     getter id : String
 
@@ -38,7 +32,7 @@ module Novika
 
       block = current = engine.block
 
-      while block && (trap = block.entry_for?(TRAP))
+      while block && (trap = block.entry_for?(Hook.trap))
         # A trap entry exists for this word in *block*. Traps are
         # inherited as opposed to conversion words like __decimal__.
         form = trap.form

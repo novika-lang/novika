@@ -20,7 +20,7 @@ struct Set(T)
   delegate :reject!, to: @hash
 end
 
-# Order is important!
+# Order is important (somewhat)!
 require "./novika/forms/form"
 require "./novika/image"
 require "./novika/scissors"
@@ -29,6 +29,7 @@ require "./novika/error"
 require "./novika/tape"
 require "./novika/dict"
 require "./novika/ffi"
+require "./novika/hook"
 require "./novika/forms/*"
 require "./novika/engine"
 require "./novika/capability"

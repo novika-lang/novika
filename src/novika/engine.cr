@@ -333,11 +333,11 @@ module Novika
     # resulting entry to block (does not distinguish between
     # openers and pushers). Returns that block.
     #
-    # If all continuations were exhausted and no `Word::DIED`
+    # If all continuations were exhausted and no `Hook.died`
     # had been found, returns nil.
     def drop_until_death_handler?(avoid_prototype = nil)
       until conts.tape.empty?
-        entry = block.entry_for?(Word::DIED)
+        entry = block.entry_for?(Hook.died)
         conts.drop
 
         next unless entry

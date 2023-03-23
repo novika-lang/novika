@@ -31,35 +31,6 @@ module Novika
     # of *nested* blocks.
     MAX_NESTED_COUNT_TO_S = 12
 
-    # Block to word hook name.
-    AS_WORD = Word.new("__word__")
-
-    # Block to color hook name.
-    AS_COLOR = Word.new("__color__")
-
-    # Block to quote hook name.
-    AS_QUOTE = Word.new("__quote__")
-
-    # Block to decimal hook name.
-    AS_DECIMAL = Word.new("__decimal__")
-
-    # Block to boolean hook name.
-    AS_BOOLEAN = Word.new("__boolean__")
-
-    # Block to quoted word hook name.
-    AS_QUOTED_WORD = Word.new("__quotedword__")
-
-    # Block to byteslice hook name.
-    AS_BYTESLICE = Word.new("__byteslice__")
-
-    # On shove hook name.
-    META_ON_SHOVE = Word.new("__shove__")
-
-    # On cherry hook name. Cherry is like drop but it returns/
-    # leaves the form dropped, plus works on a particular block
-    # rather than on the stack.
-    META_ON_CHERRY = Word.new("__cherry__")
-
     # Whether this block is a leaf. A block is a leaf when
     # it has no blocks in its tape.
     protected property? leaf = true
@@ -314,7 +285,7 @@ module Novika
         self.tape = tape.add(other)
       end
 
-      if hook = flat_at?(META_ON_SHOVE)
+      if hook = flat_at?(Hook.on_shove)
         default = Builtin.new("*-shove",
           desc: <<-END
           ( F -- ): default *-shove implementation. Pushes Form to
@@ -375,7 +346,7 @@ module Novika
         top.tap { self.tape = tape.drop? || raise "unreachable" }
       end
 
-      if hook = flat_at?(META_ON_CHERRY)
+      if hook = flat_at?(Hook.on_cherry)
         default = Builtin.new("*-cherry",
           desc: "( -- ): default *-cherry implementation."
         ) { |_, stack| impl.call }
@@ -761,13 +732,13 @@ module Novika
       return self if is_a?(T)
 
       case T
-      when Decimal.class    then a?(AS_DECIMAL, type, _depth)
-      when Quote.class      then a?(AS_QUOTE, type, _depth)
-      when Word.class       then a?(AS_WORD, type, _depth)
-      when Color.class      then a?(AS_COLOR, type, _depth)
-      when Boolean.class    then a?(AS_BOOLEAN, type, _depth)
-      when QuotedWord.class then a?(AS_QUOTED_WORD, type, _depth)
-      when Byteslice.class  then a?(AS_BYTESLICE, type, _depth)
+      when Decimal.class    then a?(Hook.as_decimal, type, _depth)
+      when Quote.class      then a?(Hook.as_quote, type, _depth)
+      when Word.class       then a?(Hook.as_word, type, _depth)
+      when Color.class      then a?(Hook.as_color, type, _depth)
+      when Boolean.class    then a?(Hook.as_boolean, type, _depth)
+      when QuotedWord.class then a?(Hook.as_quoted_word, type, _depth)
+      when Byteslice.class  then a?(Hook.as_byteslice, type, _depth)
       end || afail(T)
     end
 
@@ -777,20 +748,20 @@ module Novika
       return true if is_a?(T)
 
       case T
-      when Decimal.class    then flat_has?(AS_DECIMAL)
-      when Quote.class      then flat_has?(AS_QUOTE)
-      when Word.class       then flat_has?(AS_WORD)
-      when Color.class      then flat_has?(AS_COLOR)
-      when Boolean.class    then flat_has?(AS_BOOLEAN)
-      when QuotedWord.class then flat_has?(AS_QUOTED_WORD)
-      when Byteslice.class  then flat_has?(AS_BYTESLICE)
+      when Decimal.class    then flat_has?(Hook.as_decimal)
+      when Quote.class      then flat_has?(Hook.as_quote)
+      when Word.class       then flat_has?(Hook.as_word)
+      when Color.class      then flat_has?(Hook.as_color)
+      when Boolean.class    then flat_has?(Hook.as_boolean)
+      when QuotedWord.class then flat_has?(Hook.as_quoted_word)
+      when Byteslice.class  then flat_has?(Hook.as_byteslice)
       else
         false
       end
     end
 
     def to_quote : Quote
-      a?(AS_QUOTE, Quote) || super
+      a?(Hook.as_quote, Quote) || super
     end
 
     def effect(io)
@@ -830,7 +801,7 @@ module Novika
     end
 
     def to_s(io)
-      if repr = a?(AS_QUOTE, Quote)
+      if repr = a?(Hook.as_quote, Quote)
         # Block represents itself in some other way, respect
         # that here.
         io << repr.string
