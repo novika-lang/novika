@@ -1273,7 +1273,7 @@ describe 'conjure/here' [
   ]
 
   it should 'trigger word trap when word is undefined' [
-    [ toQuote 1 sliceQuoteAt nip ] @: *trap
+    [ toQuote 1 sliceQuoteAt nip ] @: __trap__
     foobar here 'oobar' assert=
   ]
 ]
@@ -1297,9 +1297,9 @@ describe 'minmax' [
     [ 100 200 5 300 405 ] minmax stack shallowCopy [ 5 405 ] assert=
   ]
 
-  it should 'handle blocks which implement *asDecimal' [
-    [ -101 $: *asDecimal this ] open $: a
-    [ 500 $: *asDecimal this ] open $: b
+  it should 'handle blocks which implement __decimal__' [
+    [ -101 $: __decimal__ this ] open $: a
+    [ 500 $: __decimal__ this ] open $: b
 
     "There is no good way to do this right now unfortunately..."
     [ -100 100 ] [ <| a |> b ] there
@@ -1343,8 +1343,8 @@ describe 'sum' [
     [ 100 200 300 ] sum 600 assert=
   ]
 
-  it should 'support blocks implementing *asDecimal' [
-    [ $: n [ n 1 + ] @: *asDecimal this ] @: foos
+  it should 'support blocks implementing __decimal__' [
+    [ $: n [ n 1 + ] @: __decimal__ this ] @: foos
 
     100 foos "101"
     200 foos "201"
@@ -1373,8 +1373,8 @@ describe 'product' [
     [ 5 4 3 2 ] product 120 assert=
   ]
 
-  it should 'support blocks implementing *asDecimal' [
-    [ $: n [ n 1 + ] @: *asDecimal this ] @: foos
+  it should 'support blocks implementing __decimal__' [
+    [ $: n [ n 1 + ] @: __decimal__ this ] @: foos
 
     100 foos "101"
     200 foos "201"
@@ -1409,8 +1409,8 @@ describe 'minmaxBy' [
     stack shallowCopy [ 'A' 'BAAAAAAB' ] assert=
   ]
 
-  it should 'support blocks implementing *asDecimal as Transform results' [
-    [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
+  it should 'support blocks implementing __decimal__ as Transform results' [
+    [ $: s [ s count ] @: __decimal__ this ] @: toAwesomeBlock
 
     [ 'AA' 'A' 'AAAB' 'foo' 'barbeee' ] [ toAwesomeBlock ] minmaxBy
 
@@ -1445,7 +1445,7 @@ describe 'maxBy' [
 describe 'sumBy' [
   in lang
 
-  [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
+  [ $: s [ s count ] @: __decimal__ this ] @: toAwesomeBlock
 
   it should 'leave zero when list block is empty' [
     [ ] [ ] sumBy 0 assert=
@@ -1480,7 +1480,7 @@ describe 'sumBy' [
     ] assert=
   ]
 
-  it should 'support blocks implementing *asDecimal as results/summands' [
+  it should 'support blocks implementing __decimal__ as results/summands' [
     'foobee' toAwesomeBlock $: myBestBlock
 
     [ 'foo' 3 myBestBlock 4 'bar' 5 ] here [ dup quote? => [ toAwesomeBlock ] ] sumBy
@@ -1501,7 +1501,7 @@ describe 'sumBy' [
 describe 'productBy' [
   in lang
 
-  [ $: s [ s count ] @: *asDecimal this ] @: toAwesomeBlock
+  [ $: s [ s count ] @: __decimal__ this ] @: toAwesomeBlock
 
   it should 'leave 1 when list block is empty' [
     [ ] [ ] productBy 1 assert=
@@ -1536,7 +1536,7 @@ describe 'productBy' [
     ] assert=
   ]
 
-  it should 'support blocks implementing *asDecimal as results/multiplicands' [
+  it should 'support blocks implementing __decimal__ as results/multiplicands' [
     'foobee' toAwesomeBlock $: myBestBlock
 
     [ 'foo' 3 myBestBlock 4 'bar' 5 ] here [ dup quote? => [ toAwesomeBlock ] ] productBy

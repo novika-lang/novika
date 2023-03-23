@@ -36,7 +36,7 @@ needsCapability: console
     0 randTo: [ console:height 1 - ] =: y
   ] @: moveToRandomPosition
 
-  [ [ x '@' y ] ~* ] @: *asQuote
+  [ [ x '@' y ] ~* ] @: __quote__
 
   this
 ] @: console:point
@@ -104,7 +104,7 @@ needsCapability: console
 
   "Die gracefully in case an error occurs. Otherwise, the terminal
    will be messed up and most of the error will be omitted."
-  [ console:off die ] @: *died
+  [ console:off die ] @: __died__
 
   console:on
     0 console:setTimeout "Do not wait for input."

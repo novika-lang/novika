@@ -29,7 +29,7 @@ console:truecolor
 
   "When someone wants to use `buffer` in place of a quote,
    give them up-to-date `content`."
-  [ content ] @: *asQuote
+  [ content ] @: __quote__
 
   [ "( I -- ): deletes grapheme at Index in this buffer."
     content empty? => [ drop ^ ]
@@ -61,7 +61,7 @@ console:truecolor
 
   "When someone wants to use `cursor` in place of a decimal,
    give them up-to-date `pos`."
-  [ pos ] @: *asDecimal
+  [ pos ] @: __decimal__
 
   "-*-*-*-*- Movement etc. -*-*-*-*-"
 
@@ -348,7 +348,7 @@ true $: running?
    over the place."
   finalize
   die
-] @: *died
+] @: __died__
 
 
 BG withEchoBg

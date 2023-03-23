@@ -304,7 +304,7 @@ orphan $: _groups
         _deathHandlers cherry drop
       ] @: deathHandlerDo:
 
-      block #*died [
+      block #__died__ [
         "Catches unhandled deaths in test block and opens the
          top block in `_deathHandlers`."
         _deathHandlers top open
@@ -356,7 +356,7 @@ orphan $: _groups
       false $: died?
       [ ] $: failures
 
-      block #*died [ true =: ok? self resume ] opens
+      block #__died__ [ true =: ok? self resume ] opens
       block do
 
       ok? not => [

@@ -55,7 +55,7 @@ needsCapability: console
 
   [
     [ x '@' y ] ~*
-  ] @: *asQuote
+  ] @: __quote__
 
   this
 ] @: tvec2
@@ -171,7 +171,7 @@ needsCapability: console
 
   [ "Sets up death handlers, enables console API, and starts
      the main loop. After main loop ends/errs, disables console."
-    console:on [ console:off reportError ] @: *died
+    console:on [ console:off reportError ] @: __died__
 
     "Do not wait for input if there's none:"
     0 console:setTimeout

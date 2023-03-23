@@ -45,7 +45,7 @@ consProduct echo
   [
     [ ] x toQuote <<  ' @ ' << y toQuote <<
     [ stitch ] '' reduce
-  ] @: *asQuote
+  ] @: __quote__
 
   this
 ] @: point
@@ -70,7 +70,7 @@ consProduct echo
 
 block new orphan reparent [
   "Extend with a word trap that does nothing."
-  [ ] @: *trap
+  [ ] @: __trap__
 ] extend
 
 vals echo "should be: [ x y + Algebraic stuff test huh? ]"

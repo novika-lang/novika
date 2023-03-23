@@ -41,23 +41,23 @@ describe 'Conversion words should not be inherited #25' [
   [
     [ ] $: x
 
-    'hello' $: *asQuote
-    [ 100 1 + ] @: *asDecimal
-    false $: *asBoolean
-    [ ##fubar ] @: *asQuotedWord
-    [ [ #baz $: *asWord this ] open ] @: *asWord
+    'hello' $: __quote__
+    [ 100 1 + ] @: __decimal__
+    false $: __boolean__
+    [ ##fubar ] @: __quotedword__
+    [ [ #baz $: __word__ this ] open ] @: __word__
 
     this
   ] @: b
 
-  it dies 'because child doesn\'t inherit *asQuote' [ b.x asQuote ]
-  it dies 'because child doesn\'t inherit *asDecimal' [ b.x asDecimal ]
-  it dies 'because child doesn\'t inherit *asBoolean' [ b.x asBoolean ]
-  it dies 'because child doesn\'t inherit *asQuotedWord' [ b.x asQuotedWord ]
-  it dies 'because child doesn\'t inherit *asWord' [ b.x asWord ]
+  it dies 'because child doesn\'t inherit __quote__' [ b.x asQuote ]
+  it dies 'because child doesn\'t inherit __decimal__' [ b.x asDecimal ]
+  it dies 'because child doesn\'t inherit __boolean__' [ b.x asBoolean ]
+  it dies 'because child doesn\'t inherit __quotedword__' [ b.x asQuotedWord ]
+  it dies 'because child doesn\'t inherit __word__' [ b.x asWord ]
 
-  [ [ ] $: x 'hello' $: *asQuote this ] @: issueEg1
-  [ [ ] $: x [ 100 1 + ] @: *asDecimal this ] @: issueEg2
+  [ [ ] $: x 'hello' $: __quote__ this ] @: issueEg1
+  [ [ ] $: x [ 100 1 + ] @: __decimal__ this ] @: issueEg2
 
   it should 'pass issue example #1' [ issueEg1 dup asQuote assert= ]
   it dies 'as expected in issue example #1' [ issueEg1.x asQuote ]
@@ -71,16 +71,16 @@ describe 'Infinite recursion when word undefined inside word trap #8' [
   in lang
 
   it dies 'because definition for this-word-is-undefined not found in the enclosing block(s)' [
-    [ this-word-is-undefined ] @: *trap
+    [ this-word-is-undefined ] @: __trap__
     this-word-is-undefined-and-will-trigger-the-trap
   ]
 
   it should 'climb traps' [
-    [ 100 ] @: *trap
+    [ 100 ] @: __trap__
     [
-      [ 200 trigger-upper-trap2 ] @: *trap
+      [ 200 trigger-upper-trap2 ] @: __trap__
       [
-        [ 300 trigger-upper-trap ] @: *trap
+        [ 300 trigger-upper-trap ] @: __trap__
         trigger-my-own-trap
       ] open
     ] vals [ trigger-my-own-trap 300 trigger-upper-trap 200 trigger-upper-trap2 100 ] assert=
@@ -145,7 +145,7 @@ describe 'Correct precedence with assertDies #52' [
 ]
 
 
-describe 'Death nesting, handle death inside *died handler #58' [
+describe 'Death nesting, handle death inside __died__ handler #58' [
   in lang
 
 
@@ -154,7 +154,7 @@ describe 'Death nesting, handle death inside *died handler #58' [
     false $: died?
 
     [
-      [ true =: died? ] @: *died
+      [ true =: died? ] @: __died__
       ">>>" swap "<<< ERROR"
 
       true =: gotPastError?
@@ -172,13 +172,13 @@ describe 'Death nesting, handle death inside *died handler #58' [
       [ nesting 1 + =: nesting ] $: nesting++
       [ afterError 1 + =: afterError ] @: afterError++
 
-      nesting++ @: *died
+      nesting++ @: __died__
 
       [
-        nesting++ @: *died
+        nesting++ @: __died__
 
         [
-          nesting++ @: *died
+          nesting++ @: __died__
 
           swap
           afterError++
@@ -200,15 +200,15 @@ describe 'Death nesting, handle death inside *died handler #58' [
     [ ] $: details
 
     [
-      [ getErrorDetails details gulp 'PERIOD' details gulp ] @: *died
+      [ getErrorDetails details gulp 'PERIOD' details gulp ] @: __died__
 
       [
-        [ getErrorDetails details gulp 'Boomba! 4th' die ] @: *died
+        [ getErrorDetails details gulp 'Boomba! 4th' die ] @: __died__
         [
-          [ getErrorDetails details gulp 'Kaboom! 3rd' die ] @: *died
+          [ getErrorDetails details gulp 'Kaboom! 3rd' die ] @: __died__
 
           [
-            [ getErrorDetails details gulp 'Bang! 2nd' die ] @: *died
+            [ getErrorDetails details gulp 'Bang! 2nd' die ] @: __died__
 
             'Boom! 1st' die
           ] do
@@ -225,16 +225,16 @@ describe 'Death nesting, handle death inside *died handler #58' [
     #nil $: error
     0 $: nesting
 
-    [ =: error nesting 1 + =: nesting ] @: *died
+    [ =: error nesting 1 + =: nesting ] @: __died__
 
     [
-      #die here @: *died
+      #die here @: __died__
 
       [
-        [ nesting 1 + =: nesting die ] @: *died
+        [ nesting 1 + =: nesting die ] @: __died__
 
         [
-          [ die "]] make sure that this is unreachable:" nesting 1 + =: nesting ] @: *died
+          [ die "]] make sure that this is unreachable:" nesting 1 + =: nesting ] @: __died__
 
           _probe enclose [ open ] hydrate
         ] do
@@ -256,7 +256,7 @@ describe 'Death nesting, handle death inside *died handler #58' [
       ] obj shallowCopy toOrphan "TODO: make toOrphan immutable?" $: _env
 
       [
-        [ getErrorDetails ] @: *died
+        [ getErrorDetails ] @: __died__
 
         new _env reparent vals
 
@@ -284,7 +284,7 @@ describe 'Death nesting, handle death inside *died handler #58' [
         100 $: foo
         200 $: bar
         [ foo bar + ] @: baz
-        [ getErrorDetails ] @: *died
+        [ getErrorDetails ] @: __died__
       ] obj shallowCopy toOrphan "TODO: make toOrphan immutable?" $: _env
 
       new _env reparent vals
@@ -301,13 +301,13 @@ describe 'Death nesting, handle death inside *died handler #58' [
     didGetPastVals true assert=
   ]
 
-  it should 'support nested *died' [
+  it should 'support nested __died__' [
     [
       [
         [ getErrorDetails
-          [ getErrorDetails ] @: *died
+          [ getErrorDetails ] @: __died__
           bar
-        ] @: *died
+        ] @: __died__
 
         1 baz
       ] vals
@@ -315,6 +315,25 @@ describe 'Death nesting, handle death inside *died handler #58' [
   ]
 ]
 
+"
+describe 'Bug: unhandled nested death infinite loop #68 ' [
+  in lang
+
+  it should 'handle nested death rather than looping indefinitely' [
+    [ [ [ p die ] open ] @: __died__ foo ] '' assertDies
+    [
+      [ die ] @: __died__
+      [
+        [
+          [ causes-this-to-evaluate-and-die ] @: __died__
+          undefined-word--^
+        ] @: __died__
+        boo
+      ] do
+    ] '' assertDies
+  ]
+]
+"
 
 describe 'Block.with and friends properly instantiating' [
   in lang

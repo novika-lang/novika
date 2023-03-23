@@ -311,9 +311,9 @@ describe 'word?' [
   in lang
 
   it should 'leave true for word' [ #foo word? true assert= ]
-  it should 'leave true for block implementing *asWord' [
-    [ #foo  $: *asWord this ] @: x
-    [ [ x ] @: *asWord this ] @: y
+  it should 'leave true for block implementing __word__' [
+    [ #foo  $: __word__ this ] @: x
+    [ [ x ] @: __word__ this ] @: y
     x word? true assert=
     y word? true assert=
   ]
@@ -342,9 +342,9 @@ describe 'quotedWord?' [
   in lang
 
   it should 'leave true for quoted word' [ ##foo quotedWord? true assert= ]
-  it should 'leave true for block implementing *asQuotedWord' [
-    [ ##foo $: *asQuotedWord this ] @: x
-    [ [ x ] @: *asQuotedWord this ] @: y
+  it should 'leave true for block implementing __quotedword__' [
+    [ ##foo $: __quotedword__ this ] @: x
+    [ [ x ] @: __quotedword__ this ] @: y
     x quotedWord? true assert=
     y quotedWord? true assert=
   ]
@@ -362,9 +362,9 @@ describe 'decimal?' [
   in lang
 
   it should 'leave true for decimal' [ 100 decimal? true assert= ]
-  it should 'leave true for block implementing *asDecimal' [
-    [ 100   $: *asDecimal this ] @: x
-    [ [ x ] @: *asDecimal this ] @: y
+  it should 'leave true for block implementing __decimal__' [
+    [ 100   $: __decimal__ this ] @: x
+    [ [ x ] @: __decimal__ this ] @: y
     x decimal? true assert=
     y decimal? true assert=
   ]
@@ -382,9 +382,9 @@ describe 'quote?' [
   in lang
 
   it should 'leave true for quote' [ 'foo' quote? true assert= ]
-  it should 'leave true for block implementing *asQuote' [
-    [ 'foo' $: *asQuote this ] @: x
-    [ [ x ] @: *asQuote this ] @: y
+  it should 'leave true for block implementing __quote__' [
+    [ 'foo' $: __quote__ this ] @: x
+    [ [ x ] @: __quote__ this ] @: y
     x quote? true assert=
     y quote? true assert=
   ]
@@ -402,9 +402,9 @@ describe 'boolean?' [
   in lang
 
   it should 'leave true for boolean' [ true boolean? true assert= ]
-  it should 'leave true for block implementing *asBoolean' [
-    [ true  $: *asBoolean this ] @: x
-    [ [ x ] @: *asBoolean this ] @: y
+  it should 'leave true for block implementing __boolean__' [
+    [ true  $: __boolean__ this ] @: x
+    [ [ x ] @: __boolean__ this ] @: y
     x boolean? true assert=
     y boolean? true assert=
   ]
@@ -422,9 +422,9 @@ describe 'color?' [
   in lang
 
   it should 'leave true for color' [ 0 0 0 rgb color? true assert= ]
-  it should 'leave true for block implementing *asColor' [
-    [ 0 0 0 rgb $: *asColor this ] @: x
-    [ [ x ] @: *asColor this ] @: y
+  it should 'leave true for block implementing __color__' [
+    [ 0 0 0 rgb $: __color__ this ] @: x
+    [ [ x ] @: __color__ this ] @: y
     x color? true assert=
     y color? true assert=
   ]
@@ -443,9 +443,9 @@ describe 'byteslice?' [
   in lang
 
   it should 'leave true for byteslice' [ 'hello world' toByteslice byteslice? true assert= ]
-  it should 'leave true for block implementing *asByteslice' [
-    [ 'hello' toByteslice $: *asByteslice this ] @: x
-    [ [ x ] @: *asByteslice this ] @: y
+  it should 'leave true for block implementing __byteslice__' [
+    [ 'hello' toByteslice $: __byteslice__ this ] @: x
+    [ [ x ] @: __byteslice__ this ] @: y
     x byteslice? true assert=
     y byteslice? true assert=
   ]
@@ -472,14 +472,14 @@ describe 'asDecimal' [
     100 dup asDecimal assert=
   ]
 
-  [ $: x x $: *asDecimal this ] @: a
+  [ $: x x $: __decimal__ this ] @: a
 
-  it dies 'when given quote in *asDecimal' [ 'foo' a asDecimal ]
-  it dies 'when given word in *asDecimal' [ #foo a asDecimal ]
-  it dies 'when given quoted word in *asDecimal' [ ##foo a asDecimal ]
-  it dies 'when given boolean in *asDecimal' [ true a asDecimal ]
-  it dies 'when given block in *asDecimal' [ [] a asDecimal ]
-  it should 'leave instance when given decimal in *asDecimal' [
+  it dies 'when given quote in __decimal__' [ 'foo' a asDecimal ]
+  it dies 'when given word in __decimal__' [ #foo a asDecimal ]
+  it dies 'when given quoted word in __decimal__' [ ##foo a asDecimal ]
+  it dies 'when given boolean in __decimal__' [ true a asDecimal ]
+  it dies 'when given block in __decimal__' [ [] a asDecimal ]
+  it should 'leave instance when given decimal in __decimal__' [
     100 a dup asDecimal same? true assert=
   ]
 ]
@@ -496,14 +496,14 @@ describe 'asQuote' [
     'foo' dup asQuote assert=
   ]
 
-  [ $: x x $: *asQuote this ] @: a
+  [ $: x x $: __quote__ this ] @: a
 
-  it dies 'when given decimal in *asQuote' [ 100 a asQuote ]
-  it dies 'when given word in *asQuote' [ #foo a asQuote ]
-  it dies 'when given quoted word in *asQuote' [ ##foo a asQuote ]
-  it dies 'when given boolean in *asQuote' [ true a asQuote ]
-  it dies 'when given block in *asQuote' [ [] a asQuote ]
-  it should 'leave instance when given quote in *asQuote' [
+  it dies 'when given decimal in __quote__' [ 100 a asQuote ]
+  it dies 'when given word in __quote__' [ #foo a asQuote ]
+  it dies 'when given quoted word in __quote__' [ ##foo a asQuote ]
+  it dies 'when given boolean in __quote__' [ true a asQuote ]
+  it dies 'when given block in __quote__' [ [] a asQuote ]
+  it should 'leave instance when given quote in __quote__' [
     'foo' a dup asQuote same? true assert=
   ]
 ]
@@ -520,14 +520,14 @@ describe 'asWord' [
     #foo dup asWord assert=
   ]
 
-  [ $: x x $: *asWord this ] @: a
+  [ $: x x $: __word__ this ] @: a
 
-  it dies 'when given decimal in *asWord' [ 100 a asWord ]
-  it dies 'when given quote in *asWord' [ 'foo' a asWord ]
-  it dies 'when given quoted word in *asWord' [ ##foo a asWord ]
-  it dies 'when given boolean in *asWord' [ true a asWord ]
-  it dies 'when given block in *asWord' [ [] a asWord ]
-  it should 'leave instance when given word in *asWord' [
+  it dies 'when given decimal in __word__' [ 100 a asWord ]
+  it dies 'when given quote in __word__' [ 'foo' a asWord ]
+  it dies 'when given quoted word in __word__' [ ##foo a asWord ]
+  it dies 'when given boolean in __word__' [ true a asWord ]
+  it dies 'when given block in __word__' [ [] a asWord ]
+  it should 'leave instance when given word in __word__' [
     #foo a dup asWord same? true assert=
   ]
 ]
@@ -544,14 +544,14 @@ describe 'asQuotedWord' [
     ##foo dup asQuotedWord assert=
   ]
 
-  [ $: x x $: *asQuotedWord this ] @: a
+  [ $: x x $: __quotedword__ this ] @: a
 
-  it dies 'when given decimal in *asQuotedWord' [ 100 a asQuotedWord ]
-  it dies 'when given quote in *asQuotedWord' [ 'foo' a asQuotedWord ]
-  it dies 'when given word in *asQuotedWord' [ #foo a asQuotedWord ]
-  it dies 'when given boolean in *asQuotedWord' [ true a asQuotedWord ]
-  it dies 'when given block in *asQuotedWord' [ [] a asQuotedWord ]
-  it should 'leave instance when given quoted word in *asQuotedWord' [
+  it dies 'when given decimal in __quotedword__' [ 100 a asQuotedWord ]
+  it dies 'when given quote in __quotedword__' [ 'foo' a asQuotedWord ]
+  it dies 'when given word in __quotedword__' [ #foo a asQuotedWord ]
+  it dies 'when given boolean in __quotedword__' [ true a asQuotedWord ]
+  it dies 'when given block in __quotedword__' [ [] a asQuotedWord ]
+  it should 'leave instance when given quoted word in __quotedword__' [
     ##foo a dup asQuotedWord same? true assert=
   ]
 ]
@@ -568,14 +568,14 @@ describe 'asBoolean' [
     true dup asBoolean assert=
   ]
 
-  [ $: x x $: *asBoolean this ] @: a
+  [ $: x x $: __boolean__ this ] @: a
 
-  it dies 'when given decimal in *asBoolean' [ 100 a asBoolean ]
-  it dies 'when given quote in *asBoolean' [ 'foo' a asBoolean ]
-  it dies 'when given word in *asBoolean' [ #foo a asBoolean ]
-  it dies 'when given quoted word in *asBoolean' [ ##foo a asBoolean ]
-  it dies 'when given block in *asBoolean' [ [] a asBoolean ]
-  it should 'leave instance when given boolean in *asBoolean' [
+  it dies 'when given decimal in __boolean__' [ 100 a asBoolean ]
+  it dies 'when given quote in __boolean__' [ 'foo' a asBoolean ]
+  it dies 'when given word in __boolean__' [ #foo a asBoolean ]
+  it dies 'when given quoted word in __boolean__' [ ##foo a asBoolean ]
+  it dies 'when given block in __boolean__' [ [] a asBoolean ]
+  it should 'leave instance when given boolean in __boolean__' [
     true a dup asBoolean same? true assert=
   ]
 ]
@@ -595,8 +595,8 @@ describe 'asByteslice' [
   ]
 
 
-  it should 'it should accept block with *asByteslice' [
-    [ $: x x $: *asByteslice this ] @: a
+  it should 'it should accept block with __byteslice__' [
+    [ $: x x $: __byteslice__ this ] @: a
 
     [ 100 a asByteslice ] 'bad type: decimal, expected: a byteslice' assertDies
     [ 'foo' a asByteslice ] 'bad type: quote, expected: a byteslice' assertDies
@@ -689,7 +689,7 @@ describe 'toQuote block' [
   ]
 
   it should 'respect quote reprs' [
-    [ 'fooBar' $: *asQuote ] obj $: x
+    [ 'fooBar' $: __quote__ ] obj $: x
     x toQuote 'fooBar' assert=
     x enclose toQuote '[ fooBar ]' assert=
   ]
@@ -773,20 +773,20 @@ describe 'color?' [
     [ ] color? false assert= "...etc.."
   ]
 
-  it should 'leave false for block implementing *asColor' [
-    [   0 0 0 rgb  $: *asColor this ] $: x
-    [ [ 0 0 0 rgb] @: *asColor this ] $: y
+  it should 'leave false for block implementing __color__' [
+    [   0 0 0 rgb  $: __color__ this ] $: x
+    [ [ 0 0 0 rgb] @: __color__ this ] $: y
     x color? false assert=
     y color? false assert=
   ]
 
-  [ $: x x $: *asColor this ] @: a
+  [ $: x x $: __color__ this ] @: a
 
-  it should 'leave instance when given color in *asColor' [
+  it should 'leave instance when given color in __color__' [
     0 0 0 rgb a dup asColor same? true assert=
   ]
 
-  it should 'die when not given color in *asColor' [
+  it should 'die when not given color in __color__' [
     [ 'foo' a asColor ] 'bad type: quote, expected: a color' assertDies
   ]
 ]

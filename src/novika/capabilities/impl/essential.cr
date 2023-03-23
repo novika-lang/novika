@@ -342,12 +342,12 @@ module Novika::Capabilities::Impl
 
       target.at("word?", <<-END
       ( F -- true/false ): leaves whether Form is a word form,
-       or a block that implements '*asWord'.
+       or a block that implements '__word__'.
 
       ```
       #foo word? leaves: true
 
-      [ #foo $: *asWord this ] open word? leaves: true
+      [ #foo $: __word__ this ] open word? leaves: true
       ```
       END
       ) do |_, stack|
@@ -409,12 +409,12 @@ module Novika::Capabilities::Impl
       #foo asWord leaves: [ foo ]
       ```
 
-      `*asWord` hook can make a block usable in place of a word,
+      `__word__` hook can make a block usable in place of a word,
       provided its definition leaves a word or a block which
-      implements '*asWord':
+      implements '__word__':
 
       ```
-      [ $: x x $: *asWord this ] @: a
+      [ $: x x $: __word__ this ] @: a
       #foo a asWord "beware: leaves instance of a"
       #boo a a asWord "beware: leaves instance of a"
       ```
@@ -423,11 +423,11 @@ module Novika::Capabilities::Impl
 
       target.at("quotedWord?", <<-END
       ( F -- true/false ): leaves whether Form is a quoted word
-       form, or a block that implements '*asQuotedWord'.
+       form, or a block that implements '__quotedword__'.
 
       ```
       ##foo quotedWord? leaves: true
-      [ ##foo $: *asQuotedWord this ] open quotedWord? leaves: true
+      [ ##foo $: __quotedword__ this ] open quotedWord? leaves: true
       ```
       END
       ) do |_, stack|
@@ -451,12 +451,12 @@ module Novika::Capabilities::Impl
       ##foo asQuotedWord leaves: #foo
       ```
 
-      `*asQuotedWord` hook can make a block usable in place of
+      `__quotedword__` hook can make a block usable in place of
       a quoted word, provided its definition leaves a quoted
-      word or a block that implements `*asQuotedWord`:
+      word or a block that implements `__quotedword__`:
 
       ```
-      [ $: x x $: *asQuotedWord this ] @: a
+      [ $: x x $: __quotedword__ this ] @: a
       ##foo a asQuotedWord "beware: leaves instance of a"
       ##boo a a asQuotedWord "beware: leaves instance of a"
       ```
@@ -465,11 +465,11 @@ module Novika::Capabilities::Impl
 
       target.at("decimal?", <<-END
       ( F -- true/false ): leaves whether Form is a decimal form,
-       or a block that implements '*asDecimal'.
+       or a block that implements '__decimal__'.
 
       ```
       123 decimal? leaves: true
-      [ 123 $: *asDecimal this ] open decimal? leaves: true
+      [ 123 $: __decimal__ this ] open decimal? leaves: true
       ```
       END
       ) do |_, stack|
@@ -493,12 +493,12 @@ module Novika::Capabilities::Impl
       100 asDecimal leaves: 100
       ```
 
-      `*asDecimal` hook can make a block usable in place of a
+      `__decimal__` hook can make a block usable in place of a
       decimal, provided its definition leaves a decimal or a
-      block that implements `*asDecimal`:
+      block that implements `__decimal__`:
 
       ```
-      [ $: x x $: *asDecimal this ] @: a
+      [ $: x x $: __decimal__ this ] @: a
       100 a asDecimal "beware: leaves an instance of a"
       200 a a asDecimal "beware: leaves an instance of a"
       ```
@@ -507,11 +507,11 @@ module Novika::Capabilities::Impl
 
       target.at("quote?", <<-END
       ( F -- true/false ): leaves whether Form is a quote form,
-       or a block that implements '*asQuote'.
+       or a block that implements '__quote__'.
 
       ```
       'foo' quote? leaves: true
-      [ 'foo' $: *asQuote this ] open quote? leaves: true
+      [ 'foo' $: __quote__ this ] open quote? leaves: true
       ```
       END
       ) do |_, stack|
@@ -535,12 +535,12 @@ module Novika::Capabilities::Impl
       'foo' asQuote leaves: 'foo'
       ```
 
-      `*asQuote` hook can make a block usable in place of a
+      `__quote__` hook can make a block usable in place of a
       quote, provided its definition leaves a quote or a block
-      that implements `*asQuote`:
+      that implements `__quote__`:
 
       ```
-      [ $: x x $: *asQuote this ] @: a
+      [ $: x x $: __quote__ this ] @: a
       'foo' a asQuote "beware: leaves instance of a"
       'boo' a a asQuote "beware: leaves instance of a"
       ```
@@ -549,11 +549,11 @@ module Novika::Capabilities::Impl
 
       target.at("boolean?", <<-END
       ( F -- true/false ): leaves whether Form is a boolean form,
-       or a block that implements '*asBoolean'.
+       or a block that implements '__boolean__'.
 
       ```
       true boolean? leaves: true
-      [ true $: *asBoolean this ] open boolean? leaves: true
+      [ true $: __boolean__ this ] open boolean? leaves: true
       ```
       END
       ) do |_, stack|
@@ -578,12 +578,12 @@ module Novika::Capabilities::Impl
       false asBoolean leaves: false
       ```
 
-      `*asBoolean` hook can make a block usable in place of a
+      `__boolean__` hook can make a block usable in place of a
       boolean, provided its definition leaves a boolean or a
-      block that implements `*asBoolean`:
+      block that implements `__boolean__`:
 
       ```
-      [ $: x x $: *asBoolean this ] @: a
+      [ $: x x $: __boolean__ this ] @: a
       true a asBoolean "beware: leaves an instance of a"
       true a a asBoolean "beware: leaves an instance of a"
       ```
@@ -613,11 +613,11 @@ module Novika::Capabilities::Impl
 
       target.at("color?", <<-END
       ( F -- true/false ): leaves whether Form is a color form,
-       or a block that implements '*asColor'.
+       or a block that implements '__color__'.
 
       ```
       0 0 0 rgb color? leaves: true
-      [ 0 0 0 rgb $: *asColor this ] open color? leaves: true
+      [ 0 0 0 rgb $: __color__ this ] open color? leaves: true
       ```
       END
       ) do |_, stack|
@@ -641,12 +641,12 @@ module Novika::Capabilities::Impl
       0 0 0 rgb asColor toQuote leaves: 'rgb(0, 0, 0)'
       ```
 
-      `*asColor` hook can make a block usable in place of a
+      `__color__` hook can make a block usable in place of a
       color, provided its definition leaves a color or a block
-      that implements `*asColor`:
+      that implements `__color__`:
 
       ```
-      [ $: x x $: *asColor this ] @: a
+      [ $: x x $: __color__ this ] @: a
       0 0 0 rgb a asColor "beware: leaves an instance of a"
       0 0 0 rgb a a asColor "beware: leaves an instance of a"
       ```
@@ -655,11 +655,11 @@ module Novika::Capabilities::Impl
 
       target.at("byteslice?", <<-END
       ( F -- true/false ): leaves whether Form is a byteslice
-       form, or a block that implements '*asByteslice'.
+       form, or a block that implements '__byteslice__'.
 
       ```
       'hello world' toByteslice byteslice? leaves: true
-      [ [ 'Hi!' toByteslice ] $: *asByteslice this ] open byteslice? leaves: true
+      [ [ 'Hi!' toByteslice ] $: __byteslice__ this ] open byteslice? leaves: true
       ```
       END
       ) do |_, stack|
@@ -683,12 +683,12 @@ module Novika::Capabilities::Impl
       'hello world' toByteslice asByteslice leaves: '[byteslice, consists of 11 mutable byte(s)]'
       ```
 
-      `*asByteslice` hook can make a block usable in place of
+      `__byteslice__` hook can make a block usable in place of
       a byteslice, provided its definition leaves a byteslice
-      or a block that implements `*asByteslice`:
+      or a block that implements `__byteslice__`:
 
       ```
-      [ $: x x $: *asByteslice this ] @: a
+      [ $: x x $: __byteslice__ this ] @: a
       'foo' toByteslice a asByteslice "beware: leaves an instance of a"
       'foo' toByteslice a a asByteslice "beware: leaves an instance of a"
       ```

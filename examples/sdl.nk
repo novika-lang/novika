@@ -134,7 +134,7 @@
   [ [ SDL_Quit sdl:quit ] -- nothing ]
 ] _sdl
 
-[ sdl:quit die ] @: *died
+[ sdl:quit die ] @: __died__
 
 [ 0 < => [ sdl:error die ] ] @: sdl:ensure
 

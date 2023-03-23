@@ -70,7 +70,7 @@ describe 'block friends' [
     foo a unfriend
     foo #open 2enclose this reparent
     "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ demonic crap related to
-      *died precedence. Maybe fixable, maybe not."
+      __died__ precedence. Maybe fixable, maybe not."
       'no value form for \'bar\'' assertDies
   ]
 
@@ -171,13 +171,13 @@ describe 'Engine recursion handling' [
   in lang
 
   it should 'die when engine recursion limit is exceeded' [
-    [ [ bI ] @: *asDecimal this ] @: a
-    [ [ aI ] @: *asDecimal this ] @: b
+    [ [ bI ] @: __decimal__ this ] @: a
+    [ [ aI ] @: __decimal__ this ] @: b
 
     a $: aI
     b $: bI
 
-    [ aI bI + ] 'bad engine depth: maybe deep recursion in *as...?' assertDies
+    [ aI bI + ] 'bad engine depth: deep recursion in a __metaword__?' assertDies
   ]
 ]
 
@@ -194,7 +194,7 @@ describe 'Block metawords' [
           '( F -- ): default *-shove implementation' startsWith? true assert=
 
         controlledStack gulp
-      ] @: *-shove
+      ] @: __shove__
 
       [ "Triggered on cherry from this block."
 
@@ -202,9 +202,9 @@ describe 'Block metawords' [
           '( -- ): default *-cherry implementation' startsWith? true assert=
 
         controlledStack cherry
-      ] @: *-cherry
+      ] @: __cherry__
 
-      [ [ '<controlled stack: ' controlledStack '>' ] ~* ] @: *asQuote
+      [ [ '<controlled stack: ' controlledStack '>' ] ~* ] @: __quote__
     ] obj $: b
 
     b [ 1 2 drop 3 ] there
@@ -230,15 +230,15 @@ describe 'Metawords capability inheritance' [
       [
         qPath disk:read $: qDecimal
         qDecimal parseDecimal
-      ] @: *asDecimal
+      ] @: __decimal__
 
       [
         nip self 1 + swap open "remove original form, shove self decimal + 1"
-      ] @: *-shove
+      ] @: __shove__
 
       [
         drop self 1 - "remove original cherry impl; give them self decimal - 1"
-      ] @: *-cherry
+      ] @: __cherry__
 
       this
     ] @: myDecimalOnDisk

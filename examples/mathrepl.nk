@@ -196,7 +196,7 @@ orphan $: operators
   false $: isAnswerRunnable?
 
   [ "( Q -- ): sets answer equal to Quote."
-    [ false =: isAnswerRunnable? ] @: *died
+    [ false =: isAnswerRunnable? ] @: __died__
 
     dup =: answer
 
@@ -214,7 +214,7 @@ orphan $: operators
     [ "If we fail for some reason, set the isAnswerRunnable flag
        and leave last valid result."
       drop  false =: isAnswerRunnable?  _lastOkResult
-    ] @: *died
+    ] @: __died__
 
     isAnswerRunnable? => [
       "If result block is empty, go back to 0 as the last result."
@@ -373,7 +373,7 @@ orphan $: operators
   ] @: finalize
 
 
-  [ finalize die ] @: *died
+  [ finalize die ] @: __died__
 
   console:on
   console:truecolor

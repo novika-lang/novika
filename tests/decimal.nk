@@ -84,8 +84,8 @@ describe 'Math: inter-domain decimal math' [
     1 '2' +
   ]
 
-  it should 'try to convert type block arguments to decimals via *asDecimal' [
-    [ $: *asDecimal this ] @: foos
+  it should 'try to convert type block arguments to decimals via __decimal__' [
+    [ $: __decimal__ this ] @: foos
     100 foos 200 foos + 300 assert=
   ]
 
@@ -156,42 +156,42 @@ describe 'Math: floating point (precise) math' [
   ]
 ]
 
-describe '*asDecimal hook for implicit conversion of blocks to decimals' [
+describe '__decimal__ hook for implicit conversion of blocks to decimals' [
   in lang
 
-  it dies 'when block does not implement *asDecimal' [
+  it dies 'when block does not implement __decimal__' [
     1 [ ] +
   ]
 
-  it should 'support blocks which implement *asDecimal literally' [
-    [ $: *asDecimal this ] @: wrap
+  it should 'support blocks which implement __decimal__ literally' [
+    [ $: __decimal__ this ] @: wrap
     1 2 wrap + 3 assert=
   ]
 
-  it should 'support blocks which implement *asDecimal computationally' [
-    [ $: value [ value dup * ] @: *asDecimal this ] @: squareWrap
+  it should 'support blocks which implement __decimal__ computationally' [
+    [ $: value [ value dup * ] @: __decimal__ this ] @: squareWrap
     1 2 squareWrap + 5 assert=
   ]
 
-  it dies 'when block does not return a decimal in *asDecimal' [
-    [ toQuote $: *asDecimal this ] @: wrap
+  it dies 'when block does not return a decimal in __decimal__' [
+    [ toQuote $: __decimal__ this ] @: wrap
     1 2 wrap +
   ]
 
-  it should 'support blocks whose *asDecimal leaves block which implements *asDecimal' [
-    [ $: n [ n ] @: *asDecimal this ] @: foos
-    [ $: *asDecimal this ] @: wrap
+  it should 'support blocks whose __decimal__ leaves block which implements __decimal__' [
+    [ $: n [ n ] @: __decimal__ this ] @: foos
+    [ $: __decimal__ this ] @: wrap
     100 foos wrap 0 + 100 assert=
   ]
 
-  it should 'support blocks whose *asDecimal computes & leaves block which implements *asDecimal' [
-    [ $: n [ n ] @: *asDecimal this ] @: foos
-    [ $: n [ n foos ] @: *asDecimal this ] @: wrap
+  it should 'support blocks whose __decimal__ computes & leaves block which implements __decimal__' [
+    [ $: n [ n ] @: __decimal__ this ] @: foos
+    [ $: n [ n foos ] @: __decimal__ this ] @: wrap
     100 foos 0 + 100 assert=
   ]
 
-  it should 'die when same type left in *asDecimal' [
-    [ $: n [ n foos ] @: *asDecimal this ] @: foos
-    [ 100 foos 200 foos + ] 'bad engine depth: maybe deep recursion in *as...?' assertDies
+  it should 'die when same type left in __decimal__' [
+    [ $: n [ n foos ] @: __decimal__ this ] @: foos
+    [ 100 foos 200 foos + ] 'bad engine depth: deep recursion in a __metaword__?' assertDies
   ]
 ]
