@@ -13,7 +13,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="novika">
-  <title>Novika::QuotedWord - novika rev10-dev</title>
+  <title>Novika::Hook - novika rev10-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -531,7 +531,7 @@
       
     </li>
   
-  <li class=" " data-id="novika/Novika/Hook" data-name="novika::hook">
+  <li class=" current" data-id="novika/Novika/Hook" data-name="novika::hook">
       <a href="../Novika/Hook.html">Hook</a>
       
     </li>
@@ -631,7 +631,7 @@
       
     </li>
   
-  <li class=" current" data-id="novika/Novika/QuotedWord" data-name="novika::quotedword">
+  <li class=" " data-id="novika/Novika/QuotedWord" data-name="novika::quotedword">
       <a href="../Novika/QuotedWord.html">QuotedWord</a>
       
     </li>
@@ -745,49 +745,33 @@
 <div class="main-content">
 <h1 class="type-name">
 
-  <span class="kind">struct</span> Novika::QuotedWord
+  <span class="kind">module</span> Novika::Hook
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/QuotedWord.html">Novika::QuotedWord</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
 
 
-  <h2>
-    <a id="overview" class="anchor" href="#overview">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Overview
-  </h2>
-
-  <p>Quoted words are words prefixed by '#': e.g., <code>#foo</code>. It
-lets you 'coat' a word: <code>#foo open</code> is the same as <code>foo</code>,
-<code>##foo open</code> is the same as <code>#foo</code>, etc. Levels of coating
-are peeled off like in an onion.</p>
 
 
 
 
 
   <h2>
-    <a id="included-modules" class="anchor" href="#included-modules">
+    <a id="extended-modules" class="anchor" href="#extended-modules">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>
-    Included Modules
+    Extended Modules
   </h2>
   <ul class="other-types-list">
     
-      <li class="other-type"><a href="../Novika/Form.html">Novika::Form</a></li>
+      <li class="other-type"><a href="../Novika/Hook.html">Novika::Hook</a></li>
     
   </ul>
-
-
 
 
 
@@ -806,7 +790,7 @@ are peeled off like in an onion.</p>
   </h2>
   
     
-      novika/forms/words.cr
+      novika/hook.cr
     
     <br/>
   
@@ -815,41 +799,7 @@ are peeled off like in an onion.</p>
 
 
 
-  <h2>
-    <a id="constructors" class="anchor" href="#constructors">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Constructors
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#new%28id%3AString%29-class-method" class="signature"><strong>.new</strong>(id : String)</a>
-        
-      </li>
-    
-  </ul>
 
-
-
-  <h2>
-    <a id="class-method-summary" class="anchor" href="#class-method-summary">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Class Method Summary
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#typedesc-class-method" class="signature"><strong>.typedesc</strong></a>
-        
-      </li>
-    
-  </ul>
 
 
 
@@ -864,52 +814,79 @@ are peeled off like in an onion.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#%3D%3D%28other%3Aself%29-instance-method" class="signature"><strong>#==</strong>(other : <span class="k">self</span>)</a>
+        <a href="#as_boolean-instance-method" class="signature"><strong>#as_boolean</strong></a>
+        
+          <div class="summary"><p>Returns the block-to-boolean hook name.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#desc%28io%3AIO%29-instance-method" class="signature"><strong>#desc</strong>(io : IO)</a>
+        <a href="#as_byteslice-instance-method" class="signature"><strong>#as_byteslice</strong></a>
         
-          <div class="summary"><p>Appends a string description of this form to <em>io</em>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#hash%28hasher%29-instance-method" class="signature"><strong>#hash</strong>(hasher)</a>
-        
-          <div class="summary"><p>See <code>Object#hash(hasher)</code></p></div>
+          <div class="summary"><p>Returns the block-to-byteslice hook name.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#id%3AString-instance-method" class="signature"><strong>#id</strong> : String</a>
+        <a href="#as_color-instance-method" class="signature"><strong>#as_color</strong></a>
         
-          <div class="summary"><p>Returns the underlying string id.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#on_parent_open%28engine%29%3Aself-instance-method" class="signature"><strong>#on_parent_open</strong>(engine) : <span class="k">self</span></a>
+          <div class="summary"><p>Returns the block-to-color hook name.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#peel-instance-method" class="signature"><strong>#peel</strong></a>
+        <a href="#as_decimal-instance-method" class="signature"><strong>#as_decimal</strong></a>
         
-          <div class="summary"><p>&quot;Peels&quot; off a layer of quoting.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#to_s%28io%29-instance-method" class="signature"><strong>#to_s</strong>(io)</a>
+          <div class="summary"><p>Returns the block-to-decimal hook name.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#to_word%3AWord-instance-method" class="signature"><strong>#to_word</strong> : Word</a>
+        <a href="#as_quote-instance-method" class="signature"><strong>#as_quote</strong></a>
         
-          <div class="summary"><p>Converts this quoted word to <code><a href="../Novika/Word.html">Word</a></code>.</p></div>
+          <div class="summary"><p>Returns the block-to-quote hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_quoted_word-instance-method" class="signature"><strong>#as_quoted_word</strong></a>
+        
+          <div class="summary"><p>Returns the block-to-quoted word hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#as_word-instance-method" class="signature"><strong>#as_word</strong></a>
+        
+          <div class="summary"><p>Returns the block-to-word hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#died%3AWord-instance-method" class="signature"><strong>#died</strong> : Word</a>
+        
+          <div class="summary"><p>Returns the death hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#on_cherry-instance-method" class="signature"><strong>#on_cherry</strong></a>
+        
+          <div class="summary"><p>Returns the on-cherry hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#on_shove-instance-method" class="signature"><strong>#on_shove</strong></a>
+        
+          <div class="summary"><p>Returns the on-shove hook name.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#trap-instance-method" class="signature"><strong>#trap</strong></a>
+        
+          <div class="summary"><p>Returns the word trap hook name.</p></div>
         
       </li>
     
@@ -921,147 +898,10 @@ are peeled off like in an onion.</p>
 
 <div class="methods-inherited">
   
-    
-
-  <h3>Instance methods inherited from module <code><a href="../Novika/Form.html">Novika::Form</a></code></h3>
-  
-  
-    <a href="../Novika/Form.html#a%28type%3AT.class%29%3ATforallT-instance-method" class="tooltip">
-      <span>a(type : <span class="t">T</span>.<span class="k">class</span>) : T forall T</span>
-    a</a>, 
-    
-  
-    <a href="../Novika/Form.html#desc%28io%3AIO%29-instance-method" class="tooltip">
-      <span>desc(io : IO)<br/>desc : String</span>
-    desc</a>, 
-    
-  
-    <a href="../Novika/Form.html#die%28details%3AString%29-instance-method" class="tooltip">
-      <span>die(details : String)</span>
-    die</a>, 
-    
-  
-    <a href="../Novika/Form.html#effect%28io%29-instance-method" class="tooltip">
-      <span>effect(io)<br/>effect</span>
-    effect</a>, 
-    
-  
-    <a href="../Novika/Form.html#on_open%28engine%3AEngine%29%3Aself-instance-method" class="tooltip">
-      <span>on_open(engine : Engine) : <span class="k">self</span></span>
-    on_open</a>, 
-    
-  
-    <a href="../Novika/Form.html#on_parent_open%28engine%3AEngine%29%3Aself-instance-method" class="tooltip">
-      <span>on_parent_open(engine : Engine) : <span class="k">self</span></span>
-    on_parent_open</a>, 
-    
-  
-    <a href="../Novika/Form.html#onto%28block%3ABlock%29%3Aself-instance-method" class="tooltip">
-      <span>onto(block : Block) : <span class="k">self</span></span>
-    onto</a>, 
-    
-  
-    <a href="../Novika/Form.html#sel%28a%2Cb%29-instance-method" class="tooltip">
-      <span>sel(a, b)</span>
-    sel</a>, 
-    
-  
-    <a href="../Novika/Form.html#to_quote%3AQuote-instance-method" class="tooltip">
-      <span>to_quote : Quote</span>
-    to_quote</a>
-    
-  
-
-
-    
-
-
-    
-
-
-  
-    
-
-
-    
-
-
-    
-
-
-  
-    
-
-
-    
-
-
-    
-
-
-  
-    
-
-
-    
-
-
-    
-
-
-  
 </div>
 
 
-  <h2>
-    <a id="constructor-detail" class="anchor" href="#constructor-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Constructor Detail
-  </h2>
-  
-    <div class="entry-detail" id="new(id:String)-class-method">
-      <div class="signature">
-        
-        def self.<strong>new</strong>(id : <a href="../String.html">String</a>)
 
-        <a class="method-permalink" href="#new%28id%3AString%29-class-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-
-
-
-  <h2>
-    <a id="class-method-detail" class="anchor" href="#class-method-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Class Method Detail
-  </h2>
-  
-    <div class="entry-detail" id="typedesc-class-method">
-      <div class="signature">
-        
-        def self.<strong>typedesc</strong>
-
-        <a class="method-permalink" href="#typedesc-class-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
 
 
 
@@ -1074,35 +914,17 @@ are peeled off like in an onion.</p>
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="==(other:self)-instance-method">
+    <div class="entry-detail" id="as_boolean-instance-method">
       <div class="signature">
         
-        def <strong>==</strong>(other : <span class="k">self</span>)
+        def <strong>as_boolean</strong>
 
-        <a class="method-permalink" href="#%3D%3D%28other%3Aself%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="desc(io:IO)-instance-method">
-      <div class="signature">
-        
-        def <strong>desc</strong>(io : IO)
-
-        <a class="method-permalink" href="#desc%28io%3AIO%29-instance-method">#</a>
+        <a class="method-permalink" href="#as_boolean-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-            <div class="doc-inherited">
-              Description copied from module <a href="../Novika/Form.html">Novika::Form</a>
-            </div>
-          
-          <p>Appends a string description of this form to <em>io</em>.</p>
+          <p>Returns the block-to-boolean hook name.</p>
         </div>
       
       <br/>
@@ -1111,21 +933,17 @@ are peeled off like in an onion.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="hash(hasher)-instance-method">
+    <div class="entry-detail" id="as_byteslice-instance-method">
       <div class="signature">
         
-        def <strong>hash</strong>(hasher)
+        def <strong>as_byteslice</strong>
 
-        <a class="method-permalink" href="#hash%28hasher%29-instance-method">#</a>
+        <a class="method-permalink" href="#as_byteslice-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-            <div class="doc-inherited">
-              Description copied from struct Struct
-            </div>
-          
-          <p>See <code>Object#hash(hasher)</code></p>
+          <p>Returns the block-to-byteslice hook name.</p>
         </div>
       
       <br/>
@@ -1134,17 +952,17 @@ are peeled off like in an onion.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="id:String-instance-method">
+    <div class="entry-detail" id="as_color-instance-method">
       <div class="signature">
         
-        def <strong>id</strong> : <a href="../String.html">String</a>
+        def <strong>as_color</strong>
 
-        <a class="method-permalink" href="#id%3AString-instance-method">#</a>
+        <a class="method-permalink" href="#as_color-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Returns the underlying string id.</p>
+          <p>Returns the block-to-color hook name.</p>
         </div>
       
       <br/>
@@ -1153,34 +971,17 @@ are peeled off like in an onion.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="on_parent_open(engine):self-instance-method">
+    <div class="entry-detail" id="as_decimal-instance-method">
       <div class="signature">
         
-        def <strong>on_parent_open</strong>(engine) : <span class="k">self</span>
+        def <strong>as_decimal</strong>
 
-        <a class="method-permalink" href="#on_parent_open%28engine%29%3Aself-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="peel-instance-method">
-      <div class="signature">
-        
-        def <strong>peel</strong>
-
-        <a class="method-permalink" href="#peel-instance-method">#</a>
+        <a class="method-permalink" href="#as_decimal-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>&quot;Peels&quot; off a layer of quoting.</p>
-<pre><code class="language-crystal"><span class="t">QuotedWord</span>.new(<span class="s">&quot;#foo&quot;</span>).peel   <span class="c"># Word.new(&quot;foo&quot;)</span>
-<span class="t">QuotedWord</span>.new(<span class="s">&quot;##foo&quot;</span>).peel  <span class="c"># QuotedWord.new(&quot;#foo&quot;)</span>
-<span class="t">QuotedWord</span>.new(<span class="s">&quot;###foo&quot;</span>).peel <span class="c"># QuotedWord.new(&quot;##foo&quot;)</span></code></pre>
+          <p>Returns the block-to-decimal hook name.</p>
         </div>
       
       <br/>
@@ -1189,13 +990,18 @@ are peeled off like in an onion.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="to_s(io)-instance-method">
+    <div class="entry-detail" id="as_quote-instance-method">
       <div class="signature">
         
-        def <strong>to_s</strong>(io)
+        def <strong>as_quote</strong>
 
-        <a class="method-permalink" href="#to_s%28io%29-instance-method">#</a>
+        <a class="method-permalink" href="#as_quote-instance-method">#</a>
       </div>
+      
+        <div class="doc">
+          
+          <p>Returns the block-to-quote hook name.</p>
+        </div>
       
       <br/>
       <div>
@@ -1203,17 +1009,177 @@ are peeled off like in an onion.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="to_word:Word-instance-method">
+    <div class="entry-detail" id="as_quoted_word-instance-method">
       <div class="signature">
         
-        def <strong>to_word</strong> : <a href="../Novika/Word.html">Word</a>
+        def <strong>as_quoted_word</strong>
 
-        <a class="method-permalink" href="#to_word%3AWord-instance-method">#</a>
+        <a class="method-permalink" href="#as_quoted_word-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Converts this quoted word to <code><a href="../Novika/Word.html">Word</a></code>.</p>
+          <p>Returns the block-to-quoted word hook name.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="as_word-instance-method">
+      <div class="signature">
+        
+        def <strong>as_word</strong>
+
+        <a class="method-permalink" href="#as_word-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the block-to-word hook name.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="died:Word-instance-method">
+      <div class="signature">
+        
+        def <strong>died</strong> : <a href="../Novika/Word.html">Word</a>
+
+        <a class="method-permalink" href="#died%3AWord-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the death hook name.</p>
+<p>Death hooks are used to catch deaths (known as exceptions
+in other languages) in current block or in blocks below the
+current block (nested blocks).</p>
+<p>By defining a death hook, you are basically wrapping the
+contents of your block in an uncontrained (catch-all)
+<code>try ... catch</code> or <code>begin ... rescue</code>.</p>
+<pre><code class="language-novika">[ getErrorDetails echo ] @: __died__
+
+1 0 / &quot;STDOUT: division by zero⏎&quot;</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="on_cherry-instance-method">
+      <div class="signature">
+        
+        def <strong>on_cherry</strong>
+
+        <a class="method-permalink" href="#on_cherry-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the on-cherry hook name.</p>
+<p>On-cherry hooks trigger when the user tries to <em>cherry</em>
+a form out of a block. This doesn't necessarily mean using
+the word <code>cherry</code>, since e.g. the word <code>drop</code> and its
+implicit counterpart <em>pop</em> is defined in terms of <code>cherry</code>.</p>
+<p>Defining an on-shove hook will allow you to change how
+your block behaves when it's used as a stack and dropped/
+popped from, and how it behaves when it is <code>cherry</code>d.</p>
+<p>On-shove hook is complemented by <code><a href="../Novika/Hook.html#on_shove-instance-method">#on_shove</a></code> hook. See it
+to learn more.</p>
+<p>The &quot;Hello, World&quot; of on-shove/on-cherry is defining a
+<em>controlled stack</em>.</p>
+<pre><code class="language-novika">[
+  [ ] $: _controlledStack
+
+  [ drop _controlledStack swap bi: ['Shove ' swap ~ echo] shove ] @: __shove__
+  [ drop _controlledStack cherry dup 'Cherry ' swap ~ echo ] @: __cherry__
+
+  [ _controlledStack echo ] @: print
+] obj $: master
+
+master [ 1 2 + ] there
+master.print
+&quot;STDOUT: Shove 1⏎&quot;
+&quot;STDOUT: Shove 2⏎&quot;
+&quot;STDOUT: Cherry 2⏎&quot;
+&quot;STDOUT: Cherry 1⏎&quot;
+&quot;STDOUT: Shove 3⏎&quot;
+&quot;STDOUT: [ 3 ]⏎&quot;</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="on_shove-instance-method">
+      <div class="signature">
+        
+        def <strong>on_shove</strong>
+
+        <a class="method-permalink" href="#on_shove-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the on-shove hook name.</p>
+<p>On-shove hooks trigger when the user tries to <code>shove</code> a
+form into the block the hook is attached to. Note that
+this doesn't necessarily mean literally using <code>shove</code>.</p>
+<p>For instance, simply typing <code>1 2 3</code> will shove 1, 2, 3
+consequtively onto the stack. The latter is known as
+<em>pushing</em>, since <em>shoving</em> is defined for a block-and-a-
+form pair, while <em>pushing</em> is defined for a stack-and-a-
+form-pair, where the stack is implicit.</p>
+<p>Defining an on-shove hook will allow you to change how
+your block behaves when it's used as a stack and pushed
+to, and how it behaves when it is shoved into.</p>
+<p>On-shove hook is complemented by <code><a href="../Novika/Hook.html#on_cherry-instance-method">#on_cherry</a></code>. See it to
+learn more.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="trap-instance-method">
+      <div class="signature">
+        
+        def <strong>trap</strong>
+
+        <a class="method-permalink" href="#trap-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the word trap hook name.</p>
+<p>Word traps catch undefined words. Note that during word
+resolution, word traps run <em>last</em>. That is, all parents
+and friends of the block you're trying to resolve a word
+in are searched, and only then traps are triggered in the
+appropriate order.</p>
+<p>Traps can be nested: if one trap fails to resolve a word,
+then an outer trap is triggered.</p>
+<p>The words <em>outer</em>, <em>inner</em>, <em>nested</em> etc. refer to the block
+parent hierarchy. Initially, this means the hierarchy is
+AST-like, but for reparented blocks (or blocks whose parent
+hierarchy is changed otherwise), different traps will be
+triggered in case of an undefined word.</p>
+<pre><code class="language-novika">[ 'The following word is undefined: ' swap ~ echo ] @: __trap__
+
+1 2 + frobnicate &quot;STDOUT: The following word is undefined: frobnicate⏎&quot;</code></pre>
         </div>
       
       <br/>

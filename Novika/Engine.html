@@ -531,6 +531,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/Hook" data-name="novika::hook">
+      <a href="../Novika/Hook.html">Hook</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/ICapability" data-name="novika::icapability">
       <a href="../Novika/ICapability.html">ICapability</a>
       
@@ -1585,13 +1590,13 @@ especially from Crystal.</p>
 handlers whose prototype is <em>avoid_prototype</em>.</p>
 <p>To find the relevant death handler, the continuations
 block is inspected right-to-left (back-to-front); each
-code block is then asked to retrieve <code><a href="../Novika/Word.html#DIED">Word::DIED</a></code>
+code block is then asked to retrieve <code>Word::DIED</code>
 using <code><a href="../Novika/Block.html#at%3F%28index%29-instance-method">Block#at?</a></code>. Regardless of the result, the
 continuation block is then dropped.</p>
-<p>If succeeded in retrieving <code><a href="../Novika/Word.html#DIED">Word::DIED</a></code>, converts the
+<p>If succeeded in retrieving <code>Word::DIED</code>, converts the
 resulting entry to block (does not distinguish between
 openers and pushers). Returns that block.</p>
-<p>If all continuations were exhausted and no <code><a href="../Novika/Word.html#DIED">Word::DIED</a></code>
+<p>If all continuations were exhausted and no <code><a href="../Novika/Hook.html#died%3AWord-instance-method">Hook.died</a></code>
 had been found, returns nil.</p>
         </div>
       
