@@ -286,9 +286,9 @@ module Novika
       end
 
       if hook = flat_at?(Hook.on_shove)
-        default = Builtin.new("*-shove",
+        default = Builtin.new("__shove__",
           desc: <<-END
-          ( F -- ): default *-shove implementation. Pushes Form to
+          ( F -- ): default __shove__ implementation. Pushes Form to
            the block it was captured in.
           END
         ) { |_, stack| impl.call(stack.drop) }
@@ -347,8 +347,8 @@ module Novika
       end
 
       if hook = flat_at?(Hook.on_cherry)
-        default = Builtin.new("*-cherry",
-          desc: "( -- ): default *-cherry implementation."
+        default = Builtin.new("__cherry__",
+          desc: "( -- ): default __cherry__ implementation."
         ) { |_, stack| impl.call }
 
         Engine.exhaust(Engine.current.capabilities, hook, Block[default]).top

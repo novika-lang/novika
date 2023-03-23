@@ -44,7 +44,7 @@ describe 'Conversion words should not be inherited #25' [
     'hello' $: __quote__
     [ 100 1 + ] @: __decimal__
     false $: __boolean__
-    [ ##fubar ] @: __quotedword__
+    [ ##fubar ] @: __quotedWord__
     [ [ #baz $: __word__ this ] open ] @: __word__
 
     this
@@ -53,7 +53,7 @@ describe 'Conversion words should not be inherited #25' [
   it dies 'because child doesn\'t inherit __quote__' [ b.x asQuote ]
   it dies 'because child doesn\'t inherit __decimal__' [ b.x asDecimal ]
   it dies 'because child doesn\'t inherit __boolean__' [ b.x asBoolean ]
-  it dies 'because child doesn\'t inherit __quotedword__' [ b.x asQuotedWord ]
+  it dies 'because child doesn\'t inherit __quotedWord__' [ b.x asQuotedWord ]
   it dies 'because child doesn\'t inherit __word__' [ b.x asWord ]
 
   [ [ ] $: x 'hello' $: __quote__ this ] @: issueEg1

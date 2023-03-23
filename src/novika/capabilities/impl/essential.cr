@@ -423,11 +423,11 @@ module Novika::Capabilities::Impl
 
       target.at("quotedWord?", <<-END
       ( F -- true/false ): leaves whether Form is a quoted word
-       form, or a block that implements '__quotedword__'.
+       form, or a block that implements '__quotedWord__'.
 
       ```
       ##foo quotedWord? leaves: true
-      [ ##foo $: __quotedword__ this ] open quotedWord? leaves: true
+      [ ##foo $: __quotedWord__ this ] open quotedWord? leaves: true
       ```
       END
       ) do |_, stack|
@@ -451,12 +451,12 @@ module Novika::Capabilities::Impl
       ##foo asQuotedWord leaves: #foo
       ```
 
-      `__quotedword__` hook can make a block usable in place of
+      `__quotedWord__` hook can make a block usable in place of
       a quoted word, provided its definition leaves a quoted
-      word or a block that implements `__quotedword__`:
+      word or a block that implements `__quotedWord__`:
 
       ```
-      [ $: x x $: __quotedword__ this ] @: a
+      [ $: x x $: __quotedWord__ this ] @: a
       ##foo a asQuotedWord "beware: leaves instance of a"
       ##boo a a asQuotedWord "beware: leaves instance of a"
       ```

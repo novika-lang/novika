@@ -342,9 +342,9 @@ describe 'quotedWord?' [
   in lang
 
   it should 'leave true for quoted word' [ ##foo quotedWord? true assert= ]
-  it should 'leave true for block implementing __quotedword__' [
-    [ ##foo $: __quotedword__ this ] @: x
-    [ [ x ] @: __quotedword__ this ] @: y
+  it should 'leave true for block implementing __quotedWord__' [
+    [ ##foo $: __quotedWord__ this ] @: x
+    [ [ x ] @: __quotedWord__ this ] @: y
     x quotedWord? true assert=
     y quotedWord? true assert=
   ]
@@ -544,14 +544,14 @@ describe 'asQuotedWord' [
     ##foo dup asQuotedWord assert=
   ]
 
-  [ $: x x $: __quotedword__ this ] @: a
+  [ $: x x $: __quotedWord__ this ] @: a
 
-  it dies 'when given decimal in __quotedword__' [ 100 a asQuotedWord ]
-  it dies 'when given quote in __quotedword__' [ 'foo' a asQuotedWord ]
-  it dies 'when given word in __quotedword__' [ #foo a asQuotedWord ]
-  it dies 'when given boolean in __quotedword__' [ true a asQuotedWord ]
-  it dies 'when given block in __quotedword__' [ [] a asQuotedWord ]
-  it should 'leave instance when given quoted word in __quotedword__' [
+  it dies 'when given decimal in __quotedWord__' [ 100 a asQuotedWord ]
+  it dies 'when given quote in __quotedWord__' [ 'foo' a asQuotedWord ]
+  it dies 'when given word in __quotedWord__' [ #foo a asQuotedWord ]
+  it dies 'when given boolean in __quotedWord__' [ true a asQuotedWord ]
+  it dies 'when given block in __quotedWord__' [ [] a asQuotedWord ]
+  it should 'leave instance when given quoted word in __quotedWord__' [
     ##foo a dup asQuotedWord same? true assert=
   ]
 ]

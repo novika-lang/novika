@@ -73,7 +73,7 @@ module Novika::Hook
 
   # Returns the block-to-quoted word hook name.
   def as_quoted_word
-    Word.new("__quotedword__")
+    Word.new("__quotedWord__")
   end
 
   # Returns the block-to-byteslice hook name.

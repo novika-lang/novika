@@ -184,14 +184,14 @@ describe 'Engine recursion handling' [
 describe 'Block metawords' [
   in lang
 
-  it should 'support *-shove and *-cherry' [
+  it should 'support __shove__ and __cherry__' [
     [
       [ ] $: controlledStack
 
       [ "Triggered on shove into this block."
 
         "default implementation" desc
-          '( F -- ): default *-shove implementation' startsWith? true assert=
+          '( F -- ): default __shove__ implementation' startsWith? true assert=
 
         controlledStack gulp
       ] @: __shove__
@@ -199,7 +199,7 @@ describe 'Block metawords' [
       [ "Triggered on cherry from this block."
 
         "default implementation" desc
-          '( -- ): default *-cherry implementation' startsWith? true assert=
+          '( -- ): default __cherry__ implementation' startsWith? true assert=
 
         controlledStack cherry
       ] @: __cherry__
