@@ -23,3 +23,9 @@ jobs:
         run: shards install --without-development
       - name: Run language tests
         run: crystal run src/cli.cr -- ffi disk tests
+      - name: Build tests via NKAS
+        run: crystal run src/nkas.cr -- -cb:b ffi disk tests tests/tests.nki
+      - name: Copy ffi-test shared object to tests directory
+        run: cp tests/res/ffi-test.so tests/ffi-test.so
+      - name: Run the tests image using NKI
+        run: crystal run src/nki.cr -- tests/tests.nki
