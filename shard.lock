@@ -2,7 +2,7 @@ version: 2.0
 shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
-    version: 1.4.2
+    version: 1.4.3
 
   bindata:
     git: https://github.com/spider-gazelle/bindata.git
@@ -14,5 +14,5 @@ shards:
 
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
-    version: 0.1.0+git.commit.a58fa765c5514fb6dfc2d47674a86fd5aafb7b94
+    version: 0.1.1
 
