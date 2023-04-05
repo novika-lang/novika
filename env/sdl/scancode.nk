@@ -1,0 +1,271 @@
+"""SDL scancodes copy-pasted from SDL_scancode.h
+"""
+
+0 $: sdl:scancode:unknown
+
+4 $: sdl:scancode:a
+5 $: sdl:scancode:b
+6 $: sdl:scancode:c
+7 $: sdl:scancode:d
+8 $: sdl:scancode:e
+9 $: sdl:scancode:f
+10 $: sdl:scancode:g
+11 $: sdl:scancode:h
+12 $: sdl:scancode:i
+13 $: sdl:scancode:j
+14 $: sdl:scancode:k
+15 $: sdl:scancode:l
+16 $: sdl:scancode:m
+17 $: sdl:scancode:n
+18 $: sdl:scancode:o
+19 $: sdl:scancode:p
+20 $: sdl:scancode:q
+21 $: sdl:scancode:r
+22 $: sdl:scancode:s
+23 $: sdl:scancode:t
+24 $: sdl:scancode:u
+25 $: sdl:scancode:v
+26 $: sdl:scancode:w
+27 $: sdl:scancode:x
+28 $: sdl:scancode:y
+29 $: sdl:scancode:z
+
+30 $: sdl:scancode:1
+31 $: sdl:scancode:2
+32 $: sdl:scancode:3
+33 $: sdl:scancode:4
+34 $: sdl:scancode:5
+35 $: sdl:scancode:6
+36 $: sdl:scancode:7
+37 $: sdl:scancode:8
+38 $: sdl:scancode:9
+39 $: sdl:scancode:0
+
+40 $: sdl:scancode:return
+41 $: sdl:scancode:escape
+42 $: sdl:scancode:backspace
+43 $: sdl:scancode:tab
+44 $: sdl:scancode:space
+
+45 $: sdl:scancode:minus
+46 $: sdl:scancode:equals
+47 $: sdl:scancode:leftBracket
+48 $: sdl:scancode:rightBracket
+49 $: sdl:scancode:backslash
+
+50 $: sdl:scancode:nonushash
+
+51 $: sdl:scancode:semicolon
+52 $: sdl:scancode:apostrophe
+53 $: sdl:scancode:grave
+
+54 $: sdl:scancode:comma
+55 $: sdl:scancode:period
+56 $: sdl:scancode:slash
+
+57 $: sdl:scancode:capslock
+
+58 $: sdl:scancode:f1
+59 $: sdl:scancode:f2
+60 $: sdl:scancode:f3
+61 $: sdl:scancode:f4
+62 $: sdl:scancode:f5
+63 $: sdl:scancode:f6
+64 $: sdl:scancode:f7
+65 $: sdl:scancode:f8
+66 $: sdl:scancode:f9
+67 $: sdl:scancode:f10
+68 $: sdl:scancode:f11
+69 $: sdl:scancode:f12
+
+70 $: sdl:scancode:printScreen
+71 $: sdl:scancode:scrollLock
+72 $: sdl:scancode:pause
+73 $: sdl:scancode:insert
+74 $: sdl:scancode:home
+75 $: sdl:scancode:pageup
+76 $: sdl:scancode:delete
+77 $: sdl:scancode:end
+78 $: sdl:scancode:pagedown
+79 $: sdl:scancode:right
+80 $: sdl:scancode:left
+81 $: sdl:scancode:down
+82 $: sdl:scancode:up
+
+83 $: sdl:scancode:numLockClear
+
+84 $: sdl:scancode:kpDivide
+85 $: sdl:scancode:kpMultiply
+86 $: sdl:scancode:kpMinus
+87 $: sdl:scancode:kpPlus
+88 $: sdl:scancode:kpEnter
+89 $: sdl:scancode:kp1
+90 $: sdl:scancode:kp2
+91 $: sdl:scancode:kp3
+92 $: sdl:scancode:kp4
+93 $: sdl:scancode:kp5
+94 $: sdl:scancode:kp6
+95 $: sdl:scancode:kp7
+96 $: sdl:scancode:kp8
+97 $: sdl:scancode:kp9
+98 $: sdl:scancode:kp0
+99 $: sdl:scancode:kpPeriod
+
+100 $: sdl:scancode:nonUsBackslash
+
+101 $: sdl:scancode:application
+102 $: sdl:scancode:power
+
+103 $: sdl:scancode:kpEquals
+104 $: sdl:scancode:f13
+105 $: sdl:scancode:f14
+106 $: sdl:scancode:f15
+107 $: sdl:scancode:f16
+108 $: sdl:scancode:f17
+109 $: sdl:scancode:f18
+110 $: sdl:scancode:f19
+111 $: sdl:scancode:f20
+112 $: sdl:scancode:f21
+113 $: sdl:scancode:f22
+114 $: sdl:scancode:f23
+115 $: sdl:scancode:f24
+116 $: sdl:scancode:execute
+
+117 $: sdl:scancode:help    "< AL Integrated Help Center"
+118 $: sdl:scancode:menu    "< Menu (show menu)"
+119 $: sdl:scancode:select
+120 $: sdl:scancode:stop    "< AC Stop"
+121 $: sdl:scancode:again   "< AC Redo/Repeat"
+122 $: sdl:scancode:undo    "< AC Undo"
+123 $: sdl:scancode:cut     "< AC Cut"
+124 $: sdl:scancode:copy    "< AC Copy"
+125 $: sdl:scancode:paste   "< AC Paste"
+126 $: sdl:scancode:find    "< AC Find"
+127 $: sdl:scancode:mute
+128 $: sdl:scancode:volumeup
+129 $: sdl:scancode:volumedown
+
+133 $: sdl:scancode:kpComma
+134 $: sdl:scancode:kpEqualsAs400
+
+135 $: sdl:scancode:international1
+136 $: sdl:scancode:international2
+137 $: sdl:scancode:international3
+138 $: sdl:scancode:international4
+139 $: sdl:scancode:international5
+140 $: sdl:scancode:international6
+141 $: sdl:scancode:international7
+142 $: sdl:scancode:international8
+143 $: sdl:scancode:international9
+
+144 $: sdl:scancode:lang1 "< Hangul/English toggle"
+145 $: sdl:scancode:lang2 "< Hanja conversion"
+146 $: sdl:scancode:lang3 "< Katakana"
+147 $: sdl:scancode:lang4 "< Hiragana"
+148 $: sdl:scancode:lang5 "< Zenkaku/Hankaku"
+149 $: sdl:scancode:lang6 "< reserved"
+150 $: sdl:scancode:lang7 "< reserved"
+151 $: sdl:scancode:lang8 "< reserved"
+152 $: sdl:scancode:lang9 "< reserved"
+
+153 $: sdl:scancode:altErase "< Erase-Eaze"
+154 $: sdl:scancode:sysreq
+155 $: sdl:scancode:cancel "< AC Cancel"
+156 $: sdl:scancode:clear
+157 $: sdl:scancode:prior
+158 $: sdl:scancode:return2
+159 $: sdl:scancode:separator
+160 $: sdl:scancode:out
+161 $: sdl:scancode:oper
+162 $: sdl:scancode:clearAgain
+163 $: sdl:scancode:crsel
+164 $: sdl:scancode:exsel
+
+176 $: sdl:scancode:kp_00
+177 $: sdl:scancode:kp_000
+178 $: sdl:scancode:thousandsSeparator
+179 $: sdl:scancode:decimalSeparator
+180 $: sdl:scancode:currencyUnit
+181 $: sdl:scancode:currencySubunit
+182 $: sdl:scancode:kpLeftParen
+183 $: sdl:scancode:kpRightParen
+184 $: sdl:scancode:kpLeftBrace
+185 $: sdl:scancode:kpRightBrace
+186 $: sdl:scancode:kpTab
+187 $: sdl:scancode:kpBackspace
+188 $: sdl:scancode:kpA
+189 $: sdl:scancode:kpB
+190 $: sdl:scancode:kpC
+191 $: sdl:scancode:kpD
+192 $: sdl:scancode:kpE
+193 $: sdl:scancode:kpF
+194 $: sdl:scancode:kpXor
+195 $: sdl:scancode:kpPower
+196 $: sdl:scancode:kpPercent
+197 $: sdl:scancode:kpLess
+198 $: sdl:scancode:kpGreater
+199 $: sdl:scancode:kpAmpersand
+200 $: sdl:scancode:kpDblampersand
+201 $: sdl:scancode:kpVerticalBar
+202 $: sdl:scancode:kpDblverticalBar
+203 $: sdl:scancode:kpColon
+204 $: sdl:scancode:kpHash
+205 $: sdl:scancode:kpSpace
+206 $: sdl:scancode:kpAt
+207 $: sdl:scancode:kpExclam
+208 $: sdl:scancode:kpMemStore
+209 $: sdl:scancode:kpMemRecall
+210 $: sdl:scancode:kpMemClear
+211 $: sdl:scancode:kpMemAdd
+212 $: sdl:scancode:kpMemSubtract
+213 $: sdl:scancode:kpMemMultiply
+214 $: sdl:scancode:kpMemDivide
+215 $: sdl:scancode:kpPlusMinus
+216 $: sdl:scancode:kpClear
+217 $: sdl:scancode:kpClearEntry
+218 $: sdl:scancode:kpBinary
+219 $: sdl:scancode:kpOctal
+220 $: sdl:scancode:kpDecimal
+221 $: sdl:scancode:kpHexadecimal
+
+224 $: sdl:scancode:lctrl
+225 $: sdl:scancode:lshift
+226 $: sdl:scancode:lalt "< alt option"
+227 $: sdl:scancode:lgui "< windows command (apple) meta"
+228 $: sdl:scancode:rctrl
+229 $: sdl:scancode:rshift
+230 $: sdl:scancode:ralt "< alt gr option"
+231 $: sdl:scancode:rgui "< windows command (apple) meta"
+
+258 $: sdl:scancode:audioNext
+259 $: sdl:scancode:audioPrev
+260 $: sdl:scancode:audioStop
+261 $: sdl:scancode:audioPlay
+262 $: sdl:scancode:audioMute
+263 $: sdl:scancode:mediaSelect
+264 $: sdl:scancode:www "< AL Internet Browser"
+265 $: sdl:scancode:mail
+266 $: sdl:scancode:calculator "< AL Calculator"
+267 $: sdl:scancode:computer
+268 $: sdl:scancode:acSearch "< AC Search"
+269 $: sdl:scancode:acHome "< AC Home"
+270 $: sdl:scancode:acBack "< AC Back"
+271 $: sdl:scancode:acForward "< AC Forward"
+272 $: sdl:scancode:acStop "< AC Stop"
+273 $: sdl:scancode:acRefresh "< AC Refresh"
+274 $: sdl:scancode:acBookmarks "< AC Bookmarks"
+
+275 $: sdl:scancode:brightnessDown
+276 $: sdl:scancode:brightnessUp
+277 $: sdl:scancode:displaySwitch "< display mirroring/dual display switch video mode switch"
+278 $: sdl:scancode:kbDillumToggle
+279 $: sdl:scancode:kbDillumDown
+280 $: sdl:scancode:kbDillumUp
+281 $: sdl:scancode:eject
+282 $: sdl:scancode:sleep "< SC System Sleep"
+
+283 $: sdl:scancode:app1
+284 $: sdl:scancode:app2
+
+285 $: sdl:scancode:audioRewind
+286 $: sdl:scancode:audioFastForward

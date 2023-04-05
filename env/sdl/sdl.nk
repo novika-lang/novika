@@ -1,0 +1,668 @@
+'SDL2' ffi:getLibrary? not => [ 'could not find SDL2' die ] @: _sdlExport
+
+
+"--- EVENT TYPES --------------------------------"
+
+0x100 $: sdl:event:quit "< User-requested quit."
+
+"""
+Window events
+"""
+
+0x200 $: sdl:event:window "< Window state change"
+
+"""
+Keyboard events
+"""
+
+0x300 $: sdl:event:keydown "< Key pressed"
+0x301 $: sdl:event:keyup "< Key released"
+0x302 $: sdl:event:textEditing "< Keyboard text editing (composition)"
+0x303 $: sdl:event:textInput "< Keyboard text input"
+0x304 $: sdl:event:keymapChanged "< Keymap changed due to a system event such as an
+                                input language or keyboard layout change"
+
+0x305 $: sdl:event:textEditing* "< Extended keyboard text editing (composition)"
+
+"""
+Mouse events
+"""
+
+0x400 $: sdl:event:mouseMotion "< Mouse moved *"
+0x401 $: sdl:event:mouseButtonDown "< Mouse button pressed"
+0x402 $: sdl:event:mouseButtonUp "< Mouse button released"
+0x403 $: sdl:event:mouseWheel "< Mouse wheel motion"
+
+"""
+Clipboard events
+"""
+
+0x900 $: sdl:event:clipboardUpdate "< The clipboard or primary selection changed"
+
+"""
+Drag and drop events
+"""
+
+0x1000 $: sdl:event:dropFile "< The system requests a file open"
+0x1001 $: sdl:event:dropText "< text/plain drag-and-drop event"
+0x1002 $: sdl:event:dropBegin "< A new set of drops is beginning (NULL filename)"
+0x1003 $: sdl:event:dropComplete "< Current set of drops is now complete (NULL filename)"
+
+"""
+Render events
+"""
+
+0x2000 $: sdl:event:renderTargetsReset "< The render targets have been reset and
+                                      their contents need to be updated"
+
+0x2001 $: sdl:event:renderDeviceReset "< The device has been reset and all textures
+                                     need to be recreated"
+
+
+"--- EVENTS -------------------------------------"
+
+[ """The SDL keysym structure, used in key events.
+
+  If you are looking for translated character input, see
+  the `sdl:textInputEvent`.
+
+  * `scancode`: SDL physical key code (see `sdl:scancode:*`)
+  * `keycode`: SDL virtual key code.
+  * `mod`: current key modifiers.
+  """
+  scancode i32
+  keycode i32
+  mod u16
+  unused u32
+] ffi:createLayout $: sdl:keysym
+
+
+[ """Fields shared by every event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  """
+  type u32
+  timestamp u32
+] ffi:createLayout $: sdl:commonEvent
+
+
+[ """Display state change event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `display`: the associated display index.
+  * `event`: one of `sdl:displayEvent:*`.
+  * `data1`: event dependent data.
+  """
+  type u32
+  timestamp u32
+  display u32
+  event u8
+  padding1 u8
+  padding2 u8
+  padding3 u8
+  data1 i32
+] ffi:createLayout $: sdl:displayEvent
+
+
+[ """Window state change event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: the associated window.
+  * `event`: one of `sdl:windowEvent:*`.
+  * `data1`: event dependent data.
+  * `data2`: event dependent data.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  event u8
+  padding1 u8
+  padding2 u8
+  padding3 u8
+  data1 i32
+  data2 i32
+] ffi:createLayout $: sdl:windowEvent
+
+
+[ """Keyboard button event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with keyboard focus, if any.
+  * `state`: `sdl:pressedState` or `sdl:releasedState`
+  * `repeat`: non-zero if this is a key repeat
+  * `event`: one of `sdl:windowEvent:*`.
+  * `keysym`: the key that was pressed or released, see `sdl:keysym`.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  state u8
+  repeat u8
+  padding1 u8
+  padding2 u8
+  padding3 u8
+  keysym ~sdl:keysym
+] ffi:createLayout $: sdl:keyboardEvent
+
+
+[ """Keyboard text editing event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with keyboard focus, if any.
+  * `text`: points to 32 `u8`s of the the editing text.
+  * `start`: the start cursor of selected editing text.
+  * `length`: the length of selected editing text.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  text pointer
+  start i32
+  length i32
+] ffi:createLayout $: sdl:textEditingEvent
+
+
+[ """Extended keyboard text editing event when text would be
+   truncated if stored in the text buffer `sdl:textEditingEvent`.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with keyboard focus, if any.
+  * `text`: the editing text, which should be freed with `sdl:free`,
+    and will not be NULL.
+  * `start`: the start cursor of selected editing text.
+  * `length`: the length of selected editing text.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  text pointer
+  start i32
+  length i32
+] ffi:createLayout $: sdl:textEditingEvent*
+
+
+[ """Keyboard text input event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with keyboard focus, if any.
+  * `text`: points to 32 `u8`s of the the editing text.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  text pointer
+] ffi:createLayout $: sdl:textInputEvent
+
+
+[ """Mouse motion event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with mouse focus, if any.
+  * `which`: the mouse instance id, or `sdl:touchMouseId`
+  * `state`: the current button state (`sdl:pressedState` or `sdl:releasedState`).
+  * `x`: X coordinate, relative to window.
+  * `y`: Y coordinate, relative to window.
+  * `xrel`: The relative motion in the X direction.
+  * `yrel`: The relative motion in the Y direction.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  which u32
+  state u8
+  x i32
+  y i32
+  xrel i32
+  yrel i32
+] ffi:createLayout $: sdl:mouseMotionEvent
+
+
+[ """Mouse button event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with mouse focus, if any.
+  * `which`: the mouse instance id, or `sdl:touchMouseId`.
+  * `button`: the mouse button index.
+  * `state`: the current button state (`sdl:pressedState` or `sdl:releasedState`).
+  * `clicks`: 1 for single-click, 2 for double-click, etc.
+  * `x`: X coordinate, relative to window.
+  * `y`: Y coordinate, relative to window.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  which u32
+  button u8
+  state u8
+  clicks u8
+  padding1 u8
+  x i32
+  y i32
+] ffi:createLayout $: sdl:mouseButtonEvent
+
+
+[ """Mouse wheel event structure.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `windowID`: The window with mouse focus, if any.
+  * `which`: the mouse instance id, or `sdl:touchMouseId`.
+  * `x`: the amount scrolled horizontally, positive to the right
+    and negative to the left.
+  * `y`: the amount scrolled vertically, positive away from the
+    user and negative toward the user.
+  * `direction`: set to one of `sdl:mouseWheel:*`. When
+    `sdl:mouseWheel:flipped`, the values in X and Y will be
+    opposite. Multiply by -1 to change them back.
+  * `preciseX`: the amount scrolled horizontally, positive to the
+    right and negative to the left, with float precision.
+  * `preciseY`: The amount scrolled vertically, positive away from
+    the user and negative toward the user, with float precision.
+  * `mouseX`: X coordinate, relative to window.
+  * `mouseY`: Y coordinate, relative to window.
+  """
+  type u32
+  timestamp u32
+  windowID u32
+  which u32
+  x i32
+  y i32
+  direction u32
+  preciseX f32
+  preciseY f32
+  mouseX i32
+  mouseY i32
+] ffi:createLayout $: sdl:mouseWheelEvent
+
+
+[ """An event used to request a file open by the system.
+   This event is enabled by default, you can disable it
+   with `sdl:eventState`.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `file`: points to the file name, which should be freed with
+    `sdl:free`. Is NULL on begin/complete.
+  * `windowID`: the window that was dropped on, if any.
+  """
+  type u32
+  timestamp u32
+  file pointer
+  windowID u32
+] ffi:createLayout $: sdl:dropEvent
+
+
+[ """The "quit requested" event.
+
+  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  """
+  type u32
+  timestamp u32
+] ffi:createLayout $: sdl:quitEvent
+
+
+[ """General event structure.
+
+  * `type`: event type, shared with all events.
+
+  The following is a list of event types/fields that are implemented.
+  Those that are simply `pointer`s are unimplemented.
+
+  * `common`: common event data (see `sdl:commonEvent`).
+  * `display`: display event data (see `sdl:displayEvent`).
+  * `window`: window event data (see `sdl:windowEvent`).
+  * `key`: keyboard event data (see `sdl:keyboardEvent`).
+  * `edit`: text editing event data (see `sdl:textEditingEvent`).
+  * `edit*`: extended text editing event data (see `sdl:textEditingEvent*`).
+  * `text`: text input event data (see `sdl:textInputEvent`).
+  * `motion`: mouse motion event data (see `sdl:mouseMotionEvent`).
+  * `button`: mouse button event data (see `sdl:mouseButtonEvent`).
+  * `wheel`: mouse wheel event data (see `sdl:mouseWheelEvent`).
+  * `quit`: quit request event data (see `sdl:quitEvent`).
+  * `drop`: drag and drop event data (see `sdl:dropEvent`).
+  """
+  type u32
+
+  common ~sdl:commonEvent
+  display ~sdl:displayEvent
+  window ~sdl:windowEvent
+  key ~sdl:keyboardEvent
+  edit ~sdl:textEditingEvent
+  edit* ~sdl:textEditingEvent*
+  text ~sdl:textInputEvent
+  motion ~sdl:mouseMotionEvent
+  button ~sdl:mouseButtonEvent
+  wheel ~sdl:mouseWheelEvent
+  jaxis pointer
+  jball pointer
+  jhat pointer
+  jbutton pointer
+  jdevice pointer
+  jbattery pointer
+  caxis pointer
+  cbutton pointer
+  cdevice pointer
+  ctouchpad pointer
+  csensor pointer
+  adevice pointer
+  sensor pointer
+  quit ~sdl:quitEvent
+  user pointer
+  syswm pointer
+  tfinger pointer
+  mgesture pointer
+  dgesture pointer
+  drop ~sdl:dropEvent
+
+  _p1 u64
+  _p2 u64
+  _p3 u64
+  _p4 u64
+  _p5 u64
+  _p6 u64
+  _p7 u64
+] ffi:createLayout $: sdl:event
+
+
+"--- RECT ---------------------------------------"
+
+[ """The structure that defines a point (integer).
+
+  * `x`: the X coordinate of the point.
+  * `y`: the Y coordinate of the point.
+  """
+  x i32
+  y i32
+] ffi:createLayout $: sdl:intPoint
+
+
+[ """The structure that defines a point (floating point).
+
+  * `x`: the X coordinate of the point.
+  * `y`: the Y coordinate of the point.
+  """
+  x f32
+  y f32
+] ffi:createLayout $: sdl:floatPoint
+
+
+[ """A rectangle, with the origin at the upper left (integer).
+
+  * `x`: the X coordinate of the rectangle.
+  * `y`: the Y coordinate of the rectangle.
+  * `w`: width of the rectangle.
+  * `h`: height of the rectangle.
+  """
+  x i32
+  y i32
+  w i32
+  h i32
+] ffi:createLayout $: sdl:intRect
+
+
+[ """A rectangle, with the origin at the upper left (floating point).
+
+  * `x`: the X coordinate of the rectangle.
+  * `y`: the Y coordinate of the rectangle.
+  * `w`: width of the rectangle.
+  * `h`: height of the rectangle.
+  """
+  x f32
+  y f32
+  w f32
+  h f32
+] ffi:createLayout $: sdl:floatRect
+
+
+[
+  [ """( R1 R2 -- 0/1 ): leaves whether the two integer Rectangles
+     intersect. If either is null will leave 0.
+    """
+    [ SDL_HasIntersection sdl:intRectsIntersect? ] &sdl:intRect &sdl:intRect -- u8 ]
+
+
+  [ """( R1 R2 -- 0/1 ): leaves whether the two floating point
+     Rectangles intersect. If either is null will leave 0.
+    """
+    [ SDL_HasIntersectionF sdl:floatRectsIntersect? ] &sdl:floatRect &sdl:floatRect -- u8 ]
+
+
+  [ """( R1 R2 Rh -- 0/1 ): calculate the intersection of two integer
+     Rectangles and writes it into Result hole.
+    """
+    [ SDL_IntersectRect sdl:writeIntRectIntersection? ] &sdl:intRect &sdl:intRect &sdl:intRect -- u8 ]
+
+
+  [ """( R1 R2 Rh -- 0/1 ): calculate the intersection of two floating
+     point Rectangles and writes it into Result hole.
+    """
+    [ SDL_IntersectFRect sdl:writeFloatRectIntersection? ] &sdl:floatRect &sdl:floatRect &sdl:floatRect -- u8 ]
+
+
+  [ """( R1 R2 Rh -- 0/1 ): calculate the union of two integer Rectangles
+     and writes it into Result hole.
+    """
+    [ SDL_UnionRect sdl:writeIntRectUnion? ] &sdl:intRect &sdl:intRect &sdl:intRect -- u8 ]
+
+
+  [ """( R1 R2 Rh -- 0/1 ): calculate the union of two floating point
+     Rectangles and write it into Result hole.
+    """
+    [ SDL_UnionFRect sdl:writeFloatRectUnion? ] &sdl:floatRect &sdl:floatRect &sdl:floatRect -- u8 ]
+
+  "TODO: SDL_EnclosePoints"
+  "TODO: SDL_IntersectRectAndLine"
+] _sdlExport
+
+
+"--- GENERAL ------------------------------------"
+
+[ """Represents a color.
+
+  * `r`: the red component in the range 0-255.
+  * `g`: the green component in the range 0-255.
+  * `b`: the blue component in the range 0-255.
+  * `a`: the alpha component in the range 0-255.
+  """
+  r u8
+  g u8
+  b u8
+  a u8
+] ffi:createLayout $: sdl:color
+
+
+[ """Palette information.
+
+  * `ncolors`: the number of colors in the palette.
+  * `colors`: an array of `sdl:color`s representing the palette.
+  """
+  ncolors i32
+  colors &sdl:color
+  _version u32
+  _refcount i32
+] ffi:createLayout $: sdl:palette
+
+
+[ """Pixel format information. Everything is read-only.
+
+  * `format`: one of `sdl:pixelFormat:*`
+  * `palette`: an `sdl:palette` structure associated with this pixel
+    format, or null if the format doesn't have a palette.
+  * `bitsPerPixel`: the number of significant bits in a pixel value,
+    e.g.: 8, 15, 16, 24, 32.
+  * `bytesPerPixel`: the number of bytes required to hold a pixel
+    value, e.g.: 1, 2, 3, 4.
+  * `rmask`: a mask representing the location of the red component
+     of the pixel.
+  * `gmask`: a mask representing the location of the green component
+     of the pixel.
+  * `bmask`: a mask representing the location of the blue component
+     of the pixel.
+  * `amask`: a mask representing the location of the alpha component
+     of the pixel or 0 if the pixel format doesn't have any alpha
+     information.
+  """
+  format u32
+  palette &sdl:palette
+  bitsPerPixel u8
+  bytesPerPixel u8
+
+  padding u16
+
+  rmask u32
+  gmask u32
+  bmask u32
+  amask u32
+
+  _rloss u8
+  _gloss u8
+  _bloss u8
+  _aloss u8
+
+  _rshift u8
+  _gshift u8
+  _bshift u8
+  _ashift u8
+
+  _refcount  i32
+  _next &sdl:pixelFormat
+] ffi:createLayout $: sdl:pixelFormat
+
+
+[ """A collection of pixels used in software blitting.
+
+  * Read-only `format`: the format of the pixels stored in the
+    surface.  See `sdl:pixelFormat`.
+  * Read-only `w`, `h`: the width and height in pixels.
+  * Read-only `pitch`: the length of a row of pixels in bytes.
+  * Read-write `pixels`: the pointer to the actual pixel data.
+  * Read-write `userdata`: an arbitrary pointer you can set.
+  * Read-only `clipRect`: an `sdl:intRect` structure used to clip
+    blits to the surface. Can be set by `sdl:setClipRect`.
+  """
+  _flags u32
+  format &sdl:pixelFormat
+  w i32
+  h i32
+  pitch i32
+  pixels pointer
+  userdata pointer
+  _locked i32
+  _lockData pointer
+  clipRect &sdl:intRect
+  _map pointer
+  _refcount i32
+] ffi:createLayout $: sdl:surface
+
+"""
+Init/deinit flags
+"""
+
+0x00000001 $: sdl:init:timer "< timer subsystem"
+0x00000010 $: sdl:init:audio "< audio subsystem"
+0x00000020 $: sdl:init:video "< video subsystem; automatically initializes the events subsystem"
+0x00000200 $: sdl:init:joystick "< joystick subsystem; automatically initializes the events subsystem"
+0x00001000 $: sdl:init:haptic "< haptic (force feedback) subsystem"
+0x00002000 $: sdl:init:gameController "< controller subsystem; automatically initializes the joystick subsystem"
+0x00004000 $: sdl:init:events "< events subsystem"
+0x00008000 $: sdl:init:everything "< all of the above subsystems"
+0x00100000 $: sdl:init:noParachute "< compatibility; this flag is ignored"
+
+"""
+The flags on a window.
+"""
+
+0x00000001 $: sdl:window:fullscreen "< fullscreen window"
+0x00000002 $: sdl:window:opengl "< window usable with OpenGL context"
+0x00000004 $: sdl:window:shown "< window is visible"
+0x00000008 $: sdl:window:hidden "< window is not visible"
+0x00000010 $: sdl:window:borderless "< no window decoration"
+0x00000020 $: sdl:window:resizable "< window can be resized"
+0x00000040 $: sdl:window:minimized "< window is minimized"
+0x00000080 $: sdl:window:maximized "< window is maximized"
+0x00000100 $: sdl:window:mouseGrabbed "< window has grabbed mouse input"
+0x00000200 $: sdl:window:inputFocus "< window has input focus"
+0x00000400 $: sdl:window:mouseFocus "< window has mouse focus"
+0x00001001 $: sdl:window:fullscreenDesktop
+0x00000800 $: sdl:window:foreign "< window not created by SDL"
+0x00002000 $: sdl:window:allowHighDPI "< window should be created in high-DPI mode if supported"
+0x00004000 $: sdl:window:mouseCapture "< window has mouse captured (unrelated to `sdl:window:mouseGrabbed`)"
+0x00008000 $: sdl:window:alwaysOnTop "< window should always be above others"
+0x00010000 $: sdl:window:skipTaskbar "< window should not be added to the taskbar"
+0x00020000 $: sdl:window:utility "< window should be treated as a utility window"
+0x00040000 $: sdl:window:tooltip "< window should be treated as a tooltip"
+0x00080000 $: sdl:window:popupMenu "< window should be treated as a popup menu"
+0x00100000 $: sdl:window:keyboardGrabbed "< window has grabbed keyboard input"
+0x10000000 $: sdl:window:vulkan "< window usable for Vulkan surface"
+0x20000000 $: sdl:window:metal "< window usable for Metal view"
+
+sdl:window:mouseGrabbed $: sdl:window:inputGrabbed "< for compatibility"
+
+
+"v Used to indicate that the window position should be centered."
+0x2FFF0000 $: sdl:window:centered
+
+"v Used to indicate that you don't care what the window position is."
+0x1FFF0000 $: sdl:window:positionUndefined
+
+
+"""
+Flags used when creating a rendering context
+"""
+
+0x00000001 $: sdl:renderer:software "< the renderer is a software fallback"
+0x00000002 $: sdl:renderer:accelerated "< the renderer uses hardware acceleration"
+0x00000004 $: sdl:renderer:presentVsync "< present is synchronized with the refresh rate"
+0x00000008 $: sdl:renderer:targetTexture "< the renderer supports rendering to texture"
+
+
+[
+  [ "( F -- S ): initializes the SDL library given subsystem initialization
+     Flags (any of `sdl:init:*` OR'd together). Leaves 0 on success or a negative
+     error code on failure; use `sdl:error` for more information."
+    [ SDL_Init sdl:init ] u32 -- i32 ]
+
+
+  [ """( F -- ): shuts down specific SDL subsystems given any of the flags
+     used by `sdl:init`.
+
+    You still need to call `sdl:quit` even if you close all open subsystems
+    with `sdl:deinit`.
+    """
+    [ SDL_QuitSubSystem sdl:deinit ] u32 -- nothing ]
+
+
+  [ """( T X Y W H F -- P ): creates a window and leaves a Pointer to it
+     (or null if there was an error).
+
+    The window is created with the given Title, at the specified X and Y
+    coordinates (these can also be set to `sdl:window:centered` or
+    `sdl:window:positionUndefined`), with the specified Width and Height
+    (in screen coordinates), and according to Flags.
+
+    See `sdl:window:*` for Flags.
+    """
+    [ SDL_CreateWindow sdl:createWindow ] cstr i32 i32 i32 i32 u32 -- pointer ]
+
+
+  [ """( Wp I F -- P ): creates a 2D rendering context for a Window pointer
+     and leaves a pointer to it (or null if there was an error).
+
+    Window pointer is a pointer to the window where rendering is displayed.
+
+    Index is the index of the rendering driver to initialize, or -1 to
+    initialize the first one supporting the requested flags.
+
+    Flags is one or more `sdl:renderer:*` flags OR'd together.
+    """
+    [ SDL_CreateRenderer sdl:createRenderer ] pointer i32 u32 -- pointer ]
+
+
+  [ [ SDL_GetError sdl:error ] -- cstr ]
+
+  [ [ SDL_RenderClear sdl:renderClear ] pointer -- i32 ]
+  [ [ SDL_SetRenderDrawColor sdl:setRenderDrawColor ] pointer u8 u8 u8 u8 -- i32 ]
+  [ [ SDL_RenderFillRect sdl:fillRect ] pointer &sdl:intRect -- i32 ]
+  [ [ SDL_RenderPresent sdl:renderPresent ] pointer -- nothing ]
+  [ [ SDL_PollEvent sdl:pollEvent ] pointer -- i32 ]
+  [ [ SDL_WaitEvent sdl:waitEvent ] pointer -- i32 ]
+  [ [ SDL_Quit sdl:quit ] -- nothing ]
+] _sdlExport
