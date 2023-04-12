@@ -1,2 +1,8 @@
 ffi
 disk
+
+# Load SDL followed by SDL TTF
+
+scancode.nk
+sdl_lib.nk
+sdl_ttf.nk

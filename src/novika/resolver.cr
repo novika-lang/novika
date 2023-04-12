@@ -36,7 +36,8 @@ module Novika
     # list, explicitly.
     getter? explicit : Bool
 
-    def initialize(@path,
+    def initialize(@flags : Hash(String, Bool),
+                   @path,
                    @entry = nil,
                    @files = Set(Path).new,
                    @app = nil,
@@ -54,9 +55,36 @@ module Novika
     # depending on the type of this folder (app or otherwise).
     #
     # Returns nil if neither exists.
+    #
+    # Runs the preprocessor on manifest content.
+    #
+    # * Preprocessor expressions are enclosed in `[]`s.
+    # * OS conditionals in preprocessor expressions are supported,
+    #   e.g. `library.[windows, linux, macos | dll, so, dylib]
     def manifest?
-      if (mpath = app? || lib?) && File.readable?(mpath)
-        File.read(mpath)
+      return unless (mpath = app? || lib?) && File.readable?(mpath)
+
+      content = File.read(mpath)
+      content.gsub(/\[([^\]\n]+)\]/) do |pexp|
+        case $1
+        when /^\s*(\w+(?:\s*,\s*\w+)*)\s*\|\s*(\w+(?:\s*,\s*\w+)*)$/
+          flags = $1.split(/\s*,\s*/, remove_empty: true)
+          blocks = $2.split(/\s*,\s*/, remove_empty: true)
+          next pexp unless flags.size == blocks.size
+
+          branches = Hash.zip(flags, blocks)
+          branch = branches["_"]?
+
+          @flags.each do |flag, state|
+            next unless state
+            next unless block = branches[flag]?
+            break branch = block
+          end
+
+          next branch || ""
+        end
+
+        pexp
       end
     end
 
@@ -244,6 +272,17 @@ module Novika
       @cwd = Path[Dir.current],
       @userhome = Path.home
     )
+      @flags = {
+        "bsd"       => {{ flag?(:bsd) }},
+        "darwin"    => {{ flag?(:darwin) }},
+        "dragonfly" => {{ flag?(:dragonfly) }},
+        "freebsd"   => {{ flag?(:freebsd) }},
+        "linux"     => {{ flag?(:linux) }},
+        "netbsd"    => {{ flag?(:netbsd) }},
+        "openbsd"   => {{ flag?(:openbsd) }},
+        "unix"      => {{ flag?(:unix) }},
+        "windows"   => {{ flag?(:windows) }},
+      } of String => Bool
     end
 
     # If it exists, returns *path* expanded in the current
@@ -267,9 +306,11 @@ module Novika
     # if present, takes precedence over the global environment,
     # and may be called either '.novika', or 'env'.
     private getter env : Path? do
-      path if File.directory?(path = @cwd / ".novika") ||
-              File.directory?(path = @cwd / "env") ||
-              File.directory?(path = @userhome / ".novika")
+      return unless File.directory?(path = @cwd / ".novika") ||
+                    File.directory?(path = @cwd / "env") ||
+                    File.directory?(path = @userhome / ".novika")
+
+      Path[File.realpath(path)]
     end
 
     # If it exists, returns *path* expanded in the Novika
@@ -349,7 +390,7 @@ module Novika
       return if store.has_key?(root)
 
       entry = root / "#{root.stem}.nk"
-      folder = store[root] = Folder.new(
+      folder = store[root] = Folder.new(@flags,
         path: root,
         entry: File.file?(entry) ? entry : nil,
         app: app,
@@ -357,14 +398,22 @@ module Novika
         explicit: explicit,
       )
 
+      skiplist = Set(Path).new
+
       if manifest = folder.manifest?
         _cwd, @cwd = @cwd, root
 
         manifest.each_line do |runnable|
           # Comments are allowed in the manifest files.
+          next if runnable.blank?
           next if runnable.starts_with?('#')
 
-          resolve(runnable, manual: false)
+          # Resolve in manifest. Remember which paths the manifest
+          # resolved and ignore them in glob()s below.
+          result = resolve(runnable, manual: false)
+          next unless result.is_a?(Path)
+
+          skiplist << result
         end
 
         @cwd = _cwd
@@ -373,12 +422,14 @@ module Novika
       Dir.glob(root / "*.nk") do |path|
         # Skip entry path. We've looked at it above.
         next if entry == (path = Path[path])
+        next if path.in?(skiplist)
 
         folder.files << path
       end
 
       Dir.glob(root / "*/") do |path|
         next if app?(path = Path[path])
+        next if path.in?(skiplist)
 
         # Disallow apps but allow core. This configuration
         # seems to work, but still smells weirdly!
@@ -395,10 +446,10 @@ module Novika
       end
     end
 
-    private def resolve(runnable : String, *, manual = true)
+    private def resolve(runnable : String, *, manual = true) : Path | String
       if @caps.has_capability?(runnable)
         capabilities << CapabilityRequest.new(self, runnable, manual)
-        return
+        return runnable
       end
 
       # Unless runnable exists as a directory/file in current
@@ -406,25 +457,27 @@ module Novika
       # mark as unknown.
       unless path = expand_runnable_path?(Path[runnable])
         unknowns << runnable
-        return
+        return runnable
       end
 
       if File.directory?(path)
         load(path, app: app?(path) ? path / MANIFEST_APP : nil)
-        return
+        return path
       end
 
       unless File.file?(path)
         unknowns << runnable
-        return
+        return path
       end
 
       if shared_object?(path)
         shared_objects << path
-        return
+        return path
       end
 
       files << path
+
+      path
     end
 
     def resolve? : Bool

@@ -1,4 +1,3 @@
-# TODO: add an OS conditional
-res/ffi-test.so
+res/ffi-test.[windows, _ | dll, so]
 ffi
 disk
