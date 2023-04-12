@@ -657,12 +657,49 @@ Flags used when creating a rendering context
 
 
   [ [ SDL_GetError sdl:error ] -- cstr ]
-
   [ [ SDL_RenderClear sdl:renderClear ] pointer -- i32 ]
   [ [ SDL_SetRenderDrawColor sdl:setRenderDrawColor ] pointer u8 u8 u8 u8 -- i32 ]
   [ [ SDL_RenderFillRect sdl:fillRect ] pointer &sdl:intRect -- i32 ]
+  [ [ SDL_CreateTextureFromSurface sdl:textureFromSurface ] pointer &sdl:surface -- pointer ]
+  [ [ SDL_DestroyTexture sdl:destroyTexture ] pointer -- nothing ]
+  [ [ SDL_RenderCopy sdl:renderCopy ] pointer pointer &sdl:intRect &sdl:intRect -- i32 ]
   [ [ SDL_RenderPresent sdl:renderPresent ] pointer -- nothing ]
   [ [ SDL_PollEvent sdl:pollEvent ] pointer -- i32 ]
   [ [ SDL_WaitEvent sdl:waitEvent ] pointer -- i32 ]
+  [ [ SDL_FreeSurface sdl:freeSurface ] pointer -- nothing ]
   [ [ SDL_Quit sdl:quit ] -- nothing ]
 ] _sdlExport
+
+
+[ """( S -- ): dies with `sdl:error` if Status is negative.
+
+  Some SDL and SDL TTF functions return negative integers
+  to signal an error. In this case, this word will die
+  preventing the following code to be executed, so you
+  don't have to worry about handling SDl errors.
+
+  Note that by dying you may cause some resources to *not*
+  be freed. Keeping track of that is a task for a higher-
+  level wrapper around these bingings. This word nor any
+  word that is part of these bindings won't do anything
+  about it.
+  """
+  0 < => [ sdl:error die ]
+] @: sdl:ensure
+
+[ """( P -- ): dies if Pointer is NULL, that is, if Pointer
+   is equal to `0`.
+
+  Novika uses decimals to represent pointers, which is unsafe
+  but OK for such low-level code. This word allows you to catch
+  and die on NULLs rather than handling them explicitly, which
+  is a bit more tedious.
+
+  Note that by dying you may cause some resources to *not*
+  be freed. Keeping track of that is a task for a higher-
+  level wrapper around these bingings. This word nor any
+  word that is part of these bindings won't do anything
+  about it.
+  """
+  dup 0 = => [ sdl:error die ]
+] @: sdl:notNull

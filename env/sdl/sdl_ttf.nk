@@ -1,0 +1,87 @@
+'SDL2_ttf' ffi:getLibrary? not => [ 'could not find SDL2_ttf' die ] @: _lib
+
+[
+  [ """( -- 0/-1 ): initializes the truetype font API.
+
+    Must be called before using other functions in this
+    library, except `sdl:ttf:init?`. SDL does not have to
+    be initialized before this call.
+
+    Leaves 0 if initialization was successful or -1 if an
+    error occured. Use `sdl:error` to get a human-readable
+    error message for this word and for words in this library
+    which leave 0/-1 to signal an error.
+    """
+    [ TTF_Init sdl:ttf:init ] -- i32 ]
+
+  [ """( -- ): shuts down and cleans up the truetype font API.
+
+    After calling this the `sdl:ttf` library functions should
+    not be used, except for `sdl:ttf:init?`. You may, of course,
+    use `sdl:ttf:init` to use the functionality again.
+    """
+    [ TTF_Quit sdl:ttf:quit ] -- nothing ]
+
+  [ """( Fn Ps -- Fp/0 ): loads and leaves Font pointer from the
+     provided File name, uses the given Point size. The latter
+     basically translates to pixel height.
+
+    Leaves NULL (0) on error.
+    """
+    [ TTF_OpenFont sdl:ttf:open ] cstr i32 -- pointer ]
+
+  [ """( Fp -- ): free the memory used by font at Foint pointer,
+     and free font itself as well. Do not use font after this
+     without loading a new font to it.
+    """
+    [ TTF_CloseFont sdl:ttf:close ] pointer -- nothing ]
+
+  [ """( Fp Q Wh Hh -- 0/-1 ): calculates the resulting surface
+     size of Quote rendered using the font behind Font pointer.
+     Width is put into Width hole, and height is put into
+     Height hole.
+
+    Consider using `sdl:ttf:size` which create and read from the
+    holes for you.
+    """
+    [ TTF_SizeUTF8 sdl:ttf:putSize ] pointer cstr pointer pointer -- i32 ]
+
+  [ """( Fp Q Fc -- Sp ): renders Quote painted with Foreground
+     `sdl:color` using font behind Font pointer. Leaves Surface
+     pointer to a new surface containing the rendered quote,
+     *which you must free when it becomes unused*.
+    """
+    [ TTF_RenderUTF8_Solid sdl:ttf:getSolidSurface ] pointer cstr ~sdl:color -- &sdl:surface ]
+
+  [ """( Fp Q Fc Bc -- Sp ): renders Quote painted with Foreground
+     color (an `sdl:color~`) with background of Background color
+     (also an `sdl:color~`), using font behind Font pointer. Leaves
+     Surface pointer to a new surface containing the rendered quote,
+     *which you must free when it becomes unused*.
+
+    Slower but sharper than `sdl:ttf:getSolidSurface`.
+    """
+    [ TTF_RenderUTF8_Shaded sdl:ttf:getShadedSurface ] pointer cstr ~sdl:color ~sdl:color -- &sdl:surface ]
+
+  [ """( Fp Q Fc -- Sp ): renders Quote painted with Foreground
+     color (an `sdl:color~`), using font behind Font pointer. Leaves
+     Surface pointer to a new surface containing the rendered quote,
+     *which you must free when it becomes unused*.
+
+    The sharpest but slowest way to render text. Text is blended
+    with whatever is behind.
+    """
+    [ TTF_RenderUTF8_Blended sdl:ttf:getBlendedSurface ] pointer cstr ~sdl:color -- &sdl:surface ]
+] _lib
+
+
+[ "( Fp Q -- W H ): calculates and leaves Width and Height of Quote
+   rendered using the font behind Font pointer."
+  #i32 ffi:hole $: w
+  #i32 ffi:hole $: h
+
+  w h sdl:ttf:putSize sdl:ensure
+
+  w open
+  h open
+] @: sdl:ttf:size

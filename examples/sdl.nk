@@ -4,18 +4,23 @@ Run this with:
   $ novika sdl examples/sdl.nk
 """
 
-[ sdl:quit die ] @: __died__
-
-[ 0 < => [ sdl:error die ] ] @: sdl:ensure
+"TODO: handle this automatically somehow. also font close"
+[ sdl:quit
+  sdl:ttf:quit
+  die
+] @: __died__
 
 sdl:init:everything sdl:init sdl:ensure
 
-'Hello World' sdl:window:centered sdl:window:centered 680 480 0 sdl:createWindow $: window
-window not => [ sdl:error die ]
+sdl:ttf:init sdl:ensure
 
+'/home/alex/git/synapse/fonts/ui/Roboto-Regular.ttf' 11 sdl:ttf:open sdl:notNull $: font
 
-window -1 sdl:renderer:accelerated sdl:createRenderer $: renderer
-renderer not => [ sdl:error die ]
+'Hello World' sdl:window:centered sdl:window:centered 680 480 0 sdl:createWindow sdl:notNull $: window
+
+window -1 sdl:renderer:accelerated sdl:createRenderer sdl:notNull $: renderer
+
+font 'Hello World!!' sdl:ttf:size ${ textWidth textHeight }
 
 [ @: h @: w @: y @: x
 
@@ -39,11 +44,34 @@ renderer not => [ sdl:error die ]
     60 c h lch $: bgColor
     30 c h lch $: outColor
 
+    [ outColor getRGB ] vals [ ${ r g b } 0xff $: a this ] there cherry
+      sdl:color ffi:buildStruct~ $: fgColor~
+
+
+    font 'Hello World!!' fgColor~ sdl:ttf:getBlendedSurface sdl:notNull $: textSurface
+    renderer textSurface sdl:textureFromSurface sdl:notNull $: textTexture
+
     renderer outColor getRGB 255 sdl:setRenderDrawColor sdl:ensure
     renderer outline sdl:fillRect
 
     renderer bgColor getRGB 255 sdl:setRenderDrawColor sdl:ensure
     renderer background sdl:fillRect
+
+
+    [ 0 $: x
+      0 $: y
+      textWidth $: w
+      textHeight $: h ] obj sdl:intRect ffi:buildStruct& $: srcrect
+
+    [ x 10 + $: x
+      y 10 + $: y
+      textWidth $: w
+      textHeight $: h ] obj sdl:intRect ffi:buildStruct& $: dstrect
+
+    renderer textTexture srcrect dstrect sdl:renderCopy sdl:ensure
+
+    textTexture sdl:destroyTexture
+    textSurface sdl:freeSurface
   ] @: draw
 
   this
@@ -52,7 +80,7 @@ renderer not => [ sdl:error die ]
 0 $: mouseX
 0 $: mouseY
 
-[ mouseX ] [ mouseY ] 50 50 createWindow $: window
+[ mouseX ] [ mouseY ] 100 100 createWindow $: window
 
 sdl:event ffi:allocateUnion $: e
 
@@ -69,4 +97,7 @@ while: [ e ffi:addressof sdl:waitEvent 0 > ] [
   renderer sdl:renderPresent
 ]
 
+font sdl:ttf:close
+
 sdl:quit
+sdl:ttf:quit
