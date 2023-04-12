@@ -220,15 +220,20 @@ describe 'Metawords capability inheritance' [
     __path__ 'res' disk:join 'decimalA.txt' disk:join $: pathToA
     __path__ 'res' disk:join 'decimalB.txt' disk:join $: pathToB
 
-    pathToA disk:read '123.456\n' assert=
-    pathToB disk:read '456.123\n' assert=
+    [ '\r\n' '\n' replaceAll ] @: replaceTheFuckingWindowsThing
+
+    pathToA disk:read replaceTheFuckingWindowsThing $: aContent
+    pathToB disk:read replaceTheFuckingWindowsThing $: bContent
+    
+    aContent '123.456\n' assert=
+    bContent '456.123\n' assert=
 
     [ $: qPath
 
       this $: self
 
       [
-        qPath disk:read $: qDecimal
+        qPath disk:read replaceTheFuckingWindowsThing $: qDecimal
         qDecimal parseDecimal
       ] @: __decimal__
 
