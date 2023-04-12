@@ -39,7 +39,6 @@ jobs:
       - name: Set up GCC
         uses: egor-tensin/setup-mingw@v2
         with:
-          version: latest
           platform: x64
       - name: Build ffi-test
         run: cc -shared -o tests\res\ffi-test.dll tests\res\ffi-test.c
