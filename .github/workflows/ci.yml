@@ -31,17 +31,16 @@ jobs:
         run: crystal run src/nki.cr -- tests/tests.nki
   test_windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Download source
         uses: actions/checkout@v3
       - name: Install Crystal
         uses: crystal-lang/install-crystal@v1
-      - name: Set up GCC
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
       - name: Build ffi-test
-        run: cc -shared -o tests\res\ffi-test.dll tests\res\ffi-test.c
+        run: gcc -shared -o tests/res/ffi-test.dll tests/res/ffi-test.c
       - name: Rename current shard.yml
         run: mv shard.yml shard.linux.yml
       - name: Use windows shard.yml
@@ -49,10 +48,10 @@ jobs:
       - name: Install dependencies
         run: shards install --without-development
       - name: Run language tests
-        run: crystal run src\cli.cr -- ffi disk tests
+        run: crystal run src/cli.cr -- ffi disk tests
       - name: Build tests via NKAS
-        run: crystal run src\nkas.cr -- -cb:b ffi disk tests tests\tests.nki
+        run: crystal run src/nkas.cr -- -cb:b ffi disk tests tests/tests.nki
       - name: Copy ffi-test shared object to tests directory
-        run: cp tests\res\ffi-test.dll tests\ffi-test.dll
+        run: cp tests/res/ffi-test.dll tests/ffi-test.dll
       - name: Run the tests image using NKI
-        run: crystal run src\nki.cr -- tests\tests.nki
+        run: crystal run src/nki.cr -- tests/tests.nki
