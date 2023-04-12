@@ -57,6 +57,42 @@ I have no clue what big projects are, or what they need. There are enough smart 
 
 I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a full-featured programming language in the 21st century is hard ­— there's just so much it must be able to do! Maintaining an innovative one — that's a thousand times harder.
 
+## An objective evaluation
+
+TL; DR: Novika is a great language for quickly *prototyping* things.
+
+In fact, most of interpreted languages are.
+
+1. When I say "prototyping", I mean the "shut up" kind of prototyping, when you're so angry you just don't want
+   the language to complain! An unused variable, something that needs to be an object rather than a method to
+   work properly, wrong types — you don't care (all caps!), and Novika understands.
+
+2. This comes at a cost. For one, performance is not that great — ­and in Novika, it is terrible, much worse
+   than even in Python or MRI. This is mainly due to my naïve code but also due to the fact that the language
+   wasn't *designed* for performance — it was designed for seamless reflectivity and quick prototyping.
+
+3. In the land of interpreted languages, errors are a terrible and soul-devouring beast which you truly don't want to encounter. In Novika,
+   anything can just `'"helpful" explanation' die` and explode your whole program — at runtime, of course! And hope
+   it at least says something useful.
+
+4. Moderately sized projects become harder to maintain in the refactoring and bug-fixing sense. There are
+   no automated tools to help you with anything except for search & replace — and your brain designing things
+   right the first time, of course, which for most programmers (including myself) is almost never the case.
+
+5. Novika is one of the few high-level languages which allow self-modification, and there are even multiple flavors
+   of it. I won't list them here because if this wall of text didn't kill you yet, then it sure will would
+   these flavors be here. Novika is extremely hard to optimize: while in other languages there is at least
+   a clear-ish flow of control, in Novika, there isn't, for any piece of code can change its meaning at any
+   point in time.
+
+6. If you're still here, the best thing about Novika is that it's not PHP, Perl, or JavaScript when it
+   comes to types. Things rarely take an argument of more than one type. No implicit conversion is ever
+   done (as far as I remember!)
+
+7. I like criticizing my projects, but remember to make your own judgement as
+   well. After all, there are Python-people, Perl-people, Red-people, Scheme-people
+   and even Forth-people — all sorts of weird people :) So why not Novika-people? Maybe you're one of them.
+
 ## Examples
 
 1. Hello World:
@@ -106,6 +142,76 @@ Now, if you want to look at something a bit more elaborate, there's:
 * A [prompt](https://github.com/novika-lang/novika/blob/rev10/examples/lch-prompt.nk) that blinks in colors from the LCH color space
 * A TDD-d [observable](https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk)
 * A [live REPL interface](https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk) to a DSL for infix math expressions
+
+### Curious curiosities
+
+Here's an example of *weird* Novika. I don't know if the following program qualifies as
+*nondeterministic*, but Novika certainly supports nondeterministic programming as I understand
+it, in that the evaluation of any program is controlled mainly by that very program and the
+choices it may or may not make at runtime -- choices deterministic or not.
+
+```novika
+[ "( S B -- C ): safely creates a Continuation block
+   from the given Stack and Block."
+  new keep: [0 |to] newContinuation
+] @: createContinuation
+
+[
+  [ 'Hey!' echo ]
+  [ 'Bye!' echo ]
+  [ 'Uhm...' echo ]
+] $: drum
+
+[ "Open a random block from the drum. "
+  drum (0 randTo: [ drum count 1 - ]) fromLeft open
+] @: spinTheDrum
+
+[ $: probability
+
+  [
+    drop
+
+    rand probability < =>
+      [ "This will be the stack:" (this -> [ probability ])
+        "This will be the block:" (this -> withProbabilitySpin)
+        createContinuation
+      ]
+
+    "This will be the stack:" [ ]
+    "This will be the block:" (this -> spinTheDrum)
+    createContinuation
+  ] continues
+] @: withProbabilitySpin
+```
+
+It's pretty hard to explain, but basically, if you give `withProbabilitySpin`
+a probability from 0 to 1, then it will:
+
+1. `spinTheDrum` to open (aka execute, aka evaluate) a random block from `drum`.
+2. Based on a random number, decide whether to open `withProbabilitySpin` again.
+3. And so on...
+
+What I'm showing you here can be done with recursion and first-order
+functions, sure -- or with loops. But there are limits to how "non-deterministically"
+recursion/loops can control the flow, and here, in Novika -- in Novika there are
+no limits! (even though Novika is powered by a loop behind the scenes haha)
+
+Also, the use of randomness is a blunt way to create a nondeterministic
+program. Believe me, there are more elegant examples of nondeterminism!
+It's just that I can't come up with one.
+
+So, if you give `withProbabilitySpin` the probability `1`, it will
+loop forever. To add to the above, it will indeed *loop*, not recurse.
+That is, there won't be a call stack explosion!
+
+If the probability is less than one, it will loop for an unknown
+amount of times. At probability `0`, it won't loop at all.
+
+```novika
+1 withProbabilitySpin "(or 0, or 0.5, etc.)"
+```
+
+Feel free to play with the probability yourself!
 
 ## Installing Novika
 
@@ -221,7 +327,9 @@ To get a string description of a thing's type, use `typedesc`:
 3. Explore files in `env/core`, the language's standard library.
 4. Explore the [Wiki](https://github.com/novika-lang/novika/wiki).
 
-I know there aren't a lot of materials here nor anywhere that'd teach you the language. After all, this is a personal project. I'd be happy if it wasn't a personal project, but here the loop closes! I'm doing this alone, get burned out quite often, etc., etc. And what a f--king time are we living in, me saying this from [Crimea](https://en.wikipedia.org/wiki/Annexation_of_Crimea_by_the_Russian_Federation)!.. Hopefully, there will be more stuff here someday.
+I know there aren't a lot of materials here nor anywhere that'd teach you the language. On the fundamental stuff, the language is so weird I can't even remember how it all came to be. And in general I have so much to say that I just don't know where to begin. Hopefully, there will be more stuff here someday.
+
+Explore Novika as if it were an alien spaceship that accidentally fell on Earth, full of weird little yellow rotating yukoos. The aliens did not write on every button what it will do when you press it. And even if they did, what kind of language would they be using?!
 
 ## Contributing
 
@@ -229,9 +337,10 @@ First of all, thank you for even getting this far! Even if you didn't read the w
 
 ### Where do I start?
 
-1. Try exploring [capabilities](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities) and their [implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities/impl). This is where native code words like `dup` and `appendEcho` are defined. This is also a nice *starting point* to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.
-2. Try looking through the [interpreter code](https://github.com/novika-lang/novika/tree/rev10/src/novika) in general. I do have a compulsion to write comments, so most of the code is documented. How well documented is not for me to decide, but documented it is.
-3. If you're someone who knows something about optimization, your eyes will hurt! Believe me :)
+1. First of all, the documentation for rev10 (i.e., this implementation) is available [here](https://novika-lang.github.io/novika/).
+2. Try exploring [capabilities](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities) and their [implementations](https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities/impl). This is where native code words like `dup` and `appendEcho` are defined. This is also a nice *starting point* to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.
+3. Try looking through the [interpreter code](https://github.com/novika-lang/novika/tree/rev10/src/novika) in general. I do have a compulsion to write comments, so most of the code is documented. How well documented is not for me to decide, but documented it is.
+4. If you're someone who knows something about optimization, your eyes will hurt! Believe me :)
 
 ### What happens where?
 
