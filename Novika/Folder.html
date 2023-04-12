@@ -809,7 +809,7 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28path%3APath%2Centry%3APath%7CNil%3Dnil%2Cfiles%3ASet%28Path%29%3DSet%28Path%29.new%2Capp%3APath%7CNil%3Dnil%2Ccore%3ABool%3Dfalse%2Cexplicit%3ABool%3Dtrue%29-class-method" class="signature"><strong>.new</strong>(path : Path, entry : Path | Nil = <span class="n">nil</span>, files : Set(Path) = <span class="t">Set</span>(<span class="t">Path</span>).new, app : Path | Nil = <span class="n">nil</span>, core : Bool = <span class="n">false</span>, explicit : Bool = <span class="n">true</span>)</a>
+        <a href="#new%28flags%3AHash%28String%2CBool%29%2Cpath%3APath%2Centry%3APath%7CNil%3Dnil%2Cfiles%3ASet%28Path%29%3DSet%28Path%29.new%2Capp%3APath%7CNil%3Dnil%2Ccore%3ABool%3Dfalse%2Cexplicit%3ABool%3Dtrue%29-class-method" class="signature"><strong>.new</strong>(flags : Hash(String, Bool), path : Path, entry : Path | Nil = <span class="n">nil</span>, files : Set(Path) = <span class="t">Set</span>(<span class="t">Path</span>).new, app : Path | Nil = <span class="n">nil</span>, core : Bool = <span class="n">false</span>, explicit : Bool = <span class="n">true</span>)</a>
         
       </li>
     
@@ -947,12 +947,12 @@
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(path:Path,entry:Path|Nil=nil,files:Set(Path)=Set(Path).new,app:Path|Nil=nil,core:Bool=false,explicit:Bool=true)-class-method">
+    <div class="entry-detail" id="new(flags:Hash(String,Bool),path:Path,entry:Path|Nil=nil,files:Set(Path)=Set(Path).new,app:Path|Nil=nil,core:Bool=false,explicit:Bool=true)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(path : Path, entry : Path | Nil = <span class="n">nil</span>, files : <a href="../Set.html">Set</a>(Path) = <span class="t">Set</span>(<span class="t">Path</span>).new, app : Path | Nil = <span class="n">nil</span>, core : Bool = <span class="n">false</span>, explicit : Bool = <span class="n">true</span>)
+        def self.<strong>new</strong>(flags : Hash(<a href="../String.html">String</a>, Bool), path : Path, entry : Path | Nil = <span class="n">nil</span>, files : <a href="../Set.html">Set</a>(Path) = <span class="t">Set</span>(<span class="t">Path</span>).new, app : Path | Nil = <span class="n">nil</span>, core : Bool = <span class="n">false</span>, explicit : Bool = <span class="n">true</span>)
 
-        <a class="method-permalink" href="#new%28path%3APath%2Centry%3APath%7CNil%3Dnil%2Cfiles%3ASet%28Path%29%3DSet%28Path%29.new%2Capp%3APath%7CNil%3Dnil%2Ccore%3ABool%3Dfalse%2Cexplicit%3ABool%3Dtrue%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28flags%3AHash%28String%2CBool%29%2Cpath%3APath%2Centry%3APath%7CNil%3Dnil%2Cfiles%3ASet%28Path%29%3DSet%28Path%29.new%2Capp%3APath%7CNil%3Dnil%2Ccore%3ABool%3Dfalse%2Cexplicit%3ABool%3Dtrue%29-class-method">#</a>
       </div>
       
       <br/>
@@ -1146,6 +1146,12 @@ then this folder is considered a Novika app.</p>
           <p>Reads and returns the contents of '.nk.app' or '.nk.lib',
 depending on the type of this folder (app or otherwise).</p>
 <p>Returns nil if neither exists.</p>
+<p>Runs the preprocessor on manifest content.</p>
+<ul>
+<li>Preprocessor expressions are enclosed in <code>[]</code>s.</li>
+<li>OS conditionals in preprocessor expressions are supported,
+e.g. `library.[windows, linux, macos | dll, so, dylib]</li>
+</ul>
         </div>
       
       <br/>
