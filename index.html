@@ -798,6 +798,52 @@
 <p><em>Never.</em></p>
 <p>I have no clue what big projects are, or what they need. There are enough smart people in this world already.</p>
 <p>I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a full-featured programming language in the 21st century is hard ­— there's just so much it must be able to do! Maintaining an innovative one — that's a thousand times harder.</p>
+<h2><a id="an-objective-evaluation" class="anchor" href="#an-objective-evaluation">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>An objective evaluation</h2>
+<p>TL; DR: Novika is a great language for quickly <em>prototyping</em> things.</p>
+<p>In fact, most of interpreted languages are.</p>
+<ol>
+<li>
+<p>When I say &quot;prototyping&quot;, I mean the &quot;shut up&quot; kind of prototyping, when you're so angry you just don't want
+the language to complain! An unused variable, something that needs to be an object rather than a method to
+work properly, wrong types — you don't care (all caps!), and Novika understands.</p>
+</li>
+<li>
+<p>This comes at a cost. For one, performance is not that great — ­and in Novika, it is terrible, much worse
+than even in Python or MRI. This is mainly due to my naïve code but also due to the fact that the language
+wasn't <em>designed</em> for performance — it was designed for seamless reflectivity and quick prototyping.</p>
+</li>
+<li>
+<p>In the land of interpreted languages, errors are a terrible and soul-devouring beast which you truly don't want to encounter. In Novika,
+anything can just <code>'&quot;helpful&quot; explanation' die</code> and explode your whole program — at runtime, of course! And hope
+it at least says something useful.</p>
+</li>
+<li>
+<p>Moderately sized projects become harder to maintain in the refactoring and bug-fixing sense. There are
+no automated tools to help you with anything except for search &amp; replace — and your brain designing things
+right the first time, of course, which for most programmers (including myself) is almost never the case.</p>
+</li>
+<li>
+<p>Novika is one of the few high-level languages which allow self-modification, and there are even multiple flavors
+of it. I won't list them here because if this wall of text didn't kill you yet, then it sure will would
+these flavors be here. Novika is extremely hard to optimize: while in other languages there is at least
+a clear-ish flow of control, in Novika, there isn't, for any piece of code can change its meaning at any
+point in time.</p>
+</li>
+<li>
+<p>If you're still here, the best thing about Novika is that it's not PHP, Perl, or JavaScript when it
+comes to types. Things rarely take an argument of more than one type. No implicit conversion is ever
+done (as far as I remember!)</p>
+</li>
+<li>
+<p>I like criticizing my projects, but remember to make your own judgement as
+well. After all, there are Python-people, Perl-people, Red-people, Scheme-people
+and even Forth-people — all sorts of weird people :) So why not Novika-people? Maybe you're one of them.</p>
+</li>
+</ol>
 <h2><a id="examples" class="anchor" href="#examples">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -841,6 +887,67 @@ avg: 100 4 6 5  echo &quot;STDOUT: 28.75⏎&quot;</code></pre>
 <li>A TDD-d <a href="https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk">observable</a></li>
 <li>A <a href="https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk">live REPL interface</a> to a DSL for infix math expressions</li>
 </ul>
+<h3><a id="curious-curiosities" class="anchor" href="#curious-curiosities">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Curious curiosities</h3>
+<p>Here's an example of <em>weird</em> Novika. I don't know if the following program qualifies as
+<em>nondeterministic</em>, but Novika certainly supports nondeterministic programming as I understand
+it, in that the evaluation of any program is controlled mainly by that very program and the
+choices it may or may not make at runtime -- choices deterministic or not.</p>
+<pre><code class="language-novika">[ &quot;( S B -- C ): safely creates a Continuation block
+   from the given Stack and Block.&quot;
+  new keep: [0 |to] newContinuation
+] @: createContinuation
+
+[
+  [ 'Hey!' echo ]
+  [ 'Bye!' echo ]
+  [ 'Uhm...' echo ]
+] $: drum
+
+[ &quot;Open a random block from the drum. &quot;
+  drum (0 randTo: [ drum count 1 - ]) fromLeft open
+] @: spinTheDrum
+
+[ $: probability
+
+  [
+    drop
+
+    rand probability &lt; =&gt;
+      [ &quot;This will be the stack:&quot; (this -&gt; [ probability ])
+        &quot;This will be the block:&quot; (this -&gt; withProbabilitySpin)
+        createContinuation
+      ]
+
+    &quot;This will be the stack:&quot; [ ]
+    &quot;This will be the block:&quot; (this -&gt; spinTheDrum)
+    createContinuation
+  ] continues
+] @: withProbabilitySpin</code></pre>
+<p>It's pretty hard to explain, but basically, if you give <code>withProbabilitySpin</code>
+a probability from 0 to 1, then it will:</p>
+<ol>
+<li><code>spinTheDrum</code> to open (aka execute, aka evaluate) a random block from <code>drum</code>.</li>
+<li>Based on a random number, decide whether to open <code>withProbabilitySpin</code> again.</li>
+<li>And so on...</li>
+</ol>
+<p>What I'm showing you here can be done with recursion and first-order
+functions, sure -- or with loops. But there are limits to how &quot;non-deterministically&quot;
+recursion/loops can control the flow, and here, in Novika -- in Novika there are
+no limits! (even though Novika is powered by a loop behind the scenes haha)</p>
+<p>Also, the use of randomness is a blunt way to create a nondeterministic
+program. Believe me, there are more elegant examples of nondeterminism!
+It's just that I can't come up with one.</p>
+<p>So, if you give <code>withProbabilitySpin</code> the probability <code>1</code>, it will
+loop forever. To add to the above, it will indeed <em>loop</em>, not recurse.
+That is, there won't be a call stack explosion!</p>
+<p>If the probability is less than one, it will loop for an unknown
+amount of times. At probability <code>0</code>, it won't loop at all.</p>
+<pre><code class="language-novika">1 withProbabilitySpin &quot;(or 0, or 0.5, etc.)&quot;</code></pre>
+<p>Feel free to play with the probability yourself!</p>
 <h2><a id="installing-novika" class="anchor" href="#installing-novika">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -944,7 +1051,8 @@ quote &#39;Who am I?&#39;</code></pre>
 <li>Explore files in <code>env/core</code>, the language's standard library.</li>
 <li>Explore the <a href="https://github.com/novika-lang/novika/wiki">Wiki</a>.</li>
 </ol>
-<p>I know there aren't a lot of materials here nor anywhere that'd teach you the language. After all, this is a personal project. I'd be happy if it wasn't a personal project, but here the loop closes! I'm doing this alone, get burned out quite often, etc., etc. And what a f--king time are we living in, me saying this from <a href="https://en.wikipedia.org/wiki/Annexation_of_Crimea_by_the_Russian_Federation">Crimea</a>!.. Hopefully, there will be more stuff here someday.</p>
+<p>I know there aren't a lot of materials here nor anywhere that'd teach you the language. On the fundamental stuff, the language is so weird I can't even remember how it all came to be. And in general I have so much to say that I just don't know where to begin. Hopefully, there will be more stuff here someday.</p>
+<p>Explore Novika as if it were an alien spaceship that accidentally fell on Earth, full of weird little yellow rotating yukoos. The aliens did not write on every button what it will do when you press it. And even if they did, what kind of language would they be using?!</p>
 <h2><a id="contributing" class="anchor" href="#contributing">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -957,6 +1065,7 @@ quote &#39;Who am I?&#39;</code></pre>
   </svg>
 </a>Where do I start?</h3>
 <ol>
+<li>First of all, the documentation for rev10 (i.e., this implementation) is available <a href="https://novika-lang.github.io/novika/">here</a>.</li>
 <li>Try exploring <a href="https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities">capabilities</a> and their <a href="https://github.com/novika-lang/novika/tree/rev10/src/novika/capabilities/impl">implementations</a>. This is where native code words like <code>dup</code> and <code>appendEcho</code> are defined. This is also a nice <em>starting point</em> to find bugs, optimize, add new stuff, etc. It's also one of the places where you can find typos, lack of documentation, and even some TODOs.</li>
 <li>Try looking through the <a href="https://github.com/novika-lang/novika/tree/rev10/src/novika">interpreter code</a> in general. I do have a compulsion to write comments, so most of the code is documented. How well documented is not for me to decide, but documented it is.</li>
 <li>If you're someone who knows something about optimization, your eyes will hurt! Believe me :)</li>
