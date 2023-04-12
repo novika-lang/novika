@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: shards install --without-development
       - name: Build CLI, NKAS, NKI
-        run: shards build
+        run: shards build --without-development
       - name: Run language tests
         run: bin/novika ffi disk tests
       - name: Build tests via NKAS
