@@ -1,5 +1,5 @@
-[ """( E... -- ): Same as `$:` but allows to define multiple
-   Entries at the same time, and in the 'human-readable' order.
+[ """( E... -- ): same as `$:` but allows to define multiple pusher
+   Entries simultaneously, and in the 'human-readable' order.
 
   ```
   [ ${ x y } this ] @: point
@@ -13,3 +13,64 @@
 
   cCode |after!: #} <-| [ cCode swap cStack cherry pushes ] drop
 ] @: ${
+
+
+[ """( E... -- ): same as `@:`, but allows to define multiple opener
+   Entries simultaneously, and in the 'human-readable' order.
+
+  ```
+  [ @{ x y }
+
+    [ bi*: [x +] [y +] ={ x y } ] @: move
+
+    this
+  ] @: point
+
+  "Point A has decimals under X and Y"
+  100 200 point $: A
+
+  "Point B is inset some..."
+  [ A.x 10 + ] [ A.y 5 + ] point $: B
+
+  A.x A.y leaves: [ 100 200 ]
+  B.x B.y leaves: [ 110 205 ]
+
+  "Move A some..."
+  10 10 A.move
+
+  A.x A.y leaves: [ 110 210 ]
+  B.x B.y leaves: [ 120 215 ]
+  ```
+  """
+  stack $: cStack
+  ahead $: cCode
+
+  cCode |after!: #} <-| [ cCode swap cStack cherry opens ] drop
+] @: @{
+
+
+[ """( E... -- ): same as `=:`, but allows to submit multiple Entries
+   simultaneously, and in the 'human-readable' order.
+
+  ```
+  [ @{ x y }
+
+    [ ={ x y } ] @: update
+
+    this
+  ] @: point
+
+  0 0 point $: A
+
+  A.x A.y leaves: [ 0 0 ]
+
+  100 200 A.update
+
+  A.x A.y leaves: [ 100 200 ]
+  ```
+  """
+  stack $: cStack
+  ahead $: cCode
+
+  cCode |after!: #} <-| [ cCode swap cStack cherry entry:submit ] drop
+] @: ={

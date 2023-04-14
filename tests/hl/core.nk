@@ -2,10 +2,87 @@ describe '${ }' [
   in lang
 
   it should 'define multiple pushers in this' [
-    100 200 ${ x y }
-    x 100 assert=
+    [ 100 1 + ] 200 ${ x y }
+    x [ 100 1 + ] assert=
     y 200 assert=
 
-    100 200 [ ${ x y } this ] open -> [ x y ] [ 100 200 ] assert=
+    [ 100 1 + ] 200 [ ${ x y } this ] open -> [ x y ] [ [ 100 1 + ] 200 ] assert=
+  ]
+]
+
+
+describe '@{ }' [
+  in lang
+
+  it should 'define multiple openers in this' [
+    [ 1 + ] [ 2 + ] @{ 1+ 2+ }
+
+    100 1+ 101 assert=
+    100 2+ 102 assert=
+  ]
+
+  it should 'work in the example from doc' [
+    [ @{ x y }
+
+      [ bi*: [ x + ] [ y + ] ={ x y } ] @: move
+
+      this
+    ] @: point
+
+    "Point A has decimals under X and Y"
+    100 200 point $: A
+
+    "Point B is inset some..."
+    [ A.x 10 + ] [ A.y 5 + ] point $: B
+
+    [ A.x A.y ] vals [ 100 200 ] assert=
+    [ B.x B.y ] vals [ 110 205 ] assert=
+
+    "Move A some..."
+    10 10 A.move
+
+    [ A.x A.y ] vals [ 110 210 ] assert=
+    [ B.x B.y ] vals [ 120 215 ] assert=
+  ]
+]
+
+
+describe '={ }' [
+  in lang
+
+  it should 'submit from this' [
+    [ 100 1 + ] dup
+      @: xOpener
+      $: xPusher
+
+    xOpener 101 assert=
+    xPusher [ 100 1 + ] assert=
+
+    [ 100 2 + ] $: b
+
+    [
+      b b ={ xOpener xPusher }
+    ] open
+
+    xOpener 102 assert=
+    xPusher [ 100 2 + ] assert=
+    xPusher b same? true assert=
+  ]
+
+  it should 'work in the example from doc' [
+    [ @{ x y }
+
+      [ ={ x y } ] @: update
+
+      this
+    ] @: point
+
+    0 0 point $: A
+
+    [ A.x A.y ] vals [ 0 0 ] assert=
+
+    100 200 A.update
+
+    [ A.x A.y ] vals [ 100 200 ] assert=
   ]
 ]
