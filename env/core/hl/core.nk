@@ -11,7 +11,7 @@
   stack $: cStack
   ahead $: cCode
 
-  cCode |after!: #} <-| [ cCode swap cStack cherry pushes ] drop
+  (cCode |afterOrDie: #}) <-| [ cCode swap cStack cherry pushes ] drop
 ] @: ${
 
 
@@ -45,7 +45,7 @@
   stack $: cStack
   ahead $: cCode
 
-  cCode |after!: #} <-| [ cCode swap cStack cherry opens ] drop
+  (cCode |afterOrDie: #}) <-| [ cCode swap cStack cherry opens ] drop
 ] @: @{
 
 
@@ -72,5 +72,5 @@
   stack $: cStack
   ahead $: cCode
 
-  cCode |after!: #} <-| [ cCode swap cStack cherry entry:submit ] drop
+  (cCode |afterOrDie: #}) <-| [ cCode swap cStack cherry entry:submit ] drop
 ] @: ={

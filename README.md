@@ -129,7 +129,7 @@ In fact, most of interpreted languages are.
 5. A tiny DSL for counting the average of a bunch of numbers:
 
 ```novika
-[ ahead |before: [ decimal? not ] bi: sum count / ] @: avg:
+[ ahead |beforeOrToEnd: [ decimal? not ] bi: sum count / ] @: avg:
 
 avg: 1 2 3      echo "STDOUT: 2⏎"
 avg: 100 4 6 5  echo "STDOUT: 28.75⏎"

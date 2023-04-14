@@ -31,7 +31,7 @@ describe 'examples from README' [
   it should 'run avg count example' [
     "This actually doesn't work inside blocks. Demonic shit."
 
-    [ ahead |before: [ decimal? not ] bi: sum count / ] @: avg:
+    [ ahead |beforeOrToEnd: [ decimal? not ] bi: sum count / ] @: avg:
 
     [ ] @: stopper
 
@@ -47,7 +47,7 @@ describe 'definfix example' [
     ctx name this pushes
     ahead name [
       ahead $: caller
-      caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |before
+      caller [ ctx swap entry:flatFetch? [ .prec prec <= ] and ] |beforeOrToEnd
       caller reparent vals last code
     ] opens
   ] @: definfix

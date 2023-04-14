@@ -1536,12 +1536,11 @@
 ] @: hasDesc?
 
 
-[ """( Lb C -- Sfb true/false ): slides right (see
-   `|slideRight`) through List block, executes Condition
-   block for each form under cursor. Stops *|after* form if
-   Condition block left true for it. Leaves Skipped forms
-   block. Leaves true when Condition matched, false when
-   reached the end of List block without a match.
+[ """( Lb C -- Sfb true/false ): slides right (see `|slideRight`)
+   through List block, executes Condition block for each form under
+   the cursor. Stops *after* form if Condition block left true for it.
+   Leaves Skipped forms block. Leaves true when Condition matched,
+   false when reached the end of List block without a match.
 
   Note: if Condition is not a block, it is wrapped like so:
   `[ C = ]`.
@@ -1553,7 +1552,7 @@
   a 1 |to
   a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
 
-  [ 4 = ] |after? leaves: [ [ 2 3 ] true ]
+  [ 4 = ] |afterOrToEnd? leaves: [ [ 2 3 ] true ]
 
   a echo
   "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
@@ -1561,7 +1560,7 @@
   """
   ahead $: caller
 
-  "Support literal pattern arguments like `[ 1 2 3 4 ] 3 |after?`
+  "Support literal pattern arguments like `[ 1 2 3 4 ] 3 |afterOrToEnd?`
    by wrapping in a block together with '=' (`[ 3 = ]`)."
   dup block? not => [ #= 2enclose caller reparent ] @: cond
 
@@ -1571,17 +1570,26 @@
   |-> [ dup cond => [ true =: match break ] dup memo gulp ] drop
 
   memo match
-] @: |after?
+] @: |afterOrToEnd?
 
 
-[ "( Lb C -- Sfb ): same as `|after?`, but disregards
-   whether the end was reached instead of Condition
-   matching."
-  |after? drop
-] @: |after
+[ "( Lb |afterOrToEnd?: C -- Sfb ): infix version of `|afterOrToEnd?`."
+  ahead thru |afterOrToEnd?
+] @: |afterOrToEnd?:
 
 
-[ """( Lb C -- Sfb ): same as `|after?`, but dies when reached
+[ "( Lb C -- Sfb ): same as `|afterOrToEnd?`, but disregards
+   whether the end was reached instead of Condition matching."
+  |afterOrToEnd? drop
+] @: |afterOrToEnd
+
+
+[ "( Lb |afterOrToEnd: C -- Sfb ): infix version of `|afterOrToEnd`."
+  ahead thru |afterOrToEnd
+] @: |afterOrToEnd:
+
+
+[ """( Lb C -- Sfb ): same as `|afterOrToEnd?`, but dies when reached
    end of List block without matching.
 
   When Condition is a block, its desc, if available, is
@@ -1593,14 +1601,14 @@
   a 1 |to
   a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
 
-  a 4 |after! leaves: [ [ 2 3 ] ]
+  a 4 |afterOrDie leaves: [ [ 2 3 ] ]
   a echo
   "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
   ```
   """
   dup $: cond
 
-  |after? => ^
+  |afterOrToEnd? => ^
 
   drop
 
@@ -1609,25 +1617,15 @@
   $: what
 
   [ 'expected ⸢' what '⸥ to match, but reached end of block' ] ~* die
-] @: |after!
+] @: |afterOrDie
 
 
-[ "( Lb |after?: C -- Sfb ): infix version of `|after?`."
-  ahead thru |after?
-] @: |after?:
+[ "( Lb |afterOrDie: C -- Sfb ): infix version of `|afterOrDie`."
+  ahead thru |afterOrDie
+] @: |afterOrDie:
 
 
-[ "( Lb |after: C -- Sfb ): infix version of `|after`."
-  ahead thru |after
-] @: |after:
-
-
-[ "( Lb |after!: C -- Sfb ): infix version of `|after!`."
-  ahead thru |after!
-] @: |after!:
-
-
-[ """( Lb C -- Sfb true/false ): similar to `|after?`, but
+[ """( Lb C -- Sfb true/false ): similar to `|afterOrToEnd?`, but
    leaves the cursor in List block *before* the matching
    item.
 
@@ -1636,25 +1634,35 @@
   a 1 |to
   a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
 
-  a 4 |before? leaves: [ [ 2 3 ] ]
+  a 4 |beforeOrToEnd leaves: [ [ 2 3 ] ]
   a echo
   "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
   ```
   """
   over $: list
 
-  |after? dup => [ list 1 |- ]
-] @: |before?
+  |afterOrToEnd? dup => [ list 1 |- ]
+] @: |beforeOrToEnd?
 
 
-[ "( Lb C -- Sfb ): same as `|before?`, but disregards
+[ "( Lb |beforeOrToEnd?: C -- Sfb true/false ): infix version of `|beforeOrToEnd?`."
+  ahead thru |beforeOrToEnd?
+] @: |beforeOrToEnd?:
+
+
+[ "( Lb C -- Sfb ): same as `|beforeOrToEnd?`, but disregards
    whether the end was reached instead of Condition
    matching."
-  |before? drop
-] @: |before
+  |beforeOrToEnd? drop
+] @: |beforeOrToEnd
 
 
-[ """( Lb C -- Sfb ): similar to `|before!`, but leaves the
+[ "( Lb |before: C -- Sfb ): infix version of `|beforeOrToEnd`."
+  ahead thru |beforeOrToEnd
+] @: |beforeOrToEnd:
+
+
+[ """( Lb C -- Sfb ): similar to `|afterOrDie`, but leaves the
    cursor in List block *before* the matching item.
 
   ```
@@ -1662,32 +1670,22 @@
   a 1 |to
   a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
 
-  a 4 |before! leaves: [ [ 2 3 ] ]
+  a 4 |beforeOrDie leaves: [ [ 2 3 ] ]
   a echo
   "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
   ```
   """
   over $: list
 
-  |after!
+  |afterOrDie
 
   list empty? not => [ list 1 |- ]
-] @: |before!
+] @: |beforeOrDie
 
 
-[ "( Lb |before?: C -- Sfb ): infix version of `|before?`."
-  ahead thru |before?
-] @: |before?:
-
-
-[ "( Lb |before: C -- Sfb ): infix version of `|before`."
-  ahead thru |before
-] @: |before:
-
-
-[ "( Lb |before!: C -- Sfb ): infix version of `|before!`."
-  ahead thru |before!
-] @: |before!:
+[ "( Lb |beforeOrDie: C -- Sfb ): infix version of `|beforeOrDie`."
+  ahead thru |beforeOrDie
+] @: |beforeOrDie:
 
 
 [ """( L B -- S ): opens Block with each `form count` pair,
