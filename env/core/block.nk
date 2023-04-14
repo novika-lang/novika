@@ -946,6 +946,17 @@
 ] @: all?
 
 
+[ """( Lb all: B -- true/false ):  infix version of `all?`
+
+  ```
+  [ ] all: even? leaves: true "BEWARE!"
+  [ 1 2 3 ] all: even? leaves: false
+  ```
+  """
+  ahead thruBlock all?
+] @: all:
+
+
 [ """( Lb B -- true/false ): whether Block leaves true for any
    item in List block, when opened with each item on top of an
    empty stack.

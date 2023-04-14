@@ -1158,12 +1158,14 @@ describe 'all?' [
     [ 101 2 3 4 ] [ 100 < ] all? false assert=
   ]
 
-  it dies 'when using next' [
-    [ 1 2 3 4 ] [ next ] all?
+  it should 'have the infix version all:' [
+    [ 1 2 3 4 ] all: even? false assert=
+    [ 1 2 3 4 ] all: [ 100 < ] true assert=
   ]
 
-  it dies 'when using break' [
-    [ 1 2 3 4 ] [ break ] all?
+  it should 'die when using break/next' [
+    [ [ 1 2 3 4 ] [ next ] all? ] 'definition for next not found in the enclosing block(s)' assertDies
+    [ [ 1 2 3 4 ] [ break ] all? ] 'definition for break not found in the enclosing block(s)' assertDies
   ]
 ]
 
