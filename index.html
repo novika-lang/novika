@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="generator" content="Crystal Docs 1.6.2">
+<meta name="generator" content="Crystal Docs 1.7.3">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -875,7 +875,7 @@ and even Forth-people — all sorts of weird people :) So why not Novika-people?
 <ol start="5">
 <li>A tiny DSL for counting the average of a bunch of numbers:</li>
 </ol>
-<pre><code class="language-novika">[ ahead |before: [ decimal? not ] bi: sum count / ] @: avg:
+<pre><code class="language-novika">[ ahead |beforeOrToEnd: [ decimal? not ] bi: sum count / ] @: avg:
 
 avg: 1 2 3      echo &quot;STDOUT: 2⏎&quot;
 avg: 100 4 6 5  echo &quot;STDOUT: 28.75⏎&quot;</code></pre>
