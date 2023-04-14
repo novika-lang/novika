@@ -1276,6 +1276,40 @@ describe 'conjure/here' [
     [ toQuote 1 sliceQuoteAt nip ] @: __trap__
     foobar here 'oobar' assert=
   ]
+
+  it should 'copy (and therefore preserve) openers' [
+    [ 1 + ] @: 1+
+    [ 2 + ] @: 2+
+
+    100 1+ 101 assert=
+    100 2+ 102 assert=
+
+    "here creates copy"
+    [ 1+ 2+ ] here open "Resolve in current block"
+    [ @{ incBy1 incBy2 } this ] "Redefine under different names in another block"
+    open $: preserved
+
+    "-> does not create copy"
+    [ (this -> 1+) (this -> 2+) ] open
+    [ @{ incBy1 incBy2 } this ]
+    open $: unpreserved
+
+    preserved -> [ incBy1 incBy2 ] [ 1+ 2+ ] here assert=
+    unpreserved -> [ incBy1 incBy2 ] [ 1+ 2+ ] here assert=
+
+    (preserved -> incBy1) (this -> 1+) same? false assert=
+    (preserved -> incBy2) (this -> 2+) same? false assert=
+
+    (unpreserved -> incBy1) (this -> 1+) same? true assert=
+    (unpreserved -> incBy2) (this -> 2+) same? true assert=
+
+    "modify block"
+    (this -> 1+) [ <| drop 100 |> ] there
+
+    100 1+ 200 assert=
+    100 preserved.incBy1 101 assert=
+    100 unpreserved.incBy1 200 assert=
+  ]
 ]
 
 describe 'minmax' [
