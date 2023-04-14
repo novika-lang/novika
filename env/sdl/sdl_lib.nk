@@ -138,7 +138,6 @@ Render events
   windowID u32
   state u8
   repeat u8
-  padding1 u8
   padding2 u8
   padding3 u8
   keysym ~sdl:keysym
@@ -657,6 +656,7 @@ Flags used when creating a rendering context
 
 
   [ [ SDL_GetError sdl:error ] -- cstr ]
+  [ [ SDL_GetTicks sdl:ticks ] -- u64 ]
   [ [ SDL_RenderClear sdl:renderClear ] pointer -- i32 ]
   [ [ SDL_SetRenderDrawColor sdl:setRenderDrawColor ] pointer u8 u8 u8 u8 -- i32 ]
   [ [ SDL_RenderFillRect sdl:fillRect ] pointer &sdl:intRect -- i32 ]
