@@ -9,21 +9,43 @@ Novika is a free-form, moldable, interpreted programming language.
 
 ## Hi!
 
-Uhmm... yeah, I have no idea what the sentence above means either.
+Uhmm... yeah, I have no idea what the sentence above means either. But let me try to explain anyway :)
+
+### Free-form
+
+Novika has no syntax and no style. Novika is so free-form it cannot be pretty-printed *even at runtime*.
+
+Novika is like simulating a house of LEGO blocks vs. simulating a house of huge concrete blocks, wood, and all that. The latter
+is much easier to the computer, but the former offers unlimited flexibility: you can build only so much from huge concrete blocks,
+woord, chairs and whatnot. With LEGO, it's another story — an infinite amount of possibilities before you.
+
+### Moldable
+
+You can mold it and therefore it is moldable. The more you use Novika, the more it becomes truly *yours*. It quickly gets personal!
+
+### Interpreted
+
+There's a little yellow gnome Kate sitting inside your monitor. She is reading the Novika code on the
+screen — don't forget she has to flip it in her mind! She is telling the computer what to do — all that
+on the go! Kate is slow but very flexible.
+
+### How about something more formal?
 
 Novika belongs to no single paradigm. Instead, I'd say it's a mix of functional, object-oriented, and procedural paradigms — although by no means am I an expert on such things.
 
 Novika borrows from Lisp, Forth, and Factor — and takes inspiration from Self, Red/Rebol, and Smalltalk.
 
-Novika blocks are closures and objects simultaneously — they can relate, talk, and encapsulate. Blocks are code, too. In Novika, data is code, and code is data. And what are objects? Objects are data — and therefore, code.
+Novika blocks are closures and objects simultaneously — they can relate, talk, and encapsulate. Blocks are code, too. In Novika, data is code, and code is data. And what are objects? Objects are data (sort of!) — and therefore, code.
 
 Blocks can form friendships with each other, become parents of one another, and intercept, well, anything — feel free to slap some Pythonesque dunders on top of all I've said!
+The block tree (or the block graph, depending on how you look at it) is yours — you are free to take over it anytime.
 
-The block tree (or the block graph, depending on how you look at it) is yours — you are free to take over it anytime. The engine is yours, too — blocks are the code, and code is run by the engine.
+The engine is yours, too — blocks are the code, and code is run by the engine.
 
-Semantically, Novika is like Lisp set in motion by Lisp — but with objects, stack(s), and so, so much more!
+Semantically, Novika is like Lisp *A* set in motion by Lisp *B* with the possibility of bidirectional communication — but with objects, stacks, and so, so much more!
 
 And the syntax of Novika? Well, there is no syntax. That is to say, almost no syntax. Syntactically, Novika lies somewhere between Lisp and Forth. And Forth — Forth has no syntax.
+The rest is yours to define!
 
 ### Trade-offs
 
