@@ -20,6 +20,8 @@ dependencies:
     github: spider-gazelle/bindata
   lch:
     github: homonoidian/lch.cr
+  tablo:
+    github: hutou/tablo
 
 development_dependencies:
   ameba:

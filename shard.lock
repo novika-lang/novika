@@ -12,6 +12,10 @@ shards:
     git: https://github.com/homonoidian/lch.cr.git
     version: 0.1.1
 
+  tablo:
+    git: https://github.com/hutou/tablo.git
+    version: 0.10.1
+
   termbox2:
     git: https://github.com/homonoidian/termbox2.cr.git
     version: 0.1.1

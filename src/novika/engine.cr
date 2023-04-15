@@ -1,4 +1,14 @@
 module Novika
+  module IExhaustTracker
+    # Invoked before *engine* opens the given *form*.
+    def on_form_begin(engine : Engine, form : Form)
+    end
+
+    # Invoked after *engine* opened the given *form*.
+    def on_form_end(engine : Engine, form : Form)
+    end
+  end
+
   # An engine object is responsible for managing a *continuations block*.
   #
   # Continuations block consists of *continuatio**n** blocks*.
@@ -85,6 +95,12 @@ module Novika
 
     # Index of the stack block in a continuation block.
     C_STACK_AT = 1
+
+    # Holds an array of exhaust tracker objects associated with
+    # all instances of `Engine`. These objects intercept forms
+    # before/after opening in `Engine#exhaust`. This e.g. allows
+    # frontends to analyze/track forms and/or matching blocks.
+    class_getter trackers = [] of IExhaustTracker
 
     @@stack = [] of Engine
 
@@ -258,31 +274,33 @@ module Novika
       end
     end
 
+    def execute(form : Form)
+      form.on_parent_open(self)
+    rescue error : Error
+      error.conts ||= conts.instance
+
+      # Re-raise if no user-defined death handler ANYWHERE.
+      # Death handler lookup is the broadest kind of lookup
+      # in Novika, it traverses *all* running blocks and
+      # their relatives.
+      #
+      # Avoid current block because that would case
+      # infinite death loop.
+      unless handler = drop_until_death_handler?(avoid_prototype: block.prototype)
+        raise error
+      end
+
+      schedule(handler, stack: conts.count.zero? ? Block[error] : stack.add(error))
+    end
+
     # Exhausts all scheduled continuations, starting from the
     # topmost (see `Block#top`) continuation in `conts`.
     def exhaust
       until conts.tape.empty?
         while form = block.next?
-          begin
-            form.on_parent_open(self)
-          rescue error : Error
-            error.conts ||= conts.instance
-
-            # Re-raise if no user-defined death handler ANYWHERE.
-            # Death handler lookup is the broadest kind of lookup
-            # in Novika, it traverses *all* running blocks and
-            # their relatives.
-            #
-            # Avoid current block because that would case
-            # infinite death loop.
-            unless handler = drop_until_death_handler?(avoid_prototype: block.prototype)
-              raise error
-            end
-
-            # Errors are also forms. They are rarely seen
-            # and used as such, but they are.
-            schedule(handler, conts.count.zero? ? Block[error] : stack.add(error))
-          end
+          Engine.trackers.each &.on_form_begin(self, form)
+          execute(form)
+          Engine.trackers.each &.on_form_end(self, form)
         end
 
         conts.drop

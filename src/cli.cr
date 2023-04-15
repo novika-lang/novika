@@ -1,8 +1,102 @@
 require "./novika"
 require "./common"
+require "tablo"
 
 module Novika::Frontend::CLI
   extend self
+
+  # A crude sample-based profiler which is triggered on every
+  # form the engine tries to execute.
+  #
+  # Counts the amount of times a form was attempted to be open
+  # by the engine.
+  #
+  # You can use `to_table` to convert a snapshot of data to a
+  # `Tablo::Table` table.
+  class Profiler
+    include IExhaustTracker
+
+    # Represents a profile entry.
+    class Profile
+      def initialize(@str : String)
+        @samples = 0u64
+      end
+
+      def <=>(other : Profile)
+        @samples <=> other.@samples
+      end
+
+      def sample
+        @samples += 1
+      end
+
+      def ratio(whole : Float64)
+        @samples / whole
+      end
+
+      def to_row?(nperiods)
+        [@str, @samples, @samples/nperiods]
+      end
+    end
+
+    # Initializes this profiler.
+    #
+    # *period* is the period between samples, in Engine loop
+    # ticks. The less the value, the more samples are taken
+    # and the more precise the results are (but the program
+    # may run slower).
+    def initialize(@period = 32u64)
+      @start = 0u64
+      @ticks = 0u64
+      @profiles = Hash(String, Profile).new { |_, str| Profile.new(str) }
+    end
+
+    # Returns a string version of *form* to be the key in the
+    # profiles hash.
+    private def encode(form : Form)
+      "#{form} (#{form.class.typedesc})"
+    end
+
+    def on_form_begin(engine : Engine, form : Form)
+      unless @ticks - @start >= @period
+        @ticks += 1
+        return
+      end
+
+      key = encode(form)
+
+      profile = @profiles[key]
+      profile.sample
+
+      @profiles[key] = profile
+
+      @start = @ticks
+      @ticks += 1
+    end
+
+    # Assembles and returns the data from this profiler as
+    # a `Tablo::Table`.
+    #
+    # *cutoff* specifies the ratio [0-1] below which profiles
+    # should be rejected (i.e., too insignificant).
+    def to_table(cutoff = 0.0001)
+      nperiods = @ticks / @period
+
+      rows = @profiles.values
+        .reject! { |profile| profile.ratio(nperiods) < cutoff }
+        .unstable_sort! { |a, b| b <=> a }
+        .compact_map &.to_row?(nperiods)
+
+      rows << ["(coverage: ticks, sampled-ticks%)", @ticks, nperiods / @ticks]
+
+      Tablo::Table.new(rows) do |table|
+        table.add_column("Form (typedesc)") { |row| row[0] }
+        table.add_column("No. of samples") { |row| row[1] }
+        table.add_column("Of all samples, %") { |row| "#{(row[2].as(Float64) * 100).round(4)}%" }
+        table.shrinkwrap!(128)
+      end
+    end
+  end
 
   # Runs the file at *path* using *engine*. A new block is
   # created for *path* as a child of *toplevel*.
@@ -76,6 +170,7 @@ module Novika::Frontend::CLI
       Switches:
 
         -h, --help, h, help, ?  prints this message
+        -p[:PERIOD]             enables profiling, samples every PERIOD ticks (default: 16)
 
       Runnables:
 
@@ -200,6 +295,17 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
+    profiler = nil
+
+    args.reject! do |arg|
+      if status = arg =~ /^\-p(?::([1-9]\d*))?$/
+        profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
+      end
+      status
+    end
+
+    profiler.try { |it| Engine.trackers << it }
+
     # Populate the capability collection with all available
     # capabilities. Only enable default ones.
     #
@@ -299,6 +405,8 @@ module Novika::Frontend::CLI
       run(engine, toplevel, resolver.folders)
       run(engine, toplevel, resolver.files)
       run(engine, toplevel, resolver.apps)
+    ensure
+      profiler.try { |it| puts it.to_table }
     end
   rescue e : Error
     e.report(STDERR)

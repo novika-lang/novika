@@ -18,10 +18,8 @@ dependencies:
     github: spider-gazelle/bindata
   lch:
     github: homonoidian/lch.cr
-
-development_dependencies:
-  ameba:
-    github: crystal-ameba/ameba
+  tablo:
+    github: hutou/tablo
 
 crystal: ">= 1.7.0"
 
