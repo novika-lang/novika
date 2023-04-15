@@ -651,6 +651,21 @@
       
     </li>
   
+  <li class="parent " data-id="novika/Novika/Schedulable" data-name="novika::schedulable">
+      <a href="../Novika/Schedulable.html">Schedulable</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Schedulable/ShouldOpenWhenScheduled" data-name="novika::schedulable::shouldopenwhenscheduled">
+      <a href="../Novika/Schedulable/ShouldOpenWhenScheduled.html">ShouldOpenWhenScheduled</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Scissors" data-name="novika::scissors">
       <a href="../Novika/Scissors.html">Scissors</a>
       
@@ -764,11 +779,10 @@
     Overview
   </h2>
 
-  <p>An engine object is responsible for managing its own
-<em>continuations block</em>.</p>
+  <p>An engine object is responsible for managing a <em>continuations block</em>.</p>
 <p>Continuations block consists of <em>continuatio<strong>n</strong> blocks</em>.</p>
 <p>Canonical continuation blocks themselves contain two blocks
-(see <code><a href="../Novika/Engine.html#cont%28code%2Cstack%29-class-method">Engine.cont</a></code>):</p>
+(see <code><a href="../Novika/Engine.html#cont%28%2A%2Cblock%2Cstack%29-class-method">Engine.cont</a></code>):</p>
 <ul>
 <li>
 <p><em>Code block</em>, more commonly known as simply the block
@@ -781,27 +795,34 @@ i.e., when it's being evaluated),</p>
 i.e., when it's being evaluated).</p>
 </li>
 </ul>
-<p><code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code> is used to create a continuation block
-from a <code><a href="../Novika/Form.html">Form</a></code> and a stack block, and then add it to the
-continuations block.</p>
-<p>If form is a block, <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code> will instantiate
-it and use the instance, moving the instance's cursor
-to 0 (meaning before the first form, if any).</p>
-<p><code><a href="../Novika/Engine.html#schedule%21%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule!</a></code> is similar to <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code>, with
-the only exception being that it doesn't create an instance
-if form is a block, but instead uses the block as-is.</p>
-<p>Once all is set up, one can exhaust the engine. <code><a href="../Novika/Engine.html#exhaust-instance-method">Engine#exhaust</a></code>
-finds the top (see <code><a href="../Novika/Block.html#top%3AForm-instance-method">Block#top</a></code>) continuation block, slides
-its code block's cursor to the right until the end, and
-calls <code><a href="../Novika/Form.html#on_parent_open%28engine%3AEngine%29%3Aself-instance-method">Form#on_parent_open</a></code> on every form, passing itself
-as the argument (letting the form decide what to do next).</p>
-<p>After the cursor hits the block's end, <code><a href="../Novika/Engine.html">Engine</a></code> drops
-(see <code><a href="../Novika/Block.html#drop%3AForm-instance-method">Block#drop</a></code>) the continuation block (thereby <em>closing</em>
-the code block).</p>
-<p>Some forms (e.g. words) may end up scheduling continuation blocks
-<code>on_parent_open</code>, making the engine go through them first.</p>
-<p>Successful calls to <code><a href="../Novika/Engine.html#exhaust-instance-method">Engine#exhaust</a></code> leave the continuations
-block empty. This is why the method is called &quot;exhaust&quot;.</p>
+<p><code><a href="../Novika/Engine.html#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">Engine#schedule</a></code> is used to create a continuation block
+given a <code><a href="../Novika/Schedulable.html">Schedulable</a></code> object (usually a <code><a href="../Novika/Form.html">Form</a></code>, and in rarer
+cases an <code><a href="../Novika/Entry.html">Entry</a></code>) and a stack block. It then adds the
+continuation block to the continuations block -- effectively
+scheduling it for execution <em>on the next exhaust loop cycle</em>.</p>
+<p>Note that there are two other methods linked with execution
+and implemented by all forms: <code>on_open</code>, and <code>on_parent_open</code>.
+They <em>perform</em> whatever action the form wants rather than
+simply <em>scheduling</em> it to be performed some time in the
+future. Namely, <code>on_open</code> is invoked whenever the form at
+hand is itself the target of opening (aka execution, aka
+evaluation), and <code>on_parent_open</code> is invoked when a block
+containing the form at hand (its parent block) is the target
+of opening.</p>
+<p>An engine's <em>exhaust loop</em> is where most of the magic happens.
+It is organized very much like the fetch-decode-execute cycle
+in CPUs.</p>
+<p>For <em>fetch</em>, the engine finds the top (see <code><a href="../Novika/Block.html#top%3AForm-instance-method">Block#top</a></code>)
+continuation block, then finds the top form on the code
+block, and invokes the <code>on_parent_open</code> method on it.</p>
+<p>This method is  analogous to <em>decoding</em> followed by <em>execution</em>.
+The form is free to choose how it wants to make sense of itself,
+given an engine. Some forms (e.g. words) end up scheduling
+new continuation blocks <code>on_parent_open</code>, making the engine
+go through them first.</p>
+<p>After the cursor of the active block hits the end, <code><a href="../Novika/Engine.html">Engine</a></code>
+drops (see <code><a href="../Novika/Block.html#drop%3AForm-instance-method">Block#drop</a></code>) the continuation block (thereby
+<em>closing</em> the code block).</p>
 <pre><code class="language-crystal">caps <span class="o">=</span> <span class="t">CapabilityCollection</span>.with_default.enable_all
 block <span class="o">=</span> <span class="t">Block</span>.new(caps.block).slurp(<span class="s">&quot;1 2 +&quot;</span>)
 stack <span class="o">=</span> <span class="t">Block</span>.new
@@ -946,7 +967,7 @@ checks. See <code>Engine.count</code>.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#cont%28code%2Cstack%29-class-method" class="signature"><strong>.cont</strong>(code, stack)</a>
+        <a href="#cont%28%2A%2Cblock%2Cstack%29-class-method" class="signature"><strong>.cont</strong>(*, block, stack)</a>
         
           <div class="summary"><p>Creates and returns a canonical continuation block.</p></div>
         
@@ -960,44 +981,16 @@ checks. See <code>Engine.count</code>.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form entry : OpenEntry, stack = <span class="n">nil</span>) : Block</a>
+        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cschedulable%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, schedulable, stack = <span class="n">nil</span>) : Block</a>
         
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form entry : Entry, stack = <span class="n">nil</span>) : Block</a>
-        
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
+          <div class="summary"><p>Schedules <em>schedulable</em> and exhausts immediately.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#exhaust%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust</strong>(capabilities : CapabilityCollection, form, stack = <span class="n">nil</span>) : Block</a>
+        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cschedulable%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, schedulable, stack = <span class="n">nil</span>) : Block</a>
         
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, entry : OpenEntry, stack = <span class="n">nil</span>) : Block</a>
-        
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, entry : Entry, stack = <span class="n">nil</span>) : Block</a>
-        
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method" class="signature"><strong>.exhaust!</strong>(capabilities : CapabilityCollection, form, stack = <span class="n">nil</span>) : Block</a>
-        
-          <div class="summary"><p>Schedules and executes <em>form</em> immediately.</p></div>
+          <div class="summary"><p>Schedules <em>schedulable</em> and exhausts immediately.</p></div>
         
       </li>
     
@@ -1086,44 +1079,30 @@ checks. See <code>Engine.count</code>.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#schedule%28form%3ABlock%2Cstack%29-instance-method" class="signature"><strong>#schedule</strong>(form : Block, stack)</a>
+        <a href="#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule</strong>(schedulable : Schedulable, stack : Block)</a>
         
-          <div class="summary"><p>Adds an instance of <em>form</em> block to the continuations block, with <em>stack</em> set as the continuation stack.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#schedule%28form%2Cstack%29-instance-method" class="signature"><strong>#schedule</strong>(form, stack)</a>
-        
-          <div class="summary"><p>Adds an empty continuation with <em>stack</em> as set as the continuation stack, and opens (normally pushes) <em>form</em> there immediately.</p></div>
+          <div class="summary"><p>See <code><a href="../Novika/Schedulable.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">Schedulable#schedule</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#schedule%21%28form%3ABlock%2Cstack%29-instance-method" class="signature"><strong>#schedule!</strong>(form : Block, stack)</a>
+        <a href="#schedule%21%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(schedulable : Schedulable, stack : Block)</a>
         
-          <div class="summary"><p>Unsafe <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule</a></code>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#schedule%21%28form%3ABuiltin%7CQuotedWord%7CLibrary%7CForeignFunction%7CHole%2Cstack%29-instance-method" class="signature"><strong>#schedule!</strong>(form : Builtin | QuotedWord | Library | ForeignFunction | Hole, stack)</a>
-        
-          <div class="summary"><p>Schedules <em>form</em> for opening in <em>stack</em>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#schedule%21%28form%2Cstack%29-instance-method" class="signature"><strong>#schedule!</strong>(form, stack)</a>
-        
-          <div class="summary"><p>Same as <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule(form, stack)</a></code>.</p></div>
+          <div class="summary"><p>See <code><a href="../Novika/Schedulable.html#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">Schedulable#schedule!</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#schedule%21%28other%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(other : Block)</a>
         
-          <div class="summary"><p>Focal authorized point for adding continuations unsafely.</p></div>
+          <div class="summary"><p>Main authorized point for adding continuations unsafely.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#schedule%21%28%2A%2Cblock%3ABlock%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(*, block : Block, stack : Block)</a>
+        
+          <div class="summary"><p>Schedules a continuation with the given <em>block</em> and <em>stack</em>.</p></div>
         
       </li>
     
@@ -1224,19 +1203,19 @@ checks. See <code>Engine.count</code>.</p>
     Class Method Detail
   </h2>
   
-    <div class="entry-detail" id="cont(code,stack)-class-method">
+    <div class="entry-detail" id="cont(*,block,stack)-class-method">
       <div class="signature">
         
-        def self.<strong>cont</strong>(code, stack)
+        def self.<strong>cont</strong>(*, block, stack)
 
-        <a class="method-permalink" href="#cont%28code%2Cstack%29-class-method">#</a>
+        <a class="method-permalink" href="#cont%28%2A%2Cblock%2Cstack%29-class-method">#</a>
       </div>
       
         <div class="doc">
           
           <p>Creates and returns a canonical continuation block.</p>
-<p>A continuation block must include two blocks: the first
-is called the <em>code</em> block (found at <code><a href="../Novika/Engine.html#C_BLOCK_AT">C_BLOCK_AT</a></code>), the
+<p>A continuation block must include two blocks: the first is
+called simply the <em>block</em> (found at <code><a href="../Novika/Engine.html#C_BLOCK_AT">C_BLOCK_AT</a></code>), and the
 second is called the <em>stack</em> block (found at <code><a href="../Novika/Engine.html#C_STACK_AT">C_STACK_AT</a></code>).</p>
         </div>
       
@@ -1266,22 +1245,24 @@ there is no current engine.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,formentry:OpenEntry,stack=nil):Block-class-method">
+    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,schedulable,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, schedulable, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cschedulable%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Schedules and executes <em>form</em> immediately. Returns the
+          <p>Schedules <em>schedulable</em> and exhausts immediately. Returns the
 resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
+<p>Useful for when you need the result of <em>schedulable</em>
+immediately.</p>
+<p>For details see <code><a href="../Novika/Engine.html#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">Engine#schedule</a></code>.</p>
+<pre><code class="language-crystal">caps <span class="o">=</span> <span class="t">CapabilityCollection</span>.with_default.enable_all
+result <span class="o">=</span> <span class="t">Engine</span>.exhaust(caps, <span class="t">Block</span>.new(caps.block).slurp(<span class="s">&quot;1 2 +&quot;</span>))
+result.top <span class="c"># 3 : Novika::Decimal</span></code></pre>
         </div>
       
       <br/>
@@ -1290,118 +1271,24 @@ especially from Crystal.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,formentry:Entry,stack=nil):Block-class-method">
+    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,schedulable,stack=nil):Block-class-method">
       <div class="signature">
         
-        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
+        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, schedulable, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cformentry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
+        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cschedulable%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Schedules and executes <em>form</em> immediately. Returns the
+          <p>Schedules <em>schedulable</em> and exhausts immediately. Returns the
 resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="exhaust(capabilities:CapabilityCollection,form,stack=nil):Block-class-method">
-      <div class="signature">
-        
-        def self.<strong>exhaust</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
-
-        <a class="method-permalink" href="#exhaust%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Schedules and executes <em>form</em> immediately. Returns the
-resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,entry:OpenEntry,stack=nil):Block-class-method">
-      <div class="signature">
-        
-        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, entry : <a href="../Novika/OpenEntry.html">OpenEntry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
-
-        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AOpenEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Schedules and executes <em>form</em> immediately. Returns the
-resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%21%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule!</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,entry:Entry,stack=nil):Block-class-method">
-      <div class="signature">
-        
-        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, entry : <a href="../Novika/Entry.html">Entry</a>, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
-
-        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Centry%3AEntry%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Schedules and executes <em>form</em> immediately. Returns the
-resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%21%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule!</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="exhaust!(capabilities:CapabilityCollection,form,stack=nil):Block-class-method">
-      <div class="signature">
-        
-        def self.<strong>exhaust!</strong>(capabilities : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, form, stack = <span class="n">nil</span>) : <a href="../Novika/Block.html">Block</a>
-
-        <a class="method-permalink" href="#exhaust%21%28capabilities%3ACapabilityCollection%2Cform%2Cstack%3Dnil%29%3ABlock-class-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Schedules and executes <em>form</em> immediately. Returns the
-resulting <em>stack</em> (creates one if <code>nil</code>).</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%21%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule!</a></code> for information on how <em>form</em>
-is evaluated.</p>
-<p>Useful for when you need the result of <em>form</em> immediately,
-especially from Crystal.</p>
+<p>Useful for when you need the result of <em>schedulable</em>
+immediately.</p>
+<p>For details see <code><a href="../Novika/Engine.html#schedule%21%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">Engine#schedule!</a></code>.</p>
+<pre><code class="language-crystal">caps <span class="o">=</span> <span class="t">CapabilityCollection</span>.with_default.enable_all
+result <span class="o">=</span> <span class="t">Engine</span>.exhaust(caps, <span class="t">Block</span>.new(caps.block).slurp(<span class="s">&quot;1 2 +&quot;</span>))
+result.top <span class="c"># 3 : Novika::Decimal</span></code></pre>
         </div>
       
       <br/>
@@ -1626,19 +1513,17 @@ topmost (see <code><a href="../Novika/Block.html#top%3AForm-instance-method">Blo
       </div>
     </div>
   
-    <div class="entry-detail" id="schedule(form:Block,stack)-instance-method">
+    <div class="entry-detail" id="schedule(schedulable:Schedulable,stack:Block)-instance-method">
       <div class="signature">
         
-        def <strong>schedule</strong>(form : <a href="../Novika/Block.html">Block</a>, stack)
+        def <strong>schedule</strong>(schedulable : <a href="../Novika/Schedulable.html">Schedulable</a>, stack : <a href="../Novika/Block.html">Block</a>)
 
-        <a class="method-permalink" href="#schedule%28form%3ABlock%2Cstack%29-instance-method">#</a>
+        <a class="method-permalink" href="#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Adds an instance of <em>form</em> block to the continuations
-block, with <em>stack</em> set as the continuation stack.</p>
-<p>Returns self.</p>
+          <p>See <code><a href="../Novika/Schedulable.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">Schedulable#schedule</a></code>.</p>
         </div>
       
       <br/>
@@ -1647,80 +1532,17 @@ block, with <em>stack</em> set as the continuation stack.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="schedule(form,stack)-instance-method">
+    <div class="entry-detail" id="schedule!(schedulable:Schedulable,stack:Block)-instance-method">
       <div class="signature">
         
-        def <strong>schedule</strong>(form, stack)
+        def <strong>schedule!</strong>(schedulable : <a href="../Novika/Schedulable.html">Schedulable</a>, stack : <a href="../Novika/Block.html">Block</a>)
 
-        <a class="method-permalink" href="#schedule%28form%2Cstack%29-instance-method">#</a>
+        <a class="method-permalink" href="#schedule%21%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Adds an empty continuation with <em>stack</em> as set as the
-continuation stack, and opens (normally pushes) <em>form</em>
-there immediately.</p>
-<p>Returns self.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="schedule!(form:Block,stack)-instance-method">
-      <div class="signature">
-        
-        def <strong>schedule!</strong>(form : <a href="../Novika/Block.html">Block</a>, stack)
-
-        <a class="method-permalink" href="#schedule%21%28form%3ABlock%2Cstack%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Unsafe <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule</a></code>. Use <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule</a></code> unless you have instantiated
-<em>form</em> yourself, or you know what you're doing.</p>
-<p>See <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule(form : Block, stack)</a></code>.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="schedule!(form:Builtin|QuotedWord|Library|ForeignFunction|Hole,stack)-instance-method">
-      <div class="signature">
-        
-        def <strong>schedule!</strong>(form : <a href="../Novika/Builtin.html">Builtin</a> | <a href="../Novika/QuotedWord.html">QuotedWord</a> | <a href="../Novika/Library.html">Library</a> | <a href="../Novika/ForeignFunction.html">ForeignFunction</a> | <a href="../Novika/Hole.html">Hole</a>, stack)
-
-        <a class="method-permalink" href="#schedule%21%28form%3ABuiltin%7CQuotedWord%7CLibrary%7CForeignFunction%7CHole%2Cstack%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Schedules <em>form</em> for opening in <em>stack</em>.</p>
-<p>Same as <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule(form, stack)</a></code>.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="schedule!(form,stack)-instance-method">
-      <div class="signature">
-        
-        def <strong>schedule!</strong>(form, stack)
-
-        <a class="method-permalink" href="#schedule%21%28form%2Cstack%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Same as <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">#schedule(form, stack)</a></code>.</p>
+          <p>See <code><a href="../Novika/Schedulable.html#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">Schedulable#schedule!</a></code>.</p>
         </div>
       
       <br/>
@@ -1739,12 +1561,31 @@ there immediately.</p>
       
         <div class="doc">
           
-          <p>Focal authorized point for adding continuations unsafely.
+          <p>Main authorized point for adding continuations unsafely.
 Returns self.</p>
 <p>Provides protection from continuations stack overflow.</p>
 <p>Adding to <code><a href="../Novika/Engine.html#conts%3ANovika%3A%3ABlock-instance-method">#conts</a></code> (the unauthorized way) does not protect
 one from continuations stack overflow, and therefore from
 a memory usage explosion.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="schedule!(*,block:Block,stack:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>schedule!</strong>(*, block : <a href="../Novika/Block.html">Block</a>, stack : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#schedule%21%28%2A%2Cblock%3ABlock%2Cstack%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Schedules a continuation with the given <em>block</em> and <em>stack</em>.</p>
         </div>
       
       <br/>

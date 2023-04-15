@@ -651,6 +651,21 @@
       
     </li>
   
+  <li class="parent " data-id="novika/Novika/Schedulable" data-name="novika::schedulable">
+      <a href="../Novika/Schedulable.html">Schedulable</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Schedulable/ShouldOpenWhenScheduled" data-name="novika::schedulable::shouldopenwhenscheduled">
+      <a href="../Novika/Schedulable/ShouldOpenWhenScheduled.html">ShouldOpenWhenScheduled</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Scissors" data-name="novika::scissors">
       <a href="../Novika/Scissors.html">Scissors</a>
       
@@ -1207,7 +1222,7 @@ of <em>nested</em> blocks.</p>
       <li class="entry-summary">
         <a href="#on_open%28engine%3AEngine%2Cstack%3ABlock%3Dengine.stack%29%3Aself-instance-method" class="signature"><strong>#on_open</strong>(engine : Engine, stack : Block = engine.stack) : <span class="k">self</span></a>
         
-          <div class="summary"><p>Schedules this block for execution in <em>engine</em> using the safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code>).</p></div>
+          <div class="summary"><p>Schedules this block for execution in <em>engine</em> using the safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">Engine#schedule</a></code>).</p></div>
         
       </li>
     
@@ -1278,6 +1293,20 @@ of <em>nested</em> blocks.</p>
         <a href="#resub%28other%3ABlock%29%3Aself-instance-method" class="signature"><strong>#resub</strong>(other : Block) : <span class="k">self</span></a>
         
           <div class="summary"><p>Replaces this block's tape with <em>other</em>'s.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule</strong>(engine : Engine, stack : Block)</a>
+        
+          <div class="summary"><p>Schedules an instance of this block for execution, with <em>stack</em> set as the stack that will be used by the instance during execution.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(engine : Engine, stack : Block)</a>
+        
+          <div class="summary"><p>Schedules this block for execution, with <em>stack</em> set as the stack that will be used by this block during execution.</p></div>
         
       </li>
     
@@ -1514,6 +1543,30 @@ of <em>nested</em> blocks.</p>
     <a href="../Novika/Form.html#to_quote%3AQuote-instance-method" class="tooltip">
       <span>to_quote : Quote</span>
     to_quote</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../Novika/Schedulable.html">Novika::Schedulable</a></code></h3>
+  
+  
+    <a href="../Novika/Schedulable.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="tooltip">
+      <span>schedule(engine : Engine, stack : Block)</span>
+    schedule</a>, 
+    
+  
+    <a href="../Novika/Schedulable.html#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="tooltip">
+      <span>schedule!(engine : Engine, stack : Block)</span>
+    schedule!</a>
     
   
 
@@ -2565,7 +2618,7 @@ given <em>parent</em>.</p>
         <div class="doc">
           
           <p>Schedules this block for execution in <em>engine</em> using the
-safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28form%3ABlock%2Cstack%29-instance-method">Engine#schedule</a></code>). Optionally,
+safe scheduling method (see <code><a href="../Novika/Engine.html#schedule%28schedulable%3ASchedulable%2Cstack%3ABlock%29-instance-method">Engine#schedule</a></code>). Optionally,
 a <em>stack</em> block may be provided (otherwise, the <em>engine</em>'s
 current stack is used).</p>
         </div>
@@ -2777,6 +2830,51 @@ this block.</p>
         <div class="doc">
           
           <p>Replaces this block's tape with <em>other</em>'s.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="schedule(engine:Engine,stack:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>schedule</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Schedules an instance of this block for execution, with <em>stack</em>
+set as the stack that will be used by the instance during
+execution.</p>
+<p>Moves the cursor of the instance before the first form
+so that the entire block will be executed by <em>engine</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="schedule!(engine:Engine,stack:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>schedule!</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Schedules this block for execution, with <em>stack</em> set as the
+stack that will be used by this block during execution.</p>
+<p>Moves the cursor before the first form so that the entire
+block will be executed by <em>engine</em>.</p>
         </div>
       
       <br/>
