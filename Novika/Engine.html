@@ -476,8 +476,28 @@
       
         <ul>
   
-  <li class=" " data-id="novika/Novika/Frontend/CLI" data-name="novika::frontend::cli">
+  <li class="parent " data-id="novika/Novika/Frontend/CLI" data-name="novika::frontend::cli">
       <a href="../Novika/Frontend/CLI.html">CLI</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="novika/Novika/Frontend/CLI/Profiler" data-name="novika::frontend::cli::profiler">
+      <a href="../Novika/Frontend/CLI/Profiler.html">Profiler</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Frontend/CLI/Profiler/Profile" data-name="novika::frontend::cli::profiler::profile">
+      <a href="../Novika/Frontend/CLI/Profiler/Profile.html">Profile</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -548,6 +568,11 @@
   
   <li class=" " data-id="novika/Novika/IDict" data-name="novika::idict">
       <a href="../Novika/IDict.html">IDict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IExhaustTracker" data-name="novika::iexhausttracker">
+      <a href="../Novika/IExhaustTracker.html">IExhaustTracker</a>
       
     </li>
   
@@ -1001,6 +1026,13 @@ checks. See <code>Engine.count</code>.</p>
         
       </li>
     
+      <li class="entry-summary">
+        <a href="#trackers-class-method" class="signature"><strong>.trackers</strong></a>
+        
+          <div class="summary"><p>Holds an array of exhaust tracker objects associated with all instances of <code><a href="../Novika/Engine.html">Engine</a></code>.</p></div>
+        
+      </li>
+    
   </ul>
 
 
@@ -1068,6 +1100,11 @@ checks. See <code>Engine.count</code>.</p>
         <a href="#drop_until_death_handler%3F%28avoid_prototype%3Dnil%29-instance-method" class="signature"><strong>#drop_until_death_handler?</strong>(avoid_prototype = <span class="n">nil</span>)</a>
         
           <div class="summary"><p>Returns the relevant death handler, or nil.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#execute%28form%3AForm%29-instance-method" class="signature"><strong>#execute</strong>(form : Form)</a>
         
       </li>
     
@@ -1318,6 +1355,28 @@ result.top <span class="c"># 3 : Novika::Decimal</span></code></pre>
       </div>
     </div>
   
+    <div class="entry-detail" id="trackers-class-method">
+      <div class="signature">
+        
+        def self.<strong>trackers</strong>
+
+        <a class="method-permalink" href="#trackers-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds an array of exhaust tracker objects associated with
+all instances of <code><a href="../Novika/Engine.html">Engine</a></code>. These objects intercept forms
+before/after opening in <code><a href="../Novika/Engine.html#exhaust-instance-method">Engine#exhaust</a></code>. This e.g. allows
+frontends to analyze/track forms and/or matching blocks.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
 
 
 
@@ -1486,6 +1545,20 @@ openers and pushers). Returns that block.</p>
 <p>If all continuations were exhausted and no <code><a href="../Novika/Hook.html#died%3AWord-instance-method">Hook.died</a></code>
 had been found, returns nil.</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="execute(form:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>execute</strong>(form : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#execute%28form%3AForm%29-instance-method">#</a>
+      </div>
       
       <br/>
       <div>
