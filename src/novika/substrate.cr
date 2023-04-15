@@ -114,7 +114,7 @@ module Novika
 
     # Makes a copy of the referenced substrate, and calls this
     # method on it.
-    delegate :unsafe_paste, :insert?, :delete?, :map!, :sort_using!, to: begin
+    delegate :unsafe_paste, :insert?, :delete?, :unsafe_swap, :map!, :sort_using!, to: begin
       deref
 
       RealSubstrate.new(array.dup)
@@ -159,6 +159,15 @@ module Novika
 
     def delete?(at index)
       mutate &.array.delete_at(index) if index.in?(0..count)
+    end
+
+    def unsafe_swap(index0, index1)
+      mutate do |s|
+        ary = s.array
+        tmp = ary.unsafe_fetch(index0)
+        ary.unsafe_put(index0, ary.unsafe_fetch(index1))
+        ary.unsafe_put(index1, tmp)
+      end
     end
 
     def map!(& : T -> T?)

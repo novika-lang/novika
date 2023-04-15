@@ -323,10 +323,9 @@ module Novika
 
     # Swaps two forms before the cursor, dies if none.
     def swap : self
-      a = drop
-      b = drop
-      add(a)
-      add(b)
+      self.tape = tape.swap? || die("at least two forms required before the cursor")
+
+      self
     end
 
     # Slices this block at cursor. This results in two halves,

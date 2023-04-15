@@ -68,6 +68,13 @@ module Novika
       )
     end
 
+    # Swaps two elements before the cursor.
+    def swap?
+      return if cursor < 2
+
+      Tape.new(substrate.unsafe_swap(cursor - 2, cursor - 1), cursor)
+    end
+
     # Removes the element before the cursor, and moves the cursor
     # back once. Returns the resulting tape.
     def drop?
