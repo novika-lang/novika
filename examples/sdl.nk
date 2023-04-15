@@ -14,7 +14,7 @@ sdl:init:everything sdl:init sdl:ensure
 
 sdl:ttf:init sdl:ensure
 
-'/home/alex/git/synapse/fonts/ui/Roboto-Regular.ttf' 11 sdl:ttf:open sdl:notNull $: font
+__path__ 'roboto/Roboto-Medium.ttf' disk:join 11 sdl:ttf:open sdl:notNull $: font
 
 'Hello World' sdl:window:centered sdl:window:centered 680 480 0 sdl:createWindow sdl:notNull $: window
 
