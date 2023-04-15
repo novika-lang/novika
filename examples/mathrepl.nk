@@ -38,7 +38,7 @@ needsCapability: console
   context name [
     "Put cursor before a looser operator (or, if none, at
      block end)."
-    ahead [ operators swap entry:flatFetch? [ .prec prec <= ] and ] |before
+    ahead |beforeOrToEnd: [ operators swap entry:flatFetch? [ .prec prec <= ] and ]
 
     """Reparent everything between this operator and the looser
      operator to ahead:

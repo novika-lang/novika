@@ -1657,7 +1657,7 @@
 ] @: |beforeOrToEnd
 
 
-[ "( Lb |before: C -- Sfb ): infix version of `|beforeOrToEnd`."
+[ "( Lb |beforeOrToEnd: C -- Sfb ): infix version of `|beforeOrToEnd`."
   ahead thru |beforeOrToEnd
 ] @: |beforeOrToEnd:
 
