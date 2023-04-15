@@ -4,6 +4,7 @@ module Novika
   # A thin wrapper around `FFI::Function`.
   struct ForeignFunction
     include Form
+    include ShouldOpenWhenScheduled
 
     def initialize(@library : Library, @function : FFI::Function, @comment : String?)
     end
@@ -37,6 +38,7 @@ module Novika
   # opening the hole.
   struct Hole
     include Form
+    include ShouldOpenWhenScheduled
 
     # Returns a pointer to this hole's content.
     getter handle : Void*
@@ -302,6 +304,7 @@ module Novika
   # retrieved from this capability collection.
   class Library
     include Form
+    include ShouldOpenWhenScheduled
 
     # Returns the identifier of this library.
     getter id : String

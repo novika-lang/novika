@@ -3,6 +3,7 @@ module Novika
   # `Proc`, for usage in the Novika-land.
   struct Builtin
     include Form
+    include ShouldOpenWhenScheduled
 
     # Returns the identifier of this builtin.
     getter id : String

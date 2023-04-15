@@ -51,9 +51,10 @@ module Novika::Capabilities::Impl
        a Block.
       END
       ) do |_, stack|
-        block = stack.drop.a(Block)
-        new_stack = stack.drop.a(Block)
-        Engine.cont(block, new_stack).onto(stack)
+        Engine.cont(
+          block: stack.drop.a(Block),
+          stack: stack.drop.a(Block)
+        ).onto(stack)
       end
 
       target.at("getContBlock", <<-END

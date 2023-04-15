@@ -72,6 +72,7 @@ module Novika
   # are peeled off like in an onion.
   struct QuotedWord
     include Form
+    include ShouldOpenWhenScheduled
 
     # Returns the underlying string id.
     getter id : String

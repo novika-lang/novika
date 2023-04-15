@@ -604,6 +604,29 @@ module Novika
       tap { engine.schedule(self, stack) }
     end
 
+    # Schedules this block for execution, with *stack* set as the
+    # stack that will be used by this block during execution.
+    #
+    # Moves the cursor before the first form so that the entire
+    # block will be executed by *engine*.
+    def schedule!(engine : Engine, stack : Block)
+      return if count.zero?
+
+      engine.schedule!(stack: stack, block: to(0))
+    end
+
+    # Schedules an instance of this block for execution, with *stack*
+    # set as the stack that will be used by the instance during
+    # execution.
+    #
+    # Moves the cursor of the instance before the first form
+    # so that the entire block will be executed by *engine*.
+    def schedule(engine : Engine, stack : Block)
+      return if count.zero?
+
+      instance.schedule!(engine, stack)
+    end
+
     # Returns a shallow copy of this block.
     def shallow : Block
       self.class.new(parent: parent?,

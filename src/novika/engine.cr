@@ -1,6 +1,5 @@
 module Novika
-  # An engine object is responsible for managing its own
-  # *continuations block*.
+  # An engine object is responsible for managing a *continuations block*.
   #
   # Continuations block consists of *continuatio**n** blocks*.
   #
@@ -16,32 +15,38 @@ module Novika
   #    i.e., when it's being evaluated).
   #
   # `Engine#schedule` is used to create a continuation block
-  # from a `Form` and a stack block, and then add it to the
-  # continuations block.
+  # given a `Schedulable` object (usually a `Form`, and in rarer
+  # cases an `Entry`) and a stack block. It then adds the
+  # continuation block to the continuations block -- effectively
+  # scheduling it for execution *on the next exhaust loop cycle*.
   #
-  # If form is a block, `Engine#schedule` will instantiate
-  # it and use the instance, moving the instance's cursor
-  # to 0 (meaning before the first form, if any).
+  # Note that there are two other methods linked with execution
+  # and implemented by all forms: `on_open`, and `on_parent_open`.
+  # They *perform* whatever action the form wants rather than
+  # simply *scheduling* it to be performed some time in the
+  # future. Namely, `on_open` is invoked whenever the form at
+  # hand is itself the target of opening (aka execution, aka
+  # evaluation), and `on_parent_open` is invoked when a block
+  # containing the form at hand (its parent block) is the target
+  # of opening.
   #
-  # `Engine#schedule!` is similar to `Engine#schedule`, with
-  # the only exception being that it doesn't create an instance
-  # if form is a block, but instead uses the block as-is.
+  # An engine's *exhaust loop* is where most of the magic happens.
+  # It is organized very much like the fetch-decode-execute cycle
+  # in CPUs.
   #
-  # Once all is set up, one can exhaust the engine. `Engine#exhaust`
-  # finds the top (see `Block#top`) continuation block, slides
-  # its code block's cursor to the right until the end, and
-  # calls `Form#on_parent_open` on every form, passing itself
-  # as the argument (letting the form decide what to do next).
+  # For *fetch*, the engine finds the top (see `Block#top`)
+  # continuation block, then finds the top form on the code
+  # block, and invokes the `on_parent_open` method on it.
   #
-  # After the cursor hits the block's end, `Engine` drops
-  # (see `Block#drop`) the continuation block (thereby *closing*
-  # the code block).
+  # This method is  analogous to *decoding* followed by *execution*.
+  # The form is free to choose how it wants to make sense of itself,
+  # given an engine. Some forms (e.g. words) end up scheduling
+  # new continuation blocks `on_parent_open`, making the engine
+  # go through them first.
   #
-  # Some forms (e.g. words) may end up scheduling continuation blocks
-  # `on_parent_open`, making the engine go through them first.
-  #
-  # Successful calls to `Engine#exhaust` leave the continuations
-  # block empty. This is why the method is called "exhaust".
+  # After the cursor of the active block hits the end, `Engine`
+  # drops (see `Block#drop`) the continuation block (thereby
+  # *closing* the code block).
   #
   # ```
   # caps = CapabilityCollection.with_default.enable_all
@@ -135,92 +140,36 @@ module Novika
 
     # Creates and returns a canonical continuation block.
     #
-    # A continuation block must include two blocks: the first
-    # is called the *code* block (found at `C_BLOCK_AT`), the
+    # A continuation block must include two blocks: the first is
+    # called simply the *block* (found at `C_BLOCK_AT`), and the
     # second is called the *stack* block (found at `C_STACK_AT`).
-    def self.cont(code, stack)
-      Block[code, stack]
+    def self.cont(*, block, stack)
+      Block[block, stack]
     end
 
-    # Schedules and executes *form* immediately. Returns the
-    # resulting *stack* (creates one if `nil`).
-    #
-    # See `Engine#schedule!` for information on how *form*
-    # is evaluated.
-    #
-    # Useful for when you need the result of *form* immediately,
-    # especially from Crystal.
-    def self.exhaust!(
-      capabilities : CapabilityCollection,
-      form,
-      stack = nil
-    ) : Block
-      stack ||= Block.new
-      Engine.new(capabilities) do |engine|
-        engine.schedule!(form, stack)
-        engine.exhaust
+    {% for name, schedule in {:exhaust => :schedule, :exhaust! => :schedule!} %}
+      # Schedules *schedulable* and exhausts immediately. Returns the
+      # resulting *stack* (creates one if `nil`).
+      #
+      # Useful for when you need the result of *schedulable*
+      # immediately.
+      #
+      # For details see `Engine#{{schedule.id}}`.
+      #
+      # ```
+      # caps = CapabilityCollection.with_default.enable_all
+      # result = Engine.exhaust(caps, Block.new(caps.block).slurp("1 2 +"))
+      # result.top # 3 : Novika::Decimal
+      # ```
+      def self.{{name.id}}(capabilities : CapabilityCollection, schedulable, stack = nil) : Block
+        stack ||= Block.new
+        Engine.new(capabilities) do |engine|
+          engine.{{schedule.id}}(schedulable, stack)
+          engine.exhaust
+        end
+        stack
       end
-      stack
-    end
-
-    # :ditto:
-    def self.exhaust!(
-      capabilities : CapabilityCollection,
-      entry : OpenEntry,
-      stack = nil
-    ) : Block
-      exhaust!(capabilities, entry.form, stack)
-    end
-
-    # :ditto:
-    def self.exhaust!(
-      capabilities : CapabilityCollection,
-      entry : Entry,
-      stack = nil
-    ) : Block
-      stack ||= Block.new
-      entry.onto(stack)
-      stack
-    end
-
-    # Schedules and executes *form* immediately. Returns the
-    # resulting *stack* (creates one if `nil`).
-    #
-    # See `Engine#schedule` for information on how *form*
-    # is evaluated.
-    #
-    # Useful for when you need the result of *form* immediately,
-    # especially from Crystal.
-    def self.exhaust(
-      capabilities : CapabilityCollection,
-      form,
-      stack = nil
-    ) : Block
-      stack ||= Block.new
-      Engine.new(capabilities) do |engine|
-        engine.schedule(form, stack)
-        engine.exhaust
-      end
-      stack
-    end
-
-    # :ditto:
-    def self.exhaust(
-      capabilities : CapabilityCollection,
-      form entry : OpenEntry,
-      stack = nil
-    ) : Block
-      exhaust(capabilities, entry.form, stack)
-    end
-
-    # :ditto:
-    def self.exhaust(
-      capabilities : CapabilityCollection,
-      form entry : Entry,
-      stack = nil
-    ) : Block
-      exhaust!(capabilities, entry, stack)
-    end
+    {% end %}
 
     # Returns the active continuation.
     def cont
@@ -240,7 +189,7 @@ module Novika
     # See `Form#die`.
     delegate :die, to: block
 
-    # Focal authorized point for adding continuations unsafely.
+    # Main authorized point for adding continuations unsafely.
     # Returns self.
     #
     # Provides protection from continuations stack overflow.
@@ -256,59 +205,19 @@ module Novika
       tap { conts.add(other) }
     end
 
-    # Unsafe `schedule`. Use `schedule` unless you have instantiated
-    # *form* yourself, or you know what you're doing.
-    #
-    # See `schedule(form : Block, stack)`.
-    def schedule!(form : Block, stack)
-      return if form.count.zero?
-
-      schedule! Engine.cont(form.to(0), stack)
+    # Schedules a continuation with the given *block* and *stack*.
+    def schedule!(*, block : Block, stack : Block)
+      schedule! Engine.cont(block: block, stack: stack)
     end
 
-    # Schedules *form* for opening in *stack*.
-    #
-    # Same as `schedule(form, stack)`.
-    def schedule!(form : Builtin | QuotedWord | Library | ForeignFunction | Hole, stack)
-      unless stack.same?(self.stack)
-        # Schedule a fictious entry. Note how we do *not* set
-        # the cursor to 0. This handles two things:
-        #
-        # 1) First, the engine won't try to execute *form*
-        #    again on the next interpreter loop cycle.
-        #
-        # 2) Second, if *form* schedules something else, all
-        #    will work as expected: first, the scheduled thing
-        #    will run, and then all that's above, again, without
-        #    re-running *form* because the cursor is past it.
-        schedule! Engine.cont(Block.new.add(form), stack)
-      end
-
-      form.on_open(self)
+    # See `Schedulable#schedule`.
+    def schedule(schedulable : Schedulable, stack : Block)
+      schedulable.schedule(self, stack)
     end
 
-    # Same as `schedule(form, stack)`.
-    def schedule!(form, stack)
-      form.onto(stack)
-    end
-
-    # Adds an instance of *form* block to the continuations
-    # block, with *stack* set as the continuation stack.
-    #
-    # Returns self.
-    def schedule(form : Block, stack)
-      return if form.count.zero?
-
-      schedule!(form.instance, stack)
-    end
-
-    # Adds an empty continuation with *stack* as set as the
-    # continuation stack, and opens (normally pushes) *form*
-    # there immediately.
-    #
-    # Returns self.
-    def schedule(form, stack)
-      schedule!(form, stack)
+    # See `Schedulable#schedule!`.
+    def schedule!(schedulable : Schedulable, stack : Block)
+      schedulable.schedule!(self, stack)
     end
 
     # Converts value form of a death handler *entry* to a

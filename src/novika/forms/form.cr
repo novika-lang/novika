@@ -22,6 +22,67 @@ struct Union(*T)
 end
 
 module Novika
+  # Marks this object as schedulable in `Engine`.
+  module Schedulable
+    # The includer should be a `Form`.
+    #
+    # If the scheduled stack is the same as the active stack,
+    # the includer form is simply opened (see `Form#on_open`)
+    # without any kind of scheduling or waiting for the engine
+    # to pick it up.
+    #
+    # However, if the scheduled stack is different from the
+    # active stack, things get just a bit more difficult.
+    #
+    # Namely, a fictious block holding this form is created,
+    # and scheduled "as normal". Then, this form is also
+    # simply opened.
+    #
+    # Note that we *do not* set the fictious block's cursor
+    # to 0. This handles the following two things.
+    #
+    # First, the engine won't try to open the includer form
+    # again on the next interpreter loop cycle (remember we
+    # already called `Form#on_open` on it).
+    #
+    # Second, if *form* schedules something else, all will work
+    # as expected: first, this something will run, and then all
+    # that's above, again, without re-running the includer form
+    # because the cursor is past it.
+    module ShouldOpenWhenScheduled
+      def schedule!(engine : Engine, stack : Block)
+        unless stack.same?(engine.stack)
+          engine.schedule!(stack: stack, block: Block[self])
+        end
+
+        on_open(engine)
+      end
+    end
+
+    # Unsafe `schedule`. Use `schedule` unless you have instantiated
+    # this form yourself, or know what you're doing.
+    #
+    # Override this if you want to implement both safe `schedule`
+    # and unsafe `schedule!` for your form type: safe `schedule`
+    # simply delegates to `schedule!` unless it is explicitly
+    # overridden.
+    #
+    # By default, simply pushes this form onto *stack*.
+    def schedule!(engine : Engine, stack : Block)
+      onto(stack)
+    end
+
+    # Safe `schedule`. Schedules this form for opening (aka
+    # execution or evaluation) in *engine*, or opens it
+    # immediately (see `ShouldOpenWhenScheduled`).
+    #
+    # See `Engine` to learn about the difference between `schedule`,
+    # `on_open`, and `on_parent_open`.
+    def schedule(engine : Engine, stack : Block)
+      schedule!(engine, stack)
+    end
+  end
+
   # Form is an umbrella for words and blocks. Since some words
   # (like numbers, quotes) are just too different from words as
   # we know them, they have their own types directly subordinate
@@ -30,6 +91,8 @@ module Novika
   # Make sure to override `self.typedesc` to avoid weird unrelated
   # Crystal errors. Crystal breaks at class-level inheritance.
   module Form
+    include Schedulable
+
     # Raises an `Error` providing *details*.
     def die(details : String)
       raise Error.new(details, form: self)

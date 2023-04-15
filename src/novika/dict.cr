@@ -112,19 +112,16 @@ module Novika
   # Represents a dictionary entry. Dictionary entries hold the
   # value form.
   class Entry
+    include Schedulable
+
     # Returns the form currently held by this entry.
     getter form : Form
 
     def initialize(@form)
     end
 
-    # See `Form#effect`, `Form#effect(io)`.
-    delegate :effect, to: form
-
     # See the same method in `Form`.
-    def onto(block : Block)
-      form.onto(block)
-    end
+    delegate :effect, :onto, to: form
 
     # :ditto:
     def on_open(engine : Engine) : Nil
@@ -145,7 +142,7 @@ module Novika
   # value form.
   class OpenEntry < Entry
     # See the same method in `Form`.
-    delegate :on_open, to: form
+    delegate :on_open, :schedule, :schedule!, to: form
   end
 
   # Implementors act like a form-to-form mapping where entry
