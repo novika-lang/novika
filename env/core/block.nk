@@ -1423,16 +1423,39 @@
 ] @: to:
 
 
-[ toTape $: block
+[ """( B from: Bi to: Ei -- Bs ): takes a slice of Block starting
+   at Begin index, and ending at End index. Both are inclusive.
+   Leaves the resulting Block slice.
 
-  ahead thruVal $: b
+  Block slice is an orphan Both ends are clamped to Block bounds.
+
+  ```
+  [ ] from: 0 to: 0 leaves: [ [ ] ]
+  [ 1 2 3 4 ] from: 1 to: 2 leaves: [ [ 2 3 ] ]
+  [ 1 2 3 4 ] from: 0 to: 200 leaves: [ [ 1 2 3 4 ] ]
+  [ 1 2 3 4 ] from: 100 to: 200 leaves: [ [ ] ]
+  ```
+  """
+  toTape $: block
+
+  ahead thruVal asDecimal clamp: 0 [ block count ] $: b
   ahead thruWord: to:
-  ahead thruVal $: e
-  block b |to
-  block |slice nip
-  dup e b - |to
-  |slice drop
+  "We have to add one because $e is a form index but
+   we want a cursor index for it."
+  ahead thruVal asDecimal 1 + clamp: 0 [ block count ] $: e
 
+  block empty? => [ block ^ ]
+
+  "[ 1 2 3 4 ] from: 1 to: 2"
+  "[ 1 2 3 | 4 ]"
+  "[ 1 2 3 | ] [ 4 | ]"
+  "[ 1 | 2 3 ]"
+  "[ 1 | ] [ 2 3 | ]"
+  "[ 2 3 | ]"
+  block (dup e |to) |slice drop
+        (dup b |to) |slice nip
+
+  toOrphan
 ] @: from:
 
 

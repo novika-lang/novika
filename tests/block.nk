@@ -1691,6 +1691,19 @@ describe 'range' [
   ]
 ]
 
+describe 'from:' [
+  in lang
+
+  it should 'take a [B; E] slice of block' [
+    [ [ ] from: 0 to: 0 ] vals [ [ ] ] assert=
+    [ [ 1 2 3 4 ] from: 0 to: 3 ] vals [ [ 1 2 3 4 ] ] assert=
+    [ 1 2 3 4 ] from: 1 to: 2 [ 2 3 ] assert=
+    [ 1 2 3 4 ] from: 0 to: 200 [ 1 2 3 4 ] assert=
+    [ 1 2 3 4 ] from: 100 to: 200 [ ] assert=
+    [ 1 2 3 4 ] from: 1 to: 2 orphan? true assert=
+  ]
+]
+
 describe 'join' [
   in lang
 
