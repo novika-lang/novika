@@ -1027,6 +1027,13 @@ checks. See <code>Engine.count</code>.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#push%28caps%3ACapabilityCollection%29-class-method" class="signature"><strong>.push</strong>(caps : CapabilityCollection)</a>
+        
+          <div class="summary"><p>Pushes a new engine with the given capability collection <em>caps</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#trackers-class-method" class="signature"><strong>.trackers</strong></a>
         
           <div class="summary"><p>Holds an array of exhaust tracker objects associated with all instances of <code><a href="../Novika/Engine.html">Engine</a></code>.</p></div>
@@ -1347,6 +1354,27 @@ result.top <span class="c"># 3 : Novika::Decimal</span></code></pre>
           <p>Pops <em>engine</em> from the engine stack. Raises a BUG exception
 (and does not pop!) if the current engine is not <em>engine</em>
 (or if it is absent).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="push(caps:CapabilityCollection)-class-method">
+      <div class="signature">
+        
+        def self.<strong>push</strong>(caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>)
+
+        <a class="method-permalink" href="#push%28caps%3ACapabilityCollection%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Pushes a new engine with the given capability collection <em>caps</em>.</p>
+<p>Make sure that you <code><a href="../Novika/Engine.html#pop%28engine%3AEngine%29%3AEngine%7CNil-class-method">.pop</a></code> it yourself or that you know what
+you're doing!</p>
         </div>
       
       <br/>
