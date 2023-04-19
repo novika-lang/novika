@@ -60,6 +60,9 @@ this $: _toplevel
 
       _toplevel word entry:fetch $: form
 
+      form typedesc anyof: [ 'builtin' 'block' 'foreign struct layout' 'foreign function' ]
+        not => next
+
       word toQuote [
         'name' word toQuote string property
         'desc' form desc string property
