@@ -79,7 +79,7 @@ Render events
 
 [ """Fields shared by every event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   """
   type u32
   timestamp u32
@@ -88,7 +88,7 @@ Render events
 
 [ """Display state change event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `display`: the associated display index.
   * `event`: one of `sdl:displayEvent:*`.
   * `data1`: event dependent data.
@@ -106,7 +106,7 @@ Render events
 
 [ """Window state change event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: the associated window.
   * `event`: one of `sdl:windowEvent:*`.
   * `data1`: event dependent data.
@@ -126,7 +126,7 @@ Render events
 
 [ """Keyboard button event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with keyboard focus, if any.
   * `state`: `sdl:pressedState` or `sdl:releasedState`
   * `repeat`: non-zero if this is a key repeat
@@ -146,7 +146,7 @@ Render events
 
 [ """Keyboard text editing event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with keyboard focus, if any.
   * `text`: points to 32 `u8`s of the the editing text.
   * `start`: the start cursor of selected editing text.
@@ -164,7 +164,7 @@ Render events
 [ """Extended keyboard text editing event when text would be
    truncated if stored in the text buffer `sdl:textEditingEvent`.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with keyboard focus, if any.
   * `text`: the editing text, which should be freed with `sdl:free`,
     and will not be NULL.
@@ -182,7 +182,7 @@ Render events
 
 [ """Keyboard text input event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with keyboard focus, if any.
   * `text`: points to 32 `u8`s of the the editing text.
   """
@@ -195,7 +195,7 @@ Render events
 
 [ """Mouse motion event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with mouse focus, if any.
   * `which`: the mouse instance id, or `sdl:touchMouseId`
   * `state`: the current button state (`sdl:pressedState` or `sdl:releasedState`).
@@ -218,7 +218,7 @@ Render events
 
 [ """Mouse button event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with mouse focus, if any.
   * `which`: the mouse instance id, or `sdl:touchMouseId`.
   * `button`: the mouse button index.
@@ -242,7 +242,7 @@ Render events
 
 [ """Mouse wheel event structure.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `windowID`: The window with mouse focus, if any.
   * `which`: the mouse instance id, or `sdl:touchMouseId`.
   * `x`: the amount scrolled horizontally, positive to the right
@@ -277,7 +277,7 @@ Render events
    This event is enabled by default, you can disable it
    with `sdl:eventState`.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   * `file`: points to the file name, which should be freed with
     `sdl:free`. Is NULL on begin/complete.
   * `windowID`: the window that was dropped on, if any.
@@ -291,7 +291,7 @@ Render events
 
 [ """The "quit requested" event.
 
-  * `timestamp`: in milliseconds, populated using `sdl:getTicks`.
+  * `timestamp`: in milliseconds, populated using `sdl:ticks`.
   """
   type u32
   timestamp u32

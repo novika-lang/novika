@@ -1423,11 +1423,11 @@
 ] @: to:
 
 
-[ """( B from: Bi to: Ei -- Bs ): takes a slice of Block starting
-   at Begin index, and ending at End index. Both are inclusive.
+[ """( B from: Bi to: Ei -- Bs ): takes a slice of Block, starting
+   at Begin index, and ending at End index. Both ends are inclusive.
    Leaves the resulting Block slice.
 
-  Block slice is an orphan Both ends are clamped to Block bounds.
+  Block slice is an orphan. Both ends are clamped to Block bounds.
 
   ```
   [ ] from: 0 to: 0 leaves: [ [ ] ]
