@@ -1079,7 +1079,7 @@
     ]
 
     "Fallback to `zip` when there is some other form ahead."
-    [ ] [ a b zip ]
+    [ ] [ drop a b zip ]
   ] choose
 ] @: zip:
 
