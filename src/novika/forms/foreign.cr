@@ -98,11 +98,7 @@ module Novika
 
     # Returns the struct layout of the underlying struct view.
     def layout : StructLayoutForm
-      StructLayoutForm.new(view.layout)
-    end
-
-    def self.typedesc
-      "foreign struct view"
+      StructLayoutForm.new(view.layout, comment: nil)
     end
 
     def has_form_for?(name : Form) : Bool
@@ -142,6 +138,10 @@ module Novika
     # Returns whether this view is a union view.
     def union?
       view.is_a?(FFI::UnionView)
+    end
+
+    def self.typedesc
+      "foreign struct view"
     end
 
     def desc(io)
@@ -234,6 +234,7 @@ module Novika
     @this : Block?
     @names : Array(Word)?
     @types : Array(Word)?
+    @comment : String?
 
     # Initializes a struct layout form. Names array *names* must
     # be created uniquely for this form, because it will be used
@@ -242,13 +243,13 @@ module Novika
     #
     # *this* block is going to be used for lookup of user-defined
     # struct layouts (e.g. `&foobar`).
-    def initialize(@this : Block, @names : Array(Word), @types : Array(Word))
+    def initialize(@this : Block, @names : Array(Word), @types : Array(Word), @comment)
       @layout = FFI::StructLayout.new
     end
 
     # Initializes a struct layout form from the given *layout*.
     # The layout must contain at least one field.
-    def initialize(@layout)
+    def initialize(@layout, @comment)
       if @layout.field_count.zero?
         raise "BUG: bad layout passed to StructLayoutForm"
       end
@@ -280,7 +281,7 @@ module Novika
     end
 
     def desc(io)
-      to_s(io)
+      @comment ? io << @comment : to_s(io)
     end
 
     def to_s(io)

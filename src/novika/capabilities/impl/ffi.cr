@@ -203,7 +203,7 @@ module Novika::Capabilities::Impl
           decl.die("struct layout must have at least one field")
         end
 
-        StructLayoutForm.new(this, names, types).onto(stack)
+        StructLayoutForm.new(this, names, types, decl.prototype.comment?).onto(stack)
       end
 
       {% for method, desc in {

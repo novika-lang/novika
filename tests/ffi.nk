@@ -72,6 +72,11 @@ describe 'FFI capability' [
     123 $: foobar
     [ [ x ~foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
     [ [ x &foobar ] ffi:createLayout "force layout creation->" toQuote ] 'expected struct layout to be value form, not: decimal' assertDies
+
+    [ "This is documentation" x i32 y i32 ] ffi:createLayout $: l
+    l desc 'This is documentation' assert=
+
+    [ x i32 ] ffi:createLayout desc '⟪x=i32⟫' assert=
   ]
 
   it should 'primitive -> C int/float -> C args/inline struct -> inline struct -> primitive' [
