@@ -117,6 +117,8 @@ In fact, most of interpreted languages are.
 
 ## Examples
 
+Ordered by craziness!
+
 1. Hello World:
 
 ```novika
@@ -155,6 +157,42 @@ In fact, most of interpreted languages are.
 
 avg: 1 2 3      echo "STDOUT: 2⏎"
 avg: 100 4 6 5  echo "STDOUT: 28.75⏎"
+```
+
+6. Self-modification by indirection (i.e. the normies' one):
+
+```novika
+[ ' from A branch' ~ echo ] $: alpha
+[ ' from B branch' ~ echo ] $: beta
+[ ' from C branch' ~ echo ] $: gamma
+
+alpha @: printIt
+
+[ 'Hi' printIt
+
+  (this -> [ alpha beta gamma ]) sample =: printIt
+] @: selfModify
+
+selfModify "Will print from any of the branches randomly..."
+selfModify
+selfModify
+```
+
+7. Self-modification by rewriting (i.e. the dirty but true one):
+
+```novika
+[ ' from A branch' ~ echo ] @: alpha
+[ ' from B branch' ~ echo ] @: beta
+[ ' from C branch' ~ echo ] @: gamma
+
+[ 'Hi' alpha
+
+  (this prototype) 2 [ drop ([ alpha beta gamma ] sample) ] |hydrate
+] @: selfModify
+
+selfModify "Will print from any of the branches randomly..."
+selfModify
+selfModify
 ```
 
 Now, if you want to look at something a bit more elaborate, there's:
@@ -217,10 +255,6 @@ What I'm showing you here can be done with recursion and first-order
 functions, sure -- or with loops. But there are limits to how "non-deterministically"
 recursion/loops can control the flow, and here, in Novika -- in Novika there are
 no limits! (even though Novika is powered by a loop behind the scenes haha)
-
-Also, the use of randomness is a blunt way to create a nondeterministic
-program. Believe me, there are more elegant examples of nondeterminism!
-It's just that I can't come up with one.
 
 So, if you give `withProbabilitySpin` the probability `1`, it will
 loop forever. To add to the above, it will indeed *loop*, not recurse.
