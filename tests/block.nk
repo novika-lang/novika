@@ -2157,3 +2157,34 @@ describe '|ring' [
     b 5 |ring toQuote '[ 1 2 3 4 | 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
   ]
 ]
+
+
+describe 'sample' [
+  in lang
+
+  it should 'leave 1 sample form from a block' [
+    [ 1 'hello world' [ 2 3 ] false this ] vals $: b
+
+    100 collect: [ b sample ] all: [ b anyof? ] true assert=
+  ]
+]
+
+
+describe 'sample:' [
+  in lang
+
+  it should 'leave N sample forms from a block' [
+    [ 1 'hello world' [ 2 3 ] false this ] vals $: b
+
+    b sample: 100 $: samples
+
+    0 $: total
+
+    samples [ ] tally pairs: [ ${ item count }
+      total count + =: total
+      item b anyof? true assert=
+    ]
+
+    total 100 assert=
+  ]
+]

@@ -1946,3 +1946,28 @@
   dup #firstAt firstAt pushes
   dup #lastAt lastAt pushes
 ] @: |ring
+
+
+[ """( B -- Rf ): leaves a Random form from the given Block.
+
+  ```
+  [ 1 2 3 4 ] sample leaves: "... a random form from the block, let's say 2"
+  ```
+  """
+  $: block
+
+  block (0 randTo: [ block count 1 - ]) fromLeft
+] @: sample
+
+
+[ """( B sample: C -- S ): samples the given Block Count times,
+   and leaves the resulting block of Samples
+
+  ```
+  [ 1 2 3 4 ] sample: 2 leaves: "... [ (a random form) (a random form) ]"
+  ```
+  """
+  $: block
+
+  (ahead thruVal asDecimal) collect: [ block sample ]
+] @: sample:
