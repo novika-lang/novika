@@ -78,17 +78,17 @@ module Novika::Frontend::Nki
     File.open(filepath, "r") do |infile|
       image = infile.read_bytes(Novika::Image)
       block = image.to_block(caps)
+      engine = Novika::Engine.push(caps)
 
       if conts
-        Novika::Engine.new(caps) do |engine|
-          engine.conts = block
-          engine.exhaust
-        end
+        engine.conts = block
+        engine.exhaust
       else
         block.parent = Block.new(caps.block)
         block.at(Word.new("__path__"), Quote.new(filedir.to_s))
         block.at(Word.new("__file__"), Quote.new(filepath.to_s))
-        Novika::Engine.exhaust!(caps, block)
+        engine.schedule!(block, stack: Block.new)
+        engine.exhaust
       end
     rescue error : Novika::Error
       error.report(STDERR)

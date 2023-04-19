@@ -382,26 +382,28 @@ module Novika::Frontend::CLI
       Library.new?(id, resolver)
     end
 
-    Engine.new(caps) do |engine|
-      # Important: wrap capability block in another block! This is
-      # required to make it possible to ignore capability block in
-      # Image emission, saving some time and space!
-      toplevel = Block.new(caps.block)
+    engine = Engine.push(caps)
 
-      resolver.capabilities.each do |req|
-        allowed =
-          req.allowed? do
-            # If we've got it here, then it's in the capability
-            # collection, therefore, the capability class exists.
-            purpose = caps.get_capability_class?(req.id).not_nil!.purpose
+    # Important: wrap capability block in another block! This is
+    # required to make it possible to ignore capability block in
+    # Image emission, saving some time and space!
+    toplevel = Block.new(caps.block)
 
-            print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
-            (gets.try &.downcase) == "y"
-          end
+    resolver.capabilities.each do |req|
+      allowed =
+        req.allowed? do
+          # If we've got it here, then it's in the capability
+          # collection, therefore, the capability class exists.
+          purpose = caps.get_capability_class?(req.id).not_nil!.purpose
 
-        caps.enable(req.id) if allowed
-      end
+          print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
+          (gets.try &.downcase) == "y"
+        end
 
+      caps.enable(req.id) if allowed
+    end
+
+    begin
       run(engine, toplevel, resolver.folders)
       run(engine, toplevel, resolver.files)
       run(engine, toplevel, resolver.apps)

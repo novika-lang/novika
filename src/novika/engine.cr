@@ -121,6 +121,14 @@ module Novika
       engine
     end
 
+    # Pushes a new engine with the given capability collection *caps*.
+    #
+    # Make sure that you `pop` it yourself or that you know what
+    # you're doing!
+    def self.push(caps : CapabilityCollection)
+      push new(caps)
+    end
+
     # Pops *engine* from the engine stack. Raises a BUG exception
     # (and does not pop!) if the current engine is not *engine*
     # (or if it is absent).
