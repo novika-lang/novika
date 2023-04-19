@@ -919,6 +919,7 @@ and even Forth-people — all sorts of weird people :) So why not Novika-people?
     <use href="#octicon-link"/>
   </svg>
 </a>Examples</h2>
+<p>Ordered by craziness!</p>
 <ol>
 <li>Hello World:</li>
 </ol>
@@ -949,6 +950,38 @@ and even Forth-people — all sorts of weird people :) So why not Novika-people?
 
 avg: 1 2 3      echo &quot;STDOUT: 2⏎&quot;
 avg: 100 4 6 5  echo &quot;STDOUT: 28.75⏎&quot;</code></pre>
+<ol start="6">
+<li>Self-modification by indirection (i.e. the normies' one):</li>
+</ol>
+<pre><code class="language-novika">[ ' from A branch' ~ echo ] $: alpha
+[ ' from B branch' ~ echo ] $: beta
+[ ' from C branch' ~ echo ] $: gamma
+
+alpha @: printIt
+
+[ 'Hi' printIt
+
+  (this -&gt; [ alpha beta gamma ]) sample =: printIt
+] @: selfModify
+
+selfModify &quot;Will print from any of the branches randomly...&quot;
+selfModify
+selfModify</code></pre>
+<ol start="7">
+<li>Self-modification by rewriting (i.e. the dirty but true one):</li>
+</ol>
+<pre><code class="language-novika">[ ' from A branch' ~ echo ] @: alpha
+[ ' from B branch' ~ echo ] @: beta
+[ ' from C branch' ~ echo ] @: gamma
+
+[ 'Hi' alpha
+
+  (this prototype) 2 [ drop ([ alpha beta gamma ] sample) ] |hydrate
+] @: selfModify
+
+selfModify &quot;Will print from any of the branches randomly...&quot;
+selfModify
+selfModify</code></pre>
 <p>Now, if you want to look at something a bit more elaborate, there's:</p>
 <ul>
 <li>A snake game <a href="https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk">example</a></li>
@@ -1008,9 +1041,6 @@ a probability from 0 to 1, then it will:</p>
 functions, sure -- or with loops. But there are limits to how &quot;non-deterministically&quot;
 recursion/loops can control the flow, and here, in Novika -- in Novika there are
 no limits! (even though Novika is powered by a loop behind the scenes haha)</p>
-<p>Also, the use of randomness is a blunt way to create a nondeterministic
-program. Believe me, there are more elegant examples of nondeterminism!
-It's just that I can't come up with one.</p>
 <p>So, if you give <code>withProbabilitySpin</code> the probability <code>1</code>, it will
 loop forever. To add to the above, it will indeed <em>loop</em>, not recurse.
 That is, there won't be a call stack explosion!</p>
