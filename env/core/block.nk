@@ -52,6 +52,25 @@
 ] @: |+
 
 
+[ """( S |: F -- S ): infix version of `there`.
+
+  Like `there`, preserves `ahead`. Leaves the opener
+  block dirty due to this.
+
+  ```
+  ([ 1 2 3 ] |: 100) leaves: [ 1 2 3 100 ]
+  ([ 1 2 3 ] |: +) leaves: [ [ 1 5 ] ]
+  ([ 1 2 3 ] |: swap) leaves: [ [ 1 3 2 ] ]
+
+  [ 100 ] |: [ ahead thru + ] 200 123 leaves: [ 300 123 ]
+  ```
+  """
+  dup
+  ahead thruBlock
+  ahead #hydrate inject
+] @: |:
+
+
 [ """( B N -- ): moves the cursor in Block to N. If N
    is negative, the cursor is moved to 0. If N is greater
    than the amount of forms in Block, the cursor is moved

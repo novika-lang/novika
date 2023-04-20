@@ -98,6 +98,30 @@ describe '|+' [
   ]
 ]
 
+describe '|:' [
+  in lang
+
+  it should 'be an infix version of there' [
+    [ [ ] |: 100 ] vals [ [ 100 ] ] assert=
+
+    [ 1 2 ] $: b
+    b |: + b same? true assert=
+    b [ 3 ] assert=
+
+    ([ 1 2 3 ] |: [ <| + |> ]) [ 3 3 ] assert=
+  ]
+
+  it should 'preserve ahead' [
+    [
+      [ 100 ] |: [ (ahead prototype) (outer prototype) same? true assert= ] drop
+    ] $: outer
+
+    outer open
+
+    [ [ 100 ] |: [ ahead thru + ] 200 123 ] vals [ [ 300 ] 123 ] assert=
+  ]
+]
+
 describe '|clamp' [
   in lang
 
