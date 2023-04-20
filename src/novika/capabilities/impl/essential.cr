@@ -135,21 +135,45 @@ module Novika::Capabilities::Impl
         block.die("resume: no such block in continuations") unless found
       end
 
-      # TODO: example
       target.at("dup", <<-END
       ( F -- F F ): duplicates the Form before cursor.
+
+      ```
+      'hello' dup leaves: [ 'hello' 'hello' ]
+
+      [ 1 2 3 ] (dup 2 |to) $: block
+      block toQuote leaves: '[ 1 2 | 3 ]'
+      block [ dup ] hydrate
+      block toQuote leaves: '[ 1 2 2 | 3 ]'
+      ```
       END
       ) { |_, stack| stack.dupe }
 
-      # TODO: example
       target.at("drop", <<-END
       ( F -- ): drops the Form before cursor.
+
+      ```
+      'hello' drop leaves: [ ]
+
+      [ 1 2 3 ] (dup 2 |to) $: block
+      block toQuote leaves: '[ 1 2 | 3 ]'
+      block [ drop ] hydrate
+      block toQuote leaves: '[ 1 | 3 ]'
+      ```
       END
       ) { |_, stack| stack.drop }
 
-      # TODO: example
       target.at("swap", <<-END
       ( A B -- B A ): swaps two Forms before cursor.
+
+      ```
+      1 2 swap leaves: [ 2 1 ]
+
+      [ 1 2 3 ] (dup 2 |to) $: block
+      block toQuote leaves: '[ 1 2 | 3 ]'
+      block [ swap ] hydrate
+      block toQuote leaves: '[ 2 1 | 3 ]'
+      ```
       END
       ) { |_, stack| stack.swap }
 
@@ -255,10 +279,27 @@ module Novika::Capabilities::Impl
         Boolean[a < b].onto(stack)
       end
 
-      # TODO: example
       target.at("same?", <<-END
       ( F1 F2 -- true/false ): leaves whether two Forms are the
-       same (by reference for block, by value  for any other form).
+       same (by reference for block, by value for any other form).
+
+      ```
+      1 2 same? leaves: false
+      1 1 same? leaves: true
+
+      'hello' 'hello world' same? leaves: false
+      'hello' 'hello' same? leaves: true
+
+      "etc..."
+
+      [ 1 2 + ] $: b1
+      [ 1 2 + ] $: b2
+
+      b1 b2 same? leaves: false "They're different blocks, content doesn't matter!"
+
+      b1 b1 same? leaves: true
+      b2 b2 same? leaves: true
+      ```
       END
       ) do |_, stack|
         b = stack.drop
@@ -266,11 +307,35 @@ module Novika::Capabilities::Impl
         Boolean.same?(a, b).onto(stack)
       end
 
-      # TODO: example
       target.at("=", <<-END
-      ( F1 F2 -- true/false ): leaves whether two Forms are equal
-       (they may or may not be same forms, i.e., those for which
-       `same?` would leave true).
+      ( F1 F2 -- true/false ): leaves whether two Forms are equal by
+       content (they may or may not be the same forms reference-wise,
+       i.e., those for which `same?` would leave true).
+
+      ```
+      1 2 = leaves: false
+      1 1 = leaves: true
+
+      'hello' 'hello world' = leaves: false
+      'hello' 'hello' = leaves: true
+
+      "etc..."
+
+      [ 1 2 + ] $: b1
+      [ 1 2 + ] $: b2
+
+      b1 b2 = leaves: true "They're equal by content!"
+
+      b1 b1 = leaves: true
+      b2 b2 = leaves: true
+
+      "Supports self-reference:"
+      [ ] $: b3
+      b3 b3 shove
+      b3 b3 = leaves: true
+      (b3 first) b3 = leaves: true
+      "etc..."
+      ```
       END
       ) do |_, stack|
         b = stack.drop
@@ -294,22 +359,51 @@ module Novika::Capabilities::Impl
         Boolean[form.in?(block)].onto(stack)
       end
 
-      # TODO: example
       target.at("uppercase?", <<-END
-      ( Q -- true/false ): leaves whether Quote consists of only
-       uppercase characters. If Quote is empty, leaves false.
+      ( Q -- true/false ): leaves whether Quote is all-uppercase.
+       If Quote is empty, leaves false.
+
+      ```
+      '' uppercase? leaves: false
+      'A' uppercase? leaves: true
+      'hello' uppercase? leaves: false
+      'Hello' uppercase? leaves: false
+      'HELLO' uppercase? leaves: true
+      'HELLO WORLD' uppercase? leaves: false
+      ```
       END
       ) do |_, stack|
         quote = stack.drop.a(Quote)
-        s = quote.string
-        Boolean[!s.empty? && ((s.size == 1 && s[0].uppercase?) || s.each_char.all?(&.uppercase?))].onto(stack)
+        string = quote.string
+
+        case string.size
+        when 0
+          isup = false
+        when 1
+          isup = string[0].uppercase?
+        else
+          isup = true
+          string.each_char do |char|
+            unless char.uppercase?
+              isup = false
+              break
+            end
+          end
+        end
+
+        Boolean[isup].onto(stack)
       end
 
-      # TODO: example
       target.at("toUppercase", <<-END
       ( Q -- Uq ): leaves all- Uppercase quote for Quote: converts
        lowercase character(s) in Quote to uppercase. If Quote is empty,
        leaves empty quote.
+
+      ```
+      '' toUppercase leaves: ''
+      'hello' toUppercase leaves: 'HELLO'
+      'hello world' toUppercase? leaves: 'HELLO WORLD'
+      ```
       END
       ) do |_, stack|
         quote = stack.drop.a(Quote)
@@ -1468,7 +1562,7 @@ module Novika::Capabilities::Impl
       b.y echo
       "STDOUT: 200⏎"
 
-      a #x [ 'I've changed!' echo ] opens
+      a #x [ 'I\\'ve changed!' echo ] opens
 
       a.x
       "STDOUT: I've changed!⏎"

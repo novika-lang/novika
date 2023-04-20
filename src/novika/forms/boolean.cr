@@ -14,6 +14,11 @@ module Novika
     end
 
     # :ditto:
+    def self.same?(a : Byteslice, b : Byteslice) : Boolean
+      Boolean[a.same?(b)]
+    end
+
+    # :ditto:
     def self.same?(a, b) : Boolean
       Boolean[a == b]
     end

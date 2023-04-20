@@ -1,3 +1,45 @@
+describe 'dup' [
+  in lang
+
+  it should 'duplicate top form' [
+    [ 'hello' dup ] vals [ 'hello' 'hello' ] assert=
+
+    [ 1 2 3 ] (dup 2 |to) $: block
+    block toQuote '[ 1 2 | 3 ]' assert=
+    block [ dup ] hydrate
+    block toQuote '[ 1 2 2 | 3 ]' assert=
+  ]
+]
+
+
+describe 'drop' [
+  in lang
+
+  it should 'drop top form' [
+    [ 'hello' drop ] vals [ ] assert=
+
+    [ 1 2 3 ] (dup 2 |to) $: block
+    block toQuote '[ 1 2 | 3 ]' assert=
+    block [ drop ] hydrate
+    block toQuote '[ 1 | 3 ]' assert=
+  ]
+]
+
+
+describe 'swap' [
+  in lang
+
+  it should 'swap two top forms' [
+    [ 1 2 swap ] vals [ 2 1 ] assert=
+
+    [ 1 2 3 ] (dup 2 |to) $: block
+    block toQuote '[ 1 2 | 3 ]' assert=
+    block [ swap ] hydrate
+    block toQuote '[ 2 1 | 3 ]' assert=
+  ]
+]
+
+
 describe 'tuck' [
   in lang
 

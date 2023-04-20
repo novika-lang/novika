@@ -62,6 +62,11 @@ module Novika
       @bytes
     end
 
+    # Returns the memory address where this byteslice points to.
+    def address
+      @bytes.to_unsafe.address
+    end
+
     # Wraps the underlying byte slice in an IO.
     def to_io : IO::Memory
       IO::Memory.new(@bytes)
@@ -79,5 +84,20 @@ module Novika
       yield io
       new(io)
     end
+
+    # Returns whether this byteslice points to the given *address*.
+    def points_to?(address : UInt64)
+      address == self.address
+    end
+
+    # Returns whether this and *other* byteslices point to the same
+    # location in memory, and have the same mutability status.
+    def same?(other : Byteslice)
+      other.points_to?(address) && @mutable == other.mutable?
+    end
+
+    # Two byteslices are equal when their content is equal, and
+    # their mutability statuses are equal.
+    def_equals_and_hash @bytes, @mutable
   end
 end

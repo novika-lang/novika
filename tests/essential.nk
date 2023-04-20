@@ -1,3 +1,97 @@
+describe 'same?' [
+  in lang
+
+  it should 'leave whether two forms are the same' [
+    1 1 same? true assert=
+    1 2 same? false assert=
+    1 2 + 3 same? true assert=
+
+    'hello' 'hello' same? true assert=
+    'hello' 'hello world' same? false assert=
+
+    true true same? true assert=
+    false true same? false assert=
+
+    (0 0 0 rgb) (0 0 0 rgb) same? true assert=
+    (0 0 0 rgb) (0 1 0 rgb) same? false assert=
+
+    (#+ here) (#+ here) same? true assert=
+    (#+ here) (#- here) same? false assert=
+
+    #+ #+ same? true assert=
+    #+ #- same? false assert=
+
+    ##+ ##+ same? true assert=
+    ##+ ##- same? false assert=
+
+    [ 1 2 + ] $: b1
+    [ 1 2 + ] $: b2
+
+    b1 b2 same? false assert=
+    b1 b1 same? true assert=
+    b2 b2 same? true assert=
+
+    [ ] $: b3
+    b3 b3 shove
+    b3 b3 same? true assert=
+    (b3 first) b3 same? true assert=
+
+    'hello' toByteslice $: bs1
+    'hello' toByteslice $: bs2
+    bs1 bs2 same? false assert=
+    bs1 bs1 same? true assert=
+    bs2 bs2 same? true assert=
+  ]
+]
+
+
+describe '=' [
+  in lang
+
+  it should 'leaves whether two Forms are equal' [
+    1 1 = true assert=
+    1 2 = false assert=
+    1 2 + 3 = true assert=
+
+    'hello' 'hello' = true assert=
+    'hello' 'hello world' = false assert=
+
+    true true = true assert=
+    false true = false assert=
+
+    (0 0 0 rgb) (0 0 0 rgb) = true assert=
+    (0 0 0 rgb) (0 1 0 rgb) = false assert=
+
+    (#+ here) (#+ here) = true assert=
+    (#+ here) (#- here) = false assert=
+
+    #+ #+ = true assert=
+    #+ #- = false assert=
+
+    ##+ ##+ = true assert=
+    ##+ ##- = false assert=
+
+    [ 1 2 + ] $: b1
+    [ 1 2 + ] $: b2
+
+    b1 b2 = true assert=
+    b1 b1 = true assert=
+    b2 b2 = true assert=
+
+    [ ] $: b3
+    b3 b3 shove
+    b3 b3 = true assert=
+    (b3 first) b3 = true assert=
+
+    'hello' toByteslice $: bs1
+    'hello' toByteslice $: bs2
+    bs1 bs2 = true assert=
+    bs1 bs1 = true assert=
+    bs2 bs2 = true assert=
+  ]
+]
+
+
 describe 'anyof?' [
   in lang
 
