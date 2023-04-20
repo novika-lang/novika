@@ -92,7 +92,7 @@ module Novika::Frontend::Nki
       end
     rescue error : Novika::Error
       error.report(STDERR)
-    rescue error : BinData::ReadingVerificationException
+    rescue error : BinData::CustomException
       Frontend.errln("This file doesn't seem like a valid Novika image: '#{ARGV[-1]}'")
       exit(1)
     end
