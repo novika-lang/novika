@@ -929,6 +929,20 @@
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#%3D%3D%28other%3Aself%29-instance-method" class="signature"><strong>#==</strong>(other : <span class="k">self</span>)</a>
+        
+          <div class="summary"><p>Two byteslices are equal when their content is equal, and their mutability statuses are equal.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#address-instance-method" class="signature"><strong>#address</strong></a>
+        
+          <div class="summary"><p>Returns the memory address where this byteslice points to.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#at%28b%3AInt32%2Ce%3AInt32%29-instance-method" class="signature"><strong>#at</strong>(b : Int32, e : Int32)</a>
         
           <div class="summary"><p>Returns a sub-slice starting at <em>b</em>-th byte, and ending at <em>e</em>-th byte.</p></div>
@@ -955,6 +969,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#hash%28hasher%29-instance-method" class="signature"><strong>#hash</strong>(hasher)</a>
+        
+          <div class="summary"><p>Two byteslices are equal when their content is equal, and their mutability statuses are equal.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#mutable%3F%3ABool-instance-method" class="signature"><strong>#mutable?</strong> : Bool</a>
         
           <div class="summary"><p>Returns whether this byteslice is mutable.</p></div>
@@ -962,9 +983,23 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#points_to%3F%28address%3AUInt64%29-instance-method" class="signature"><strong>#points_to?</strong>(address : UInt64)</a>
+        
+          <div class="summary"><p>Returns whether this byteslice points to the given <em>address</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#preview%3AString-instance-method" class="signature"><strong>#preview</strong> : String</a>
         
           <div class="summary"><p>Returns the preview string of this byteslice.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#same%3F%28other%3AByteslice%29-instance-method" class="signature"><strong>#same?</strong>(other : Byteslice)</a>
+        
+          <div class="summary"><p>Returns whether this and <em>other</em> byteslices point to the same location in memory, and have the same mutability status.</p></div>
         
       </li>
     
@@ -1223,6 +1258,45 @@ form for it.</p>
     Instance Method Detail
   </h2>
   
+    <div class="entry-detail" id="==(other:self)-instance-method">
+      <div class="signature">
+        
+        def <strong>==</strong>(other : <span class="k">self</span>)
+
+        <a class="method-permalink" href="#%3D%3D%28other%3Aself%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Two byteslices are equal when their content is equal, and
+their mutability statuses are equal.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="address-instance-method">
+      <div class="signature">
+        
+        def <strong>address</strong>
+
+        <a class="method-permalink" href="#address-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the memory address where this byteslice points to.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="at(b:Int32,e:Int32)-instance-method">
       <div class="signature">
         
@@ -1297,6 +1371,26 @@ preview string of this byteslice.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="hash(hasher)-instance-method">
+      <div class="signature">
+        
+        def <strong>hash</strong>(hasher)
+
+        <a class="method-permalink" href="#hash%28hasher%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Two byteslices are equal when their content is equal, and
+their mutability statuses are equal.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="mutable?:Bool-instance-method">
       <div class="signature">
         
@@ -1316,6 +1410,25 @@ preview string of this byteslice.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="points_to?(address:UInt64)-instance-method">
+      <div class="signature">
+        
+        def <strong>points_to?</strong>(address : UInt64)
+
+        <a class="method-permalink" href="#points_to%3F%28address%3AUInt64%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this byteslice points to the given <em>address</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="preview:String-instance-method">
       <div class="signature">
         
@@ -1327,6 +1440,26 @@ preview string of this byteslice.</p>
         <div class="doc">
           
           <p>Returns the preview string of this byteslice.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="same?(other:Byteslice)-instance-method">
+      <div class="signature">
+        
+        def <strong>same?</strong>(other : <a href="../Novika/Byteslice.html">Byteslice</a>)
+
+        <a class="method-permalink" href="#same%3F%28other%3AByteslice%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this and <em>other</em> byteslices point to the same
+location in memory, and have the same mutability status.</p>
         </div>
       
       <br/>
