@@ -1367,6 +1367,33 @@
 ] @: collect:
 
 
+[ """( N B -- Lb ): same as `collect`, but powered by `compiledTimes`
+   under the hood. Faster than `collect` for large N, but slower if
+   opened a lot of times in a row.
+
+  Please read `compiledTimes` to understand why have the whole
+  deal with *unsafe* and *fast*.
+
+  Does **not** support `break` and `next`.
+  """
+  $: block $: max [ ] $: result
+
+  max negative? => [ 'compiledCollect: cannot have negative amount' die ]
+  max compiledTimes: [ "( I -- I )"
+    (dup enclose block there) dup empty? not br:
+      [ cherry result gulp ]
+      drop
+  ]
+
+  result
+] @: compiledCollect
+
+
+[ "( N compiledCollect: B -- Lb ): infix version of `compiledCollect`."
+  ahead thruBlock compiledCollect
+] @: compiledCollect:
+
+
 [ """( B Gb -- Gl ): groups forms in Block according to
    Grouper block. Leaves a Group list. Grouper block is
    opened with consequent items on top of an empty stack.
@@ -1449,8 +1476,8 @@
   $: e $: b
 
   e b <
-    [ b e - 1 + collect: [ b swap - ] ]
-    [ e b - 1 + collect: [ b + ] ]
+    [ b e - 1 + compiledCollect: [ b swap - ] ]
+    [ e b - 1 + compiledCollect: [ b + ] ]
   br
 ] @: range
 

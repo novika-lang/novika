@@ -263,3 +263,75 @@
 [ "( C times: B -- ): infix version of `times`."
   ahead thruBlock times
 ] @: times:
+
+
+[ """( N B -- ): **unsafe** `times` alternative for when you
+   *really* need to iterate a lot.
+
+  This word basically strips off all steps in the `createDetachedLoop`
+  (aka structured control flow) abstraction ladder.
+
+  Internally, it's a bit like your Block being followed by a GOTO
+  back to the beginning, plus a counter *on the stack*.
+
+  Note that the loop is *compiled* from a template when you use
+  this word. **This means that opening this word multiple times
+  in a row is inefficient**, as such compilation is expensive.
+  However, if you need to *iterate* quickly, you can try using
+  this word.
+
+  The stack your Block is given is *not* owned by you. You must
+  not leave junk, and you must not drop the index. The effect
+  of your block **must** be `( I -- I )`.
+
+  `next` and `break` are **not** unsupported.
+  """
+  $: iteratee
+  $: ntimes
+
+  "Handwritten loop template. Only builtins can be used inside."
+  [ dup `ntimes <
+      [ ]
+      [ `block `endsAt |to ]
+    sel stack swap hydrate!
+
+    (stack `iteratee hydrate)
+
+    1 +
+
+    `block 0 |to
+  ] $: template
+
+  "Substitution table for `words in the template."
+  [ template $: `block
+    template count $: `endsAt
+
+    ntimes $: `ntimes
+    iteratee $: `iteratee
+  ] obj $: subst
+
+  [ dup 0 |to [
+      dup word? br:
+        [ subst over entry:fetch? => nip ]
+        [ dup block? => compile ]
+    ] |slideRight
+  ] @: compile
+
+  template compile $: body
+
+  0 stack body hydrate! drop
+] @: compiledTimes
+
+
+[ """( N compiledTimes: B -- ): infix version of `compiledTimes`.
+
+  ```
+  0 $: acc
+  100000 compiledTimes: [ "( I -- I )"
+    dup acc + =: acc
+  ]
+  acc echo "STDOUT: 5000050000⏎"
+  ```
+  """
+  ahead thruBlock compiledTimes
+] @: compiledTimes:

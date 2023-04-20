@@ -23,3 +23,16 @@ describe 'thruWord:' [
     [ from: 1 ] 'thru out of bounds' assertDies
   ]
 ]
+
+
+describe 'compiledTimes' [
+  in lang
+
+  it should 'execute body N times, passing it index' [
+    0 $: n
+    5000 compiledTimes: [
+      dup n + =: n
+    ]
+    n 12497500 assert=
+  ]
+]

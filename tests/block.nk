@@ -1673,6 +1673,42 @@ describe 'collect' [
 ]
 
 
+describe 'compiledCollect' [
+  in lang
+
+  it should 'collect N times passing index' [
+    10 compiledCollect: [ drop ] [ ] assert=
+    10 compiledCollect: [ ] [ 0 1 2 3 4 5 6 7 8 9 ] assert=
+    10 compiledCollect: [ 1 + ] [ 1 2 3 4 5 6 7 8 9 10 ] assert=
+    10 compiledCollect: [ dup even? => drop ] [ 1 3 5 7 9 ] assert=
+
+    5 compiledCollect: [
+      stack shallowCopy
+    ] [
+      [ 0 ]
+      [ 1 ]
+      [ 2 ]
+      [ 3 ]
+      [ 4 ]
+    ] assert=
+
+    [ ] $: stacks
+
+    5 compiledCollect: [
+      stack shallowCopy stacks gulp
+    ] drop
+
+    stacks [
+      [ 0 ]
+      [ 1 ]
+      [ 2 ]
+      [ 3 ]
+      [ 4 ]
+    ] assert=
+  ]
+]
+
+
 describe 'groupBy' [
   in lang
 
