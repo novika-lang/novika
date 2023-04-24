@@ -183,7 +183,7 @@ module Novika::Capabilities::Impl
       Quote.new(char)
     end
 
-    private def had_key_pressed?
+    private def had_key_pressed?(&)
       event = @event.as?(Termbox::Event::KeyEvent)
 
       return Boolean[false] unless event

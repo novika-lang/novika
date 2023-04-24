@@ -359,7 +359,7 @@ module Novika
 
     # Reads (creates, if necessary) a permissions file in the
     # Novika environment directory. Yields IO to the block.
-    def permissions
+    def permissions(&)
       io = nil
 
       env.try do |env|

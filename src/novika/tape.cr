@@ -110,7 +110,7 @@ module Novika
     end
 
     # See `Substrate#map!`.
-    def map!
+    def map!(&)
       Tape.new(substrate.map! { |form| yield form }, cursor)
     end
 

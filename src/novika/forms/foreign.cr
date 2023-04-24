@@ -268,7 +268,7 @@ module Novika
       return @layout unless types = @types
 
       names.zip(types) do |name, typename|
-        parser = StructLayoutParser.new(@this, typename, name, self, outerset)
+        parser = StructLayoutParser.new(this, typename, name, self, outerset)
 
         @layout.add(name.id, parser.parse)
       end

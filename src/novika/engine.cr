@@ -150,7 +150,7 @@ module Novika
     end
 
     # Yields an instance of `Engine`.
-    def self.new(capabilities : CapabilityCollection)
+    def self.new(capabilities : CapabilityCollection, &)
       engine = new(capabilities)
 
       Engine.push(engine)

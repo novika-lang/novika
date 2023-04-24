@@ -4,7 +4,7 @@
 # instance, it reads data from the underlying IO, decompresses it, and returns
 # it to the caller.
 # ## Example: decompress an brotli file
-# ```crystal
+# ```
 # require "brotli"
 
 # string = File.open("file.br") do |file|
@@ -41,7 +41,7 @@ class Compress::Brotli::Reader < IO
 
   # Creates a new reader from the given *io*, yields it to the given block,
   # and closes it at its end.
-  def self.open(io : IO, sync_close : Bool = false)
+  def self.open(io : IO, sync_close : Bool = false, &)
     reader = new(io, sync_close: sync_close)
     yield reader ensure reader.close
   end
@@ -53,14 +53,14 @@ class Compress::Brotli::Reader < IO
 
   # Creates a new reader from the given *io*, yields it to the given block,
   # and closes it at the end.
-  def self.open(io : IO, sync_close = false)
+  def self.open(io : IO, sync_close = false, &)
     reader = new(io, sync_close: sync_close)
     yield reader ensure reader.close
   end
 
   # Creates a new reader from the given *filename*, yields it to the given block,
   # and closes it at the end.
-  def self.open(filename : String)
+  def self.open(filename : String, &)
     reader = new(filename)
     yield reader ensure reader.close
   end

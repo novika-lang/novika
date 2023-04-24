@@ -66,7 +66,7 @@ module Novika
       @store[name] = entry
     end
 
-    def get(name : Form) : Entry?
+    def get(name : Form, &) : Entry?
       if name.is_a?(Block)
         @store.each do |k, v|
           next unless k == name
@@ -100,7 +100,7 @@ module Novika
       Dict.new(@store.dup)
     end
 
-    def each
+    def each(&)
       @store.each { |k, v| yield k, v }
     end
 

@@ -656,13 +656,13 @@ module Novika::FFI
     end
 
     # Yields field descriptions and their indices to the block.
-    def each_desc_with_index
+    def each_desc_with_index(&)
       @fields.each_with_index { |field, index| yield field, index }
     end
 
     # Yields field descriptions and their indices to the block.
     # Returns an array of block results.
-    def map_desc_with_index
+    def map_desc_with_index(&)
       @fields.map_with_index { |field, index| yield field, index }
     end
 
@@ -934,7 +934,7 @@ module Novika::FFI
     # (which is not available nor useful here), uses the handle
     # pointer (which is the same thing as object_id but "viewed
     # from the side").
-    private def exec_recursive_by_handle(method)
+    private def exec_recursive_by_handle(method, &)
       hash = Reference::ExecRecursive.hash
       key = {@handle.address, method}
       if hash[key]?

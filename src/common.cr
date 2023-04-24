@@ -32,7 +32,7 @@ module Novika::Frontend
 
   # Issues a `wait` message *msg*, yields, then follows with
   # an OK message *okmsg*.
-  def wait(msg, *, ok okmsg)
+  def wait(msg, *, ok okmsg, &)
     wait(msg)
     yield
     okln(okmsg)

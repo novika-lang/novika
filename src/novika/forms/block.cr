@@ -198,7 +198,7 @@ module Novika
     end
 
     # Yields all forms in this block.
-    def each
+    def each(&)
       tape.each { |form| yield form } if has_tape?
     end
 
@@ -348,7 +348,7 @@ module Novika
       if hook = flat_at?(Hook.on_cherry)
         default = Builtin.new("__cherry__",
           desc: "( -- ): default __cherry__ implementation."
-        ) { |_, stack| impl.call }
+        ) { impl.call }
 
         Engine.exhaust(Engine.current.capabilities, hook, Block[default]).top
       else
@@ -373,7 +373,7 @@ module Novika
     # Yields friends of this block. Asserts each is a block,
     # otherwise, dies (e.g. the user may have mistakenly
     # added some other form).
-    def each_friend
+    def each_friend(&)
       return unless has_friends?
 
       friends.reverse_each do |friend|

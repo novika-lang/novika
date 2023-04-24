@@ -79,7 +79,7 @@ module Novika
 
     # Yields an IO to the block, then returns a raw bytes
     # form for it.
-    def self.new
+    def self.new(&)
       io = IO::Memory.new
       yield io
       new(io)

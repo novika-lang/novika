@@ -622,7 +622,7 @@ module Novika::Capabilities::Impl
       myHole open leaves: 123
       ```
       END
-      ) do |engine, stack|
+      ) do |_, stack|
         form = stack.drop.a(Hole | StructViewForm)
 
         Decimal.new(form.address).onto(stack)

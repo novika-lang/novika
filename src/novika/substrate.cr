@@ -148,7 +148,7 @@ module Novika
     # If reference count is non-zero (someone watches us), a
     # copy is made and is modified. If reference count is zero
     # (no one watches us), this object is modified.
-    protected def mutate
+    protected def mutate(&)
       object = refs.zero? ? self : RealSubstrate.new(array.dup)
       object.tap { yield object }
     end
