@@ -37,6 +37,12 @@ module Novika::Capabilities::Impl
         parent.onto(stack)
       end
 
+      target.at("address", "( B -- A ): leaves pointer Address of Block.") do |_, stack|
+        block = stack.drop.a(Block)
+
+        Decimal.new(block.object_id).onto(stack)
+      end
+
       target.at("conts", "( -- Cb ): pushes the Continuations block.") do |engine, stack|
         engine.conts.onto(stack)
       end
