@@ -10,9 +10,11 @@ this $: _toplevel
 [ "( Q -- Js ): leaves a JSON string literal for Quote.
    Use for properties with string values."
   asQuote
-    '\n'   '\\n' replaceAll
-    '\t'   '\\t' replaceAll
-    '"'    '\\"' replaceAll
+    '\n'    '\\n' replaceAll
+    '\t'    '\\t' replaceAll
+    '"'     '\\"' replaceAll
+    '\\\\\'' '\\\''  replaceAll "FIXME: this fucks up highlighting but at least is valid JSON"
+    '\\\''  '\''  replaceAll
   $: quote
 
   [ '"' quote '"' ] ~*
