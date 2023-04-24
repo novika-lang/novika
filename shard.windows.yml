@@ -1,5 +1,5 @@
 name: novika
-version: 0.0.9
+version: 0.0.10
 repository: https://github.com/novika-lang/novika
 
 authors:
@@ -21,6 +21,6 @@ dependencies:
   tablo:
     github: hutou/tablo
 
-crystal: ">= 1.7.0"
+crystal: ">= 1.8.0"
 
 license: MIT
