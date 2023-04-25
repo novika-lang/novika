@@ -34,7 +34,9 @@ module Novika
 
     # Returns the element before the cursor.
     def top?
-      at?(cursor - 1)
+      return if cursor.zero?
+
+      substrate.at!(cursor - 1)
     end
 
     # Moves the cursor to *position*. Returns the resulting tape
