@@ -2269,3 +2269,335 @@ describe 'sample:' [
     total 100 assert=
   ]
 ]
+
+
+describe 'flat aka flat:deep' [
+  in lang
+
+  it should 'leave empty child block if input is empty' [
+    [ ] $: inp
+    inp flat $: outp
+    outp [ ] assert=
+    outp parent inp assert=
+  ]
+
+  it should 'leave same content block when no nesting' [
+    [ 1 2 3 4 5 6 ] $: inp
+    inp flat $: outp
+
+    outp [ 1 2 3 4 5 6 ] assert=
+    outp parent inp assert=
+  ]
+
+  it should 'flatten depth 1 blocks' [
+    [ 0 [ 1 2 3 ] 'hello world' [ 4 5 6 ] 7 8 9 ] $: inp
+    inp flat $: outp
+
+    outp [ 0 1 2 3 'hello world' 4 5 6 7 8 9 ] assert=
+    outp parent inp assert=
+  ]
+
+  it should 'flatten depth n blocks' [
+    [ [ [ [ [ [1] ] ] [2] ] [3] 4 ] 5 [ [6] ] ] $: b
+    b flat [ 1 2 3 4 5 6 ] assert=
+  ]
+
+  it should 'not open input block or subblocks but open result correctly' [
+    [ ] $: foo
+
+    [ [ 1 + foo gulp ] [ 2 + foo gulp] foo foo gulp ] $: program
+    program flat $: flatProgram
+
+    flatProgram [ (1 + foo gulp)
+                  (2 + foo gulp)
+                  (foo foo gulp) ] assert=
+
+    [ 100 200 flatProgram open ] vals [ ] assert=
+    [ 201 102 foo ] here foo assert=
+  ]
+
+  it should 'allow to lookup in/submit to parent' [
+    [ [ 100 ] $: x ] obj $: foo
+
+    foo flat $: flattened
+    flattened [ 100 $: x ] assert=
+    flattened.x [ 100 ] assert=
+
+    flattened 2 [ 2drop 200 #=: ] |hydrate
+    flattened [ 200 =: x ] assert=
+    flattened do
+
+    flattened.x 200 assert=
+    foo.x 200 assert=
+  ]
+
+  it should 'ignore self-references at depth 1' [
+    [ ] $: foo
+    foo foo gulp
+    foo flat [ ] assert=
+
+    [ 1 2 3 4 5 ] $: bar
+    bar 3 [ bar ] |hydrate
+    bar flat [ 1 2 3 4 5 ] assert=
+  ]
+
+  it should 'ignore self-references at depth n' [
+    [ [ 1 ] [ 2 ] [ [ 3 'hello' ] ] [ [ [4] ] ] [ [ 5 ] ] ] $: foo
+    foo 3 fromLeft
+        0 fromLeft
+        0 fromLeft
+        foo gulp
+
+    foo 1 fromLeft 0 [ foo ] |hydrate
+
+    foo flat [ 1 2 3 'hello' 4 5 ] assert=
+  ]
+
+  it should 'not pollute the stack' [
+    [ [ ] flat ] vals [ [ ] ] assert=
+    [ [ 1 2 3 4 ] flat ] vals [ [ 1 2 3 4 ] ] assert=
+    [ [ 1 [ 2 3 ] 4 ] flat ] vals [ [ 1 2 3 4 ] ] assert=
+    [ [ 1 [ 2 [[[3]]] ] 4 ] flat ] vals [ [ 1 2 3 4 ] ] assert=
+    [ [ 1 [ 2 [[[3]]] ] 4 ] dup << flat ] vals [ [ 1 2 3 4 ] ] assert=
+    [ [ 1 [ 2 [[[3]]] ] 4 ] dup dup 1 |to << flat ] vals [ [ 1 2 3 4 ] ] assert=
+  ]
+]
+
+
+describe 'gsub[:]/gsubOn:' [
+  in lang
+
+  it should 'leave empty block as is' [
+    [ ] $: b
+    b #`foo gsub: 100
+    b empty? true assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'leave block without matches as is' [
+    [ 1 2 3 ] $: b
+    b #`foo gsub: 100
+    b [ 1 2 3 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'do simple flat replace' [
+    [ 1 `foo 2 `bar 3 ] $: b
+
+    b #`foo gsub: 100
+    b #`bar gsub: 200
+
+    b [ 1 100 2 200 3 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'do flat replace regardless of cursor but keep it' [
+    [ 1 `foo 2 `bar 3 ] (dup 3 |to) $: b
+
+    b toQuote '[ 1 `foo 2 | `bar 3 ]' assert=
+
+    b #`foo gsub: 100
+    b #`bar gsub: 200
+
+    b toQuote '[ 1 100 2 | 200 3 ]' assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'do simple deep replace' [
+    [ [ 1 2 ] [ 3 `foo ] [ 4 `bar ] [ 5 `baz ] ] $: b
+
+    b #`foo gsub: 100
+    b #`bar gsub: 200
+    b #`baz gsub: #frobnicate
+
+    b [
+      [ 1 2 ]
+      [ 3 100 ]
+      [ 4 200 ]
+      [ 5 frobnicate ]
+    ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'do multi flat replace' [
+    [ 1 `foo 2 `bar 3 ] $: b
+    b #`foo gsub: [ 'hello' 'world' ]
+    b #`bar gsub: [ 'bye' #frob ]
+
+    b [ 1 'hello' 'world' 2 'bye' frob 3 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'keep track of the cursor with multi flat replace' [
+    [ 1 `foo 2 `bar 3 ] $: b
+    b 2 |to
+    b toQuote '[ 1 `foo | 2 `bar 3 ]' assert=
+
+    b #`foo gsub: [ 'hello' 'world' ]
+    b toQuote '[ 1 \'hello\' \'world\' | 2 `bar 3 ]' assert=
+
+    b #`bar gsub: [ 'bye' #frob ]
+
+    b toQuote '[ 1 \'hello\' \'world\' | 2 \'bye\' frob 3 ]' assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'do patch replace' [
+    [ ] $: acc
+
+    [ this swap gsubOn: #`ntimes
+
+      `ntimes times: [
+        acc gulp
+      ]
+    ] @: foo
+
+    10 foo
+
+    acc [ 0 1 2 3 4 5 6 7 8 9 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'handle self-reference' [
+    [ `a [ `a 1 2 3 ] [ 4 5 6 `a ] ] $: b
+    b b shove
+    b #`a gsub: 100
+
+    b [ 100 [ 100 1 2 3 ] [ 4 5 6 100 ] ] b << assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'handle self-referential replacement' [
+    [ `a [ `a 1 2 3 ] [ 4 5 6 `a ] ] $: b
+    b b shove
+    b #`a gsub: b
+    b [ b [ b 1 2 3 ] [ 4 5 6 b ] b ] here assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'handle computation during replacement' [
+    [ 1 `a 2 `b ] $: b
+    b #`a gsub: [ dup 1 + ] "add one to before `a for `a"
+    b #`b gsub: [ dup 2 * ] "double before `b for `b"
+    b [ 1 2 2 4 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'handle multiple insertion with drops & computation' [
+    [ ] $: records
+    [ records gulp ] @: record
+
+    [ 1 `a 2 `b ] $: b
+    b #`a gsub: [ 1 + 'X = ' swap ~ #record ]
+    b #`b gsub: [ 2 * 'Y = ' swap ~ #record ]
+    b [ 'X = 2' record
+        'Y = 4' record ] assert=
+    b do
+
+    records [ 'X = 2' 'Y = 4' ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'handle multiple insertion with replacement containing pattern' [
+    [ [ `a `b ] [ `a `b ] ] $: b
+
+    [ bi: [ #`a gsub: [ [ `a `b ] ] ]
+          [ #`b gsub: [ [ `b `a ] ] ]
+    ] @: doIt
+
+    b doIt
+    b [ [ [ `a [`b `a] ] [`b `a] ] [ [ `a [`b `a] ] [`b `a] ] ] assert=
+
+    b doIt
+    b [ [ [ [`a [`b `a]] [[`b `a] [`a [`b `a]]] ] [[`b `a] [`a [`b `a]]] ] [ [ [`a [`b `a]] [[`b `a] [`a [`b `a]]] ] [[`b `a] [`a [`b `a]]] ] ] assert=
+
+    b #`a gsub: 0
+    b #`b gsub: 1
+
+    b [ [ [ [0 [1 0]] [[1 0] [0 [1 0]]] ] [[1 0] [0 [1 0]]] ] [ [ [0 [1 0]] [[1 0] [0 [1 0]]] ] [[1 0] [0 [1 0]]] ] ] assert=
+    b flat [ 0 1 0 1 0  0 1 0 1 0 0 1 0 0 1 0 1 0 0 1 0 1 0 0 1 0 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'open pattern when it\'s a block' [
+    [ 1 2 3 ] $: block
+    [ ] $: stacks
+
+    block [ (stack shallowCopy) stacks gulp false ] gsub: 100
+    block [ 1 2 3 ] assert=
+
+    [ [ 1 2 3 "|" ]
+      [ 1 2 "|" 3 ] (dup 2 |to)
+      [ 1 "|" 2 3 ] (dup 1 |to)
+    ] vals stacks assert=
+
+    block [ true ] gsub: 100
+    block [ 100 100 100 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'run the examples from docs' [
+    [ `a `b + ] $: temp
+
+    temp #`a 100 gsub
+    temp #`b 200 gsub
+    temp [ 100 200 + ] assert=
+    temp open 300 assert=
+
+    [ ] $: screen
+
+    [ screen gulp ] @: echo
+
+    [ 100 `cmd
+      200 `cmd ] $: block
+
+    block #`cmd gsub: #echo
+    block [ 100 echo 200 echo ] assert=
+    block open
+
+    [ 100 `cmdA
+      200 `cmdB ] $: block
+
+    block [ 2 * #echo ] gsubOn: #`cmdA
+    block [ 4 * #echo ] gsubOn: #`cmdB
+
+    block [ 200 echo 800 echo ] assert=
+    block open
+
+    [ 100 200 200 800 ] screen assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+
+  it should 'allow to pass entry as pattern to infix' [
+    [ `a `b + ] $: temp
+
+    #`a $: var
+    temp 100 gsubOn: var
+
+    #`b =: var
+    temp 200 gsubOn: [ 1 2 3 var ]
+
+    temp [ 100 200 + ] assert=
+
+    [ 1 [ 2 3 ] 4 ] $: temp
+    temp 100 gsubOn: [[ dup [ 2 3 ] = ]] "FIXME: ugly"
+    temp [ 1 100 4 ] assert=
+
+    stack empty? true assert= "stack hygiene"
+  ]
+]

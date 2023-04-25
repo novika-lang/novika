@@ -2030,3 +2030,188 @@
 
   (ahead thruVal asDecimal) collect: [ block sample ]
 ] @: sample:
+
+
+[ """( B -- Dfb ): leaves Deeply flattened block for the
+   given Block.
+
+  Self-references are ignored. **Most importantly**, deeply
+  flattened block is a child of Block.
+
+  ```
+  [ ] flat leaves: [ [ ] ]
+  [ 1 2 3 ] flat leaves: [ [ 1 2 3 ] ]
+  [ [ 1 ] [ 2 ] [ 3 ] ] flat leaves: [ [ 1 2 3 ] ]
+  "... etc."
+
+  [ [ 100 ] $: x ] obj $: foo
+
+  foo flat $: flattened
+  flattened leaves: [ [ 100 $: x ] ]
+  flattened.x leaves: 100
+  "... etc."
+
+  [ ] $: bar
+  bar bar shove
+  bar flat leaves: [ [ ] ]
+  ```
+  """
+  dup child $: forms
+  dup empty? => [ drop forms ^ ]
+
+  orphan $: _seen
+
+  [
+    _seen (over address) entry:exists? => [ drop ^ ]
+    _seen (over address) true pushes
+
+    each: [
+      dup block? => [ visit next ]
+      forms gulp
+    ]
+  ] @: visit
+
+  visit
+  forms
+] dup @: flat:deep
+      @: flat
+
+"TODO: flat:broad"
+
+
+[ """( B P R -- ): global (of all occurences), deep (nesting
+   doesn't matter) substitution of Pattern with Replacement
+   in Block.
+
+  Some important points:
+
+  * Self-references are skipped.
+
+  * This word goes through the whole block, no matter where the
+    cursor was beforehand, sliding the latter *back to front*
+    (from the end to the beginning), and afterwards restoring its
+    position to that before substitution (taking growth or shrinkage
+    due to substitution into account).
+
+  * If Pattern is a block, it is opened with Block as the stack
+    and cursor just after the form-to-check. This word then expects
+    Pattern to leave a truthy/falsey value *for whether the visited
+    form should be replaced* with Replacement.
+
+  * The stack effect for Pattern, in case it is a block, must be
+    the following: `( ... F -- ... F true/false )`, where F is the
+    form to check. Otherwise, *stable behavior is yours to ensure*!
+
+  * If Pattern is not a block, the following template block is
+    used instead: `[ dup Pattern = ]`.
+
+  * Replacement, when this word decides it's time to use it, is
+    opened with Block as the stack and cursor as if it was after
+    the form- to-replace, *but without the latter on the stack*.
+    Insertion is expected. Therefore, the stack effect of Replacement
+    is recommended to be `( -- ... )` where `...` stands for one
+    or more forms. Anything is possible, though, even cursor movement.
+    But in this case remember that *stable behavior is yours to ensure*.
+
+  ```
+  [ `a `b + ] $: temp
+
+  temp #`a 100 gsub
+  temp #`b 200 gsub
+  temp leaves: [ [ 100 200 + ] ]
+  temp open leaves: 300
+  ```
+  """
+  @: rep $: pat
+
+  dup empty? => [ drop ^ ]
+
+  ahead $: caller
+
+  pat block? not =>
+    [ "Pattern is *not* a block. If it is a word, quote it;
+       otherwise it would get evaluated prematurely."
+      pat word? => [ pat toQuotedWord =: pat ]
+
+      "Use the template `[ dup Pattern = ]`, a child of the
+       caller block, instead of the pattern."
+      caller ([ dup pat = ] here) adopt =: pat
+    ]
+
+  orphan $: seen
+
+  [ "( F -- F/Rb' ): leaves the result of Replacement block
+     if Form matches the Pattern. Otherwise, visits Form if
+     it is a block."
+    pat open br:
+      [ drop rep ]
+      [ dup block? br: visit [ ] ]
+  ] $: sub
+
+  [ $: block
+
+    "Quit if we've already seen this block. This prevents
+     us from recursing indefinitely."
+    seen (block address) entry:exists? => [ block ^ ]
+    seen (block address) true pushes
+
+    block |at $: curs
+
+    0 $: delta
+
+    (block count) times: [ dup 1 + $: n
+      (block count) over - $: fromEnd
+
+      fromEnd curs > br:
+        [ "Do not modify delta if replacement occurs after
+           the recorded cursor position."
+          block fromEnd |to
+          block sub hydrate!
+        ]
+        [
+          block count $: preCount
+          block fromEnd |to
+          block sub hydrate!
+          block count $: postCount
+          postCount preCount - delta + =: delta
+        ]
+    ]
+
+    block (curs delta +) |to
+    block
+  ] @: visit
+
+  visit drop
+] @: gsub
+
+
+[ """( B P gsub: R -- ): infix version of `gsub`.
+
+  ```
+  [ 100 `cmd
+    200 `cmd ] $: block
+
+  block #`cmd gsub: #echo
+  block leaves: [ [ 100 echo 200 echo ] ]
+  block open "STDOUT: 100⏎200⏎"
+  ```
+  """
+  ahead thruBlock gsub
+] @: gsub:
+
+
+[ """( B R gsubOn: P -- ): another infix version of `gsub`.
+
+  ```
+  [ 100 `cmdA
+    200 `cmdB ] $: block
+
+  block [ 2 * #echo ] gsubOn: #`cmdA
+  block [ 4 * #echo ] gsubOn: #`cmdB
+
+  block leaves: [ [ 200 echo 800 echo ] ]
+  block open "STDOUT: 200⏎800⏎"
+  ```
+  """
+  ahead thruVal swap gsub
+] @: gsubOn:
