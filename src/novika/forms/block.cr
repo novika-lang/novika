@@ -527,8 +527,17 @@ module Novika
       each_neighbor(payload, visited)
     end
 
-    # Returns the dictionary entry for *name*, or nil. See
-    # `each_relative` for a detailed description of lookup
+    # Returns the dictionary entry for *name*, or dies.
+    #
+    # See `each_relative` for a detailed description of lookup
+    # order etc.
+    def entry_for(name : Form) : Entry
+      entry_for?(name) || die("no value form for '#{name}'")
+    end
+
+    # Returns the dictionary entry for *name*, or nil.
+    #
+    # See `each_relative` for a detailed description of lookup
     # order etc.
     def entry_for?(name : Form) : Entry?
       if entry = flat_at?(name) # Fast path.

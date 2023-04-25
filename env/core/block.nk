@@ -393,20 +393,6 @@
 ] @: ->
 
 
-[ "( Db C N -- ... ): resolves Name in Dictionary block and
-   *opens* it, assuming Caller to be the caller block.
-   Postfix version of `.`. See `.` for usage examples."
-  $: name $: caller
-
-  "( T )" dup name entry:fetch $: form
-
-  name entry:isOpenEntry? =>
-    [ caller [ #open <| ] hydrate ]
-
-  form
-] @: entry:open
-
-
 [ """( Db . N -- ... ): resolves Name in Dictionary block and
    *opens* it. Infix version of `entry:open`.
 

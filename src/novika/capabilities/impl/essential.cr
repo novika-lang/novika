@@ -893,6 +893,31 @@ module Novika::Capabilities::Impl
         Boolean[!!form].onto(stack)
       end
 
+      target.at("entry:open", <<-END
+      ( Rs C N -- ... ): resolves Name in Readable store and *opens*
+       it if it is an opener, assuming Caller to be the opener block.
+      END
+      ) do |_, stack|
+        name = stack.drop.a(Word)
+        caller = stack.drop.a(Block)
+        store = stack.drop.a(IReadableStore)
+
+        unless store.is_a?(Block)
+          # There is no such thing as an "entry" in anything
+          # other than block.
+          form = store.form_for(name)
+          form.onto(stack)
+          next
+        end
+
+        entry = store.entry_for(name)
+        if entry.is_a?(OpenEntry)
+          caller.inject(Word.new("open"))
+        end
+
+        entry.onto(stack)
+      end
+
       target.at("entry:flatFetch?", <<-END
       ( B N -- F true / false ): leaves the value Form under
        Name in Block's dictionary followed by `true`, or `false`
