@@ -944,6 +944,13 @@ are peeled off like in an onion.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#to_quoted_word-instance-method" class="signature"><strong>#to_quoted_word</strong></a>
+        
+          <div class="summary"><p>Adds another layer of quoting.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#to_s%28io%29-instance-method" class="signature"><strong>#to_s</strong>(io)</a>
         
       </li>
@@ -1266,6 +1273,25 @@ are peeled off like in an onion.</p>
 <pre><code class="language-crystal"><span class="t">QuotedWord</span>.new(<span class="s">&quot;#foo&quot;</span>).peel   <span class="c"># Word.new(&quot;foo&quot;)</span>
 <span class="t">QuotedWord</span>.new(<span class="s">&quot;##foo&quot;</span>).peel  <span class="c"># QuotedWord.new(&quot;#foo&quot;)</span>
 <span class="t">QuotedWord</span>.new(<span class="s">&quot;###foo&quot;</span>).peel <span class="c"># QuotedWord.new(&quot;##foo&quot;)</span></code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_quoted_word-instance-method">
+      <div class="signature">
+        
+        def <strong>to_quoted_word</strong>
+
+        <a class="method-permalink" href="#to_quoted_word-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adds another layer of quoting. Opposite of <code><a href="../Novika/QuotedWord.html#peel-instance-method">#peel</a></code>.</p>
         </div>
       
       <br/>
