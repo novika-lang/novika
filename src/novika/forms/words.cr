@@ -22,6 +22,11 @@ module Novika
       id.prefixed_by?('_')
     end
 
+    # Adds a level of quoting so this word becomes a quoted word.
+    def to_quoted_word
+      QuotedWord.new(@id)
+    end
+
     def on_parent_open(engine : Engine) : self
       if entry = engine.block.entry_for?(self)
         # An entry exists for this word in the current block
@@ -86,6 +91,11 @@ module Novika
 
     def self.typedesc
       "quoted word"
+    end
+
+    # Adds another layer of quoting. Opposite of `peel`.
+    def to_quoted_word
+      QuotedWord.new("##{@id}")
     end
 
     # "Peels" off a layer of quoting.

@@ -650,6 +650,23 @@ describe 'asQuotedWord' [
   ]
 ]
 
+
+describe 'toQuotedWord' [
+  in lang
+
+  it should 'leave quoted word of word' [
+    #foo typedesc 'word' assert=
+    ##foo typedesc 'quoted word' assert=
+    #foo toQuotedWord ##foo assert=
+  ]
+
+  it should 'further quote a quoted word' [
+    ##foo toQuotedWord ###foo assert=
+    ###foo toQuotedWord ####foo assert=
+  ]
+]
+
+
 describe 'asBoolean' [
   in lang
 

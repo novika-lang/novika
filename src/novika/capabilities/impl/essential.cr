@@ -578,6 +578,23 @@ module Novika::Capabilities::Impl
         Boolean[form.is_a?(Decimal) || (form.is_a?(Block) && form.can_be?(Decimal))].onto(stack)
       end
 
+      target.at("toQuotedWord", <<-END
+      ( Qw/W -- #Qw/#W ): adds a layer of "quoting" to Quoted
+       word or Word.
+
+      ```
+      "Note that in quoted word literals (here on the left hand
+       side) one layer of quoting is 'eaten off' by the parser!"
+
+      #foo toQuotedWord leaves: #foo
+      ##foo toQuotedWord leaves: ##foo
+      ```
+      END
+      ) do |_, stack|
+        form = stack.drop.a(Word | QuotedWord)
+        form.to_quoted_word.onto(stack)
+      end
+
       target.at("asDecimal", <<-END
       ( F -- D ): asserts that Form is a Decimal form, dies if
        it's not.
