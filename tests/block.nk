@@ -101,7 +101,7 @@ describe '|+' [
 describe '|:' [
   in lang
 
-  it should 'be an infix version of there' [
+  it should 'act as an infix version of there' [
     [ [ ] |: 100 ] vals [ [ 100 ] ] assert=
 
     [ 1 2 ] $: b
