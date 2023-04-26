@@ -65,7 +65,11 @@ module Novika
             next
           end
 
-          io << "'" << code.top.colorize.bold << "', which was opened here:"
+          if top = code.top?
+            io << "'" << (top || "[nothing]").colorize.bold << "', which was opened here:"
+          else
+            io << "the following block:"
+          end
           io.puts
           io << "  │  "
           code.spot(io)

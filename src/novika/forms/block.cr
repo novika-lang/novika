@@ -313,7 +313,12 @@ module Novika
     def top : Form
       die("no top for block") unless has_tape?
 
-      tape.top? || die("no top for block")
+      top? || die("no top for block")
+    end
+
+    # Returns the top form, or nil if none.
+    def top? : Form?
+      tape.top?
     end
 
     # Duplicates the form before the cursor, dies if none.
