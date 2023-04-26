@@ -952,9 +952,9 @@
    instead of peeking."
   list stack same? =>
     [
-      [ "For extra safety, we're running under 'do', which will
-          protect us from modifying our own stack (which `stack`
-          is) and causing all sorts of weirdness."
+      [ "For extra safety, we're running under 'do', which will protect
+         us from modifying our own stack (which `stack` is) and causing
+         all sorts of weirdness."
         list |slice
           $: afterCursor
           $: beforeCursor
