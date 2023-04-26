@@ -679,6 +679,51 @@
 ] @: pairs:
 
 
+[ """( Lb B -- Rb ): leaves Result block obtained by collecting
+   results of Block opened with previous Result block as the stack,
+   plus a pair of items from List block, for each pair of items
+   in List block. Dies if List block has an odd number of forms.
+   `break` and `next` are available.
+
+  ```
+  "Sum pairs of numbers 1, 2; 3, 4; 5, 6 etc.:"
+  1 to: 10 mapPairs: + leaves: [ [ 3 7 11 15 19 ] ]
+  ```
+  """
+  $: block
+
+  [ ] $: result
+
+  dup empty? => [ drop result ^ ]
+  dup count odd? => [ 'for mapPairs to work, there should be an even count of items in block' die ]
+
+  $: list 0 $: index
+
+  block [ index list count < ]
+  [
+    result
+      (list index     fromLeft) <<
+      (list index 1 + fromLeft) <<
+    swap hydrate
+
+    index 2 + =: index
+  ] createDetachedLoop open
+
+  result
+] @: mapPairs
+
+
+[ """( Lb mapPairs: B -- Rb ): infix version of `mapPairs`.
+
+  ```
+  "Sum pairs of numbers 1, 2; 3, 4; 5, 6 etc.:"
+  1 to: 10 mapPairs: + leaves: [ [ 3 7 11 15 19 ] ]
+  ```
+  """
+  ahead thruBlock mapPairs
+] @: mapPairs:
+
+
 [ """( Lb B -- ): opens Block with consequtive pairs of items
    from List block on top of an empty stack. `break` and `next`
    are available.
@@ -722,6 +767,50 @@
   """
   ahead thruBlock consPairs
 ] @: consPairs:
+
+
+[ """( Lb B -- Rb ): leaves Result block obtained by collecting
+   results of Block opened with previous Result block as the stack,
+   plus a **consecutive** pair of items from List block, for each
+   consecutive pair of items in List block. `break` and `next`
+   are available.
+
+  ```
+  "Sum pairs of numbers 1, 2; 2, 3; 3, 4 etc.:"
+  1 to: 10 mapConsPairs: + leaves: [ [ 3 5 7 9 11 13 15 17 19 ] ]
+  ```
+  """
+  $: block
+
+  [ ] $: result
+
+  dup empty? => [ drop result ^ ]
+
+  $: list 0 $: index
+
+  block [ index list count 1 - < ]
+  [
+    result
+      (list index     fromLeft) <<
+      (list index 1 + fromLeft) <<
+    swap hydrate
+
+    index 1 + =: index
+  ] createDetachedLoop open
+
+  result
+] @: mapConsPairs
+
+
+[ """( Lb mapConsPairs: B -- Rb ): infix version of `mapConsPairs`.
+
+  ```
+  "Sum pairs of numbers 1, 2; 2, 3; 3, 4 etc.:"
+  1 to: 10 mapConsPairs: + leaves: [ [ 3 5 7 9 11 13 15 17 19 ] ]
+  ```
+  """
+  ahead thruBlock mapConsPairs
+] @: mapConsPairs:
 
 
 [ """( Lb B -- Mlb ): opens Block with each item of List block
