@@ -7,7 +7,24 @@
 
 Novika is a free-form, moldable, interpreted programming language.
 
-## Hi!
+---
+
+**Table of contents:**
+
+- [Introduction](#introduction)
+- [An objective evaluation](#an-objective-evaluation)
+- [Examples](#examples)
+- [Installing Novika](#installing-novika)
+- [Building Novika from source](#building-novika-from-source)
+- [Running the examples](#running-the-examples)
+- [Playing with the REPL](#playing-with-the-repl)
+- [Learning Novika](#learning-novika)
+- [Contributing and internals](#contributing-and-internals)
+- [Contributors](#contributors)
+
+---
+
+## Introduction
 
 Uhmm... yeah, I have no idea what the sentence above means either. But let me try to explain anyway :)
 
@@ -386,7 +403,7 @@ I know there aren't a lot of materials here nor anywhere that'd teach you the la
 
 Explore Novika as if it were an alien spaceship that accidentally fell on Earth, full of weird little yellow rotating yukoos. The aliens did not write on every button what it will do when you press it. And even if they did, what kind of language would they be using?!
 
-## Contributing
+## Contributing and internals
 
 First of all, thank you for even getting this far! Even if you didn't read the whole document, thank you. Seriously :)
 
