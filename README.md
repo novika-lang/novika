@@ -271,13 +271,12 @@ Feel free to play with the probability yourself!
 
 ## Installing Novika
 
-Download and unpack the [latest release](https://github.com/novika-lang/novika/releases/latest) for your system.
+The fastest way to get started with Novika is to download and unpack the latest [nightly build](https://github.com/novika-lang/nightly-builds/releases/latest).
+Novika [releases](https://github.com/novika-lang/novika/releases/latest) are as unstable as nightlies, if not more so, so don't worrry :)
 
-1. If you don't want to do a system-wide install, simply use `bin/novika` *while in the directory of the release*.
+1. If you don't want to do a system-wide install, simply use `bin/novika` *while in the directory of the nightly/release*.
 
 2. Otherwise, move the `env` folder to your user's home directory, and rename it to `.novika`. Optionally, add `bin/novika` to your PATH.
-
-**Note**: Novika is developed at a rather fast pace, and releases are made every month or so — therefore, the latest release will probably miss all them fancy features. I'd recommend you to build Novika from source.
 
 ## Building Novika from source
 
