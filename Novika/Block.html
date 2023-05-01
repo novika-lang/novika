@@ -1112,6 +1112,13 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#each_occurrence_of%28pattern%3AForm%2C%26%29-instance-method" class="signature"><strong>#each_occurrence_of</strong>(pattern : Form, &)</a>
+        
+          <div class="summary"><p>Yields occurrences of the given <em>pattern</em> found in this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method" class="signature"><strong>#each_relative</strong>(payload : Block -> T | Nil, skip : BlockIdMap | Nil = <span class="n">nil</span>, skip_self = <span class="n">false</span>) forall T</a>
         
           <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy neighbors, calls <em>payload</em> with each such relative.</p></div>
@@ -2209,6 +2216,26 @@ explicitly adjacent neighbor blocks, and so on, recursively.</p>
 │  └───────────────┘ └───────────────┘  │
 │                                       │
 └───────────────────────────────────────┘</code></pre>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_occurrence_of(pattern:Form,&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_occurrence_of</strong>(pattern : <a href="../Novika/Form.html">Form</a>, &)
+
+        <a class="method-permalink" href="#each_occurrence_of%28pattern%3AForm%2C%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields occurrences of the given <em>pattern</em> found in this
+block. Matching is done using loose equality  <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p>
         </div>
       
       <br/>
