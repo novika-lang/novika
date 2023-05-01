@@ -365,6 +365,61 @@ module Novika::Capabilities::Impl
         Boolean[form.in?(block)].onto(stack)
       end
 
+      target.at("occurrences", <<-END
+      ( B/Q Pf/Pq -- Bi ): leaves Begin indices of all occurrences
+       of Pattern form/Pattern quote in Block/Quote. Begin indices
+       is an orphan with no entries.
+
+      Works in a similar way to `anyof?` in that it compares each
+      element of the Block/Quote with Pattern form/Pattern quote
+      like `=` (but not using `=`, at least in the quote case
+      where KMP is used).
+
+      ```
+      [ ] 123 occurrences leaves: [ [ ] ]
+
+      [ 1 1 2 0 0 1 2 1 3 4 8 ] $: haystack
+      haystack 0 occurrences leaves: [ [ 3 4 ] ]
+      haystack 1 occurrences leaves: [ [ 0 1 5 7 ] ]
+      haystack 'foo' occurrences leaves: [ [ ] ]
+
+      '' 'foobar' occurrences leaves: [ [ ] ]
+      'foobar' '' occurrences leaves: [ [ ] ]
+
+      'foobra' $: haystack
+      haystack 'o' occurrences leaves: [ [ 1 2 ] ]
+      haystack 'foo' occurrences leaves: [ [ 0 ] ]
+      haystack 'ra' occurrences leaves: [ [ 4 ] ]
+
+      'GATCCATATG' $: haystack
+      haystack 'ATAAT' occurrences leaves: [ [ ] ]
+      haystack 'ATAT' occurrences leaves: [ [ 5 ] ]
+      ```
+      END
+      ) do |_, stack|
+        pattern = stack.drop
+        iterable = stack.drop.a(Block | Quote)
+
+        case iterable
+        in Quote
+          fail = iterable.empty? || (pattern.is_a?(Quote) && pattern.empty?)
+        in Block
+          fail = iterable.count.zero?
+        end
+
+        if fail
+          Block.new.onto(stack)
+          next
+        end
+
+        occurrences = [] of Form
+        iterable.each_occurrence_of(pattern) do |index|
+          occurrences << Decimal.new(index)
+        end
+
+        Block.with(occurrences, leaf: false).onto(stack)
+      end
+
       target.at("uppercase?", <<-END
       ( Q -- true/false ): leaves whether Quote is all-uppercase.
        If Quote is empty, leaves false.

@@ -688,11 +688,19 @@ module Novika
     # Returns whether the tape of this block includes *other*,
     # as per loose equality `==(other)`.
     def includes?(other : Form)
-      return false unless has_tape?
-
-      tape.each { |form| return true if other == form }
+      each { |form| return true if other == form }
 
       false
+    end
+
+    # Yields occurrences of the given *pattern* found in this
+    # block. Matching is done using loose equality  `==(other)`.
+    def each_occurrence_of(pattern : Form, &)
+      index = 0
+      each do |form|
+        yield index if pattern == form
+        index += 1
+      end
     end
 
     # Creates and returns an instance of this block, under the

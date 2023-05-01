@@ -161,6 +161,10 @@ module Novika
     def to_quote : Quote
       self
     end
+
+    # Yields occurrences of the given *pattern* in this quote.
+    def each_occurrence_of(pattern : Form, &)
+    end
   end
 
   # Quote type for multiple (two or more), or no graphemes.
@@ -233,8 +237,10 @@ module Novika
         return GraphemeQuote.new String::Grapheme.new(char)
       end
 
-      string.each_grapheme.with_index do |it, idx|
+      idx = 0
+      string.each_grapheme do |it|
         return GraphemeQuote.new(it) if idx == index
+        idx += 1
       end
     end
 
@@ -256,10 +262,15 @@ module Novika
       else
         StringQuote.new(
           String.build do |io|
-            string.each_grapheme.with_index do |grapheme, index|
-              next if index < b
+            index = 0
+            string.each_grapheme do |grapheme|
+              if index < b
+                index += 1
+                next
+              end
               break if index > e
               io << grapheme
+              index += 1
             end
           end,
           count: e - b,
@@ -289,6 +300,83 @@ module Novika
       other.is_a?(StringQuote) && string == other.string
     end
 
+    def each_occurrence_of(pattern : GraphemeQuote, &)
+      index = 0
+
+      # Pattern is a single grapheme. There are two ways to go now:
+      #
+      # * If this string is ASCII and pattern is ASCII, iterate by
+      #   bytes (the fastest way!) and yield byte indices.
+      #
+      # * Otherwise, find through the slow each_grapheme process.
+      if ascii_only? && (pattern_byte = pattern.as_byte?)
+        string.each_byte do |byte|
+          yield index if byte == pattern_byte
+          index += 1
+        end
+      else
+        string.each_grapheme do |grapheme|
+          yield index if grapheme == pattern.grapheme
+          index += 1
+        end
+      end
+    end
+
+    def each_occurrence_of(pattern : StringQuote)
+      kmp(string, pattern.string, ascii: ascii_only? && pattern.ascii_only?) do |index|
+        yield index
+      end
+    end
+
+    # Knuth-Morris-Pratt string matching algorithm.
+    #
+    # *ascii* determines whether both haystack and needle are ASCII.
+    #
+    # Translated from here:
+    #
+    # https://github.com/dryruner/string_matching/blob/ef67b9e964af5d75a57cf6ee2ebb4c42365aaac2/string_matching.c#L99
+    #
+    # I do not understand what any of this means. To people who
+    # name their variables 'i' and 'q', THIS IS NOT MATH!!!
+    private def kmp(haystack_s : String, needle_s : String, ascii = false)
+      if ascii
+        haystack = haystack_s.to_slice
+        needle = needle_s.to_slice
+      else
+        haystack = haystack_s.graphemes
+        needle = needle_s.graphemes
+      end
+
+      prefixes = Array(Int32).new(needle.size, 0)
+      k = 0
+
+      # Compute prefix array
+      2.upto(needle.size) do |q|
+        while k > 0 && needle[k] != needle[q - 1]
+          k = prefixes[k - 1]
+        end
+        if needle[k] == needle[q - 1]
+          k += 1
+        end
+        prefixes[q - 1] = k
+      end
+
+      q = 0
+      haystack.size.times do |i|
+        while q > 0 && needle[q] != haystack[i]
+          q = prefixes[q - 1]
+        end
+        if needle[q] == haystack[i]
+          q += 1
+        end
+        if q == needle.size # Match!
+          yield i - needle.size + 1
+          # For the next match
+          q = prefixes[q - 1]
+        end
+      end
+    end
+
     def replace_all(pattern : Quote, repl : Quote) : Quote
       Quote.new(string.gsub(pattern.string, repl.string))
     end
@@ -310,6 +398,12 @@ module Novika
 
     def self.typedesc
       "quote"
+    end
+
+    def as_byte?
+      return unless char = grapheme.@cluster.as?(Char)
+      return unless char.ascii?
+      char.ord
     end
 
     def string : String
@@ -351,6 +445,15 @@ module Novika
 
     def ==(other : Quote) : Bool
       other.is_a?(GraphemeQuote) && other.grapheme == grapheme
+    end
+
+    def each_occurrence_of(pattern : GraphemeQuote, &)
+      if grapheme == pattern.grapheme
+        yield 0
+      end
+    end
+
+    def each_occurrence_of(pattern : StringQuote, &)
     end
 
     # Grapheme quotes can only be sliced at edges:
