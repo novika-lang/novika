@@ -746,6 +746,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/ValueForm" data-name="novika::valueform">
+      <a href="../Novika/ValueForm.html">ValueForm</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Word" data-name="novika::word">
       <a href="../Novika/Word.html">Word</a>
       
@@ -785,12 +790,12 @@
 <div class="main-content">
 <h1 class="type-name">
 
-  <span class="kind">struct</span> Novika::Decimal
+  <span class="kind">class</span> Novika::Decimal
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/Decimal.html">Novika::Decimal</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/Decimal.html">Novika::Decimal</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -821,6 +826,8 @@
   <ul class="other-types-list">
     
       <li class="other-type"><a href="../Novika/Form.html">Novika::Form</a></li>
+    
+      <li class="other-type"><a href="../Novika/ValueForm.html">Novika::ValueForm</a></li>
     
   </ul>
 
@@ -956,6 +963,8 @@
     
       <li class="entry-summary">
         <a href="#%3D%3D%28other%3Aself%29-instance-method" class="signature"><strong>#==</strong>(other : <span class="k">self</span>)</a>
+        
+          <div class="summary"><p>Returns <code>true</code> if this reference is the same as <em>other</em>.</p></div>
         
       </li>
     
@@ -1179,6 +1188,16 @@
   
     
 
+
+    
+
+
+    
+
+
+  
+    
+
   <h3>Instance methods inherited from module <code><a href="../Novika/Form.html">Novika::Form</a></code></h3>
   
   
@@ -1251,16 +1270,6 @@
     schedule!</a>
     
   
-
-
-    
-
-
-    
-
-
-  
-    
 
 
     
@@ -1509,6 +1518,15 @@
         <a class="method-permalink" href="#%3D%3D%28other%3Aself%29-instance-method">#</a>
       </div>
       
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class Reference
+            </div>
+          
+          <p>Returns <code>true</code> if this reference is the same as <em>other</em>. Invokes <code>same?</code>.</p>
+        </div>
+      
       <br/>
       <div>
         
@@ -1606,7 +1624,7 @@
         <div class="doc">
           
             <div class="doc-inherited">
-              Description copied from struct Struct
+              Description copied from class Reference
             </div>
           
           <p>See <code>Object#hash(hasher)</code></p>
