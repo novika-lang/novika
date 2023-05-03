@@ -1,7 +1,8 @@
 module Novika
   # A representation for decimal numbers inside Novika.
-  struct Decimal
+  class Decimal
     include Form
+    include ValueForm
 
     # Returns the underlying big decimal value.
     protected getter val : BigDecimal

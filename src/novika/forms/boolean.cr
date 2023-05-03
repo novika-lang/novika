@@ -9,6 +9,19 @@ module Novika
     end
 
     # Returns a `Boolean` for whether *a* and *b* are the same.
+    #
+    # Note that Novika's `same?` is not exactly the same as Crystal's,
+    # that is, not as "pedantic".
+    #
+    # For example, some reference types may pretend they're value
+    # types (see `ValueForm`). This means that e.g. `1 1 same?` in
+    # Novika will leave `true`, but for Crystal it's actually false
+    # because the two `1`s are different objects.
+    def self.same?(a : ValueForm, b : ValueForm) : Boolean
+      Boolean[a == b]
+    end
+
+    # :ditto:
     def self.same?(a : Reference, b : Reference) : Boolean
       Boolean[a.same?(b)]
     end

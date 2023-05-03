@@ -83,6 +83,11 @@ module Novika
     end
   end
 
+  # Includers are classes (that is, reference types) that want
+  # to pretend they're value forms, i.e., value types.
+  module ValueForm
+  end
+
   # Form is an umbrella for words and blocks. Since some words
   # (like numbers, quotes) are just too different from words as
   # we know them, they have their own types directly subordinate
