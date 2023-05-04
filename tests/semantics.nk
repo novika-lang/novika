@@ -53,6 +53,62 @@ describe 'essential lookup' [
 
     a.inc 101 assert=
   ]
+
+  it should 'allow more involved lookup/friend cycles' [
+    [ 100 $: x [ [ x y z ] here sum ] @: perform ] obj $: a
+    [ 200 $: y [ [ x y z ] here product ] @: perform ] obj $: b
+    [ 300 $: z ] obj $: c
+
+    """
+    +-------+
+    |       |
+    |    +--+--+
+    | +->+  A  +----+
+    | |  +--+--+    |
+    | |     ^       |
+    | |     |       |
+    | |     |       |
+    | |  +--+--+    |
+    | +->+  B  +<---+
+    | |  +--+--+    |
+    | |     ^       |
+    | |     |       |
+    | |     |       |
+    | |  +--+--+    |
+    | +--+  C  +<---+
+    |    +--+--+
+    |       ^
+    |       |
+    +-------+
+    """
+
+    a -- b -- c -- a drop
+
+    a this befriend
+
+    a b befriend
+    b a befriend
+
+    b c befriend
+    c b befriend
+
+    a parent c same? true assert=
+
+    a.x 100 assert=
+    a.y 200 assert=
+    a.z 300 assert=
+    a.perform 600 assert=
+
+    b.x 100 assert=
+    b.y 200 assert=
+    b.z 300 assert=
+    b.perform 6000000 assert=
+
+    c.x 100 assert=
+    c.y 200 assert=
+    c.z 300 assert=
+    c.perform 6000000 assert=
+  ]
 ]
 
 
