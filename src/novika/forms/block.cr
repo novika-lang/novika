@@ -123,26 +123,28 @@ module Novika
     # Executes the fetcher callback on the first echelon of
     # *block*, and recurses on the second echelon.
     #
-    # - The first echelon is parents and friends of *block*.
+    # - The first echelon is parents and friends and friends
+    #   of parents of *block*.
     #
-    # - The second echelon is parents and friends of the first
-    #   echelon. This method deeply recurses (via `visit?`) on
-    #   the second echelon, effectively allowing lookup that is
-    #   not limited in terms of depth.
+    # - The second echelon is parents and friends and friends
+    #   of parents of the first echelon. This method deeply
+    #   recurses (via `visit?`) on the second echelon, effectively
+    #   allowing lookup that is not limited in terms of depth.
     private def fetch_in_echelons?(block : Block) : T?
       visited = @@block_map.acquire
 
       begin
         #
-        # 1ST ECHELON: ask parents and friends.
+        # 1ST ECHELON: ask parents and friends and friends
+        # of parents.
         #
         each_connected_to(block, visited) do |each|
           fetch?(each) { |form| return form }
         end
 
         #
-        # 2ND ECHELON: **recurse** on parents and friends of
-        # the 1ST ECHELON.
+        # 2ND ECHELON: **recurse** on parents and friends and
+        # friends of parents of the 1ST ECHELON.
         #
         visited.each_value do |block|
           each_connected_to(block, visited) do |each|
