@@ -672,7 +672,7 @@ module Novika
         block.tape.each { |form| enter(form) }
         block.dict.each { |key, entry| enter(key); enter(entry.form) }
 
-        block.each_relative { |rel| enter(rel); nil }
+        block.each_relative_fetch { |rel| enter(rel); nil }
         unless block.prototype.same?(block) # save on a recursive call
           enter(block.prototype)
         end

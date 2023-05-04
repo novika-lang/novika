@@ -21,6 +21,7 @@ struct Set(T)
 end
 
 # Order is important (somewhat)!
+require "./novika/object_pool"
 require "./novika/forms/form"
 require "./novika/image"
 require "./novika/scissors"

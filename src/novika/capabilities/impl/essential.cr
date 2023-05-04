@@ -1619,25 +1619,12 @@ module Novika::Capabilities::Impl
       end
 
       target.at("reparent", <<-END
-      ( C P -- C ): changes the parent of Child to Parent. Checks
-       for cycles which can hang the interpreter, therefore is
-       O(N) where N is the amount of Parent's ancestors.
+      ( C P -- C ): changes the parent of Child to Parent. Lookup
+       cycles are allowed and handled gracefully.
       END
       ) do |_, stack|
         parent = stack.drop.a(Block)
         child = stack.top.a(Block)
-
-        # TODO: this seems to be too forgiving. Lookup cycles
-        # are pretty dangerous.
-        current = parent
-        while current
-          if current.same?(child)
-            current.die("this reparent introduces a cycle")
-          else
-            current = current.parent?
-          end
-        end
-
         child.parent = parent
       end
 
@@ -1646,7 +1633,8 @@ module Novika::Capabilities::Impl
 
       Friends are asked for word entries after parents, grandparents
       etc. have failed to retrieve them. This recurses, e.g. friends
-      ask their own friends and so on, until the entry is found.
+      ask their own friends and so on, until the entry is found. Lookup
+      cycles are allowed and handled gracefully.
 
       ```
       [ 100 $: x this ] open $: a

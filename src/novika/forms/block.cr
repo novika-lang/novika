@@ -3,6 +3,183 @@ module Novika
   # comments. Perfer `Form#effect` over matching by hand.
   EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
 
+  # Executes a fetcher callback on every visited vertex in
+  # the block graph starting from an entrypoint block, until
+  # the callback returns `T`, or all reachable blocks in the
+  # graph are exhausted.
+  #
+  # The quintessence of Novika, when looking up a *single* word
+  # takes a 70+ LoC object and a bunch of heap.
+  struct EachRelativeFetch(T)
+    # Object pool for block id map objects.
+    #
+    # You generally don't need to touch this.
+    class_getter block_map = ObjectPool(BlockIdMap).new(
+      create: ->{ BlockIdMap.new },
+      clear: ->(map : BlockIdMap) { map.clear }
+    )
+
+    def initialize(@fetcher : Block -> T?, @marked : BlockIdMap)
+    end
+
+    # Returns the unique (ish) ID of *block*.
+    #
+    # Currently uses object id.
+    private def id(block : Block) : UInt64
+      block.object_id
+    end
+
+    # Returns whether *block* was already marked (seen, visited)
+    # by this visitor.
+    private def marked?(block : Block) : Bool
+      @marked.has_key? id(block)
+    end
+
+    # Marks *block* as seen (visited) by this visitor.
+    private def mark(block : Block)
+      @marked[id(block)] = block
+    end
+
+    # If the fetcher returns a `T` given *block*, yields the `T`.
+    # Otherwise, marks the block as seen (visited), and returns nil.
+    private def fetch?(block : Block, &) : T?
+      if form = @fetcher.call(block)
+        yield form
+        return
+      end
+
+      mark(block)
+
+      nil
+    end
+
+    # Yields parents of the given *block*. Does not follow cycles.
+    #
+    # *parents* should be an empty block id map. This map will be
+    # populated with visited (parent) blocks after this method.
+    private def each_parent(block : Block, parents : BlockIdMap, &)
+      while block
+        id = id(block)
+
+        # Break if block was visited already! Otherwise, we'll
+        # loop endlessly.
+        break if parents.has_key?(id)
+
+        yield block
+
+        parents[id], block = block, block.parent?
+      end
+    end
+
+    # Yields the following blocks, and in the following order:
+    #
+    # - Yields parents of *block*.
+    # - Yields friends of *block*.
+    # - Yields friends of *block*'s parents.
+    #
+    # *acc* should be an empty block id map. This map will
+    # be populated with all visited blocks after this method,
+    # with the same order of entries as the order of yields.
+    private def each_connected_to(block : Block, acc : BlockIdMap, &)
+      lastp = nil
+
+      #
+      # Yield parents of block.
+      #
+      each_parent(block, acc) do |parent|
+        yield parent
+
+        lastp = parent
+      end
+
+      #
+      # Yield friends of block.
+      #
+      block.each_friend do |friend|
+        yield friend
+
+        acc[id(friend)] = friend
+      end
+
+      #
+      # Yield friends of parents.
+      #
+      # Visited contains parents of block followed by friends
+      # of block. We stop before the first friend of block.
+      #
+      acc.each_value do |parent|
+        parent.each_friend do |friend|
+          yield friend
+
+          acc[id(friend)] = friend
+        end
+
+        return if parent.same?(lastp)
+      end
+
+      nil
+    end
+
+    # Executes the fetcher callback on the first echelon of
+    # *block*, and recurses on the second echelon.
+    #
+    # - The first echelon is parents and friends of *block*.
+    #
+    # - The second echelon is parents and friends of the first
+    #   echelon. This method deeply recurses (via `visit?`) on
+    #   the second echelon, effectively allowing lookup that is
+    #   not limited in terms of depth.
+    private def fetch_in_echelons?(block : Block) : T?
+      visited = @@block_map.acquire
+
+      begin
+        #
+        # 1ST ECHELON: ask parents and friends.
+        #
+        each_connected_to(block, visited) do |each|
+          fetch?(each) { |form| return form }
+        end
+
+        #
+        # 2ND ECHELON: **recurse** on parents and friends of
+        # the 1ST ECHELON.
+        #
+        visited.each_value do |block|
+          each_connected_to(block, visited) do |each|
+            if form = visit?(each)
+              return form
+            end
+          end
+        end
+      ensure
+        @@block_map.release(visited)
+      end
+
+      nil
+    end
+
+    # Visits *block* unless it is `marked?`.
+    #
+    # 1. Executes the fetcher callback on *block*.
+    # 2. Executes the fetcher callback on the first echelon.
+    # 3. Recurses on the second echelon (see `fetch_in_echelons?`)
+    private def visit?(block : Block) : T?
+      return if marked?(block)
+
+      fetch?(block) { |form| return form }
+      fetch_in_echelons?(block)
+    end
+
+    # Executes the fetcher callback on every visited vertex in
+    # the block graph starting from an *entrypoint* block, until
+    # the callback returns `T`, or all reachable blocks in the
+    # graph are exhausted.
+    def on(entrypoint : Block, skip = false) : T?
+      fetch?(entrypoint) { |form| return form } unless skip
+      fetch_in_echelons?(entrypoint)
+    end
+  end
+
   # Maps block unique identifiers (currently, object ids are used as
   # such) to blocks they identify.
   #
@@ -419,51 +596,29 @@ module Novika
     # - Then, this method recurses on friends of this block.
     # - Then, this method recurses on friends of parent blocks.
     #
-    # *skip* can be used to disable exploration of specific blocks,
+    # *seen* can be used to disable exploration of specific blocks,
     # together with their (unexplored) vertical and horizontal
     # hierarchy.
     #
     # *skip_self* can be set to true to disable calling *payload* for
-    # this block, and only in this particular `each_relative` call.
-    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil, skip_self = false) forall T
-      return if skip.try &.has_key?(object_id)
+    # this block, and only in this particular `each_relative_fetch` call.
+    def each_relative_fetch(payload : Block -> T?, seen : BlockIdMap? = nil, skip_self = false) forall T
+      return unless !skip_self || parent? || has_friends?
 
-      if !skip_self && (value = payload.call(self)) # Fast path.
-        return value
-      end
+      acquired = seen.nil?
+      seen ||= EachRelativeFetch.block_map.acquire
 
-      block = parent?
-      while block
-        break if skip.try &.has_key?(block.object_id)
-
-        if value = payload.call(block)
-          return value
-        end
-
-        block = block.parent?
-      end
-
-      block = self
-      skip ||= BlockIdMap.new
-      while block
-        unless skip.has_key?(block.object_id)
-          skip[block.object_id] = block
-          block.each_friend do |friend|
-            if value = payload.call(friend)
-              return value
-            end
-          end
-          block.each_friend do |friend|
-            return friend.each_relative(payload, skip, skip_self: true) || next
-          end
-        end
-        block = block.parent?
+      begin
+        each = EachRelativeFetch(T).new(payload, seen)
+        each.on(self, skip: skip_self)
+      ensure
+        EachRelativeFetch.block_map.release(seen) if acquired
       end
     end
 
     # :ditto:
-    def each_relative(skip = nil, skip_self = false, &payload : Block -> T?) forall T
-      each_relative(payload, skip)
+    def each_relative_fetch(seen = nil, skip_self = false, &payload : Block -> T?) forall T
+      each_relative_fetch(payload, seen)
     end
 
     # Explores neighbor blocks of this block, calls *payload* with
@@ -549,11 +704,11 @@ module Novika
         return entry
       end
 
-      each_relative(skip_self: true, &.flat_at?(name))
+      each_relative_fetch(skip_self: true, &.flat_at?(name))
     end
 
     def has_form_for?(name : Form) : Bool
-      !!each_relative { |block| block.flat_has?(name) || nil }
+      !!each_relative_fetch { |block| block.flat_has?(name) || nil }
     end
 
     def form_for?(name : Form) : Form?
