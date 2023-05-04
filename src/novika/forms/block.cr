@@ -131,30 +131,34 @@ module Novika
     #   recurses (via `visit?`) on the second echelon, effectively
     #   allowing lookup that is not limited in terms of depth.
     private def fetch_in_echelons?(block : Block) : T?
-      visited = @@block_map.acquire
+      echelon1 = @@block_map.acquire
 
       begin
         #
         # 1ST ECHELON: ask parents and friends and friends
         # of parents.
         #
-        each_connected_to(block, visited) do |each|
+        each_connected_to(block, echelon1) do |each|
           fetch?(each) { |form| return form }
         end
+
+        echelon2 = @@block_map.acquire
 
         #
         # 2ND ECHELON: **recurse** on parents and friends and
         # friends of parents of the 1ST ECHELON.
         #
-        visited.each_value do |block|
-          each_connected_to(block, visited) do |each|
+        echelon1.each_value do |block|
+          each_connected_to(block, echelon2) do |each|
             if form = visit?(each)
               return form
             end
           end
+          echelon2.clear
         end
       ensure
-        @@block_map.release(visited)
+        @@block_map.release(echelon1)
+        @@block_map.release(echelon2) if echelon2
       end
 
       nil

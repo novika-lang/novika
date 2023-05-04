@@ -36,6 +36,23 @@ describe 'essential lookup' [
 
     results [ 4 6 8 ] assert=
   ]
+
+  it should 'allow basic lookup cycles' [
+    [
+      [ x 1 + ] @: inc
+    ] obj $: a
+
+    [
+      100 $: x
+    ] obj $: b
+
+    a this befriend
+
+    a b adopt
+    b a adopt
+
+    a.inc 101 assert=
+  ]
 ]
 
 
@@ -224,7 +241,7 @@ describe 'Metawords capability inheritance' [
 
     pathToA disk:read replaceTheFuckingWindowsThing $: aContent
     pathToB disk:read replaceTheFuckingWindowsThing $: bContent
-    
+
     aContent '123.456\n' assert=
     bContent '456.123\n' assert=
 
