@@ -1,5 +1,8 @@
 # Novika
 
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://app.gitter.im/#/room/#novika-lang:gitter.im)
+
+
 <img src="img/logo.svg" align=right>
 
 > A language that doesn't affect the way you think about programming, is not worth knowing.
