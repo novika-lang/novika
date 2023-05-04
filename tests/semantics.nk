@@ -68,10 +68,7 @@ describe 'block friends' [
     [ fooI.z ] 'no value form for \'z\'' assertDies
 
     foo a unfriend
-    foo #open 2enclose this reparent
-    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ demonic crap related to
-      __died__ precedence. Maybe fixable, maybe not."
-      'no value form for \'bar\'' assertDies
+    [ foo open ] 'no value form for \'bar\'' assertDies
   ]
 
   it should 'support direct modification of friends' [
@@ -224,7 +221,7 @@ describe 'Metawords capability inheritance' [
 
     pathToA disk:read replaceTheFuckingWindowsThing $: aContent
     pathToB disk:read replaceTheFuckingWindowsThing $: bContent
-    
+
     aContent '123.456\n' assert=
     bContent '456.123\n' assert=
 
