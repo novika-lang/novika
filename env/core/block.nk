@@ -348,6 +348,21 @@
 ] @: adopt
 
 
+[ """( P `--` C -- C ): infix version of `adopt`.
+
+  ```
+  [ 100 $: x ] obj $: a
+  [ 200 $: y ] obj $: b
+
+  (a -- b -- a) drop
+  a -> [x y] leaves: [ [ 100 200 ] ]
+  b -> [x y] leaves: [ [ 100 200 ] ]
+  ```
+  """
+  ahead thruVal adopt
+] @: --
+
+
 [ "( B -- Cb ): leaves an empty Child block for Block. Very
    much like `new`, but doesn't copy the tape and therefore may
    be faster in certain circumstances."
