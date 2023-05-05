@@ -770,6 +770,13 @@ module Novika
       at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
     end
 
+    # Deletes the entry corresponding to *name* form from the
+    # dictionary of this block if it exists there. Otherwise,
+    # does nothing.
+    def delete(name : Form)
+      dict.del(name)
+    end
+
     # Schedules this block for execution in *engine* using the
     # safe scheduling method (see `Engine#schedule`). Optionally,
     # a *stack* block may be provided (otherwise, the *engine*'s

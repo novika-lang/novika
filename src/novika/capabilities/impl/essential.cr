@@ -1000,6 +1000,30 @@ module Novika::Capabilities::Impl
         Boolean[store.opens?(name)].onto(stack)
       end
 
+      target.at("entry:delete", <<-END
+      ( B N -- ): deletes the entry corresponding to Name form
+       from the dictionary of Block if it exists there. Otherwise,
+       does nothing.
+
+      ```
+      100 $: x
+
+      [ 200 $: x ] obj $: foo
+
+      "'x' of foo shadows 'x' of toplevel block"
+      foo.x leaves: 200
+
+      "Let's try to remove it so it doesn't:"
+      foo #x entry:delete
+      foo.x leaves: 100
+      ```
+      END
+      ) do |_, stack|
+        name = stack.drop
+        block = stack.drop.a(Block)
+        block.delete(name)
+      end
+
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
        of Block's tape and dictionary, and leaves a Copy block with
