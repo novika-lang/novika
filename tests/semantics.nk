@@ -48,8 +48,12 @@ describe 'essential lookup' [
 
     a this befriend
 
-    a b adopt
-    b a adopt
+    a -- a drop
+    [ a.inc ] 'definition for x not found in the enclosing block(s)' assertDies
+    200 $: x
+    a.inc 201 assert=
+
+    a -- b -- a drop
 
     a.inc 101 assert=
   ]
@@ -108,6 +112,66 @@ describe 'essential lookup' [
     c.y 200 assert=
     c.z 300 assert=
     c.perform 6000000 assert=
+
+    [ a.foo ] 'no value form for \'foo\'' assertDies
+    [ b.foo ] 'no value form for \'foo\'' assertDies
+    [ c.foo ] 'no value form for \'foo\'' assertDies
+  ]
+
+  it should 'behave as expected in long cyclic chains with edges severed at runtime' [
+    [ 100 $: x ] obj $: a
+    [ 123 $: x ] obj $: o
+    [ 200 $: y ] obj $: b
+    [ 345 $: y ] obj $: m
+    [ 300 $: z ] obj $: c
+
+    a -- o -- b -- c -- a drop
+
+    m toOrphan
+
+    c m befriend
+
+    a.x 100 assert= "in a"
+    a.y 200 assert= "in a -> c -> b"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert= "in b"
+    b.z 300 assert= "in b -> o -> a -> c"
+
+    c.x 123 assert= "in c -> b -> o"
+    c.y 200 assert= "in c -> b"
+    c.z 300 assert= "in c"
+
+    "Sever edge c -- b"
+    c toOrphan
+
+    a.x 100 assert= "in a"
+    a.y 345 assert= "in a -> c ·> m"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert= "in b"
+    b.z 300 assert= "in b -> o -> a -> c"
+
+    [ c.x ] 'no value form for \'x\'' assertDies
+    c.y 345 assert= "in c ·> m"
+    c.z 300 assert= "in c"
+
+    "Sever edge a -- o"
+    o toOrphan
+
+    a.x 100 assert= "in a"
+    a.y 345 assert= "in a -> c ·> m"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert=
+    [ b.z ] 'no value form for \'z\'' assertDies
+
+    [ c.x ] 'no value form for \'x\'' assertDies
+    c.y 345 assert= "in c ·> m"
+    c.z 300 assert= "in c"
   ]
 ]
 
