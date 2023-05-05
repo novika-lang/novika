@@ -495,8 +495,8 @@
 
 [ """( S B -- S ): extends Source block with entries from the dictionary
    of Body block, then instantiates Body block, befriends the instance
-   with Source, and opens Body block with an empty stack. When the Body
-   block instance finishes running, extends Source block with entries
+   with Source block, and opens Body block with an empty stack. When the
+   Body block instance finishes running, extends Source block with entries
    from the instance. Leaves Source block.
 
   All complexities and edge cases aside, this word is basically one of
