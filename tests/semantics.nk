@@ -173,6 +173,43 @@ describe 'essential lookup' [
     c.y 345 assert= "in c ·> m"
     c.z 300 assert= "in c"
   ]
+
+  it should 'submit properly with cycles, using extendWith' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+
+    a -- b -- a drop
+
+    a.x 100 assert=
+    a.y 200 assert=
+
+    a extend: [ 'hello' $: x
+                'world' =: y ]
+
+    a -> [x y] ['hello' 'world'] assert=
+    b -> [x y] ['hello' 'world'] assert=
+
+    b extend: [ x $: _x [ _x y ~ ] @: x ]
+
+    [ a._x ] 'no value form for \'_x\'' assertDies
+    [ b._x ] 'no value form for \'_x\'' assertDies
+
+    b.x 'helloworld' assert=
+    b.y 'world'
+
+    a.x 'hello' assert=
+    a.y 'world' assert=
+
+    a extend: [ y $: _y [ ' Y = ' _y ~ ] @: y ]
+
+    a.x 'hello' assert=
+    a.y ' Y = world' assert=
+
+    b #y entry:delete "B defines Y = 'world', let's delete that"
+
+    b.x 'hello Y = world' assert=
+    b.y ' Y = world' assert=
+  ]
 ]
 
 
