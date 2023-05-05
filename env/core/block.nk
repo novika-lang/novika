@@ -363,6 +363,33 @@
 ] @: --
 
 
+[ """( B ·> F -- F ): infix version of `befriend` that leaves
+   the *friend* for further chaining.
+
+  ```
+  [ 100 $: x ] obj $: a
+  [ 200 $: y ] obj $: b
+  a ·> b ·> a drop
+
+  a.x leaves: 100
+  a.y leaves: 200
+
+  b.x leaves: 100
+  b.y leaves: 200
+
+  a [ 'Hello World' =: x ] extend
+
+  a.x leaves: 'Hello World'
+  a.y leaves: 200
+
+  b.x leaves: 'Hello World'
+  b.y leaves: 200
+  ```
+  """
+  ahead thruVal dup <| befriend |>
+] @: ·>
+
+
 [ "( B -- Cb ): leaves an empty Child block for Block. Very
    much like `new`, but doesn't copy the tape and therefore may
    be faster in certain circumstances."
@@ -464,6 +491,101 @@
     [ 2drop             ] "Doesnt have, drop T N."
   br
 ] @: fetch:
+
+
+[ """( S B -- S ): extends Source block with entries from the dictionary
+   of Body block, then instantiates Body block, befriends the instance
+   with Source, and opens Body block with an empty stack. When the Body
+   block instance finishes running, extends Source block with entries
+   from the instance. Leaves Source block.
+
+  All complexities and edge cases aside, this word is basically one of
+  the ways to redefine/create/modify an entry through computation and
+  from another, possibly unrelated block (unrelated as in via the block
+  graph, that is).
+
+  **Important**: Source block is not extended with *private entries*
+  of Body block or Body block instance (that is, entries whose name
+  starts with _underscore). However, Body block does get access and
+  is able to reassign private entries of Source block.
+
+  See `extendWith:` for an example.
+  """
+  $: body $: source
+
+  "First and foremost, merge the prototype (ish) dictionary with
+   the dictionary of the source block."
+  source body mergeDicts
+
+  body new $: instance
+
+  instance source befriend
+    "Open manually: create an instance, move its cursor to 0,
+    create a continuation, and hydrate with an empty orphan stack."
+    orphan (instance (dup 0 |to)) hydrate!
+
+    "Merge dictionaries of the instance after opening with source
+    block. Note that mergeDicts does not merge private entries,
+    i.e. entries starting with _underscore!"
+    source instance mergeDicts
+
+  source
+] @: extendWith
+
+
+[ """( S extendWith: B -- S ): infix version of `extendWith`.
+
+  ```
+  [ 100 $: x ] obj $: a
+  [ 200 $: y ] obj $: b
+
+  a ·> b ·> a drop
+
+  a.x a.y leaves: [ 100 200 ]
+  b.x b.y leaves: [ 100 200 ]
+
+  a extendWith: [ [ y y * ] @: x ] drop
+  b extendWith: [ 4 =: y ] drop
+
+  a.x a.y leaves: [ 16 4 ]
+  b.x b.y leaves: [ 16 4 ]
+
+  b extendWith: [ 100 $: y ] drop
+
+  a.x a.y leaves: [ 10000 100 ]
+  b.x b.y leaves: [ 10000 100 ]
+  ```
+  """
+  ahead thruLitBlock extendWith
+] @: extendWith:
+
+
+[ """( S extend: B -- ): an alternative infix version of `extendWith`
+   which doesn't leave anything.
+
+  ```
+  [ 100 $: x ] obj $: a
+  [ 200 $: y ] obj $: b
+
+  a ·> b ·> a drop
+
+  a.x a.y leaves: [ 100 200 ]
+  b.x b.y leaves: [ 100 200 ]
+
+  a extend: [ [ y y * ] @: x ]
+  b extend: [ 4 =: y ]
+
+  a.x a.y leaves: [ 16 4 ]
+  b.x b.y leaves: [ 16 4 ]
+
+  b extend: [ 100 $: y ]
+
+  a.x a.y leaves: [ 10000 100 ]
+  b.x b.y leaves: [ 10000 100 ]
+  ```
+  """
+  ahead thruLitBlock extendWith drop
+] @: extend:
 
 
 [ """( Lb B -- Lb ): slides cursor in List block from left

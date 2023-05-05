@@ -411,6 +411,31 @@ describe 'surroundedBy?' [
 ]
 
 
+describe '·>' [
+  in lang
+
+  it should 'function the same as \'befriend\'' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+    a ·> b ·> a drop
+
+    a.x 100 assert=
+    a.y 200 assert=
+
+    b.x 100 assert=
+    b.y 200 assert=
+
+    a extendWith: [ 'Hello World' =: x ]
+
+    a.x 'Hello World' assert=
+    a.y 200 assert=
+
+    b.x 'Hello World' assert=
+    b.y 200 assert=
+  ]
+]
+
+
 describe 'child' [
   in lang
 
@@ -561,6 +586,151 @@ describe 'fetch:' [
     sumVal open 300 assert=
   ]
 ]
+
+describe 'extendWith' [
+  in lang
+
+  it should 'open the body block' [
+    [ 100 $: x ] obj $: b
+    [ b extendWith: [ 'opened' die ] ] 'opened' assertDies
+
+    stack count 0 assert=
+  ]
+
+  it should 'merge dictionaries of source and body blocks' [
+    [ 100 $: x ] obj $: b
+
+    b.x 100 assert=
+    [ b.y ] 'no value form for \'y\'' assertDies
+
+    [ b extendWith: [ 200 $: y ] ] vals $: s
+    (s count) 1 assert=
+    (s top) b same? true assert=
+
+    b.x 100 assert=
+    b.y 200 assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'allow to submit into source block' [
+    [ 100 $: x ] obj $: b
+    b.x 100 assert=
+
+    b extendWith: [ 200 =: x ] b same? true assert=
+    b.x 200 assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'allow to overwrite entry type' [
+    [ [ 1 2 + ] $: x ] obj $: b
+    b.x [ 1 2 + ] assert=
+
+    b extendWith: [ [ 3 4 + ] @: x ] b same? true assert=
+    b.x 7 assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'keep body block parent/friends the same' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+
+    123 $: z
+
+    [ x $: a
+      y $: b
+      z $: c ] $: bodyBlock
+
+    bodyBlock ·> a drop
+    bodyBlock ·> b drop
+
+    [ 'a' $: a
+      'b' $: b
+      'c' $: c
+      'd' $: d ] obj extendWith: bodyBlock $: foo
+
+    foo.a 100 assert=
+    foo.b 200 assert=
+    foo.c 123 assert=
+    foo.d 'd' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'extend with body block prototype\'s entries' [
+    [ ] extendWith: [ 100 $: x
+                      200 $: y ] $: bb
+
+    bb.x 100 assert=
+    bb.y 200 assert=
+
+    [ 'foo' $: c ] obj extendWith: bb $: foo1
+    foo1.x 100 assert=
+    foo1.y 200 assert=
+    foo1.c 'foo' assert=
+
+    [ x y + $: c ] bb resub
+
+    [ 'foo' $: c ] obj extendWith: bb $: foo2
+    foo2.x 100 assert=
+    foo2.y 200 assert=
+    foo2.c 300 assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'run example from docs' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+
+    a ·> b ·> a drop
+
+    [ a.x a.y ] vals [ 100 200 ] assert=
+    [ b.x b.y ] vals [ 100 200 ] assert=
+
+    a extendWith: [ [ y y * ] @: x ] drop
+    b extendWith: [ 4 =: y ] drop
+
+    [ a.x a.y ] vals [ 16 4 ] assert=
+    [ b.x b.y ] vals [ 16 4 ] assert=
+
+    b extendWith: [ 100 $: y ] drop
+
+    [ a.x a.y ] vals [ 10000 100 ] assert=
+    [ b.x b.y ] vals [ 10000 100 ] assert=
+
+    stack count 0 assert=
+  ]
+]
+
+
+describe 'extend:' [
+  in lang
+
+  it should 'work like \'extendWith:\' but keep the stack clean' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+
+    a ·> b ·> a drop
+
+    [ a.x a.y ] vals [ 100 200 ] assert=
+    [ b.x b.y ] vals [ 100 200 ] assert=
+
+    a extend: [ [ y y * ] @: x ]
+    b extend: [ 4 =: y ]
+
+    [ a.x a.y ] vals [ 16 4 ] assert=
+    [ b.x b.y ] vals [ 16 4 ] assert=
+
+    b extend: [ 100 $: y ]
+
+    [ a.x a.y ] vals [ 10000 100 ] assert=
+    [ b.x b.y ] vals [ 10000 100 ] assert=
+  ]
+]
+
 
 describe '|slideRight' [
   in lang
