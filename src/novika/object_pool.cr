@@ -3,6 +3,8 @@ module Novika
   #
   # https://gist.github.com/floere/3121579
   struct ObjectPool(T)
+    # TODO: concurrency: protect with a mutex
+
     def initialize(@create : -> T, @clear : T -> T)
       @free = {} of UInt64 => T
       @used = {} of UInt64 => T

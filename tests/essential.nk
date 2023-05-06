@@ -283,6 +283,30 @@ describe 'entry:delete' [
 ]
 
 
+describe 'entry:pathTo?' [
+  in lang
+
+  it should 'run the example from docs' [
+    [ 100 $: x  'a' $: __quote__ ] obj $: a
+    [ 200 $: y  'b' $: __quote__ ] obj $: b
+    [ 300 $: z  'c' $: __quote__ ] obj $: c
+
+    a -- b -- c drop
+
+    [ a #x entry:pathTo? ] vals sepBy: ' ' '[ a ] 100 true' assert=
+    [ b #x entry:pathTo? ] vals sepBy: ' ' '[ b a ] 100 true' assert=
+    [ c #x entry:pathTo? ] vals sepBy: ' ' '[ c b a ] 100 true' assert=
+
+    [ b #y entry:pathTo? ] vals sepBy: ' ' '[ b ] 200 true' assert=
+    [ c #y entry:pathTo? ] vals sepBy: ' ' '[ c b ] 200 true' assert=
+
+    [ c #z entry:pathTo? ] vals sepBy: ' ' '[ c ] 300 true' assert=
+
+    [ c #foo entry:pathTo? ] vals sepBy: ' ' 'false' assert=
+  ]
+]
+
+
 describe 'shallowCopy' [
   in lang
 

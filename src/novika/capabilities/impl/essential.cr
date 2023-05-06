@@ -1024,6 +1024,51 @@ module Novika::Capabilities::Impl
         block.delete(name)
       end
 
+      target.at("entry:pathTo?", <<-END
+      ( B N -- P F true / false ): leaves Path, a block describing the
+       path to Form (including Block itself) under the corresponding
+       Name (like `entry:fetch?`). Follows Path and Form with `true`
+       indicating success, otherwise *only* `false` indicating that
+       there is no Form corresponding to Name in Block or any of the
+       blocks reachable from Block.
+
+      This word exists mainly for testing word lookup sanity. Feel free
+      to use it if you find any reason to!
+
+      ```
+      [ 100 $: x  'a' $: __quote__ ] obj $: a
+      [ 200 $: y  'b' $: __quote__ ] obj $: b
+      [ 300 $: z  'c' $: __quote__ ] obj $: c
+
+      a -- b -- c drop
+
+      [ a #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ a ] 100 true'
+      [ b #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ b a ] 100 true'
+      [ c #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ c b a ] 100 true'
+
+      [ b #y entry:pathTo? ] vals sepBy: ' ' leaves: '[ b ] 200 true'
+      [ c #y entry:pathTo? ] vals sepBy: ' ' leaves: '[ c b ] 200 true'
+
+      [ c #z entry:pathTo? ] vals sepBy: ' ' leaves: '[ c ] 300 true'
+
+      [ c #foo entry:pathTo? ] vals sepBy: ' ' leaves: 'false'
+      ```
+      END
+      ) do |_, stack|
+        name = stack.drop
+        block = stack.drop.a(Block)
+
+        unless result = block.path_to_entry?(name)
+          Boolean[false].onto(stack)
+          next
+        end
+
+        needle, path = result
+        path.onto(stack)
+        needle.onto(stack)
+        Boolean[true].onto(stack)
+      end
+
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
        of Block's tape and dictionary, and leaves a Copy block with
