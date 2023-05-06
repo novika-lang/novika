@@ -684,12 +684,29 @@ module Novika
     def each_relative_fetch(payload : Block -> T?, seen : BlockIdMap? = nil, skip_self = false, history = nil) forall T
       return unless !skip_self || has_relatives?
 
+      # If history is enabled we're screwed with the fast paths.
+      unless history
+        # This branch is taken 80% of the time when running tests.
+        v0 = skip_self ? nil : self
+        v1 = parent?
+        v2 = v1.try &.parent?
+        v3 = v2.try &.parent?
+        v4 = v3.try &.parent?
+
+        {v0, v1, v2, v3, v4}.each do |fastpath|
+          next unless fastpath
+          next unless value = payload.call(fastpath)
+          return value
+        end
+      end
+
       acquired = seen.nil?
       seen ||= BlockMaps.acquire
 
       begin
         fetch = EachRelativeFetch(T).new(payload, seen, history)
-        fetch.on(self, skip: skip_self)
+        # FIXME: skip v1 v2 v3 v4 (v0 is already skipped)
+        fetch.on(self, skip: history.nil?)
       ensure
         BlockMaps.release(seen) if acquired
       end
