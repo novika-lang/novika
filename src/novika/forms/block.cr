@@ -11,6 +11,47 @@ module Novika
     clear: ->(map : BlockIdMap) { map.clear }
   )
 
+  # The amount of ignored parent blocks for circumventing heavy
+  # lookup artillery: query self + P_IAMT parents first before
+  # resorting to heavier graph exploration.
+  #
+  # Must be greater than 1.
+  private P_IAMT = 8
+
+  {% begin %}
+    # :nodoc:
+    record PIlist, {% for i in 1..P_IAMT %} v{{i}} : Block?, {% end %} do
+      # Creates a new adjacent ignore list starting from *prev*.
+      macro make(prev)
+        PIlist.new(
+          prev = \{{prev}}.parent?,
+          {% for i in 2..P_IAMT %}
+            prev &&= prev.parent?,
+          {% end %}
+        )
+      end
+
+      # Yields *v0* if it is not nil, followed by blocks in this
+      # parent ignore list before the first nil block.
+      def each(v0 = nil, &)
+        yield v0 if v0
+
+        {% for i in 1..P_IAMT %}
+          yield (v{{i}} || return)
+        {% end %}
+      end
+
+      # Returns whether to ignore the given *block*.
+      def ignore?(block : Block) : Bool
+        {% for i in 1..P_IAMT %}
+          v{{i}}.same?(block) ||
+        {% end %}
+
+        false
+      end
+    end
+  {% end %}
+
   # Executes a fetcher callback on every visited vertex in the
   # block graph starting from an entrypoint block, until the
   # callback returns `T`, or until there are no more blocks
@@ -194,6 +235,9 @@ module Novika
     # *push* is a toggle determining whether to push *block*
     # to history, if history is turned on.
     #
+    # *p_ilist* is a list of immediately adjacent blocks
+    # to ignore. See `PIlist` and `P_IAMT`.
+    #
     # - The first echelon is parents and friends and friends
     #   of parents of *block*.
     #
@@ -203,8 +247,8 @@ module Novika
     #   lookup that is not limited in terms of depth.
     #
     # All this results in sometimes odd-*looking*, but generally
-    # *correct* traversals of the graph.
-    private def fetch_in_echelons?(block : Block, push = true) : T?
+    # *correct* and even *expected* traversals of the graph.
+    private def fetch_in_echelons?(block : Block, push = true, p_ilist : PIlist? = nil) : T?
       echelon1 = BlockMaps.acquire
 
       try_push(block, push) do
@@ -213,6 +257,8 @@ module Novika
         # of parents.
         #
         each_adjacent(block, echelon1) do |adj|
+          next if p_ilist && p_ilist.ignore?(adj)
+
           fetch?(adj) { |form| return form }
         end
 
@@ -245,12 +291,22 @@ module Novika
     end
 
     # Executes the fetcher callback on every visited vertex in
-    # the block graph starting from an *entrypoint* block, until
-    # the callback returns `T`, or all reachable blocks in the
-    # graph are exhausted.
-    def on(entrypoint : Block, skip = false) : T?
-      fetch?(entrypoint, push: true) { |form| return form } unless skip
+    # the block graph starting from an *entrypoint* block, and
+    # until the callback returns `T`, or until exhausted all
+    # reachable vertices.
+    def on(entrypoint : Block, ignore : Nil) : T?
+      fetch?(entrypoint, push: true) { |form| return form }
       fetch_in_echelons?(entrypoint)
+    end
+
+    # Same as `on(entrypoint : Block, ignore : Nil)`, the difference
+    # being that immediately adjacent block *ignore* list is taken
+    # into account.
+    #
+    # Note that *entrypoint* is also ignored even though it is not
+    # specified in the *ignore* list.
+    def on(entrypoint : Block, ignore : PIlist) : T?
+      fetch_in_echelons?(entrypoint, p_ilist: ignore)
     end
   end
 
@@ -658,44 +714,54 @@ module Novika
     end
 
     # Explores this block's relatives, i.e., its vertical (parent) and
-    # horizontal (friend) hierarchy neighbors, calls *payload* with
-    # each such relative.
+    # horizontal (friend) hierarchy, calls *fetcher* on each relative.
+    # This process is also known as the exploration of the block graph,
+    # where this block is the origin of exploration.
     #
-    # When *payload* returns a value of type *T* (a non-nil),
-    # exploration terminates. When *payload* returns nil, exploration
+    # If *fetcher* returns a value of type `T` (a non-nil) for the given
+    # block, exploration terminates. If *fetcher* returns nil, exploration
     # continues.
     #
-    # The order is as follows, and is exactly Novika's *lookup order*.
-    # Note that here, "yielded X" means "called *payload* with X".
+    # The order of exploration is roughly as follows:
     #
-    # - First, this block is yielded.
-    # - Then, the parent blocks of this block are yielded, starting
-    #   from the immediate parent and ending with the toplevel (god)
-    #   block.
-    # - Then, this method recurses on friends of this block.
-    # - Then, this method recurses on friends of parent blocks.
+    # - The first echelon is explored: the parents, friends, and friends
+    #   of parents of this block are explored.
+    #
+    # - The second echelon is explored: the parents, friends, and
+    #   friends of parents of the blocks in first echelon are explored
+    #   by recursing on each, effectively allowing lookup that is unlimited
+    #   in terms of depth.
     #
     # *seen* can be used to disable exploration of specific blocks,
-    # together with their (unexplored) vertical and horizontal
-    # hierarchy.
+    # also blocking off the exploration of their relatives (if they
+    # were not otherwise reached already).
     #
-    # *skip_self* can be set to true to disable calling *payload* for
-    # this block, and only in this particular `each_relative_fetch` call.
-    def each_relative_fetch(payload : Block -> T?, seen : BlockIdMap? = nil, skip_self = false, history = nil) forall T
+    # *skip_self* can be set to true to disable calling *fetcher* for
+    # this block in this particular `each_relative_fetch` call. If this
+    # block  is reached by other means (e.g. as in `self -- other -- self`),
+    # *fetcher* is still going to be called.
+    #
+    # *history*, a block, can optionally be provided. It will hold all
+    # explored blocks leading to the "discovery" of `T`.
+    def each_relative_fetch(
+      fetcher : Block -> T?,
+      seen : BlockIdMap? = nil,
+      skip_self : Bool = false,
+      history : Block? = nil
+    ) forall T
       return unless !skip_self || has_relatives?
 
       # If history is enabled we're screwed with the fast paths.
       unless history
-        # This branch is taken 80% of the time when running tests.
+        #
+        # This branch is taken 98% of the time when running
+        # `novika tests`.
+        #
         v0 = skip_self ? nil : self
-        v1 = parent?
-        v2 = v1.try &.parent?
-        v3 = v2.try &.parent?
-        v4 = v3.try &.parent?
 
-        {v0, v1, v2, v3, v4}.each do |fastpath|
-          next unless fastpath
-          next unless value = payload.call(fastpath)
+        ilist = PIlist.make(self)
+        ilist.each(v0) do |fastpath|
+          next unless value = fetcher.call(fastpath)
           return value
         end
       end
@@ -704,17 +770,16 @@ module Novika
       seen ||= BlockMaps.acquire
 
       begin
-        fetch = EachRelativeFetch(T).new(payload, seen, history)
-        # FIXME: skip v1 v2 v3 v4 (v0 is already skipped)
-        fetch.on(self, skip: history.nil?)
+        fetch = EachRelativeFetch(T).new(fetcher, seen, history)
+        fetch.on(self, ignore: ilist)
       ensure
         BlockMaps.release(seen) if acquired
       end
     end
 
     # :ditto:
-    def each_relative_fetch(*args, **kwargs, &payload : Block -> T?) forall T
-      each_relative_fetch(payload, *args, **kwargs)
+    def each_relative_fetch(*args, **kwargs, &fetcher : Block -> T?) forall T
+      each_relative_fetch(fetcher, *args, **kwargs)
     end
 
     # Explores neighbor blocks of this block, calls *payload* with
