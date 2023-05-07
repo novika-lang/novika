@@ -21,7 +21,7 @@ module Novika
   {% begin %}
     # :nodoc:
     record PIlist, {% for i in 1..P_IAMT %} v{{i}} : Block?, {% end %} do
-      # Creates a new adjacent ignore list starting from *prev*.
+      # Creates a new parent ignore list starting from *prev*.
       macro make(prev)
         PIlist.new(
           prev = \{{prev}}.parent?,
@@ -52,22 +52,23 @@ module Novika
     end
   {% end %}
 
-  # Executes a fetcher callback on every visited vertex in the
-  # block graph starting from an entrypoint block, until the
-  # callback returns `T`, or until there are no more blocks
-  # to explore.
+  # Executes a fetcher callback on every visited vertex in the block
+  # graph starting from an entrypoint block, until the callback returns
+  # `T`, or until there are no more blocks to explore.
   #
-  # The quintessence of Novika, when looking up a *single* entry
-  # takes a 70+ LoC object and a bunch of heap.
+  # The quintessence of Novika, when looking up a *single* entry takes
+  # a 70+ LoC object and a bunch of heap. Don't worry though; this is
+  # the heavy artillery and it is not reached during simple lookup cases
+  # (and most of Novika code consists of such simple cases).
   #
-  # What is done here is a weird combination of DFS and BFS that
-  # also tracks everything so as to not fall into an infinite loop.
-  # All this complexity arose for historical reasons and simply for
-  # (the user's!) convenience.
+  # What is done here is a weird combination of DFS and BFS that also
+  # tracks everything so as to not follow cyclic references forever.
+  # All this complexity arose for historical reasons (a bunch of random
+  # decisions, really) and simply for (the user's!) convenience.
   #
   # Parent-based lookup is a DFS under the hood, and friends lookup
   # is BFS-ish. And then all this recurses, and voilá! Don't break
-  # your neck if you do leap!
+  # your neck if you do choose to leap!
   struct EachRelativeFetch(T)
     def initialize(@fetcher : Block -> T?, @marked : BlockIdMap, @history : Block? = nil)
     end
@@ -134,6 +135,13 @@ module Novika
     # If the fetcher returns a `T` given *block*, yields the `T`.
     # Otherwise, marks the block as seen (visited), and returns nil.
     private def fetch?(block : Block, push = false, & : -> T?) : T?
+      # Early return (i.e. if block is marked already) is possible but
+      # unwanted here, because it's going to be hit 1%-ish of the time
+      # (believe me, won't you?!)
+      #
+      # This means that we'll be doing a somewhat expensive but totally
+      # useless lookup 99% of the time. There's no point to.
+
       try_push(block, push) do
         next unless form = @fetcher.call(block)
         return yield form
@@ -737,9 +745,9 @@ module Novika
     # were not otherwise reached already).
     #
     # *skip_self* can be set to true to disable calling *fetcher* for
-    # this block in this particular `each_relative_fetch` call. If this
-    # block  is reached by other means (e.g. as in `self -- other -- self`),
-    # *fetcher* is still going to be called.
+    # this block. Note that if this block is reached by other means
+    # (e.g. as in `self -- other -- self`), *fetcher* is still going
+    # to be called.
     #
     # *history*, a block, can optionally be provided. It will hold all
     # explored blocks leading to the "discovery" of `T`.
@@ -770,7 +778,7 @@ module Novika
       seen ||= BlockMaps.acquire
 
       begin
-        fetch = EachRelativeFetch(T).new(fetcher, seen, history)
+        fetch = EachRelativeFetch.new(fetcher, seen, history)
         fetch.on(self, ignore: ilist)
       ensure
         BlockMaps.release(seen) if acquired
@@ -786,21 +794,21 @@ module Novika
     # each such neighbor block. Records all neighbors it visited in
     # *visited*.
     #
-    # *Explicitly adjacent* (marked as *ExA1-2* in the diagram below)
+    # *Explicitly nested* (marked as *ExN1-2* in the diagram below)
     # neighbor blocks are blocks found in the dictionary and tape of
     # this block (marked as *B* in the diagram below).
     #
-    # *Implicitly adjacent* (marked as *ImA1-4* in the diagram below)
+    # *Implicitly nested* (marked as *ImN1-4* in the diagram below)
     # neighbor blocks are blocks in the tapes and dictionaries of
-    # explicitly adjacent neighbor blocks, and so on, recursively.
+    # explicitly nested neighbor blocks, and so on, recursively.
     #
     # ```text
     # ┌───────────────────────────────────────┐
     # │ B                                     │
     # │  ┌───────────────┐ ┌───────────────┐  │
-    # │  │ ExA1          │ │ ExA2          │  │
+    # │  │ ExN1          │ │ ExN2          │  │
     # │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
-    # │  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+    # │  │ │ImN1│ │ImN2│ │ │ │ImN3│ │ImN4│ │  │
     # │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
     # │  │    ...    ... │ │    ...    ... │  │
     # │  └───────────────┘ └───────────────┘  │
