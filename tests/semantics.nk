@@ -36,6 +36,313 @@ describe 'essential lookup' [
 
     results [ 4 6 8 ] assert=
   ]
+
+  it should 'allow basic lookup cycles' [
+    [
+      [ x 1 + ] @: inc
+    ] obj $: a
+
+    [
+      100 $: x
+    ] obj $: b
+
+    a this befriend
+
+    a -- a drop
+    [ a.inc ] 'definition for x not found in the enclosing block(s)' assertDies
+    200 $: x
+    a.inc 201 assert=
+
+    a -- b -- a drop
+
+    a.inc 101 assert=
+  ]
+
+  it should 'allow more involved lookup/friend cycles' [
+    [ 100 $: x [ [ x y z ] here sum ] @: perform ] obj $: a
+    [ 200 $: y [ [ x y z ] here product ] @: perform ] obj $: b
+    [ 300 $: z ] obj $: c
+
+    a -- b -- c -- a drop
+
+    a this befriend
+
+    a b befriend
+    b a befriend
+
+    b c befriend
+    c b befriend
+
+    a parent c same? true assert=
+
+    a.x 100 assert=
+    a.y 200 assert=
+    a.z 300 assert=
+    a.perform 600 assert=
+
+    b.x 100 assert=
+    b.y 200 assert=
+    b.z 300 assert=
+    b.perform 6000000 assert=
+
+    c.x 100 assert=
+    c.y 200 assert=
+    c.z 300 assert=
+    c.perform 6000000 assert=
+
+    [ a.foo ] 'no value form for \'foo\'' assertDies
+    [ b.foo ] 'no value form for \'foo\'' assertDies
+    [ c.foo ] 'no value form for \'foo\'' assertDies
+  ]
+
+  it should 'behave as expected in long cyclic chains with edges severed at runtime' [
+    [ 100 $: x ] obj $: a
+    [ 123 $: x ] obj $: o
+    [ 200 $: y ] obj $: b
+    [ 345 $: y ] obj $: m
+    [ 300 $: z ] obj $: c
+
+    a -- o -- b -- c -- a drop
+
+    m toOrphan drop
+
+    c m befriend
+
+    a.x 100 assert= "in a"
+    a.y 200 assert= "in a -> c -> b"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert= "in b"
+    b.z 300 assert= "in b -> o -> a -> c"
+
+    c.x 123 assert= "in c -> b -> o"
+    c.y 200 assert= "in c -> b"
+    c.z 300 assert= "in c"
+
+    "Sever edge c -- b"
+    c toOrphan drop
+
+    a.x 100 assert= "in a"
+    a.y 345 assert= "in a -> c ·> m"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert= "in b"
+    b.z 300 assert= "in b -> o -> a -> c"
+
+    [ c.x ] 'no value form for \'x\'' assertDies
+    c.y 345 assert= "in c ·> m"
+    c.z 300 assert= "in c"
+
+    "Sever edge a -- o"
+    o toOrphan drop
+
+    a.x 100 assert= "in a"
+    a.y 345 assert= "in a -> c ·> m"
+    a.z 300 assert= "in a -> c"
+
+    b.x 123 assert= "in b -> o"
+    b.y 200 assert=
+    [ b.z ] 'no value form for \'z\'' assertDies
+
+    [ c.x ] 'no value form for \'x\'' assertDies
+    c.y 345 assert= "in c ·> m"
+    c.z 300 assert= "in c"
+
+    stack count 0 assert=
+  ]
+
+  it should 'submit properly with cycles, using extendWith' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+
+    a -- b -- a drop
+
+    a.x 100 assert=
+    a.y 200 assert=
+
+    a extend: [ 'hello' $: x
+                'world' =: y ]
+
+    a -> [x y] ['hello' 'world'] assert=
+    b -> [x y] ['hello' 'world'] assert=
+
+    b extend: [ x $: _x [ _x y ~ ] @: x ]
+
+    [ a._x ] 'no value form for \'_x\'' assertDies
+    [ b._x ] 'no value form for \'_x\'' assertDies
+
+    b.x 'helloworld' assert=
+    b.y 'world' assert=
+
+    a.x 'hello' assert=
+    a.y 'world' assert=
+
+    a extend: [ y $: _y [ ' Y = ' _y ~ ] @: y ]
+
+    a.x 'hello' assert=
+    a.y ' Y = world' assert=
+
+    b.x 'helloworld' assert=
+    b.y 'world' assert=
+
+    b #y entry:delete "B defines Y = 'world', let's delete that"
+
+    b.x 'hello Y = world' assert=
+    b.y ' Y = world' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'support simple friendship cycles' [
+    [ 100 $: x ] obj $: a
+    [ 200 $: y ] obj $: b
+    [ 300 $: x 'foo' $: z ] obj $: m
+
+    a -- b -- a drop
+    b ·> m ·> b drop
+
+    [ a.x a.y a.z ] vals [ 100 200 'foo' ] assert=
+    [ b.x b.y b.z ] vals [ 100 200 'foo' ] assert=
+    [ m.x m.y m.z ] vals [ 300 200 'foo' ] assert=
+
+    stack count 0 assert=
+  ]
+
+  [ "( B F P -- )"
+     this ahead reparent drop "HACK"
+
+    $: expectedPath
+    $: mirrorForm
+
+    mirrorForm entry:pathTo? true assert=
+
+    mirrorForm assert=
+    expectedPath vals assert=
+  ] @: assertPath
+
+  it should 'reach in more complex friendship cycles/graphs' [
+    [ #x1 $: x1 'a' $: __quote__ ] obj $: a
+    [ #y1 $: y1 'b' $: __quote__ ] obj $: b
+    [ #z1 $: z1 'c' $: __quote__ ] obj $: c
+
+    [ #x2 $: x2 'm' $: __quote__ ] obj $: m
+    [ #y2 $: y2 'n' $: __quote__ ] obj $: n
+
+    [ #x3 $: x3 'q' $: __quote__ ] obj $: q
+
+    "You don't normally see these kinds of graphs, of course.
+     This is just too complex."
+    a -- b -- c -- q drop
+
+    m toOrphan drop
+    m -- n drop
+    m ·> q drop
+
+    """
+    Note: the search for entries is not intelligent (although it very well
+    could have been!), so it simply does a DFS plus some BFS (yeah...) until
+    a definition is found, or no more nodes remain. Unfortunately there is
+    no heuristic (yet) as to where the entry is assumed to be found.
+    """
+
+    a ·> m drop
+    a ·> n drop
+
+    b ·> m drop
+    b ·> n drop
+
+    c ·> m drop
+    c ·> n drop
+
+    """
+    Check reachability of x1, y1, z1 from ALL vertices.
+    """
+
+    a #x1 [ a ] assertPath
+    a #y1 [ a n m q c b ] assertPath "a ·> n ·> m ·> q -> c -> b"
+    a #z1 [ a n m q c ] assertPath "a ·> n ·> m ·> q -> c"
+
+    b #x1 [ b a ] assertPath "b -> a"
+    b #y1 [ b ] assertPath
+    b #z1 [ b n m q c ] assertPath "b ·> n -> m ·> q -> c"
+
+    c #x1 [ c b a ] assertPath "c -> b -> a"
+    c #y1 [ c b ] assertPath "c -> b"
+    c #z1 [ c ] assertPath
+
+    m #x1 [ m q c b a ] assertPath "m ·> q -> c -> b -> a"
+    m #y1 [ m q c b ] assertPath "m ·> q -> c -> b"
+    m #z1 [ m q c ] assertPath "m ·> q -> c"
+
+    n #x1 [ n q c b a ] assertPath "n (-> m) ·> q -> c -> b -> a"
+    n #y1 [ n q c b ] assertPath "n (-> m) ·> q -> c -> b"
+    n #z1 [ n q c ] assertPath "n (-> m) ·> q -> c"
+
+    q #x1 [ q c b a ] assertPath "q -> c -> b -> a"
+    q #y1 [ q c b ] assertPath "q -> c -> b"
+    q #z1 [ q c ] assertPath "q -> c"
+
+    """
+    Check reachability of x2, y2 from ALL vertices.
+    """
+
+    a #x2 [ a m ] assertPath "a ·> m"
+    a #y2 [ a n ] assertPath "a ·> n"
+
+    b #x2 [ b m ] assertPath "b ·> m"
+    b #y2 [ b n ] assertPath "b ·> n"
+
+    c #x2 [ c m ] assertPath "c ·> m"
+    c #y2 [ c n ] assertPath "c ·> n"
+
+    m #x2 [ m ] assertPath
+    m #y2 [ m q c n ] assertPath "m ·> q -> c ·> n"
+
+    n #x2 [ n m ] assertPath "n -> m"
+    n #y2 [ n ] assertPath
+
+    q #x2 [ q c m ] assertPath "q -> c ·> m"
+    q #y2 [ q c n ] assertPath "q -> c ·> n"
+
+    a #x3 [ a n m q ] assertPath "a ·> n -> m ·> q"
+    b #x3 [ b n m q ] assertPath "b ·> n -> m ·> q"
+    c #x3 [ c n m q ] assertPath "c ·> n -> m ·> q"
+
+    m #x3 [ m q ] assertPath "m ·> q"
+    n #x3 [ n m q ] assertPath "n ·> q"
+
+    q #x3 [ q ] assertPath
+
+    [ a.foo ] 'no value form for \'foo\'' assertDies
+    [ b.foo ] 'no value form for \'foo\'' assertDies
+    [ c.foo ] 'no value form for \'foo\'' assertDies
+    [ m.foo ] 'no value form for \'foo\'' assertDies
+    [ n.foo ] 'no value form for \'foo\'' assertDies
+    [ q.foo ] 'no value form for \'foo\'' assertDies
+
+    stack count 0 assert=
+  ]
+
+  it should 'allow friend-parent cycles' [
+    [ #x $: x ] obj $: a
+    [ #y $: y ] obj $: b
+
+    a -- b -- a drop
+    a ·> b ·> a drop
+
+    a #x [ a ] assertPath
+    a #y [ a b ] assertPath
+
+    b #x [ b a ] assertPath
+    b #y [ b ] assertPath
+
+    [ a.foo ] 'no value form for \'foo\'' assertDies
+    [ b.foo ] 'no value form for \'foo\'' assertDies
+
+    stack count 0 assert=
+  ]
 ]
 
 

@@ -3,6 +3,321 @@ module Novika
   # comments. Perfer `Form#effect` over matching by hand.
   EFFECT_PATTERN = /^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/
 
+  # A pool of `BlockIdMap` objects.
+  #
+  # You generally don't need to touch this.
+  BlockMaps = ObjectPool(BlockIdMap).new(
+    create: ->{ BlockIdMap.new },
+    clear: ->(map : BlockIdMap) { map.clear }
+  )
+
+  # The amount of ignored parent blocks for circumventing heavy
+  # lookup artillery: query self + P_IAMT parents first before
+  # resorting to heavier graph exploration.
+  #
+  # Must be greater than 1.
+  private P_IAMT = 8
+
+  {% begin %}
+    # :nodoc:
+    record PIlist, {% for i in 1..P_IAMT %} v{{i}} : Block?, {% end %} do
+      # Creates a new parent ignore list starting from *prev*.
+      macro make(prev)
+        PIlist.new(
+          prev = \{{prev}}.parent?,
+          {% for i in 2..P_IAMT %}
+            prev &&= prev.parent?,
+          {% end %}
+        )
+      end
+
+      # Yields *v0* if it is not nil, followed by blocks in this
+      # parent ignore list before the first nil block.
+      def each(v0 = nil, &)
+        yield v0 if v0
+
+        {% for i in 1..P_IAMT %}
+          yield (v{{i}} || return)
+        {% end %}
+      end
+
+      # Returns whether to ignore the given *block*.
+      def ignore?(block : Block) : Bool
+        {% for i in 1..P_IAMT %}
+          v{{i}}.same?(block) ||
+        {% end %}
+
+        false
+      end
+    end
+  {% end %}
+
+  # Executes a fetcher callback on every visited vertex in the block
+  # graph starting from an entrypoint block, until the callback returns
+  # `T`, or until there are no more blocks to explore.
+  #
+  # The quintessence of Novika, when looking up a *single* entry takes
+  # a 70+ LoC object and a bunch of heap. Don't worry though; this is
+  # the heavy artillery and it is not reached during simple lookup cases
+  # (and most of Novika code consists of such simple cases).
+  #
+  # What is done here is a weird combination of DFS and BFS that also
+  # tracks everything so as to not follow cyclic references forever.
+  # All this complexity arose for historical reasons (a bunch of random
+  # decisions, really) and simply for (the user's!) convenience.
+  #
+  # Parent-based lookup is a DFS under the hood, and friends lookup
+  # is BFS-ish. And then all this recurses, and voilá! Don't break
+  # your neck if you do choose to leap!
+  struct EachRelativeFetch(T)
+    def initialize(@fetcher : Block -> T?, @marked : BlockIdMap, @history : Block? = nil)
+    end
+
+    # Unconditionally pushes *block* to history if history is
+    # enabled. Otherwise, a noop.
+    private def try_push(block : Block)
+      @history.try &.add(block)
+    end
+
+    # Unconditionally drops and returns a block from history
+    # if history is enabled. Otherwise, a noop.
+    private def try_pop
+      @history.try &.drop
+    end
+
+    # Unconditionally drops all blocks before and including
+    # *block* if history is enabled. Otherwise, a noop.
+    private def try_pop(*, until block : Block)
+      return unless history = @history
+
+      until history.drop.as(Block).same?(block)
+      end
+    end
+
+    # Pushes *block* to history if history is enabled and *toggle*
+    # is true, then yields. If the block returns via `return`, *block*
+    # is preserved in history (i.e. this is the expected behavior).
+    # If the block ends executing nominally, *block* is dropped off
+    # the history stack.
+    #
+    # If history is disabled, this method yields and is a noop.
+    #
+    # Returns whatever the block returned.
+    private def try_push(block : Block, toggle = true, &)
+      return yield unless history = @history
+      return yield unless toggle
+
+      history.add(block)
+      temp = yield
+      history.drop
+
+      temp
+    end
+
+    # Returns the unique (ish) ID of *block*.
+    #
+    # Currently uses object id.
+    private def id(block : Block) : UInt64
+      block.object_id
+    end
+
+    # Returns whether *block* was already marked (seen, visited)
+    # by this visitor.
+    private def marked?(block : Block) : Bool
+      @marked.has_key? id(block)
+    end
+
+    # Marks *block* as seen (visited) by this visitor.
+    private def mark(block : Block)
+      @marked[id(block)] = block
+    end
+
+    # If the fetcher returns a `T` given *block*, yields the `T`.
+    # Otherwise, marks the block as seen (visited), and returns nil.
+    private def fetch?(block : Block, push = false, & : -> T?) : T?
+      # Early return (i.e. if block is marked already) is possible but
+      # unwanted here, because it's going to be hit 1%-ish of the time
+      # (believe me, won't you?!)
+      #
+      # This means that we'll be doing a somewhat expensive but totally
+      # useless lookup 99% of the time. There's no point to.
+
+      try_push(block, push) do
+        next unless form = @fetcher.call(block)
+        return yield form
+      end
+
+      mark(block)
+
+      nil
+    end
+
+    # Yields parents of the given *block*. Does not follow cycles.
+    #
+    # *parents* should be an empty block id map. This map will be
+    # populated with visited (parent) blocks after this method.
+    private def each_parent(block : Block, parents : BlockIdMap, &)
+      block = block.parent?
+
+      while block
+        id = id(block)
+
+        # Break if block was visited already! Otherwise, we'll
+        # loop endlessly.
+        break if parents.has_key?(id)
+
+        yield block
+
+        parents[id], block = block, block.parent?
+      end
+    end
+
+    # Yields the following blocks, and in the following order:
+    #
+    # - Yields parents of *block*.
+    # - Yields friends of *block*.
+    # - Yields friends of *block*'s parents.
+    #
+    # *adj* should be an empty block id map. This map will
+    # be populated with all visited blocks after this method,
+    # with the same order of entries as the order of yields.
+    private def each_adjacent(block : Block, adj : BlockIdMap, &)
+      firstp = nil
+      lastp = nil
+
+      #
+      # Yield parents of block.
+      #
+      each_parent(block, adj) do |parent|
+        firstp ||= parent
+
+        # We have to add visited parents to history so that the
+        # people who use it think it was a nested visit, in case
+        # it was successful.
+        try_push(parent)
+
+        yield parent
+
+        lastp = parent
+      end
+
+      try_pop(until: firstp) if firstp
+
+      #
+      # Yield friends of block.
+      #
+      block.each_friend do |friend|
+        try_push(friend) { yield friend }
+
+        adj[id(friend)] = friend
+      end
+
+      return unless firstp && lastp
+
+      #
+      # Yield friends of parents.
+      #
+      # Visited contains parents of block followed by friends
+      # of block. We stop before the first friend of block.
+      #
+      adj.each_value do |parent|
+        try_push(parent)
+
+        parent.each_friend do |friend|
+          try_push(friend) { yield friend }
+
+          adj[id(friend)] = friend
+        end
+
+        break if parent.same?(lastp)
+      end
+
+      try_pop(until: firstp) if firstp
+
+      nil
+    end
+
+    # Executes the fetcher callback on the first echelon of
+    # *block*, and recurses on the second echelon.
+    #
+    # *push* is a toggle determining whether to push *block*
+    # to history, if history is turned on.
+    #
+    # *p_ilist* is a list of immediately adjacent blocks
+    # to ignore. See `PIlist` and `P_IAMT`.
+    #
+    # - The first echelon is parents and friends and friends
+    #   of parents of *block*.
+    #
+    # - The second echelon is parents and friends and friends
+    #   of parents of the first echelon. This method deeply
+    #   recurses on the second echelon, effectively allowing
+    #   lookup that is not limited in terms of depth.
+    #
+    # All this results in sometimes odd-*looking*, but generally
+    # *correct* and even *expected* traversals of the graph.
+    private def fetch_in_echelons?(block : Block, push = true, p_ilist : PIlist? = nil) : T?
+      echelon1 = BlockMaps.acquire
+
+      try_push(block, push) do
+        #
+        # 1ST ECHELON: ask parents and friends and friends
+        # of parents.
+        #
+        each_adjacent(block, echelon1) do |adj|
+          next if p_ilist && p_ilist.ignore?(adj)
+
+          fetch?(adj) { |form| return form }
+        end
+
+        echelon2 = BlockMaps.acquire
+
+        #
+        # 2ND ECHELON: **recurse** on parents and friends and
+        # friends of parents of the 1ST ECHELON.
+        #
+        echelon1.each_value do |echelon1_block|
+          try_push(echelon1_block) do
+            each_adjacent(echelon1_block, echelon2) do |adj|
+              next if marked?(adj)
+
+              form = fetch?(adj) { |form| return form }
+              form ||= fetch_in_echelons?(adj, push: false)
+
+              return form if form
+            end
+          end
+
+          echelon2.clear
+        end
+      ensure
+        BlockMaps.release(echelon1)
+        BlockMaps.release(echelon2) if echelon2
+      end
+
+      nil
+    end
+
+    # Executes the fetcher callback on every visited vertex in
+    # the block graph starting from an *entrypoint* block, and
+    # until the callback returns `T`, or until exhausted all
+    # reachable vertices.
+    def on(entrypoint : Block, ignore : Nil) : T?
+      fetch?(entrypoint, push: true) { |form| return form }
+      fetch_in_echelons?(entrypoint)
+    end
+
+    # Same as `on(entrypoint : Block, ignore : Nil)`, the difference
+    # being that immediately adjacent block *ignore* list is taken
+    # into account.
+    #
+    # Note that *entrypoint* is also ignored even though it is not
+    # specified in the *ignore* list.
+    def on(entrypoint : Block, ignore : PIlist) : T?
+      fetch_in_echelons?(entrypoint, p_ilist: ignore)
+    end
+  end
+
   # Maps block unique identifiers (currently, object ids are used as
   # such) to blocks they identify.
   #
@@ -375,6 +690,11 @@ module Novika
       !!@friends && !friends.empty?
     end
 
+    # Returns whether this block has a parent, friends, or both.
+    def has_relatives?
+      !!parent? || has_friends?
+    end
+
     # Yields friends of this block. Asserts each is a block,
     # otherwise, dies (e.g. the user may have mistakenly
     # added some other form).
@@ -402,89 +722,93 @@ module Novika
     end
 
     # Explores this block's relatives, i.e., its vertical (parent) and
-    # horizontal (friend) hierarchy neighbors, calls *payload* with
-    # each such relative.
+    # horizontal (friend) hierarchy, calls *fetcher* on each relative.
+    # This process is also known as the exploration of the block graph,
+    # where this block is the origin of exploration.
     #
-    # When *payload* returns a value of type *T* (a non-nil),
-    # exploration terminates. When *payload* returns nil, exploration
+    # If *fetcher* returns a value of type `T` (a non-nil) for the given
+    # block, exploration terminates. If *fetcher* returns nil, exploration
     # continues.
     #
-    # The order is as follows, and is exactly Novika's *lookup order*.
-    # Note that here, "yielded X" means "called *payload* with X".
+    # The order of exploration is roughly as follows:
     #
-    # - First, this block is yielded.
-    # - Then, the parent blocks of this block are yielded, starting
-    #   from the immediate parent and ending with the toplevel (god)
-    #   block.
-    # - Then, this method recurses on friends of this block.
-    # - Then, this method recurses on friends of parent blocks.
+    # - The first echelon is explored: the parents, friends, and friends
+    #   of parents of this block are explored.
     #
-    # *skip* can be used to disable exploration of specific blocks,
-    # together with their (unexplored) vertical and horizontal
-    # hierarchy.
+    # - The second echelon is explored: the parents, friends, and
+    #   friends of parents of the blocks in first echelon are explored
+    #   by recursing on each, effectively allowing lookup that is unlimited
+    #   in terms of depth.
     #
-    # *skip_self* can be set to true to disable calling *payload* for
-    # this block, and only in this particular `each_relative` call.
-    def each_relative(payload : Block -> T?, skip : BlockIdMap? = nil, skip_self = false) forall T
-      return if skip.try &.has_key?(object_id)
+    # *seen* can be used to disable exploration of specific blocks,
+    # also blocking off the exploration of their relatives (if they
+    # were not otherwise reached already).
+    #
+    # *skip_self* can be set to true to disable calling *fetcher* for
+    # this block. Note that if this block is reached by other means
+    # (e.g. as in `self -- other -- self`), *fetcher* is still going
+    # to be called.
+    #
+    # *history*, a block, can optionally be provided. It will hold all
+    # explored blocks leading to the "discovery" of `T`.
+    def each_relative_fetch(
+      fetcher : Block -> T?,
+      seen : BlockIdMap? = nil,
+      skip_self : Bool = false,
+      history : Block? = nil
+    ) forall T
+      return unless !skip_self || has_relatives?
 
-      if !skip_self && (value = payload.call(self)) # Fast path.
-        return value
-      end
+      # If history is enabled we're screwed with the fast paths.
+      unless history
+        #
+        # This branch is taken 98% of the time when running
+        # `novika tests`.
+        #
+        v0 = skip_self ? nil : self
 
-      block = parent?
-      while block
-        break if skip.try &.has_key?(block.object_id)
-
-        if value = payload.call(block)
+        ilist = PIlist.make(self)
+        ilist.each(v0) do |fastpath|
+          next unless value = fetcher.call(fastpath)
           return value
         end
-
-        block = block.parent?
       end
 
-      block = self
-      skip ||= BlockIdMap.new
-      while block
-        unless skip.has_key?(block.object_id)
-          skip[block.object_id] = block
-          block.each_friend do |friend|
-            if value = payload.call(friend)
-              return value
-            end
-          end
-          block.each_friend do |friend|
-            return friend.each_relative(payload, skip, skip_self: true) || next
-          end
-        end
-        block = block.parent?
+      acquired = seen.nil?
+      seen ||= BlockMaps.acquire
+
+      begin
+        fetch = EachRelativeFetch.new(fetcher, seen, history)
+        fetch.on(self, ignore: ilist)
+      ensure
+        BlockMaps.release(seen) if acquired
       end
     end
 
     # :ditto:
-    def each_relative(skip = nil, skip_self = false, &payload : Block -> T?) forall T
-      each_relative(payload, skip)
+    def each_relative_fetch(*args, **kwargs, &fetcher : Block -> T?) forall T
+      each_relative_fetch(fetcher, *args, **kwargs)
     end
 
     # Explores neighbor blocks of this block, calls *payload* with
     # each such neighbor block. Records all neighbors it visited in
     # *visited*.
     #
-    # *Explicitly adjacent* (marked as *ExA1-2* in the diagram below)
+    # *Explicitly nested* (marked as *ExN1-2* in the diagram below)
     # neighbor blocks are blocks found in the dictionary and tape of
     # this block (marked as *B* in the diagram below).
     #
-    # *Implicitly adjacent* (marked as *ImA1-4* in the diagram below)
+    # *Implicitly nested* (marked as *ImN1-4* in the diagram below)
     # neighbor blocks are blocks in the tapes and dictionaries of
-    # explicitly adjacent neighbor blocks, and so on, recursively.
+    # explicitly nested neighbor blocks, and so on, recursively.
     #
     # ```text
     # ┌───────────────────────────────────────┐
     # │ B                                     │
     # │  ┌───────────────┐ ┌───────────────┐  │
-    # │  │ ExA1          │ │ ExA2          │  │
+    # │  │ ExN1          │ │ ExN2          │  │
     # │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
-    # │  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+    # │  │ │ImN1│ │ImN2│ │ │ │ImN3│ │ImN4│ │  │
     # │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
     # │  │    ...    ... │ │    ...    ... │  │
     # │  └───────────────┘ └───────────────┘  │
@@ -532,6 +856,23 @@ module Novika
       each_neighbor(payload, visited)
     end
 
+    # Returns a tuple that consists of the dictionary entry
+    # corresponding to *name*, followed by the path block which
+    # holds all blocks leading to the entry.
+    #
+    # Returns nil if *name* could not be found.
+    #
+    # In general works like `entry_for` and friends, the only
+    # difference being that it also tracks and returns the path.
+    # The latter makes this method slightly slower that `entry_for`.
+    def path_to_entry?(name : Form) : {Entry, Block}?
+      path = Block.new
+
+      return unless entry = each_relative_fetch(history: path, &.flat_at?(name))
+
+      {entry, path}
+    end
+
     # Returns the dictionary entry for *name*, or dies.
     #
     # See `each_relative` for a detailed description of lookup
@@ -549,11 +890,11 @@ module Novika
         return entry
       end
 
-      each_relative(skip_self: true, &.flat_at?(name))
+      each_relative_fetch(skip_self: true, &.flat_at?(name))
     end
 
     def has_form_for?(name : Form) : Bool
-      !!each_relative { |block| block.flat_has?(name) || nil }
+      !!each_relative_fetch { |block| block.flat_has?(name) || nil }
     end
 
     def form_for?(name : Form) : Form?
@@ -607,6 +948,13 @@ module Novika
     # :ditto:
     def at(name : String, desc = "a builtin", &code : Engine, Block ->) : self
       at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
+    end
+
+    # Deletes the entry corresponding to *name* form from the
+    # dictionary of this block if it exists there. Otherwise,
+    # does nothing.
+    def delete(name : Form)
+      dict.del(name)
     end
 
     # Schedules this block for execution in *engine* using the

@@ -1000,6 +1000,75 @@ module Novika::Capabilities::Impl
         Boolean[store.opens?(name)].onto(stack)
       end
 
+      target.at("entry:delete", <<-END
+      ( B N -- ): deletes the entry corresponding to Name form
+       from the dictionary of Block if it exists there. Otherwise,
+       does nothing.
+
+      ```
+      100 $: x
+
+      [ 200 $: x ] obj $: foo
+
+      "'x' of foo shadows 'x' of toplevel block"
+      foo.x leaves: 200
+
+      "Let's try to remove it so it doesn't:"
+      foo #x entry:delete
+      foo.x leaves: 100
+      ```
+      END
+      ) do |_, stack|
+        name = stack.drop
+        block = stack.drop.a(Block)
+        block.delete(name)
+      end
+
+      target.at("entry:pathTo?", <<-END
+      ( B N -- P F true / false ): leaves Path, a block describing the
+       path to Form (including Block itself) under the corresponding
+       Name (like `entry:fetch?`). Follows Path and Form with `true`
+       indicating success, otherwise *only* `false` indicating that
+       there is no Form corresponding to Name in Block or any of the
+       blocks reachable from Block.
+
+      This word exists mainly for testing word lookup sanity. Feel free
+      to use it if you find any reason to!
+
+      ```
+      [ 100 $: x  'a' $: __quote__ ] obj $: a
+      [ 200 $: y  'b' $: __quote__ ] obj $: b
+      [ 300 $: z  'c' $: __quote__ ] obj $: c
+
+      a -- b -- c drop
+
+      [ a #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ a ] 100 true'
+      [ b #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ b a ] 100 true'
+      [ c #x entry:pathTo? ] vals sepBy: ' ' leaves: '[ c b a ] 100 true'
+
+      [ b #y entry:pathTo? ] vals sepBy: ' ' leaves: '[ b ] 200 true'
+      [ c #y entry:pathTo? ] vals sepBy: ' ' leaves: '[ c b ] 200 true'
+
+      [ c #z entry:pathTo? ] vals sepBy: ' ' leaves: '[ c ] 300 true'
+
+      [ c #foo entry:pathTo? ] vals sepBy: ' ' leaves: 'false'
+      ```
+      END
+      ) do |_, stack|
+        name = stack.drop
+        block = stack.drop.a(Block)
+
+        unless result = block.path_to_entry?(name)
+          Boolean[false].onto(stack)
+          next
+        end
+
+        needle, path = result
+        path.onto(stack)
+        needle.onto(stack)
+        Boolean[true].onto(stack)
+      end
+
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
        of Block's tape and dictionary, and leaves a Copy block with
@@ -1619,25 +1688,12 @@ module Novika::Capabilities::Impl
       end
 
       target.at("reparent", <<-END
-      ( C P -- C ): changes the parent of Child to Parent. Checks
-       for cycles which can hang the interpreter, therefore is
-       O(N) where N is the amount of Parent's ancestors.
+      ( C P -- C ): changes the parent of Child to Parent. Lookup
+       cycles are allowed and handled gracefully.
       END
       ) do |_, stack|
         parent = stack.drop.a(Block)
         child = stack.top.a(Block)
-
-        # TODO: this seems to be too forgiving. Lookup cycles
-        # are pretty dangerous.
-        current = parent
-        while current
-          if current.same?(child)
-            current.die("this reparent introduces a cycle")
-          else
-            current = current.parent?
-          end
-        end
-
         child.parent = parent
       end
 
@@ -1646,7 +1702,8 @@ module Novika::Capabilities::Impl
 
       Friends are asked for word entries after parents, grandparents
       etc. have failed to retrieve them. This recurses, e.g. friends
-      ask their own friends and so on, until the entry is found.
+      ask their own friends and so on, until the entry is found. Lookup
+      cycles are allowed and handled gracefully.
 
       ```
       [ 100 $: x this ] open $: a

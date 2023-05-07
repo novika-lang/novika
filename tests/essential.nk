@@ -232,6 +232,81 @@ describe 'toOrphan' [
 ]
 
 
+"TODO: test: entry:submit entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:isOpenEntry?"
+
+
+describe 'entry:delete' [
+  in lang
+
+  it should 'delete the entry corresponding to name form' [
+    'hello world' $: z
+
+    [ 100 $: x
+      200 $: y ] obj $: point
+
+    point.x 100 assert=
+    point.y 200 assert=
+
+    point #x entry:delete
+    [ point.x ] 'no value form for \'x\'' assertDies
+    point.y 200 assert=
+
+    point #y entry:delete
+    [ point.x ] 'no value form for \'x\'' assertDies
+    [ point.y ] 'no value form for \'y\'' assertDies
+
+    point #z entry:delete
+
+    z 'hello world' assert=
+
+    this #z entry:delete
+
+    [ z ] 'definition for z not found in the enclosing block(s)' assertDies
+
+    stack count 0 assert=
+  ]
+
+  it should 'run the example from docs' [
+    100 $: x
+
+    [ 200 $: x ] obj $: foo
+
+    "'x' of foo shadows 'x' of toplevel block"
+    foo.x 200 assert=
+
+    "Let's try to remove it so it doesn't:"
+    foo #x entry:delete
+    foo.x 100 assert=
+
+    stack count 0 assert=
+  ]
+]
+
+
+describe 'entry:pathTo?' [
+  in lang
+
+  it should 'run the example from docs' [
+    [ 100 $: x  'a' $: __quote__ ] obj $: a
+    [ 200 $: y  'b' $: __quote__ ] obj $: b
+    [ 300 $: z  'c' $: __quote__ ] obj $: c
+
+    a -- b -- c drop
+
+    [ a #x entry:pathTo? ] vals sepBy: ' ' '[ a ] 100 true' assert=
+    [ b #x entry:pathTo? ] vals sepBy: ' ' '[ b a ] 100 true' assert=
+    [ c #x entry:pathTo? ] vals sepBy: ' ' '[ c b a ] 100 true' assert=
+
+    [ b #y entry:pathTo? ] vals sepBy: ' ' '[ b ] 200 true' assert=
+    [ c #y entry:pathTo? ] vals sepBy: ' ' '[ c b ] 200 true' assert=
+
+    [ c #z entry:pathTo? ] vals sepBy: ' ' '[ c ] 300 true' assert=
+
+    [ c #foo entry:pathTo? ] vals sepBy: ' ' 'false' assert=
+  ]
+]
+
+
 describe 'shallowCopy' [
   in lang
 

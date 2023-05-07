@@ -11,6 +11,10 @@ module Novika
     # result.
     abstract def get(name : Form, & : Form -> Entry?) : Entry?
 
+    # Deletes the entry corresponding to *name* form in this
+    # dictionary if it exists. Otherwise, does nothing.
+    abstract def del(name : Form)
+
     # Returns whether this dictionary has an entry corresponding
     # to *name* form.
     abstract def has?(name : Form) : Bool
@@ -76,6 +80,10 @@ module Novika
       end
 
       @store.fetch(name) { yield name }
+    end
+
+    def del(name : Form)
+      @store.delete(name)
     end
 
     def has?(name : Form) : Bool
