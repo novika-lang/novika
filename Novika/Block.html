@@ -256,6 +256,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/EachRelativeFetch" data-name="novika::eachrelativefetch(t)">
+      <a href="../Novika/EachRelativeFetch.html">EachRelativeFetch</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Engine" data-name="novika::engine">
       <a href="../Novika/Engine.html">Engine</a>
       
@@ -628,6 +633,11 @@
   
   <li class=" " data-id="novika/Novika/Library" data-name="novika::library">
       <a href="../Novika/Library.html">Library</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
+      <a href="../Novika/ObjectPool.html">ObjectPool</a>
       
     </li>
   
@@ -1061,6 +1071,13 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#delete%28name%3AForm%29-instance-method" class="signature"><strong>#delete</strong>(name : Form)</a>
+        
+          <div class="summary"><p>Deletes the entry corresponding to <em>name</em> form from the dictionary of this block if it exists there.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#desc%28io%3AIO%29-instance-method" class="signature"><strong>#desc</strong>(io : IO)</a>
         
           <div class="summary"><p>Appends a string description of this form to <em>io</em>.</p></div>
@@ -1124,16 +1141,16 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method" class="signature"><strong>#each_relative</strong>(payload : Block -> T | Nil, skip : BlockIdMap | Nil = <span class="n">nil</span>, skip_self = <span class="n">false</span>) forall T</a>
+        <a href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29forallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(fetcher : Block -> T | Nil, seen : BlockIdMap | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : Block | Nil = <span class="n">nil</span>) forall T</a>
         
-          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy neighbors, calls <em>payload</em> with each such relative.</p></div>
+          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#each_relative%28skip%3Dnil%2Cskip_self%3Dfalse%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method" class="signature"><strong>#each_relative</strong>(skip = <span class="n">nil</span>, skip_self = <span class="n">false</span>, &payload : Block -> T | Nil) forall T</a>
+        <a href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29forallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(*args, **kwargs, &fetcher : Block -> T | Nil) forall T</a>
         
-          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy neighbors, calls <em>payload</em> with each such relative.</p></div>
+          <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.</p></div>
         
       </li>
     
@@ -1211,6 +1228,13 @@ of <em>nested</em> blocks.</p>
         <a href="#has_friends%3F-instance-method" class="signature"><strong>#has_friends?</strong></a>
         
           <div class="summary"><p>Returns whether this block has any friends.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#has_relatives%3F-instance-method" class="signature"><strong>#has_relatives?</strong></a>
+        
+          <div class="summary"><p>Returns whether this block has a parent, friends, or both.</p></div>
         
       </li>
     
@@ -1302,6 +1326,13 @@ of <em>nested</em> blocks.</p>
         <a href="#paste%28elems%3ABlock%29-instance-method" class="signature"><strong>#paste</strong>(elems : Block)</a>
         
           <div class="summary"><p>Mutably adds elements before the cursor in <em>elems</em> block's tape after the cursor in this block's tape.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#path_to_entry%3F%28name%3AForm%29%3ATuple%28Entry%2CBlock%29%7CNil-instance-method" class="signature"><strong>#path_to_entry?</strong>(name : Form) : Tuple(Entry, Block) | Nil</a>
+        
+          <div class="summary"><p>Returns a tuple that consists of the dictionary entry corresponding to <em>name</em>, followed by the path block which holds all blocks leading to the entry.</p></div>
         
       </li>
     
@@ -2031,6 +2062,27 @@ for behaving like <em>type</em>. See also: <code>a(type)</code>.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="delete(name:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>delete</strong>(name : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#delete%28name%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Deletes the entry corresponding to <em>name</em> form from the
+dictionary of this block if it exists there. Otherwise,
+does nothing.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="desc(io:IO)-instance-method">
       <div class="signature">
         
@@ -2166,18 +2218,18 @@ added some other form).</p>
           <p>Explores neighbor blocks of this block, calls <em>payload</em> with
 each such neighbor block. Records all neighbors it visited in
 <em>visited</em>.</p>
-<p><em>Explicitly adjacent</em> (marked as <em>ExA1-2</em> in the diagram below)
+<p><em>Explicitly nested</em> (marked as <em>ExN1-2</em> in the diagram below)
 neighbor blocks are blocks found in the dictionary and tape of
 this block (marked as <em>B</em> in the diagram below).</p>
-<p><em>Implicitly adjacent</em> (marked as <em>ImA1-4</em> in the diagram below)
+<p><em>Implicitly nested</em> (marked as <em>ImN1-4</em> in the diagram below)
 neighbor blocks are blocks in the tapes and dictionaries of
-explicitly adjacent neighbor blocks, and so on, recursively.</p>
+explicitly nested neighbor blocks, and so on, recursively.</p>
 <pre><code class="language-text">┌───────────────────────────────────────┐
 │ B                                     │
 │  ┌───────────────┐ ┌───────────────┐  │
-│  │ ExA1          │ │ ExA2          │  │
+│  │ ExN1          │ │ ExN2          │  │
 │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
-│  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+│  │ │ImN1│ │ImN2│ │ │ │ImN3│ │ImN4│ │  │
 │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
 │  │    ...    ... │ │    ...    ... │  │
 │  └───────────────┘ └───────────────┘  │
@@ -2204,18 +2256,18 @@ explicitly adjacent neighbor blocks, and so on, recursively.</p>
           <p>Explores neighbor blocks of this block, calls <em>payload</em> with
 each such neighbor block. Records all neighbors it visited in
 <em>visited</em>.</p>
-<p><em>Explicitly adjacent</em> (marked as <em>ExA1-2</em> in the diagram below)
+<p><em>Explicitly nested</em> (marked as <em>ExN1-2</em> in the diagram below)
 neighbor blocks are blocks found in the dictionary and tape of
 this block (marked as <em>B</em> in the diagram below).</p>
-<p><em>Implicitly adjacent</em> (marked as <em>ImA1-4</em> in the diagram below)
+<p><em>Implicitly nested</em> (marked as <em>ImN1-4</em> in the diagram below)
 neighbor blocks are blocks in the tapes and dictionaries of
-explicitly adjacent neighbor blocks, and so on, recursively.</p>
+explicitly nested neighbor blocks, and so on, recursively.</p>
 <pre><code class="language-text">┌───────────────────────────────────────┐
 │ B                                     │
 │  ┌───────────────┐ ┌───────────────┐  │
-│  │ ExA1          │ │ ExA2          │  │
+│  │ ExN1          │ │ ExN2          │  │
 │  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │  │
-│  │ │ImA1│ │ImA2│ │ │ │ImA3│ │ImA4│ │  │
+│  │ │ImN1│ │ImN2│ │ │ │ImN3│ │ImN4│ │  │
 │  │ └────┘ └────┘ │ │ └────┘ └────┘ │  │
 │  │    ...    ... │ │    ...    ... │  │
 │  └───────────────┘ └───────────────┘  │
@@ -2249,37 +2301,45 @@ block. Matching is done using loose equality  <code><a href="../Novika/Block.htm
       </div>
     </div>
   
-    <div class="entry-detail" id="each_relative(payload:Block-&gt;T|Nil,skip:BlockIdMap|Nil=nil,skip_self=false)forallT-instance-method">
+    <div class="entry-detail" id="each_relative_fetch(fetcher:Block-&gt;T|Nil,seen:BlockIdMap|Nil=nil,skip_self:Bool=false,history:Block|Nil=nil)forallT-instance-method">
       <div class="signature">
         
-        def <strong>each_relative</strong>(payload : <a href="../Novika/Block.html">Block</a> -> T | Nil, skip : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, skip_self = <span class="n">false</span>) forall T
+        def <strong>each_relative_fetch</strong>(fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil, seen : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : <a href="../Novika/Block.html">Block</a> | Nil = <span class="n">nil</span>) forall T
 
-        <a class="method-permalink" href="#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#</a>
+        <a class="method-permalink" href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29forallT-instance-method">#</a>
       </div>
       
         <div class="doc">
           
           <p>Explores this block's relatives, i.e., its vertical (parent) and
-horizontal (friend) hierarchy neighbors, calls <em>payload</em> with
-each such relative.</p>
-<p>When <em>payload</em> returns a value of type <em>T</em> (a non-nil),
-exploration terminates. When <em>payload</em> returns nil, exploration
+horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.
+This process is also known as the exploration of the block graph,
+where this block is the origin of exploration.</p>
+<p>If <em>fetcher</em> returns a value of type <code>T</code> (a non-nil) for the given
+block, exploration terminates. If <em>fetcher</em> returns nil, exploration
 continues.</p>
-<p>The order is as follows, and is exactly Novika's <em>lookup order</em>.
-Note that here, &quot;yielded X&quot; means &quot;called <em>payload</em> with X&quot;.</p>
+<p>The order of exploration is roughly as follows:</p>
 <ul>
-<li>First, this block is yielded.</li>
-<li>Then, the parent blocks of this block are yielded, starting
-from the immediate parent and ending with the toplevel (god)
-block.</li>
-<li>Then, this method recurses on friends of this block.</li>
-<li>Then, this method recurses on friends of parent blocks.</li>
+<li>
+<p>The first echelon is explored: the parents, friends, and friends
+of parents of this block are explored.</p>
+</li>
+<li>
+<p>The second echelon is explored: the parents, friends, and
+friends of parents of the blocks in first echelon are explored
+by recursing on each, effectively allowing lookup that is unlimited
+in terms of depth.</p>
+</li>
 </ul>
-<p><em>skip</em> can be used to disable exploration of specific blocks,
-together with their (unexplored) vertical and horizontal
-hierarchy.</p>
-<p><em>skip_self</em> can be set to true to disable calling <em>payload</em> for
-this block, and only in this particular <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> call.</p>
+<p><em>seen</em> can be used to disable exploration of specific blocks,
+also blocking off the exploration of their relatives (if they
+were not otherwise reached already).</p>
+<p><em>skip_self</em> can be set to true to disable calling <em>fetcher</em> for
+this block. Note that if this block is reached by other means
+(e.g. as in <code>self -- other -- self</code>), <em>fetcher</em> is still going
+to be called.</p>
+<p><em>history</em>, a block, can optionally be provided. It will hold all
+explored blocks leading to the &quot;discovery&quot; of <code>T</code>.</p>
         </div>
       
       <br/>
@@ -2288,37 +2348,45 @@ this block, and only in this particular <code><a href="../Novika/Block.html#each
       </div>
     </div>
   
-    <div class="entry-detail" id="each_relative(skip=nil,skip_self=false,&amp;payload:Block-&gt;T|Nil)forallT-instance-method">
+    <div class="entry-detail" id="each_relative_fetch(*args,**kwargs,&amp;fetcher:Block-&gt;T|Nil)forallT-instance-method">
       <div class="signature">
         
-        def <strong>each_relative</strong>(skip = <span class="n">nil</span>, skip_self = <span class="n">false</span>, &payload : <a href="../Novika/Block.html">Block</a> -> T | Nil) forall T
+        def <strong>each_relative_fetch</strong>(*args, **kwargs, &fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil) forall T
 
-        <a class="method-permalink" href="#each_relative%28skip%3Dnil%2Cskip_self%3Dfalse%2C%26payload%3ABlock-%3ET%7CNil%29forallT-instance-method">#</a>
+        <a class="method-permalink" href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29forallT-instance-method">#</a>
       </div>
       
         <div class="doc">
           
           <p>Explores this block's relatives, i.e., its vertical (parent) and
-horizontal (friend) hierarchy neighbors, calls <em>payload</em> with
-each such relative.</p>
-<p>When <em>payload</em> returns a value of type <em>T</em> (a non-nil),
-exploration terminates. When <em>payload</em> returns nil, exploration
+horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.
+This process is also known as the exploration of the block graph,
+where this block is the origin of exploration.</p>
+<p>If <em>fetcher</em> returns a value of type <code>T</code> (a non-nil) for the given
+block, exploration terminates. If <em>fetcher</em> returns nil, exploration
 continues.</p>
-<p>The order is as follows, and is exactly Novika's <em>lookup order</em>.
-Note that here, &quot;yielded X&quot; means &quot;called <em>payload</em> with X&quot;.</p>
+<p>The order of exploration is roughly as follows:</p>
 <ul>
-<li>First, this block is yielded.</li>
-<li>Then, the parent blocks of this block are yielded, starting
-from the immediate parent and ending with the toplevel (god)
-block.</li>
-<li>Then, this method recurses on friends of this block.</li>
-<li>Then, this method recurses on friends of parent blocks.</li>
+<li>
+<p>The first echelon is explored: the parents, friends, and friends
+of parents of this block are explored.</p>
+</li>
+<li>
+<p>The second echelon is explored: the parents, friends, and
+friends of parents of the blocks in first echelon are explored
+by recursing on each, effectively allowing lookup that is unlimited
+in terms of depth.</p>
+</li>
 </ul>
-<p><em>skip</em> can be used to disable exploration of specific blocks,
-together with their (unexplored) vertical and horizontal
-hierarchy.</p>
-<p><em>skip_self</em> can be set to true to disable calling <em>payload</em> for
-this block, and only in this particular <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> call.</p>
+<p><em>seen</em> can be used to disable exploration of specific blocks,
+also blocking off the exploration of their relatives (if they
+were not otherwise reached already).</p>
+<p><em>skip_self</em> can be set to true to disable calling <em>fetcher</em> for
+this block. Note that if this block is reached by other means
+(e.g. as in <code>self -- other -- self</code>), <em>fetcher</em> is still going
+to be called.</p>
+<p><em>history</em>, a block, can optionally be provided. It will hold all
+explored blocks leading to the &quot;discovery&quot; of <code>T</code>.</p>
         </div>
       
       <br/>
@@ -2388,7 +2456,7 @@ cursor is at the end.</p>
         <div class="doc">
           
           <p>Returns the dictionary entry for <em>name</em>, or dies.</p>
-<p>See <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> for a detailed description of lookup
+<p>See <code>each_relative</code> for a detailed description of lookup
 order etc.</p>
         </div>
       
@@ -2409,7 +2477,7 @@ order etc.</p>
         <div class="doc">
           
           <p>Returns the dictionary entry for <em>name</em>, or nil.</p>
-<p>See <code><a href="../Novika/Block.html#each_relative%28payload%3ABlock-%3ET%7CNil%2Cskip%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3Dfalse%29forallT-instance-method">#each_relative</a></code> for a detailed description of lookup
+<p>See <code>each_relative</code> for a detailed description of lookup
 order etc.</p>
         </div>
       
@@ -2555,6 +2623,25 @@ nil if no such entry exists.</p>
         <div class="doc">
           
           <p>Returns whether this block has any friends.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="has_relatives?-instance-method">
+      <div class="signature">
+        
+        def <strong>has_relatives?</strong>
+
+        <a class="method-permalink" href="#has_relatives%3F-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this block has a parent, friends, or both.</p>
         </div>
       
       <br/>
@@ -2818,6 +2905,31 @@ linked list of ancestors).</p>
           
           <p>Mutably adds elements before the cursor in <em>elems</em> block's
 tape after the cursor in this block's tape.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="path_to_entry?(name:Form):Tuple(Entry,Block)|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>path_to_entry?</strong>(name : <a href="../Novika/Form.html">Form</a>) : Tuple(<a href="../Novika/Entry.html">Entry</a>, <a href="../Novika/Block.html">Block</a>) | Nil
+
+        <a class="method-permalink" href="#path_to_entry%3F%28name%3AForm%29%3ATuple%28Entry%2CBlock%29%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns a tuple that consists of the dictionary entry
+corresponding to <em>name</em>, followed by the path block which
+holds all blocks leading to the entry.</p>
+<p>Returns nil if <em>name</em> could not be found.</p>
+<p>In general works like <code><a href="../Novika/Block.html#entry_for%28name%3AForm%29%3AEntry-instance-method">#entry_for</a></code> and friends, the only
+difference being that it also tracks and returns the path.
+The latter makes this method slightly slower that <code><a href="../Novika/Block.html#entry_for%28name%3AForm%29%3AEntry-instance-method">#entry_for</a></code>.</p>
         </div>
       
       <br/>

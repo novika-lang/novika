@@ -256,6 +256,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/EachRelativeFetch" data-name="novika::eachrelativefetch(t)">
+      <a href="../Novika/EachRelativeFetch.html">EachRelativeFetch</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Engine" data-name="novika::engine">
       <a href="../Novika/Engine.html">Engine</a>
       
@@ -631,6 +636,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
+      <a href="../Novika/ObjectPool.html">ObjectPool</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/OpenEntry" data-name="novika::openentry">
       <a href="../Novika/OpenEntry.html">OpenEntry</a>
       
@@ -882,6 +892,13 @@ linear scan for now. The semantics for this is unstable.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#del%28name%3AForm%29-instance-method" class="signature"><strong>#del</strong>(name : Form)</a>
+        
+          <div class="summary"><p>Deletes the entry corresponding to <em>name</em> form in this dictionary if it exists.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#each%28%26%29-instance-method" class="signature"><strong>#each</strong>(&)</a>
         
           <div class="summary"><p>Yields key, value forms in this dictionary.</p></div>
@@ -953,6 +970,11 @@ linear scan for now. The semantics for this is unstable.</p>
     <a href="../Novika/IDict.html#copy%3AIDict-instance-method" class="tooltip">
       <span>copy : IDict</span>
     copy</a>, 
+    
+  
+    <a href="../Novika/IDict.html#del%28name%3AForm%29-instance-method" class="tooltip">
+      <span>del(name : Form)</span>
+    del</a>, 
     
   
     <a href="../Novika/IDict.html#each%28%26%3AForm%2CForm-%3E%29-instance-method" class="tooltip">
@@ -1065,6 +1087,30 @@ linear scan for now. The semantics for this is unstable.</p>
             </div>
           
           <p>Returns a <em>shallow</em> copy of this dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="del(name:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>del</strong>(name : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#del%28name%3AForm%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/IDict.html">Novika::IDict</a>
+            </div>
+          
+          <p>Deletes the entry corresponding to <em>name</em> form in this
+dictionary if it exists. Otherwise, does nothing.</p>
         </div>
       
       <br/>

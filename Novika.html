@@ -256,6 +256,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/EachRelativeFetch" data-name="novika::eachrelativefetch(t)">
+      <a href="Novika/EachRelativeFetch.html">EachRelativeFetch</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Engine" data-name="novika::engine">
       <a href="Novika/Engine.html">Engine</a>
       
@@ -631,6 +636,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
+      <a href="Novika/ObjectPool.html">ObjectPool</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/OpenEntry" data-name="novika::openentry">
       <a href="Novika/OpenEntry.html">OpenEntry</a>
       
@@ -915,6 +925,11 @@
     <br/>
   
     
+      novika/object_pool.cr
+    
+    <br/>
+  
+    
       novika/resolver.cr
     
     <br/>
@@ -943,6 +958,20 @@
     </h2>
   
   <dl>
+    
+      <dt class="entry-const" id="BlockMaps">
+        <strong>BlockMaps</strong> = <code><span class="t">ObjectPool</span>(<span class="t">BlockIdMap</span>).new(create: <span class="o">-&gt;</span> <span class="k">do</span>
+  <span class="t">BlockIdMap</span>.new
+<span class="k">end</span>, clear: <span class="o">-&gt;</span>(map : <span class="t">BlockIdMap</span>) <span class="k">do</span>
+  map.clear
+<span class="k">end</span>)</code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>A pool of <code><a href="Novika/BlockIdMap.html">BlockIdMap</a></code> objects.</p>
+<p>You generally don't need to touch this.</p>
+      </dd>
+      
     
       <dt class="entry-const" id="EFFECT_PATTERN">
         <strong>EFFECT_PATTERN</strong> = <code><span class="s">/^(\(\s+(?:[^\(\)]*)\--(?:[^\(\)]*)\s+\)):/</span></code>

@@ -13,7 +13,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="novika">
-  <title>Novika::RunnableResolver - novika rev10-dev</title>
+  <title>Novika::ObjectPool(T) - novika rev10-dev</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -636,7 +636,7 @@
       
     </li>
   
-  <li class=" " data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
+  <li class=" current" data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
       <a href="../Novika/ObjectPool.html">ObjectPool</a>
       
     </li>
@@ -681,7 +681,7 @@
       
     </li>
   
-  <li class=" current" data-id="novika/Novika/RunnableResolver" data-name="novika::runnableresolver">
+  <li class=" " data-id="novika/Novika/RunnableResolver" data-name="novika::runnableresolver">
       <a href="../Novika/RunnableResolver.html">RunnableResolver</a>
       
     </li>
@@ -800,12 +800,12 @@
 <div class="main-content">
 <h1 class="type-name">
 
-  <span class="kind">class</span> Novika::RunnableResolver
+  <span class="kind">struct</span> Novika::ObjectPool(T)
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/RunnableResolver.html">Novika::RunnableResolver</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/ObjectPool.html">Novika::ObjectPool(T)</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
 
 
 
@@ -819,32 +819,8 @@
     Overview
   </h2>
 
-  <p><code><a href="../Novika/RunnableResolver.html">RunnableResolver</a></code>'s (or resolver's for short) main
-objective is -- who'd have guessed it! -- to <em>resolve</em> a
-list of <em>runnables</em> to the appropriate file paths,
-<code><a href="../Novika/Folder.html">Folder</a></code>s, apps, and capability requests.</p>
-<p>It also puts them in different lists, so that it's a bit
-easier for you to take care of them, after resolver has
-done its job.</p>
-<p>Immediately after <code><a href="../Novika/RunnableResolver.html#resolve%3F%3ABool-instance-method">#resolve?</a></code>, all <code><a href="../Novika/RunnableResolver.html#folders%3ASet%28Novika%3A%3AFolder%29-instance-method">#folders</a></code>, <code><a href="../Novika/RunnableResolver.html#apps%3ASet%28Novika%3A%3AFolder%29-instance-method">#apps</a></code>,
-<code><a href="../Novika/RunnableResolver.html#files%3ASet%28Path%29-instance-method">#files</a></code>, and <code><a href="../Novika/RunnableResolver.html#capabilities%3ASet%28Novika%3A%3ACapabilityRequest%29-instance-method">#capabilities</a></code> identified by this resolver
-are guaranteed to exist. If an all-time guarantee is
-required, you should establish watchers and diff the
-arrays as appropriate.</p>
-<pre><code class="language-crystal"><span class="c"># caps : CapabilityCollection</span>
-
-resolver <span class="o">=</span> <span class="t">RunnableResolver</span>.new([<span class="s">&quot;repl&quot;</span>], caps, <span class="t">Path</span>[<span class="t">Dir</span>.current], <span class="t">Path</span>.home)
-<span class="k">unless</span> resolver.resolve?
-  abort <span class="s">&quot;Failed to resolve!&quot;</span>
-edn
-
-resolver.capabilities.each { <span class="o">|</span>cap_id<span class="o">|</span> caps.enable(cap_id) }
-resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span> puts <span class="s">&quot;Not a runnable, skip: </span><span class="i">#{</span>unknown<span class="i">}</span><span class="s">&quot;</span> }
-
-<span class="c"># resolver.folders.each { |folder| ... }</span>
-<span class="c"># resolver.files.each { |file| ... }</span>
-<span class="c"># resolver.apps.each { |file| ... }</span>
-<span class="c"># Do whatever you want with them!</span></code></pre>
+  <p>A naïve object pool, inspired by:</p>
+<p>https://gist.github.com/floere/3121579</p>
 
 
 
@@ -869,7 +845,7 @@ resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span>
   </h2>
   
     
-      novika/resolver.cr
+      novika/object_pool.cr
     
     <br/>
   
@@ -889,9 +865,7 @@ resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28runnables%3AArray%28String%29%2Ccaps%3ACapabilityCollection%2Ccwd%3APath%3DPath%5BDir.current%5D%2Cuserhome%3APath%3DPath.home%29-class-method" class="signature"><strong>.new</strong>(runnables : Array(String), caps : CapabilityCollection, cwd : Path = <span class="t">Path</span>[<span class="t">Dir</span>.current], userhome : Path = <span class="t">Path</span>.home)</a>
-        
-          <div class="summary"><p>Initializes a <code><a href="../Novika/RunnableResolver.html">RunnableResolver</a></code>.</p></div>
+        <a href="#new%28create%3A-%3ET%2Cclear%3AT-%3ET%29-class-method" class="signature"><strong>.new</strong>(create :  -> T, clear : T -> T)</a>
         
       </li>
     
@@ -912,70 +886,16 @@ resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#apps%3ASet%28Novika%3A%3AFolder%29-instance-method" class="signature"><strong>#apps</strong> : Set(Novika::Folder)</a>
+        <a href="#acquire%3AT-instance-method" class="signature"><strong>#acquire</strong> : T</a>
         
-          <div class="summary"><p>Holds the folders this resolver identified as apps in the initial list of runnables.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#capabilities%3ASet%28Novika%3A%3ACapabilityRequest%29-instance-method" class="signature"><strong>#capabilities</strong> : Set(Novika::CapabilityRequest)</a>
-        
-          <div class="summary"><p>Holds capability requests identified in the initial list of runnables by this resolver (those with manual set to true), as well as capabilities requested in lib or app manifests (those with manual set to false).</p></div>
+          <div class="summary"><p>Returns a free/new instance of the object.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#cwd%3APath-instance-method" class="signature"><strong>#cwd</strong> : Path</a>
+        <a href="#release%28obj%3AT%29-instance-method" class="signature"><strong>#release</strong>(obj : T)</a>
         
-          <div class="summary"><p>Returns the current working directory for this resolver.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#expand_runnable_path%3F%28path%3APath%29-instance-method" class="signature"><strong>#expand_runnable_path?</strong>(path : Path)</a>
-        
-          <div class="summary"><p>Tries to expand runnable <em>path</em> to that in the current working directory, or, if it doesn't exist there, to that in the Novika environment directory.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#files%3ASet%28Path%29-instance-method" class="signature"><strong>#files</strong> : Set(Path)</a>
-        
-          <div class="summary"><p>Holds paths to Novika files in the initial list of runnables, as per this resolver.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#folders%3ASet%28Novika%3A%3AFolder%29-instance-method" class="signature"><strong>#folders</strong> : Set(Novika::Folder)</a>
-        
-          <div class="summary"><p>Holds non-application folders in the initial list of runnables, as per this resolver.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#permissions%28%26%29-instance-method" class="signature"><strong>#permissions</strong>(&)</a>
-        
-          <div class="summary"><p>Reads (creates, if necessary) a permissions file in the Novika environment directory.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#resolve%3F%3ABool-instance-method" class="signature"><strong>#resolve?</strong> : Bool</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#shared_objects%3ASet%28Path%29-instance-method" class="signature"><strong>#shared_objects</strong> : Set(Path)</a>
-        
-          <div class="summary"><p>Holds platform-specific, <code>dlopen</code>-able shared objects (.so in Linux, .dll in Windows, .dylib in MacOS), later consumed by the FFI/library machinery.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#unknowns%3ASet%28String%29-instance-method" class="signature"><strong>#unknowns</strong> : Set(String)</a>
-        
-          <div class="summary"><p>Holds runnables which have not been identified.</p></div>
+          <div class="summary"><p>Clears the given <em>instance</em> of the object, and releases it so that it can be acquired by someone else.</p></div>
         
       </li>
     
@@ -986,6 +906,16 @@ resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span>
 
 
 <div class="methods-inherited">
+  
+    
+
+
+    
+
+
+    
+
+
   
     
 
@@ -1019,25 +949,13 @@ resolver.unknowns.each { <span class="o">|</span>unknown<span class="o">|</span>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(runnables:Array(String),caps:CapabilityCollection,cwd:Path=Path[Dir.current],userhome:Path=Path.home)-class-method">
+    <div class="entry-detail" id="new(create:-&gt;T,clear:T-&gt;T)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(runnables : <a href="../Array.html">Array</a>(<a href="../String.html">String</a>), caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>, cwd : Path = <span class="t">Path</span>[<span class="t">Dir</span>.current], userhome : Path = <span class="t">Path</span>.home)
+        def self.<strong>new</strong>(create :  -> T, clear : T -> T)
 
-        <a class="method-permalink" href="#new%28runnables%3AArray%28String%29%2Ccaps%3ACapabilityCollection%2Ccwd%3APath%3DPath%5BDir.current%5D%2Cuserhome%3APath%3DPath.home%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28create%3A-%3ET%2Cclear%3AT-%3ET%29-class-method">#</a>
       </div>
-      
-        <div class="doc">
-          
-          <p>Initializes a <code><a href="../Novika/RunnableResolver.html">RunnableResolver</a></code>.</p>
-<p><em>runnables</em> is the list of runnables to resolve.</p>
-<p><em>caps</em> is the capability collection that will be used to
-verify whether a runnable is a capability id.</p>
-<p><em>cwd</em> specifies the directory that this resolver will
-consider its current working directory.</p>
-<p><em>userhome</em> is assumed to be user's home directory.</p>
-<p>Defaults for the last two are sane enough.</p>
-        </div>
       
       <br/>
       <div>
@@ -1059,20 +977,17 @@ consider its current working directory.</p>
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="apps:Set(Novika::Folder)-instance-method">
+    <div class="entry-detail" id="acquire:T-instance-method">
       <div class="signature">
         
-        def <strong>apps</strong> : <a href="../Set.html">Set</a>(<a href="../Novika/Folder.html">Novika::Folder</a>)
+        def <strong>acquire</strong> : T
 
-        <a class="method-permalink" href="#apps%3ASet%28Novika%3A%3AFolder%29-instance-method">#</a>
+        <a class="method-permalink" href="#acquire%3AT-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Holds the folders this resolver identified as apps in
-the initial list of runnables.</p>
-<p>This is determined by the presence of <code>.nk.app</code>, in
-what would be otherwise considered a folder.</p>
+          <p>Returns a free/new instance of the object.</p>
         </div>
       
       <br/>
@@ -1081,187 +996,18 @@ what would be otherwise considered a folder.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="capabilities:Set(Novika::CapabilityRequest)-instance-method">
+    <div class="entry-detail" id="release(obj:T)-instance-method">
       <div class="signature">
         
-        def <strong>capabilities</strong> : <a href="../Set.html">Set</a>(<a href="../Novika/CapabilityRequest.html">Novika::CapabilityRequest</a>)
+        def <strong>release</strong>(obj : T)
 
-        <a class="method-permalink" href="#capabilities%3ASet%28Novika%3A%3ACapabilityRequest%29-instance-method">#</a>
+        <a class="method-permalink" href="#release%28obj%3AT%29-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Holds capability requests identified in the initial list of
-runnables by this resolver (those with manual set to true),
-as well as capabilities requested in lib or app manifests
-(those with manual set to false).</p>
-<p>Note: resolver uses the capability collection it is given in
-a read-only manner. You will have to enable the capabilities
-yourself (if that's what you want to do).</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="cwd:Path-instance-method">
-      <div class="signature">
-        
-        def <strong>cwd</strong> : Path
-
-        <a class="method-permalink" href="#cwd%3APath-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Returns the current working directory for this resolver.</p>
-<p>May change as resolution progresses.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="expand_runnable_path?(path:Path)-instance-method">
-      <div class="signature">
-        
-        def <strong>expand_runnable_path?</strong>(path : Path)
-
-        <a class="method-permalink" href="#expand_runnable_path%3F%28path%3APath%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Tries to expand runnable <em>path</em> to that in the current
-working directory, or, if it doesn't exist there, to
-that in the Novika environment directory. If both do
-not exist, returns nil.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="files:Set(Path)-instance-method">
-      <div class="signature">
-        
-        def <strong>files</strong> : <a href="../Set.html">Set(Path)</a>
-
-        <a class="method-permalink" href="#files%3ASet%28Path%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds paths to Novika files in the initial list of
-runnables, as per this resolver.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="folders:Set(Novika::Folder)-instance-method">
-      <div class="signature">
-        
-        def <strong>folders</strong> : <a href="../Set.html">Set</a>(<a href="../Novika/Folder.html">Novika::Folder</a>)
-
-        <a class="method-permalink" href="#folders%3ASet%28Novika%3A%3AFolder%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds non-application folders in the initial list of
-runnables, as per this resolver.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="permissions(&amp;)-instance-method">
-      <div class="signature">
-        
-        def <strong>permissions</strong>(&)
-
-        <a class="method-permalink" href="#permissions%28%26%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Reads (creates, if necessary) a permissions file in the
-Novika environment directory. Yields IO to the block.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="resolve?:Bool-instance-method">
-      <div class="signature">
-        
-        def <strong>resolve?</strong> : Bool
-
-        <a class="method-permalink" href="#resolve%3F%3ABool-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="shared_objects:Set(Path)-instance-method">
-      <div class="signature">
-        
-        def <strong>shared_objects</strong> : <a href="../Set.html">Set(Path)</a>
-
-        <a class="method-permalink" href="#shared_objects%3ASet%28Path%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds platform-specific, <code>dlopen</code>-able shared objects
-(.so in Linux, .dll in Windows, .dylib in MacOS), later
-consumed by the FFI/library machinery.</p>
-<p>Note that we don't actually check whether they <em>are</em> shared
-objects or are simply files with an .so (.dll, .dylib) file
-extension.</p>
-<p>Mostly for safety, shared objects are not loaded automatically.
-You need to list them by hand in the initial runnable list; or
-manually ask capability ffi to get them, in code.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="unknowns:Set(String)-instance-method">
-      <div class="signature">
-        
-        def <strong>unknowns</strong> : <a href="../Set.html">Set</a>(<a href="../String.html">String</a>)
-
-        <a class="method-permalink" href="#unknowns%3ASet%28String%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds runnables which have not been identified. You
-can handle them as you wish: as per this resolver,
-they are unrelated to Novika.</p>
+          <p>Clears the given <em>instance</em> of the object, and releases
+it so that it can be acquired by someone else.</p>
         </div>
       
       <br/>
