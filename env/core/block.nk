@@ -386,7 +386,7 @@
   b.y leaves: 200
   ```
   """
-  ahead thruVal dup <| befriend |>
+  ahead thruVal keep: befriend
 ] @: ·>
 
 
