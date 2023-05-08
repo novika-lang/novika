@@ -215,6 +215,53 @@ selfModify
 selfModify
 ```
 
+8. [Zigzag problem](https://leetcode.com/problems/zigzag-conversion/) from LeetCode, with the examples as tests.
+
+```novika
+"""
+Not the mathy one but the naive one, because programming is
+not math thank goodness!
+"""
+
+[ dup 1 = => [ drop ^ ]
+
+  collect: '' dup 1 |to $: grid
+
+  0 $: col
+
+  [ grid |: |> |afterLast? asc desc sel ] $: desc
+  [ grid |: <| |afterFirst? desc asc sel (col 1 + =: col) ] $: asc
+  desc @: action
+
+  [ $: char grid |: [ char ~ ] ] @: put
+
+  each: [ put action =: action ]
+
+  grid join
+] @: convert
+
+
+describe 'Zigzag Conversion' [
+  in leetcode
+
+  it should 'follow the happy path' [
+    'A' 1 convert 'A' assert=
+    'A' 3 convert 'A' assert=
+    'HELLOWORLD' 1 convert 'HELLOWORLD' assert=
+  ]
+
+  it should 'convert given 3 rows' [
+    'PAYPALISHIRING' 3 convert 'PAHNAPLSIIGYIR' assert=
+  ]
+
+  it should 'convert given 4 rows' [
+    'PAYPALISHIRING' 4 convert 'PINALSIGYAHRPI' assert=
+  ]
+]
+
+runTestsInGroup: leetcode
+```
+
 Now, if you want to look at something a bit more elaborate, there's:
 
 * A snake game [example](https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk)
