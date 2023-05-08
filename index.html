@@ -813,13 +813,14 @@
 <p><strong>Table of contents:</strong></p>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#an-objective-evaluation">An objective evaluation</a></li>
 <li><a href="#examples">Examples</a></li>
 <li><a href="#installing-novika">Installing Novika</a></li>
 <li><a href="#building-novika-from-source">Building Novika from source</a></li>
 <li><a href="#running-the-examples">Running the examples</a></li>
 <li><a href="#playing-with-the-repl">Playing with the REPL</a></li>
-<li><a href="#learning-novika">Learning Novika</a></li>
+<li><a href="#on-blocks">On blocks</a></li>
+<li><a href="#want-to-learn-more">Want to learn more?</a></li>
+<li><a href="#trade-offs-or-why-is-novika-so-slow">Trade-offs, or why is Novika so slow?</a></li>
 <li><a href="#contributing-and-internals">Contributing and internals</a></li>
 <li><a href="#contributors">Contributors</a></li>
 </ul>
@@ -829,193 +830,35 @@
     <use href="#octicon-link"/>
   </svg>
 </a>Introduction</h2>
-<p>Uhmm... yeah, I have no idea what the sentence above means either. But let me try to explain anyway :)</p>
-<h3><a id="free-form" class="anchor" href="#free-form">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Free-form</h3>
-<p>Novika has no syntax and no style. Novika is so free-form it cannot be pretty-printed <em>even at runtime</em>.</p>
+<p>First and foremost, <strong>Novika is weird</strong>. Why not, though, being inspired by Lisp, Forth, Factor, Self, Red/Rebol, Smalltalk, and so on — the weird kids on the block.</p>
 <p>Novika is like simulating a house of LEGO blocks vs. simulating a house of huge concrete blocks, wood, and all that. The latter
-is much easier to the computer, but the former offers unlimited flexibility: you can build only so much from huge concrete blocks,
-woord, chairs and whatnot. With LEGO, it's another story — an infinite amount of possibilities before you.</p>
-<h3><a id="moldable" class="anchor" href="#moldable">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Moldable</h3>
-<p>You can mold it and therefore it is moldable. The more you use Novika, the more it becomes truly <em>yours</em>. It quickly gets personal!</p>
-<h3><a id="interpreted" class="anchor" href="#interpreted">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Interpreted</h3>
-<p>There's a little yellow gnome Kate sitting inside your monitor. She is reading the Novika code on the
-screen — don't forget she has to flip it in her mind! She is telling the computer what to do — all that
-on the go! Kate is slow but very flexible.</p>
-<h3><a id="how-about-something-more-formal" class="anchor" href="#how-about-something-more-formal">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>How about something more formal?</h3>
-<p>Novika belongs to no single paradigm. Instead, I'd say it's a mix of functional, object-oriented, and procedural paradigms — although by no means am I an expert on such things.</p>
-<p>Novika borrows from Lisp, Forth, and Factor — and takes inspiration from Self, Red/Rebol, and Smalltalk.</p>
-<p>Novika blocks are closures and objects simultaneously — they can relate, talk, and encapsulate. Blocks are code, too. In Novika, data is code, and code is data. And what are objects? Objects are data (sort of!) — and therefore, code.</p>
-<p>Blocks can form friendships with each other, become parents of one another, and intercept, well, anything — feel free to slap some Pythonesque dunders on top of all I've said!
-The block tree (or the block graph, depending on how you look at it) is yours — you are free to take over it anytime.</p>
-<p>The engine is yours, too — blocks are the code, and code is run by the engine.</p>
-<p>Semantically, Novika is like Lisp <em>A</em> set in motion by Lisp <em>B</em> with the possibility of bidirectional communication — but with objects, stacks, and so, so much more!</p>
-<p>And the syntax of Novika? Well, there is no syntax. That is to say, almost no syntax. Syntactically, Novika lies somewhere between Lisp and Forth. And Forth — Forth has no syntax.
-The rest is yours to define!</p>
-<h3><a id="trade-offs" class="anchor" href="#trade-offs">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Trade-offs</h3>
-<p>Of course, I had to make some trade-offs to achieve such a peculiar arrangement!</p>
-<h4><a id="negative-performance" class="anchor" href="#negative-performance">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Negative performance</h4>
-<p><em>Wait, what?</em></p>
-<p>See, good compilers/interpreters live well in the positives. That is to say they remove irrelevant runtime. Bad compilers and “normal” interpreters live near zero, at the very least getting rid of the notion of parsing.</p>
-<p>And what about Novika? Novika is deep in the negatives. Novika <em>parses</em> at runtime. Yup, you’ve heard it right.</p>
-<p>Waging wars with FFI will give you performance, sure (that is, will move you closer to zero from the negative side!) But then, why not simply use C, Rust, Crystal, or any other fancy-schmancy programming language — especially if you're doing something <em>serious</em>?</p>
-<h4><a id="readability" class="anchor" href="#readability">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Readability</h4>
-<p><em>It's up to you.</em></p>
-<p>Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.</p>
-<p>But wait, why is that? Why is Novika not <em>designed</em> to be readable? Isn't that popular nowadays?</p>
-<p>See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. Again, it’s up to you. Either you have their syntax and their performance, or your syntax and your performance.</p>
-<h4><a id="big-projects" class="anchor" href="#big-projects">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Big projects</h4>
-<p><em>Never.</em></p>
-<p>I have no clue what big projects are, or what they need. There are enough smart people in this world already.</p>
-<p>I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a full-featured programming language in the 21st century is hard ­— there's just so much it must be able to do! Maintaining an innovative one — that's a thousand times harder.</p>
-<h2><a id="an-objective-evaluation" class="anchor" href="#an-objective-evaluation">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>An objective evaluation</h2>
-<p>TL; DR: Novika is a great language for quickly <em>prototyping</em> things.</p>
-<p>In fact, most of interpreted languages are.</p>
-<ol>
-<li>
-<p>When I say &quot;prototyping&quot;, I mean the &quot;shut up&quot; kind of prototyping, when you're so angry you just don't want
-the language to complain! An unused variable, something that needs to be an object rather than a method to
-work properly, wrong types — you don't care (all caps!), and Novika understands.</p>
-</li>
-<li>
-<p>This comes at a cost. For one, performance is not that great — ­and in Novika, it is terrible, much worse
-than even in Python or MRI. This is mainly due to my naïve code but also due to the fact that the language
-wasn't <em>designed</em> for performance — it was designed for seamless reflectivity and quick prototyping.</p>
-</li>
-<li>
-<p>In the land of interpreted languages, errors are a terrible and soul-devouring beast which you truly don't want to encounter. In Novika,
-anything can just <code>'&quot;helpful&quot; explanation' die</code> and explode your whole program — at runtime, of course! And hope
-it at least says something useful.</p>
-</li>
-<li>
-<p>Moderately sized projects become harder to maintain in the refactoring and bug-fixing sense. There are
-no automated tools to help you with anything except for search &amp; replace — and your brain designing things
-right the first time, of course, which for most programmers (including myself) is almost never the case.</p>
-</li>
-<li>
-<p>Novika is one of the few high-level languages which allow self-modification, and there are even multiple flavors
-of it. I won't list them here because if this wall of text didn't kill you yet, then it sure will would
-these flavors be here. Novika is extremely hard to optimize: while in other languages there is at least
-a clear-ish flow of control, in Novika, there isn't, for any piece of code can change its meaning at any
-point in time.</p>
-</li>
-<li>
-<p>If you're still here, the best thing about Novika is that it's not PHP, Perl, or JavaScript when it
-comes to types. Things rarely take an argument of more than one type. No implicit conversion is ever
-done (as far as I remember!)</p>
-</li>
-<li>
-<p>I like criticizing my projects, but remember to make your own judgement as
-well. After all, there are Python-people, Perl-people, Red-people, Scheme-people
-and even Forth-people — all sorts of weird people :) So why not Novika-people? Maybe you're one of them.</p>
-</li>
-</ol>
+is much easier computationally, while the former offers unlimited flexibility. You can build only so much from huge concrete blocks,
+wood, chairs, and whatnot. With LEGO, it's another story — an infinite amount of possibilities before you.</p>
+<p>Semantically, Novika is like Lisp <em>A</em> set in motion by Lisp <em>B</em> with the possibility of bidirectional communication and control — but with objects, stacks, and so, so much more!</p>
+<p>And the syntax of Novika? Well, there is no syntax. That is to say, almost no syntax. Syntactically, Novika lies somewhere between Lisp and Forth. And Forth — Forth has no syntax.</p>
 <h2><a id="examples" class="anchor" href="#examples">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Examples</h2>
-<p>Ordered by craziness!</p>
-<ol>
-<li>Hello World:</li>
-</ol>
+<p>Hello World:</p>
 <pre><code class="language-novika">'Hello World' echo</code></pre>
-<ol start="2">
-<li>Factorial:</li>
-</ol>
-<pre><code class="language-novika">&quot;Parentheses () do not mean anything in Novika. They're like single-character comments.&quot;
-
-(5 to: 1) product &quot;120&quot;</code></pre>
-<ol start="3">
-<li>Sieve of Eratosthenes: prints prime numbers in <code>[2; 120]</code>.</li>
-</ol>
-<pre><code class="language-novika">2 to: 120 ||-&gt; [ $: n (stack without: [ n /? ]) asStack n ] each: echo</code></pre>
-<ol start="4">
-<li>First 100 Fizz buzz rounds:</li>
-</ol>
+<hr />
+<p>Factorial. Note that parentheses <code>()</code> do not mean anything in Novika. They're like single-character comments.</p>
+<pre><code class="language-novika">(5 to: 1) product &quot;120&quot;</code></pre>
+<hr />
+<p>First 100 Fizz buzz rounds:</p>
 <pre><code class="language-novika">1 to: 100 each: [
   [ [ 15 /? ] 'FizzBuzz'
     [  5 /? ] 'Buzz'
     [  3 /? ] 'Fizz'
   ] choose echo
 ]</code></pre>
-<ol start="5">
-<li>A tiny DSL for counting the average of a bunch of numbers:</li>
-</ol>
-<pre><code class="language-novika">[ ahead |beforeOrToEnd: [ decimal? not ] bi: sum count / ] @: avg:
-
-avg: 1 2 3      echo &quot;STDOUT: 2⏎&quot;
-avg: 100 4 6 5  echo &quot;STDOUT: 28.75⏎&quot;</code></pre>
-<ol start="6">
-<li>Self-modification by indirection (i.e. the normies' one):</li>
-</ol>
-<pre><code class="language-novika">[ ' from A branch' ~ echo ] $: alpha
-[ ' from B branch' ~ echo ] $: beta
-[ ' from C branch' ~ echo ] $: gamma
-
-alpha @: printIt
-
-[ 'Hi' printIt
-
-  (this -&gt; [ alpha beta gamma ]) sample =: printIt
-] @: selfModify
-
-selfModify &quot;Will print from any of the branches randomly...&quot;
-selfModify
-selfModify</code></pre>
-<ol start="7">
-<li>Self-modification by rewriting (i.e. the dirty but true one):</li>
-</ol>
-<pre><code class="language-novika">[ ' from A branch' ~ echo ] @: alpha
-[ ' from B branch' ~ echo ] @: beta
-[ ' from C branch' ~ echo ] @: gamma
-
-[ 'Hi' alpha
-
-  (this prototype) 2 [ drop ([ alpha beta gamma ] sample) ] |hydrate
-] @: selfModify
-
-selfModify &quot;Will print from any of the branches randomly...&quot;
-selfModify
-selfModify</code></pre>
-<ol start="8">
-<li><a href="https://leetcode.com/problems/zigzag-conversion/">Zigzag problem</a> from LeetCode, with the examples as tests.</li>
-</ol>
+<hr />
+<p>Sieve of Eratosthenes: prints prime numbers in <code>[2; 120]</code>.</p>
+<pre><code class="language-novika">2 to: 120 ||-&gt; [ $: n (stack without: [ n /? ]) asStack n ] each: echo</code></pre>
+<hr />
+<p><a href="https://leetcode.com/problems/zigzag-conversion/">Zigzag problem</a> from LeetCode, with the examples as tests. Observe the boundary between terseness and readability.</p>
 <pre><code class="language-novika">&quot;&quot;&quot;
 Not the mathy one but the naive one, because programming is
 not math thank goodness!
@@ -1058,7 +901,11 @@ describe 'Zigzag Conversion' [
 ]
 
 runTestsInGroup: leetcode</code></pre>
-<p>Now, if you want to look at something a bit more elaborate, there's:</p>
+<h3><a id="what-about-something-a-bit-more-elaborate" class="anchor" href="#what-about-something-a-bit-more-elaborate">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>What about something a bit more elaborate?</h3>
 <ul>
 <li>A snake game <a href="https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk">example</a></li>
 <li>A simple <a href="https://github.com/novika-lang/novika/blob/rev10/examples/docuview.nk">documentation viewer</a></li>
@@ -1066,71 +913,13 @@ runTestsInGroup: leetcode</code></pre>
 <li>A TDD-d <a href="https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk">observable</a></li>
 <li>A <a href="https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk">live REPL interface</a> to a DSL for infix math expressions</li>
 </ul>
-<h3><a id="curious-curiosities" class="anchor" href="#curious-curiosities">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Curious curiosities</h3>
-<p>Here's an example of <em>weird</em> Novika. I don't know if the following program qualifies as
-<em>nondeterministic</em>, but Novika certainly supports nondeterministic programming as I understand
-it, in that the evaluation of any program is controlled mainly by that very program and the
-choices it may or may not make at runtime -- choices deterministic or not.</p>
-<pre><code class="language-novika">[ &quot;( S B -- C ): safely creates a Continuation block
-   from the given Stack and Block.&quot;
-  new keep: [0 |to] newContinuation
-] @: createContinuation
-
-[
-  [ 'Hey!' echo ]
-  [ 'Bye!' echo ]
-  [ 'Uhm...' echo ]
-] $: drum
-
-[ &quot;Open a random block from the drum. &quot;
-  drum (0 randTo: [ drum count 1 - ]) fromLeft open
-] @: spinTheDrum
-
-[ $: probability
-
-  [
-    drop
-
-    rand probability &lt; =&gt;
-      [ &quot;This will be the stack:&quot; (this -&gt; [ probability ])
-        &quot;This will be the block:&quot; (this -&gt; withProbabilitySpin)
-        createContinuation
-      ]
-
-    &quot;This will be the stack:&quot; [ ]
-    &quot;This will be the block:&quot; (this -&gt; spinTheDrum)
-    createContinuation
-  ] continues
-] @: withProbabilitySpin</code></pre>
-<p>It's pretty hard to explain, but basically, if you give <code>withProbabilitySpin</code>
-a probability from 0 to 1, then it will:</p>
-<ol>
-<li><code>spinTheDrum</code> to open (aka execute, aka evaluate) a random block from <code>drum</code>.</li>
-<li>Based on a random number, decide whether to open <code>withProbabilitySpin</code> again.</li>
-<li>And so on...</li>
-</ol>
-<p>What I'm showing you here can be done with recursion and first-order
-functions, sure -- or with loops. But there are limits to how &quot;non-deterministically&quot;
-recursion/loops can control the flow, and here, in Novika -- in Novika there are
-no limits! (even though Novika is powered by a loop behind the scenes haha)</p>
-<p>So, if you give <code>withProbabilitySpin</code> the probability <code>1</code>, it will
-loop forever. To add to the above, it will indeed <em>loop</em>, not recurse.
-That is, there won't be a call stack explosion!</p>
-<p>If the probability is less than one, it will loop for an unknown
-amount of times. At probability <code>0</code>, it won't loop at all.</p>
-<pre><code class="language-novika">1 withProbabilitySpin &quot;(or 0, or 0.5, etc.)&quot;</code></pre>
-<p>Feel free to play with the probability yourself!</p>
 <h2><a id="installing-novika" class="anchor" href="#installing-novika">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Installing Novika</h2>
 <p>The fastest way to get started with Novika is to download and unpack the latest <a href="https://github.com/novika-lang/nightly-builds/releases/latest">nightly build</a>.
-Novika <a href="https://github.com/novika-lang/novika/releases/latest">releases</a> are as unstable as nightlies, if not more so, so don't worrry :)</p>
+Novika <a href="https://github.com/novika-lang/novika/releases/latest">releases</a> are as unstable as nightlies, if not more so, so don't worry :zany_face:</p>
 <ol>
 <li>
 <p>If you don't want to do a system-wide install, simply use <code>bin/novika</code> <em>while in the directory of the nightly/release</em>.</p>
@@ -1216,11 +1005,188 @@ quote &#39;Who am I?&#39;</code></pre>
 ... &#39;decimal&#39; ...
 &gt;&gt;&gt; ##foobar typedesc
 ... &#39;quoted word&#39; ...</code></pre>
-<h2><a id="learning-novika" class="anchor" href="#learning-novika">
+<h2><a id="on-blocks" class="anchor" href="#on-blocks">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
-</a>Learning Novika</h2>
+</a>On blocks</h2>
+<p>Novika is all about blocks! The name is pretty generic, and has little if any connection to &quot;blocks&quot; of mainstream programming languages.</p>
+<h3><a id="blocks-are-lists-with-a-cursor" class="anchor" href="#blocks-are-lists-with-a-cursor">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are lists with a cursor</h3>
+<img src="img/blocks-are-lists-with-a-cursor.svg" align=right width=512 />
+<p>Blocks allow you to store different kinds of <em>forms</em> one after another. A form could be a number, a string, or even another block!</p>
+<p>In this regard, a block is somewhat similar to a Python list or a Ruby array.</p>
+<p>Moreover, now taking the <em>cursor</em> into account, blocks seem a lot like text input fields but with <em>arbitrary constituents</em> rather than just characters.</p>
+<p>You can move the cursor back and forth in a block. You can &quot;backspace&quot;, insert, and so on, all this not only <em>empowering computation</em> but also <em>backed by computation</em>.</p>
+<br clear="right"/>
+<pre><code class="language-novika">&quot;&quot;&quot;
+'Cut' the block in half at the cursor using |slice.
+&quot;&quot;&quot;
+[ 1 2 3 4 | 5 6 7 8 ] |slice leaves: [ [ 1 2 3 4 | ] [ 5 6 7 8 | ]  ]
+
+&quot;&quot;&quot;
+Remember where the cursor is, then slide it forward and double
+each 'top' number. Finally, move the cursor back to where it was.
+&quot;&quot;&quot;
+[ 1 2 3 4 | 5 6 7 8 ] |~&gt; [ dup + ] leaves: [ [ 1 2 3 4 | 10 12 14 16 ] ]</code></pre>
+<h3><a id="blocks-are-dictionaries-and-objects" class="anchor" href="#blocks-are-dictionaries-and-objects">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are dictionaries — and objects</h3>
+<img src="res/blocks-are-dictionaries.svg" align=right width=512 />
+<p>Blocks are dictionaries for themselves and for other blocks. The former is useful for <em>running</em> blocks, and the latter is useful for <em>connecting</em> blocks to each other — to form scopes, object hierarchies, and so on.</p>
+<p>Again, you can imagine something like a Python dictionary or — even better — a JavaScript object.</p>
+<p>Blocks dictionaries hold <em>entries</em>.</p>
+<p>When the key form is seen, looked up in the dictionary, and <em>opened</em>, <em>opener entries</em> (or <em>openers</em> for short) in turn <em>open</em> the value form (<em>open</em> is Novika-speak for &quot;run&quot;, &quot;execute&quot;, &quot;evaluate&quot;).</p>
+<p>On the other hand, <em>pusher</em> entries simply push their value form onto the stack.</p>
+<br clear="right"/>
+<pre><code class="language-novika">100 $: x
+200 $: y
+x y + echo  &quot;STDOUT: 300⏎&quot;
+
+[ ${ x y } this ] @: newPoint
+
+100 200 newPoint $: A
+300 400 newPoint $: B
+
+A echo &quot;STDOUT: [ ${ x y } this · ${y :: 200} ${x :: 100} ]⏎&quot;
+B echo &quot;STDOUT: [ ${ x y } this · ${y :: 400} ${x :: 300} ]⏎&quot;
+
+A.x A.y 2echo &quot;STDOUT: 100⏎200⏎&quot;
+B.x B.y 2echo &quot;STDOUT: 300⏎400⏎&quot;</code></pre>
+<h3><a id="blocks-are-stacks" class="anchor" href="#blocks-are-stacks">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are stacks</h3>
+<p>As simple as that: blocks are also stacks, you just have to look at them differently.</p>
+<p>Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-based programming languages. You can then move the cursor, which helps to avoid <code>rot</code>s and other nasty Forth-isms. Here is how <code>rot</code> can be implemented in Novika:</p>
+<pre><code class="language-novika">[ &lt;| swap |&gt; swap ] @: rot</code></pre>
+<p>Let's execute <code>1 2 3 rot</code> step-by-step, as if we were a Novika interpreter.</p>
+<ol>
+<li>Stack: <code>[ | ]</code>, block: <code>[ | 1 2 3 rot ]</code></li>
+<li>Push <code>1</code>, stack: <code>[ 1 | ]</code>, block: <code>[ 1 | 2 3 rot ]</code></li>
+<li>Push <code>2</code>, stack: <code>[ 1 2 | ]</code>, block: <code>[ 1 2 | 3 rot ]</code></li>
+<li>Push <code>3</code>, stack: <code>[ 1 2 3 | ]</code>, block: <code>[ 1 2 3 | rot ]</code></li>
+<li>Open <code>rot</code> with stack: <code>[ 1 2 3 | ]</code>: <em>instantiate</em> (basically copy) the block <code>[ &lt;| swap |&gt; swap ]</code>, and move the cursor to the beginning like so: <code>[ | &lt;| swap |&gt; swap ]</code></li>
+<li>Open <code>&lt;|</code>, stack: <code>[ 1 2 | 3 ]</code>, block: <code>[ &lt;| | swap |&gt; swap ]</code></li>
+<li>Open <code>swap</code>, stack: <code>[ 2 1 | 3 ]</code>, block: <code>[ &lt;| swap | |&gt; swap ]</code></li>
+<li>Open <code>|&gt;</code>, stack: <code>[ 2 1 3 | ]</code>, block: <code>[ &lt;| swap |&gt; | swap ]</code></li>
+<li>Open <code>swap</code>, stack: <code>[ 2 3 1 | ]</code>, block: <code>[ &lt;| swap |&gt; swap | ]</code></li>
+<li>Cursor for block <code>[ &lt;| swap |&gt; swap | ]</code> is at end, close it!</li>
+<li>Cursor for block <code>[ 1 2 3 rot | ]</code> is at end, close it!</li>
+<li>No more blocks to run!</li>
+</ol>
+<p>Voilá! It does rotate: <code>1 2 3 -- 2 3 1</code>.</p>
+<img src="res/blocks-are-stacks.svg"  width=1024 />
+<h3><a id="blocks-are-vertices" class="anchor" href="#blocks-are-vertices">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are vertices</h3>
+<img src="res/blocks-are-vertices.svg" align=right width=512 />
+<p>Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: <em>is a friend of</em>, and <em>is <strong>the</strong> parent of</em>.</p>
+<ul>
+<li>Blocks can have only one, or no <em>parent</em>.</li>
+<li>Blocks can have zero or more <em>friends</em>.</li>
+</ul>
+<p>Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how (and which) entries are looked up and so on.</p>
+<p>Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...).</p>
+<p>For instance, first, <em>is parent of</em> relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as <em>the first echelon</em> in Novika.</p>
+<p><em>The second echelon</em> is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.</p>
+<br clear="right"/>
+<pre><code class="language-novika">[ 100 $: x ] obj $: definesX
+[ 200 $: y ] obj $: definesY
+
+&quot;&quot;&quot;
+Establish a cyclic relationship (parentheses are like comments,
+they don't mean anything and don't have to be matched):
+&quot;&quot;&quot;
+(definesX -- definesY -- definesX) drop
+
+definesX.x leaves: 100
+definesX.y leaves: 200
+
+definesY.x leaves: 100
+definesY.y leaves: 200</code></pre>
+<h3><a id="blocks-are-code" class="anchor" href="#blocks-are-code">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are code</h3>
+<p>When you're writing Novika, you're writing blocks. It's like when you're writing Lisp, you're writing lists.</p>
+<p>All Novika code you saw or will see is a block — or, rather, is <em>in</em> a block. The toplevel block is the one that holds your whole code and doesn't need to be enclosed in <code>[]</code>s. You can think of it as of the &quot;file&quot; block, that is, the block which encloses an entire file of Novika source code <em>implicitly</em>.</p>
+<pre><code class="language-novika">this echo  &quot;STDOUT: [ this echo · ${__path__ :: '/path/to/folder'} ${__file__ :: '/path/to/folder/file.nk'} ]&quot;</code></pre>
+<h3><a id="blocks-are-continuations" class="anchor" href="#blocks-are-continuations">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Blocks are continuations</h3>
+<p>A Novika continuation is a block that consists of two blocks: the stack block, and the code block (often referred to simply as <em>block</em>), like so: <code>[ [ …code… ] [ …stack… ] ]</code>. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called <em>builtins</em>, which are pieces of runnable native code as seen from Novika. Here are some examples:</p>
+<ul>
+<li>
+<p><a href="https://novika-lang.github.io/words/#hydrate">hydrate</a>, as in:</p>
+<pre><code class="language-novika">[ 1 2 ] [ + echo ] hydrate  &quot;STDOUT: 3&quot;</code></pre>
+</li>
+<li>
+<p><a href="https://novika-lang.github.io/words/#open">open</a> — this is an ancient (and often used) word from which the term <em>opening</em> came. What is described as <em>opening</em> is often some form of <em>hydration</em>, however, the term <em>opening</em> stuck for historical reasons.</p>
+<pre><code class="language-novika">4 [ dup + ] open echo  &quot;STDOUT: 8&quot;</code></pre>
+</li>
+<li>
+<p><a href="https://novika-lang.github.io/words/#do">do</a> — opens a block with a new empty (isolated) stack:</p>
+<pre><code class="language-novika">1 2 [ stack echo ] do  &quot;STDOUT: [ ]&quot;</code></pre>
+</li>
+<li>
+<p>And more, see the <a href="https://novika-lang.github.io/words">words documentation</a> or env/core.</p>
+</li>
+</ul>
+<p>Stack blocks can be shared between two continuations (as in <code>open</code> or opener entries where the block you open shares the stack with the opener block). Code blocks can also be shared, but I have never needed this in practice so there's no word that does something like that in env/core.</p>
+<p>In the code block, the cursor is kept immediately after the form that is being opened right now.</p>
+<ul>
+<li>
+<p>The current (active) continuation can be accessed using the word <code>cont</code>, as in:</p>
+<pre><code class="language-novika">1 2 cont echo 3 4  &quot;STDOUT: [ [ cont echo | 3 4 ] [ 1 2 ] ]&quot;</code></pre>
+</li>
+<li>
+<p>The stack of the current continuation (dubbed the <em>active stack</em> or simply the stack) can be accessed using the word <code>stack</code>, as in:</p>
+<pre><code class="language-novika">1 2 &lt;| stack echo |&gt; 3 4  &quot;STDOUT: [ 1 | 2 ]&quot;</code></pre>
+</li>
+<li>
+<p>The code block of the current continuation (dubbed the <em>active block</em> or simply the block) can be accessed using the word <code>this</code>, as in:</p>
+<pre><code class="language-novika">1 2 this echo 3 4  &quot;STDOUT: [ 1 2 this echo | 3 4 ]&quot;</code></pre>
+</li>
+<li>
+<p>The code block of the previous continuation (and the one that will be <em>activated</em> when the current continuation finishes) can be accessed using the word <code>ahead</code>. This word is <em>crucial</em> for writing human-readable Novika, as in <code>1 to: 100 only: even? each: echo</code>:</p>
+<pre><code class="language-novika">[ ahead echo ] @: sneakyPeaky
+
+1 2 sneakyPeaky 3 4  &quot;STDOUT: [ 1 2 sneakyPeaky | 3 4 ]&quot;</code></pre>
+</li>
+</ul>
+<p>Finally, the <em>continuations block</em> is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type <code>conts shallowCopy each: echo</code> in the REPL. Do not forget <code>shallowCopy</code>, or the language will gain consciousness this that never ends well!! :)</p>
+<pre><code class="language-novika">[ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
+[ [ … More REPL code … · ${error :: false} ${pgStack :: a block} @{runLine :: ( Q -- )} ] [ ] ]
+[ [ ahead thruBlock loop ] [ ] ]
+[ [ new $: iterBody iterBody createLoop $: nextLoop $: breakLoop @: startLoop iterBody #break breakLoop opens iterBody #next nextLoop opens startLoop · ${iterBody :: a block} ${nextLoop :: a block} ${breakLoop :: a block} @{startLoop :: a block} ] [ ] ]
+[ [ this =: breakTo orphan loopBody hydrate! ] [ ] ]
+[ [ orphan iterBody hydrate | repeat ] [ ] ]
+[ [ '&gt;&gt;&gt; ' readLine br: [ runLine ] [ 'Bye.' echo break ] ] [ ] ]
+[ [ ahead thruBlock ahead thruBlock br ] [ ] ]
+[ [ runLine ] [ ] ]
+[ [ … More REPL code … · ${line :: 'conts shallowCopy each: echo'} ${self :: ( Q -- )} ${durationMs :: 0} ${pgRootInstance :: a block} ${pgStackCopy :: a block} ] [ ] ]
+[ [ [ reportError #true =: error self resume ] @: __died__ [ pgStackCopy pgRootInstance line slurp hydrate! ] measure | =: durationMs · @{__died__ :: a block} ] [ ] ]
+[ [ monotonic $: t1 do | monotonic $: t2 t2 t1 - · ${t1 :: 35111923.17418} ] [ ] ]
+[ [ pgStackCopy pgRootInstance line slurp hydrate! ] [ ] ]
+[ [ conts shallowCopy each: echo ] [ 1 2 3 4 ] ]</code></pre>
+<p>Don't be scared, it's just a bunch of letters :)</p>
+<h2><a id="want-to-learn-more" class="anchor" href="#want-to-learn-more">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Want to learn more?</h2>
 <ol>
 <li>Explore files in <code>tests/</code> to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.</li>
 <li>Explore <code>help</code> messages of various words. A less up-to-date but more convenient way to do the same is to read word documentation <a href="https://novika-lang.github.io/words/">here</a>.</li>
@@ -1229,6 +1195,38 @@ quote &#39;Who am I?&#39;</code></pre>
 </ol>
 <p>I know there aren't a lot of materials here nor anywhere that'd teach you the language. On the fundamental stuff, the language is so weird I can't even remember how it all came to be. And in general I have so much to say that I just don't know where to begin. Hopefully, there will be more stuff here someday.</p>
 <p>Explore Novika as if it were an alien spaceship that accidentally fell on Earth, full of weird little yellow rotating yukoos. The aliens did not write on every button what it will do when you press it. And even if they did, what kind of language would they be using?!</p>
+<h2><a id="trade-offs-or-why-is-novika-so-slow" class="anchor" href="#trade-offs-or-why-is-novika-so-slow">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Trade-offs, or why is Novika so slow?</h2>
+<p>Of course, I had to make some trade-offs to achieve such a peculiar arrangement!</p>
+<h3><a id="negative-performance" class="anchor" href="#negative-performance">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Negative performance</h3>
+<p><em>Wait, what?</em></p>
+<p>See, good compilers/interpreters live well in the positives. That is to say they remove irrelevant runtime. Bad compilers and “normal” interpreters live near zero, at the very least getting rid of the notion of parsing.</p>
+<p>And what about Novika? Novika is deep in the negatives. Novika <em>parses</em> at runtime. Yup, you’ve heard it right.</p>
+<p>Waging wars with FFI will give you performance, sure (that is, will move you closer to zero from the negative side!) But then, why not simply use C, Rust, Crystal, or any other fancy-schmancy programming language — especially if you're doing something <em>serious</em>?</p>
+<h3><a id="readability" class="anchor" href="#readability">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Readability</h3>
+<p><em>It's up to you.</em></p>
+<p>Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.</p>
+<p>But wait, why is that? Why is Novika not <em>designed</em> to be readable? Isn't that popular nowadays?</p>
+<p>See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete control over the language and the machinery involved vs. performance is up to you.</p>
+<h3><a id="big-projects" class="anchor" href="#big-projects">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Big projects</h3>
+<p><em>Never.</em></p>
+<p>I have no clue what big projects are, or what they need. There are enough smart people in this world already, and I'm certainly not one of them.</p>
+<p>I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a general-purpose programming language in the 21st century is hard ­— there's just so much it must be able to do! After all, we are not drawing rectangles at the speed of a snail today, are we?</p>
 <h2><a id="contributing-and-internals" class="anchor" href="#contributing-and-internals">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -1264,29 +1262,11 @@ quote &#39;Who am I?&#39;</code></pre>
 <li><a href="https://github.com/novika-lang/novika/blob/rev10/src/novika/error.cr">Errors</a> happen. Or don't.</li>
 </ol>
 <p>Note that most of these components interact with each other, making this list pretty pointless &quot;for science&quot;.</p>
-<h3><a id="xxx-the-hottest-files-in-novika" class="anchor" href="#xxx-the-hottest-files-in-novika">
+<h3><a id="and-the-usual-procedure" class="anchor" href="#and-the-usual-procedure">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
-</a>XXX: the hottest files in Novika</h3>
-<p>Hottest as in load and load as in performance, of course!</p>
-<ul>
-<li>Block <a href="https://github.com/novika-lang/novika/blob/rev10/src/novika/dict.cr">dictionary implementation</a>, <code>Dict</code>, is simply a wrapper around <code>Hash(K, V)</code>.</li>
-<li>Current <a href="https://github.com/novika-lang/novika/blob/rev10/src/novika/substrate.cr">substrate implementation</a> is a <em>veerry</em> dumb copy-on-write array. Here's a helpful &quot;formula&quot;: <code>block = ... + tape + dict + ...; tape = substrate + cursor</code></li>
-</ul>
-<h3><a id="stuff-you-might-want-to...-borrow" class="anchor" href="#stuff-you-might-want-to...-borrow">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Stuff you might want to... borrow!</h3>
-<ul>
-<li>A self-sufficient FFI <a href="https://github.com/novika-lang/novika/blob/rev10/src/novika/ffi.cr">wrapper</a> only a few edits away!</li>
-</ul>
-<h3><a id="and-the-usual-procedure..." class="anchor" href="#and-the-usual-procedure...">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>And the usual procedure...</h3>
+</a>And the usual procedure</h3>
 <ol>
 <li>Fork it (<a href="https://github.com/novika-lang/novika/fork">https://github.com/novika-lang/novika/fork</a>)</li>
 <li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
