@@ -2,7 +2,6 @@
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://app.gitter.im/#/room/#novika-lang:gitter.im)
 
-
 <img src="img/logo.svg" align=right>
 
 > A language that doesn't affect the way you think about programming, is not worth knowing.
@@ -15,13 +14,14 @@ Novika is a free-form, moldable, interpreted programming language.
 **Table of contents:**
 
 - [Introduction](#introduction)
-- [An objective evaluation](#an-objective-evaluation)
 - [Examples](#examples)
 - [Installing Novika](#installing-novika)
 - [Building Novika from source](#building-novika-from-source)
 - [Running the examples](#running-the-examples)
 - [Playing with the REPL](#playing-with-the-repl)
-- [Learning Novika](#learning-novika)
+- [On blocks](#on-blocks)
+- [Want to learn more?](#want-to-learn-more)
+- [Trade-offs, or why is Novika so slow?](#trade-offs-or-why-is-novika-so-slow)
 - [Contributing and internals](#contributing-and-internals)
 - [Contributors](#contributors)
 
@@ -29,137 +29,35 @@ Novika is a free-form, moldable, interpreted programming language.
 
 ## Introduction
 
-Uhmm... yeah, I have no idea what the sentence above means either. But let me try to explain anyway :)
-
-### Free-form
-
-Novika has no syntax and no style. Novika is so free-form it cannot be pretty-printed *even at runtime*.
+First and foremost, **Novika is weird**. Why not, though, being inspired by Lisp, Forth, Factor, Self, Red/Rebol, Smalltalk, and so on — the weird kids on the block.
 
 Novika is like simulating a house of LEGO blocks vs. simulating a house of huge concrete blocks, wood, and all that. The latter
-is much easier to the computer, but the former offers unlimited flexibility: you can build only so much from huge concrete blocks,
-woord, chairs and whatnot. With LEGO, it's another story — an infinite amount of possibilities before you.
+is much easier computationally, while the former offers unlimited flexibility. You can build only so much from huge concrete blocks,
+wood, chairs, and whatnot. With LEGO, it's another story — an infinite amount of possibilities before you.
 
-### Moldable
-
-You can mold it and therefore it is moldable. The more you use Novika, the more it becomes truly *yours*. It quickly gets personal!
-
-### Interpreted
-
-There's a little yellow gnome Kate sitting inside your monitor. She is reading the Novika code on the
-screen — don't forget she has to flip it in her mind! She is telling the computer what to do — all that
-on the go! Kate is slow but very flexible.
-
-### How about something more formal?
-
-Novika belongs to no single paradigm. Instead, I'd say it's a mix of functional, object-oriented, and procedural paradigms — although by no means am I an expert on such things.
-
-Novika borrows from Lisp, Forth, and Factor — and takes inspiration from Self, Red/Rebol, and Smalltalk.
-
-Novika blocks are closures and objects simultaneously — they can relate, talk, and encapsulate. Blocks are code, too. In Novika, data is code, and code is data. And what are objects? Objects are data (sort of!) — and therefore, code.
-
-Blocks can form friendships with each other, become parents of one another, and intercept, well, anything — feel free to slap some Pythonesque dunders on top of all I've said!
-The block tree (or the block graph, depending on how you look at it) is yours — you are free to take over it anytime.
-
-The engine is yours, too — blocks are the code, and code is run by the engine.
-
-Semantically, Novika is like Lisp *A* set in motion by Lisp *B* with the possibility of bidirectional communication — but with objects, stacks, and so, so much more!
+Semantically, Novika is like Lisp *A* set in motion by Lisp *B* with the possibility of bidirectional communication and control — but with objects, stacks, and so, so much more!
 
 And the syntax of Novika? Well, there is no syntax. That is to say, almost no syntax. Syntactically, Novika lies somewhere between Lisp and Forth. And Forth — Forth has no syntax.
-The rest is yours to define!
-
-### Trade-offs
-
-Of course, I had to make some trade-offs to achieve such a peculiar arrangement!
-
-#### Negative performance
-
-*Wait, what?*
-
-See, good compilers/interpreters live well in the positives. That is to say they remove irrelevant runtime. Bad compilers and “normal” interpreters live near zero, at the very least getting rid of the notion of parsing.
-
-And what about Novika? Novika is deep in the negatives. Novika *parses* at runtime. Yup, you’ve heard it right.
-
-Waging wars with FFI will give you performance, sure (that is, will move you closer to zero from the negative side!) But then, why not simply use C, Rust, Crystal, or any other fancy-schmancy programming language — especially if you're doing something *serious*?
-
-#### Readability
-
-*It's up to you.*
-
-Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.
-
-But wait, why is that? Why is Novika not *designed* to be readable? Isn't that popular nowadays?
-
-See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. Again, it’s up to you. Either you have their syntax and their performance, or your syntax and your performance.
-
-#### Big projects
-
-*Never.*
-
-I have no clue what big projects are, or what they need. There are enough smart people in this world already.
-
-I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a full-featured programming language in the 21st century is hard ­— there's just so much it must be able to do! Maintaining an innovative one — that's a thousand times harder.
-
-## An objective evaluation
-
-TL; DR: Novika is a great language for quickly *prototyping* things.
-
-In fact, most of interpreted languages are.
-
-1. When I say "prototyping", I mean the "shut up" kind of prototyping, when you're so angry you just don't want
-   the language to complain! An unused variable, something that needs to be an object rather than a method to
-   work properly, wrong types — you don't care (all caps!), and Novika understands.
-
-2. This comes at a cost. For one, performance is not that great — ­and in Novika, it is terrible, much worse
-   than even in Python or MRI. This is mainly due to my naïve code but also due to the fact that the language
-   wasn't *designed* for performance — it was designed for seamless reflectivity and quick prototyping.
-
-3. In the land of interpreted languages, errors are a terrible and soul-devouring beast which you truly don't want to encounter. In Novika,
-   anything can just `'"helpful" explanation' die` and explode your whole program — at runtime, of course! And hope
-   it at least says something useful.
-
-4. Moderately sized projects become harder to maintain in the refactoring and bug-fixing sense. There are
-   no automated tools to help you with anything except for search & replace — and your brain designing things
-   right the first time, of course, which for most programmers (including myself) is almost never the case.
-
-5. Novika is one of the few high-level languages which allow self-modification, and there are even multiple flavors
-   of it. I won't list them here because if this wall of text didn't kill you yet, then it sure will would
-   these flavors be here. Novika is extremely hard to optimize: while in other languages there is at least
-   a clear-ish flow of control, in Novika, there isn't, for any piece of code can change its meaning at any
-   point in time.
-
-6. If you're still here, the best thing about Novika is that it's not PHP, Perl, or JavaScript when it
-   comes to types. Things rarely take an argument of more than one type. No implicit conversion is ever
-   done (as far as I remember!)
-
-7. I like criticizing my projects, but remember to make your own judgement as
-   well. After all, there are Python-people, Perl-people, Red-people, Scheme-people
-   and even Forth-people — all sorts of weird people :) So why not Novika-people? Maybe you're one of them.
 
 ## Examples
 
-Ordered by craziness!
-
-1. Hello World:
+Hello World:
 
 ```novika
 'Hello World' echo
 ```
 
-2. Factorial:
+---
+
+Factorial. Note that parentheses `()` do not mean anything in Novika. They're like single-character comments.
 
 ```novika
-"Parentheses () do not mean anything in Novika. They're like single-character comments."
-
 (5 to: 1) product "120"
 ```
 
-3. Sieve of Eratosthenes: prints prime numbers in `[2; 120]`.
+---
 
-```novika
-2 to: 120 ||-> [ $: n (stack without: [ n /? ]) asStack n ] each: echo
-```
-
-4. First 100 Fizz buzz rounds:
+First 100 Fizz buzz rounds:
 
 ```novika
 1 to: 100 each: [
@@ -170,52 +68,17 @@ Ordered by craziness!
 ]
 ```
 
-5. A tiny DSL for counting the average of a bunch of numbers:
+---
+
+Sieve of Eratosthenes: prints prime numbers in `[2; 120]`.
 
 ```novika
-[ ahead |beforeOrToEnd: [ decimal? not ] bi: sum count / ] @: avg:
-
-avg: 1 2 3      echo "STDOUT: 2⏎"
-avg: 100 4 6 5  echo "STDOUT: 28.75⏎"
+2 to: 120 ||-> [ $: n (stack without: [ n /? ]) asStack n ] each: echo
 ```
 
-6. Self-modification by indirection (i.e. the normies' one):
+---
 
-```novika
-[ ' from A branch' ~ echo ] $: alpha
-[ ' from B branch' ~ echo ] $: beta
-[ ' from C branch' ~ echo ] $: gamma
-
-alpha @: printIt
-
-[ 'Hi' printIt
-
-  (this -> [ alpha beta gamma ]) sample =: printIt
-] @: selfModify
-
-selfModify "Will print from any of the branches randomly..."
-selfModify
-selfModify
-```
-
-7. Self-modification by rewriting (i.e. the dirty but true one):
-
-```novika
-[ ' from A branch' ~ echo ] @: alpha
-[ ' from B branch' ~ echo ] @: beta
-[ ' from C branch' ~ echo ] @: gamma
-
-[ 'Hi' alpha
-
-  (this prototype) 2 [ drop ([ alpha beta gamma ] sample) ] |hydrate
-] @: selfModify
-
-selfModify "Will print from any of the branches randomly..."
-selfModify
-selfModify
-```
-
-8. [Zigzag problem](https://leetcode.com/problems/zigzag-conversion/) from LeetCode, with the examples as tests.
+[Zigzag problem](https://leetcode.com/problems/zigzag-conversion/) from LeetCode, with the examples as tests. Observe the boundary between terseness and readability.
 
 ```novika
 """
@@ -262,84 +125,18 @@ describe 'Zigzag Conversion' [
 runTestsInGroup: leetcode
 ```
 
-Now, if you want to look at something a bit more elaborate, there's:
+### What about something a bit more elaborate?
 
-* A snake game [example](https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk)
-* A simple [documentation viewer](https://github.com/novika-lang/novika/blob/rev10/examples/docuview.nk)
-* A [prompt](https://github.com/novika-lang/novika/blob/rev10/examples/lch-prompt.nk) that blinks in colors from the LCH color space
-* A TDD-d [observable](https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk)
-* A [live REPL interface](https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk) to a DSL for infix math expressions
-
-### Curious curiosities
-
-Here's an example of *weird* Novika. I don't know if the following program qualifies as
-*nondeterministic*, but Novika certainly supports nondeterministic programming as I understand
-it, in that the evaluation of any program is controlled mainly by that very program and the
-choices it may or may not make at runtime -- choices deterministic or not.
-
-```novika
-[ "( S B -- C ): safely creates a Continuation block
-   from the given Stack and Block."
-  new keep: [0 |to] newContinuation
-] @: createContinuation
-
-[
-  [ 'Hey!' echo ]
-  [ 'Bye!' echo ]
-  [ 'Uhm...' echo ]
-] $: drum
-
-[ "Open a random block from the drum. "
-  drum (0 randTo: [ drum count 1 - ]) fromLeft open
-] @: spinTheDrum
-
-[ $: probability
-
-  [
-    drop
-
-    rand probability < =>
-      [ "This will be the stack:" (this -> [ probability ])
-        "This will be the block:" (this -> withProbabilitySpin)
-        createContinuation
-      ]
-
-    "This will be the stack:" [ ]
-    "This will be the block:" (this -> spinTheDrum)
-    createContinuation
-  ] continues
-] @: withProbabilitySpin
-```
-
-It's pretty hard to explain, but basically, if you give `withProbabilitySpin`
-a probability from 0 to 1, then it will:
-
-1. `spinTheDrum` to open (aka execute, aka evaluate) a random block from `drum`.
-2. Based on a random number, decide whether to open `withProbabilitySpin` again.
-3. And so on...
-
-What I'm showing you here can be done with recursion and first-order
-functions, sure -- or with loops. But there are limits to how "non-deterministically"
-recursion/loops can control the flow, and here, in Novika -- in Novika there are
-no limits! (even though Novika is powered by a loop behind the scenes haha)
-
-So, if you give `withProbabilitySpin` the probability `1`, it will
-loop forever. To add to the above, it will indeed *loop*, not recurse.
-That is, there won't be a call stack explosion!
-
-If the probability is less than one, it will loop for an unknown
-amount of times. At probability `0`, it won't loop at all.
-
-```novika
-1 withProbabilitySpin "(or 0, or 0.5, etc.)"
-```
-
-Feel free to play with the probability yourself!
+- A snake game [example](https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk)
+- A simple [documentation viewer](https://github.com/novika-lang/novika/blob/rev10/examples/docuview.nk)
+- A [prompt](https://github.com/novika-lang/novika/blob/rev10/examples/lch-prompt.nk) that blinks in colors from the LCH color space
+- A TDD-d [observable](https://github.com/novika-lang/novika/blob/rev10/examples/observable.nk)
+- A [live REPL interface](https://github.com/novika-lang/novika/blob/rev10/examples/mathrepl.nk) to a DSL for infix math expressions
 
 ## Installing Novika
 
 The fastest way to get started with Novika is to download and unpack the latest [nightly build](https://github.com/novika-lang/nightly-builds/releases/latest).
-Novika [releases](https://github.com/novika-lang/novika/releases/latest) are as unstable as nightlies, if not more so, so don't worrry :)
+Novika [releases](https://github.com/novika-lang/novika/releases/latest) are as unstable as nightlies, if not more so, so don't worry :zany_face:
 
 1. If you don't want to do a system-wide install, simply use `bin/novika` *while in the directory of the nightly/release*.
 
@@ -442,7 +239,223 @@ To get a string description of a thing's type, use `typedesc`:
 ... 'quoted word' ...
 ```
 
-## Learning Novika
+
+## On blocks
+
+Novika is all about blocks! The name is pretty generic, and has little if any connection to "blocks" of mainstream programming languages.
+
+### Blocks are lists with a cursor
+
+<img src="img/blocks-are-lists-with-a-cursor.svg" align=right width=512 />
+
+Blocks allow you to store different kinds of *forms* one after another. A form could be a number, a string, or even another block!
+
+In this regard, a block is somewhat similar to a Python list or a Ruby array.
+
+Moreover, now taking the *cursor* into account, blocks seem a lot like text input fields but with *arbitrary constituents* rather than just characters.
+
+You can move the cursor back and forth in a block. You can "backspace", insert, and so on, all this not only *empowering computation* but also *backed by computation*.
+
+<br clear="right"/>
+
+```novika
+"""
+'Cut' the block in half at the cursor using |slice.
+"""
+[ 1 2 3 4 | 5 6 7 8 ] |slice leaves: [ [ 1 2 3 4 | ] [ 5 6 7 8 | ]  ]
+
+"""
+Remember where the cursor is, then slide it forward and double
+each 'top' number. Finally, move the cursor back to where it was.
+"""
+[ 1 2 3 4 | 5 6 7 8 ] |~> [ dup + ] leaves: [ [ 1 2 3 4 | 10 12 14 16 ] ]
+```
+
+### Blocks are dictionaries — and objects
+
+<img src="res/blocks-are-dictionaries.svg" align=right width=512 />
+
+Blocks are dictionaries for themselves and for other blocks. The former is useful for *running* blocks, and the latter is useful for *connecting* blocks to each other — to form scopes, object hierarchies, and so on.
+
+Again, you can imagine something like a Python dictionary or — even better — a JavaScript object.
+
+Blocks dictionaries hold *entries*.
+
+When the key form is seen, looked up in the dictionary, and *opened*, *opener entries* (or *openers* for short) in turn *open* the value form (*open* is Novika-speak for "run", "execute", "evaluate").
+
+On the other hand, *pusher* entries simply push their value form onto the stack.
+
+<br clear="right"/>
+
+```novika
+100 $: x
+200 $: y
+x y + echo  "STDOUT: 300⏎"
+
+[ ${ x y } this ] @: newPoint
+
+100 200 newPoint $: A
+300 400 newPoint $: B
+
+A echo "STDOUT: [ ${ x y } this · ${y :: 200} ${x :: 100} ]⏎"
+B echo "STDOUT: [ ${ x y } this · ${y :: 400} ${x :: 300} ]⏎"
+
+A.x A.y 2echo "STDOUT: 100⏎200⏎"
+B.x B.y 2echo "STDOUT: 300⏎400⏎"
+```
+
+
+### Blocks are stacks
+
+As simple as that: blocks are also stacks, you just have to look at them differently.
+
+Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-based programming languages. You can then move the cursor, which helps to avoid `rot`s and other nasty Forth-isms. Here is how `rot` can be implemented in Novika:
+
+```novika
+[ <| swap |> swap ] @: rot
+```
+
+Let's execute `1 2 3 rot` step-by-step, as if we were a Novika interpreter.
+
+1. Stack: `[ | ]`, block: `[ | 1 2 3 rot ]`
+2. Push `1`, stack: `[ 1 | ]`, block: `[ 1 | 2 3 rot ]`
+3. Push `2`, stack: `[ 1 2 | ]`, block: `[ 1 2 | 3 rot ]`
+4. Push `3`, stack: `[ 1 2 3 | ]`, block: `[ 1 2 3 | rot ]`
+5. Open `rot` with stack: `[ 1 2 3 | ]`: *instantiate* (basically copy) the block `[ <| swap |> swap ]`, and move the cursor to the beginning like so: `[ | <| swap |> swap ]`
+6. Open `<|`, stack: `[ 1 2 | 3 ]`, block: `[ <| | swap |> swap ]`
+7. Open `swap`, stack: `[ 2 1 | 3 ]`, block: `[ <| swap | |> swap ]`
+8. Open `|>`, stack: `[ 2 1 3 | ]`, block: `[ <| swap |> | swap ]`
+9. Open `swap`, stack: `[ 2 3 1 | ]`, block: `[ <| swap |> swap | ]`
+10. Cursor for block `[ <| swap |> swap | ]` is at end, close it!
+11. Cursor for block `[ 1 2 3 rot | ]` is at end, close it!
+12. No more blocks to run!
+
+Voilá! It does rotate: `1 2 3 -- 2 3 1`.
+
+<img src="res/blocks-are-stacks.svg"  width=1024 />
+
+### Blocks are vertices
+
+<img src="res/blocks-are-vertices.svg" align=right width=512 />
+
+Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: *is a friend of*, and *is **the** parent of*.
+
+- Blocks can have only one, or no *parent*.
+- Blocks can have zero or more *friends*.
+
+Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how (and which) entries are looked up and so on.
+
+Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...).
+
+For instance, first, *is parent of* relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as *the first echelon* in Novika.
+
+*The second echelon* is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.
+
+<br clear="right"/>
+
+```novika
+[ 100 $: x ] obj $: definesX
+[ 200 $: y ] obj $: definesY
+
+"""
+Establish a cyclic relationship (parentheses are like comments,
+they don't mean anything and don't have to be matched):
+"""
+(definesX -- definesY -- definesX) drop
+
+definesX.x leaves: 100
+definesX.y leaves: 200
+
+definesY.x leaves: 100
+definesY.y leaves: 200
+```
+
+### Blocks are code
+
+When you're writing Novika, you're writing blocks. It's like when you're writing Lisp, you're writing lists.
+
+All Novika code you saw or will see is a block — or, rather, is *in* a block. The toplevel block is the one that holds your whole code and doesn't need to be enclosed in `[]`s. You can think of it as of the "file" block, that is, the block which encloses an entire file of Novika source code *implicitly*.
+
+```novika
+this echo  "STDOUT: [ this echo · ${__path__ :: '/path/to/folder'} ${__file__ :: '/path/to/folder/file.nk'} ]"
+```
+
+### Blocks are continuations
+
+A Novika continuation is a block that consists of two blocks: the stack block, and the code block (often referred to simply as *block*), like so: `[ [ …code… ] [ …stack… ] ]`. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called *builtins*, which are pieces of runnable native code as seen from Novika. Here are some examples:
+
+- [hydrate](https://novika-lang.github.io/words/#hydrate), as in:
+
+  ```novika
+  [ 1 2 ] [ + echo ] hydrate  "STDOUT: 3"
+  ```
+
+- [open](https://novika-lang.github.io/words/#open) — this is an ancient (and often used) word from which the term *opening* came. What is described as *opening* is often some form of *hydration*, however, the term *opening* stuck for historical reasons.
+
+  ```novika
+  4 [ dup + ] open echo  "STDOUT: 8"
+  ```
+
+- [do](https://novika-lang.github.io/words/#do) — opens a block with a new empty (isolated) stack:
+
+  ```novika
+  1 2 [ stack echo ] do  "STDOUT: [ ]"
+  ```
+
+- And more, see the [words documentation](https://novika-lang.github.io/words) or env/core.
+
+Stack blocks can be shared between two continuations (as in `open` or opener entries where the block you open shares the stack with the opener block). Code blocks can also be shared, but I have never needed this in practice so there's no word that does something like that in env/core.
+
+In the code block, the cursor is kept immediately after the form that is being opened right now.
+
+- The current (active) continuation can be accessed using the word `cont`, as in:
+
+  ```novika
+  1 2 cont echo 3 4  "STDOUT: [ [ cont echo | 3 4 ] [ 1 2 ] ]"
+  ```
+
+- The stack of the current continuation (dubbed the *active stack* or simply the stack) can be accessed using the word `stack`, as in:
+
+  ```novika
+  1 2 <| stack echo |> 3 4  "STDOUT: [ 1 | 2 ]"
+  ```
+
+- The code block of the current continuation (dubbed the *active block* or simply the block) can be accessed using the word `this`, as in:
+
+  ```novika
+  1 2 this echo 3 4  "STDOUT: [ 1 2 this echo | 3 4 ]"
+  ```
+
+- The code block of the previous continuation (and the one that will be *activated* when the current continuation finishes) can be accessed using the word `ahead`. This word is *crucial* for writing human-readable Novika, as in `1 to: 100 only: even? each: echo`:
+
+  ```novika
+  [ ahead echo ] @: sneakyPeaky
+
+  1 2 sneakyPeaky 3 4  "STDOUT: [ 1 2 sneakyPeaky | 3 4 ]"
+  ```
+
+Finally, the *continuations block* is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type `conts shallowCopy each: echo` in the REPL. Do not forget `shallowCopy`, or the language will gain consciousness this that never ends well!! :)
+
+```novika
+[ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
+[ [ … More REPL code … · ${error :: false} ${pgStack :: a block} @{runLine :: ( Q -- )} ] [ ] ]
+[ [ ahead thruBlock loop ] [ ] ]
+[ [ new $: iterBody iterBody createLoop $: nextLoop $: breakLoop @: startLoop iterBody #break breakLoop opens iterBody #next nextLoop opens startLoop · ${iterBody :: a block} ${nextLoop :: a block} ${breakLoop :: a block} @{startLoop :: a block} ] [ ] ]
+[ [ this =: breakTo orphan loopBody hydrate! ] [ ] ]
+[ [ orphan iterBody hydrate | repeat ] [ ] ]
+[ [ '>>> ' readLine br: [ runLine ] [ 'Bye.' echo break ] ] [ ] ]
+[ [ ahead thruBlock ahead thruBlock br ] [ ] ]
+[ [ runLine ] [ ] ]
+[ [ … More REPL code … · ${line :: 'conts shallowCopy each: echo'} ${self :: ( Q -- )} ${durationMs :: 0} ${pgRootInstance :: a block} ${pgStackCopy :: a block} ] [ ] ]
+[ [ [ reportError #true =: error self resume ] @: __died__ [ pgStackCopy pgRootInstance line slurp hydrate! ] measure | =: durationMs · @{__died__ :: a block} ] [ ] ]
+[ [ monotonic $: t1 do | monotonic $: t2 t2 t1 - · ${t1 :: 35111923.17418} ] [ ] ]
+[ [ pgStackCopy pgRootInstance line slurp hydrate! ] [ ] ]
+[ [ conts shallowCopy each: echo ] [ 1 2 3 4 ] ]
+```
+
+Don't be scared, it's just a bunch of letters :)
+
+## Want to learn more?
 
 1. Explore files in `tests/` to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.
 2. Explore `help` messages of various words. A less up-to-date but more convenient way to do the same is to read word documentation [here](https://novika-lang.github.io/words/).
@@ -452,6 +465,38 @@ To get a string description of a thing's type, use `typedesc`:
 I know there aren't a lot of materials here nor anywhere that'd teach you the language. On the fundamental stuff, the language is so weird I can't even remember how it all came to be. And in general I have so much to say that I just don't know where to begin. Hopefully, there will be more stuff here someday.
 
 Explore Novika as if it were an alien spaceship that accidentally fell on Earth, full of weird little yellow rotating yukoos. The aliens did not write on every button what it will do when you press it. And even if they did, what kind of language would they be using?!
+
+## Trade-offs, or why is Novika so slow?
+
+Of course, I had to make some trade-offs to achieve such a peculiar arrangement!
+
+### Negative performance
+
+*Wait, what?*
+
+See, good compilers/interpreters live well in the positives. That is to say they remove irrelevant runtime. Bad compilers and “normal” interpreters live near zero, at the very least getting rid of the notion of parsing.
+
+And what about Novika? Novika is deep in the negatives. Novika *parses* at runtime. Yup, you’ve heard it right.
+
+Waging wars with FFI will give you performance, sure (that is, will move you closer to zero from the negative side!) But then, why not simply use C, Rust, Crystal, or any other fancy-schmancy programming language — especially if you're doing something *serious*?
+
+### Readability
+
+*It's up to you.*
+
+Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.
+
+But wait, why is that? Why is Novika not *designed* to be readable? Isn't that popular nowadays?
+
+See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete control over the language and the machinery involved vs. performance is up to you.
+
+### Big projects
+
+*Never.*
+
+I have no clue what big projects are, or what they need. There are enough smart people in this world already, and I'm certainly not one of them.
+
+I would say Novika is an interesting experiment and a great personal project. Perhaps the language will grow into something bigger a few years from now. Most likely, however, it'll die. Maintaining a general-purpose programming language in the 21st century is hard ­— there's just so much it must be able to do! After all, we are not drawing rectangles at the speed of a snail today, are we?
 
 ## Contributing and internals
 
@@ -480,18 +525,7 @@ When you do your `bin/novika hello.nk`, here's *roughly* the order in which vari
 
 Note that most of these components interact with each other, making this list pretty pointless "for science".
 
-### XXX: the hottest files in Novika
-
-Hottest as in load and load as in performance, of course!
-
-* Block [dictionary implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/dict.cr), `Dict`, is simply a wrapper around `Hash(K, V)`.
-* Current [substrate implementation](https://github.com/novika-lang/novika/blob/rev10/src/novika/substrate.cr) is a *veerry* dumb copy-on-write array. Here's a helpful "formula": `block = ... + tape + dict + ...; tape = substrate + cursor`
-
-### Stuff you might want to... borrow!
-
-* A self-sufficient FFI [wrapper](https://github.com/novika-lang/novika/blob/rev10/src/novika/ffi.cr) only a few edits away!
-
-### And the usual procedure...
+### And the usual procedure
 
 1. Fork it (<https://github.com/novika-lang/novika/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
