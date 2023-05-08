@@ -1040,7 +1040,7 @@ each 'top' number. Finally, move the cursor back to where it was.
 <img src="img/blocks-are-dictionaries.svg" align=right width=512 />
 <p>Blocks are dictionaries for themselves and for other blocks. The former is useful for <em>running</em> blocks, and the latter is useful for <em>connecting</em> blocks to each other — to form scopes, object hierarchies, and so on.</p>
 <p>Again, you can imagine something like a Python dictionary or — even better — a JavaScript object.</p>
-<p>Blocks dictionaries hold <em>entries</em>.</p>
+<p>Block dictionaries hold <em>entries</em>.</p>
 <p>When the key form is seen, looked up in the dictionary, and <em>opened</em>, <em>opener entries</em> (or <em>openers</em> for short) in turn <em>open</em> the value form (<em>open</em> is Novika-speak for &quot;run&quot;, &quot;execute&quot;, &quot;evaluate&quot;).</p>
 <p>On the other hand, <em>pusher</em> entries simply push their value form onto the stack.</p>
 <br clear="right"/>
@@ -1064,7 +1064,7 @@ B.x B.y 2echo &quot;STDOUT: 300⏎400⏎&quot;</code></pre>
   </svg>
 </a>Blocks are stacks</h3>
 <p>As simple as that: blocks are also stacks, you just have to look at them differently.</p>
-<p>Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-based programming languages. You can then move the cursor, which helps to avoid <code>rot</code>s and other nasty Forth-isms. Here is how <code>rot</code> can be implemented in Novika:</p>
+<p>Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-oriented programming languages. You can also move the cursor — this allows to avoid <code>rot</code>s and other nasty Forth-isms. Here is how <code>rot</code> can be implemented in Novika:</p>
 <pre><code class="language-novika">[ &lt;| swap |&gt; swap ] @: rot</code></pre>
 <p>Let's execute <code>1 2 3 rot</code> step-by-step, as if we were a Novika interpreter.</p>
 <ol>
@@ -1091,12 +1091,12 @@ B.x B.y 2echo &quot;STDOUT: 300⏎400⏎&quot;</code></pre>
 <img src="img/blocks-are-vertices.svg" align=right width=512 />
 <p>Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: <em>is a friend of</em>, and <em>is <strong>the</strong> parent of</em>.</p>
 <ul>
-<li>Blocks can have only one, or no <em>parent</em>.</li>
+<li>Blocks can have only one <em>parent</em>, or no parents.</li>
 <li>Blocks can have zero or more <em>friends</em>.</li>
 </ul>
-<p>Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how (and which) entries are looked up and so on.</p>
-<p>Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...).</p>
-<p>For instance, first, <em>is parent of</em> relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as <em>the first echelon</em> in Novika.</p>
+<p>Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how, which, and whose entries are looked up and opened.</p>
+<p>Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...)</p>
+<p>For instance, first, <em>is the parent of</em> relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as <em>the first echelon</em> in Novika.</p>
 <p><em>The second echelon</em> is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.</p>
 <br clear="right"/>
 <pre><code class="language-novika">[ 100 $: x ] obj $: definesX
@@ -1126,14 +1126,14 @@ definesY.y leaves: 200</code></pre>
     <use href="#octicon-link"/>
   </svg>
 </a>Blocks are continuations</h3>
-<p>A Novika continuation is a block that consists of two blocks: the stack block, and the code block (often referred to simply as <em>block</em>), like so: <code>[ [ …code… ] [ …stack… ] ]</code>. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called <em>builtins</em>, which are pieces of runnable native code as seen from Novika. Here are some examples:</p>
+<p>A Novika continuation is a block that consists of two blocks: the stack block, and the code block, like so: <code>[ [ …code… ] [ …stack… ] ]</code>. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called <em>builtins</em>, which are bits of runnable native code as seen from Novika. Here are some examples:</p>
 <ul>
 <li>
 <p><a href="https://novika-lang.github.io/words/#hydrate">hydrate</a>, as in:</p>
 <pre><code class="language-novika">[ 1 2 ] [ + echo ] hydrate  &quot;STDOUT: 3&quot;</code></pre>
 </li>
 <li>
-<p><a href="https://novika-lang.github.io/words/#open">open</a> — this is an ancient (and often used) word from which the term <em>opening</em> came. What is described as <em>opening</em> is often some form of <em>hydration</em>, however, the term <em>opening</em> stuck for historical reasons.</p>
+<p><a href="https://novika-lang.github.io/words/#open">open</a> — this is an ancient (and often used) word from which the term <em>to open</em> came. What is described as <em>opening</em> is in reality a form of <em>hydration</em>, but for historical reasons <em>opening</em> is used anyway.</p>
 <pre><code class="language-novika">4 [ dup + ] open echo  &quot;STDOUT: 8&quot;</code></pre>
 </li>
 <li>
@@ -1149,7 +1149,7 @@ definesY.y leaves: 200</code></pre>
 <ul>
 <li>
 <p>The current (active) continuation can be accessed using the word <code>cont</code>, as in:</p>
-<pre><code class="language-novika">1 2 cont echo 3 4  &quot;STDOUT: [ [ cont echo | 3 4 ] [ 1 2 ] ]&quot;</code></pre>
+<pre><code class="language-novika">1 2 cont echo 3 4  &quot;STDOUT: [ [ 1 2 cont echo | 3 4 ] [ 1 2 ] ]&quot;</code></pre>
 </li>
 <li>
 <p>The stack of the current continuation (dubbed the <em>active stack</em> or simply the stack) can be accessed using the word <code>stack</code>, as in:</p>
@@ -1166,7 +1166,7 @@ definesY.y leaves: 200</code></pre>
 1 2 sneakyPeaky 3 4  &quot;STDOUT: [ 1 2 sneakyPeaky | 3 4 ]&quot;</code></pre>
 </li>
 </ul>
-<p>Finally, the <em>continuations block</em> is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type <code>conts shallowCopy each: echo</code> in the REPL. Do not forget <code>shallowCopy</code>, or the language will gain consciousness this that never ends well!! :)</p>
+<p>Finally, the <em>continuations block</em> is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type <code>conts shallowCopy each: echo</code> in the REPL. Do not forget <code>shallowCopy</code>, or the language will gain consciousness — and this never ends well!! :)</p>
 <pre><code class="language-novika">[ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
 [ [ … More REPL code … · ${error :: false} ${pgStack :: a block} @{runLine :: ( Q -- )} ] [ ] ]
 [ [ ahead thruBlock loop ] [ ] ]
@@ -1218,7 +1218,7 @@ definesY.y leaves: 200</code></pre>
 <p><em>It's up to you.</em></p>
 <p>Maybe you want your code to look cryptic — so your friends think you’re a hacker or something. Novika will not stand in your way.</p>
 <p>But wait, why is that? Why is Novika not <em>designed</em> to be readable? Isn't that popular nowadays?</p>
-<p>See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete control over the language and the machinery involved vs. performance is up to you.</p>
+<p>See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete, high-level control over the language and the machinery involved vs. performance is up to you.</p>
 <h3><a id="big-projects" class="anchor" href="#big-projects">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
