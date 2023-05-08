@@ -33,9 +33,24 @@ struct Novika::Classifier
   # :nodoc:
   def initialize(@bytes : UInt8*, @ceiling : Novika::Block)
     @block = ceiling
+    @cursors = {} of UInt64 => Int32
   end
 
   private delegate :add, to: block
+
+  # Assigns the cursor position of the current block to be the given
+  # *position*. Note that the motion itself happens in `unnest`.
+  private def push_cursor(position : Int)
+    @cursors[block.object_id] = position
+  end
+
+  # Moves the cursor in the current block to the cursor position assigned
+  # by `push_cursor`.
+  private def pop_cursor
+    return unless position = @cursors.delete(block.object_id)
+
+    block.to(position)
+  end
 
   # Creates an empty child block, and makes it the current block.
   private def nest
@@ -46,6 +61,7 @@ struct Novika::Classifier
   # that parent the current block.
   private def unnest
     @block.die("mismatched ']' in block") if @ceiling.same?(@block)
+    pop_cursor
     @block = block.parent.tap &.add(block)
   end
 
@@ -229,6 +245,14 @@ struct Novika::Classifier
         add Novika::QuotedWord.new(build_raw(start + 1, count - 1))
       else
         add Novika::Word.new("#")
+      end
+    when '|'
+      # If count > 1, then this is a word. Otherwise, this is the
+      # cursor literal.
+      if count > 1
+        add Novika::Word.new(build_raw(start, count))
+      else
+        push_cursor(block.count)
       end
     when '\''
       # If start is '\'', then this is a quote. Omit the

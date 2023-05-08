@@ -147,10 +147,9 @@ module Novika::Capabilities::Impl
       ```
       'hello' dup leaves: [ 'hello' 'hello' ]
 
-      [ 1 2 3 ] (dup 2 |to) $: block
-      block toQuote leaves: '[ 1 2 | 3 ]'
+      [ 1 2 | 3 ] $: block
       block [ dup ] hydrate
-      block toQuote leaves: '[ 1 2 2 | 3 ]'
+      block leaves: [ [ 1 2 2 | 3 ] ]
       ```
       END
       ) { |_, stack| stack.dupe }
@@ -161,10 +160,9 @@ module Novika::Capabilities::Impl
       ```
       'hello' drop leaves: [ ]
 
-      [ 1 2 3 ] (dup 2 |to) $: block
-      block toQuote leaves: '[ 1 2 | 3 ]'
+      [ 1 2 | 3 ] $: block
       block [ drop ] hydrate
-      block toQuote leaves: '[ 1 | 3 ]'
+      block leaves: [ [ 1 | 3 ] ]
       ```
       END
       ) { |_, stack| stack.drop }
@@ -175,10 +173,9 @@ module Novika::Capabilities::Impl
       ```
       1 2 swap leaves: [ 2 1 ]
 
-      [ 1 2 3 ] (dup 2 |to) $: block
-      block toQuote leaves: '[ 1 2 | 3 ]'
+      [ 1 2 | 3 ] $: block
       block [ swap ] hydrate
-      block toQuote leaves: '[ 2 1 | 3 ]'
+      block leaves: [ [ 2 1 | 3 ] ]
       ```
       END
       ) { |_, stack| stack.swap }
@@ -1458,11 +1455,9 @@ module Novika::Capabilities::Impl
       xs [ 4 5 6 ] shove*
       xs leaves: [ [ 1 2 3 4 5 6 "|" ] ]
 
-      [ 1 2 3 ] $: ys
-      ys 1 |to "[ 1 | 2 3 ]"
-      ys [ 100 200 300 ] shove* "[ 1 100 200 300 | 2 3 ]"
-      ys dup count |to
-      ys leaves: [ [ 1 100 200 300 2 3 ] ]
+      [ 1 | 2 3 ] $: ys
+      ys [ 100 200 300 ] shove*
+      ys leaves: [ 1 100 200 300 | 2 3 ]
       ```
       END
       ) do |_, stack|

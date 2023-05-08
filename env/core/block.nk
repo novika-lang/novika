@@ -2,8 +2,8 @@
    or a boolean for whether Form exists in Block.
 
   ```
-  [ 1 2 3 ] 1 |to "[ 1 | 2 3 ]" peek? leaves: [ 2 true ]
-  [ 1 2 3 ] "[ 1 2 3 | ]" peek? leaves: [ false ]
+  [ 1 | 2 3 ] peek? leaves: [ 2 true ]
+  [ 1 2 3 | ] peek? leaves: false
   ```
   """
   dup |at over count = => [ drop false ^ ]
@@ -15,10 +15,7 @@
    cursor back N times in Block.
 
   ```
-  "Note: `toQuote` is simply the most compact way to
-   present the result. It doesn't do anything to the
-   cursor."
-  [ 1 2 3 ] "[ 1 2 3 | " dup 2 |- toQuote leaves: '[ 1 | 2 3 ]'
+  [ 1 2 3 | ] dup 2 |- leaves: [ [ 1 | 2 3 ] ]
   ```
   """
 
@@ -41,11 +38,11 @@
   ```
   [ 1 2 3 ] $: block
   block 1 |to
-  block toQuote leaves: '[ 1 | 2 3 ]'
+  block leaves: [ [ 1 | 2 3 ] ]
   block 1 |+
-  block toQuote leaves: '[ 1 2 | 3 ]'
+  block leaves: [ [ 1 2 | 3 ] ]
   block 1 |+
-  block toQuote leaves: '[ 1 2 3 ]'
+  block leaves: [ [ 1 2 3 | ] ]
   ```
   """
   2enclose [ over |at + |to ] hydrate
@@ -79,11 +76,11 @@
   ```
   [ 1 2 3 ] $: x
   x 1 |clamp
-  x toQuote leaves: '[ 1 | 2 3 ]'
+  x leaves: [ [ 1 | 2 3 ] ]
   x 1000 |clamp
-  x toQuote leaves: '[ 1 2 3 ]'
+  x leaves: [ [ 1 2 3 | ] ]
   x -1000 |clamp
-  x toQuote leaves: '[ | 1 2 3 ]'
+  x leaves: [ [ | 1 2 3 ] ]
   ```
   """
   asDecimal $: cursor
@@ -100,16 +97,13 @@
    to either end, if necessary).
 
   ```
-  [ 1 2 3 ] $: x
-
-  x 1 |to
-  x toQuote leaves: '[ 1 | 2 3 ]'
+  [ 1 | 2 3 ] $: x
 
   x 2 [ + ] |hydrate
-  x toQuote leaves: '[ 3 | 3 ]'
+  x leaves: [ [ 3 | 3 ] ]
 
   x 2 [ 2drop ] |hydrate
-  x toQuote leaves: '[ ]'
+  x leaves: [ [ ] ]
   ```
   """
   asBlock   $: body
@@ -127,11 +121,9 @@
    active stack.
 
   ```
-  [ 1 2 3 ] $: block
-  block 1 |-
-  block toQuote leaves: '[ 1 2 | 3 ]'
+  [ 1 2 | 3 ] $: block
   block [ |swap ] there
-  block toQuote leaves: '[ 1 3 | 2 ]'
+  block leaves: [ [ 1 3 | 2  ] ]
   ```
   """
   |> swap <|
@@ -594,7 +586,7 @@
    and `next` are available.
 
   ```
-  [ 1 2 3 ] dup 1 |to [ + ] |slideRight leaves: [ [ 6 ] ]
+  [ 1 | 2 3 ] [ + ] |slideRight leaves: [ [ 6 ] ]
   ```
 
   In the table below, sliding step is marked with '*', and
@@ -636,13 +628,9 @@
    if necessary).
 
   ```
-  [ 1 2 3 ] $: x
-
-  x 1 |to
-  x toQuote leaves: '[ 1 | 2 3 ]'
-
+  [ 1 | 2 3 ] $: x
   x |~> [ 1 + ]
-  x toQuote leaves: '[ 1 | 3 4 ]'
+  x leaves: [ [ 1 | 3 4 ] ]
   ```
   """
   ahead thruBlock over |at <| |slideRight dup |> |clamp
@@ -668,13 +656,10 @@
    if necessary).
 
   ```
-  [ 1 2 3 ] $: x
-
-  x 1 |to
-  x toQuote leaves: '[ 1 | 2 3 ]'
-
+  [ 1 | 2 3 ] $: x
+  x leaves: [ [ 1 | 2 3 ] ]
   x ||~> [ 1 + ]
-  x toQuote leaves: '[ 2 | 3 4 ]'
+  x leaves: [ [ 2 | 3 4 ] ]
   ```
   """
   ahead thruBlock over |at <| over 0 |to |slideRight dup |> |clamp
@@ -1856,14 +1841,9 @@
   Useful for writing parsers for Novika DSLs.
 
   ```
-  [ 1 2 3 4 5 6 ] $: a
-  a 1 |to
-  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
-
-  [ 4 = ] |afterOrToEnd? leaves: [ [ 2 3 ] true ]
-
-  a echo
-  "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
+  [ 1 | 2 3 4 5 6 ] $: a
+  a [ 4 = ] |afterOrToEnd? leaves: [ [ 2 3 ] true ]
+  a leaves: [ [ 1 2 3 4 | 5 6 ] ]
   ```
   """
   ahead $: caller
@@ -1905,13 +1885,9 @@
   Condition itself is displayed.
 
   ```
-  [ 1 2 3 4 5 6 ] $: a
-  a 1 |to
-  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]''
-
+  [ 1 | 2 3 4 5 6 ] $: a
   a 4 |afterOrDie leaves: [ [ 2 3 ] ]
-  a echo
-  "STDOUT: [ 1 2 3 4 | 5 6 ]⏎"
+  a leaves: [ [ 1 2 3 4 | 5 6 ] ]
   ```
   """
   dup $: cond
@@ -1938,13 +1914,9 @@
    item.
 
   ```
-  [ 1 2 3 4 5 6 ] $: a
-  a 1 |to
-  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
-
+  [ 1 | 2 3 4 5 6 ] $: a
   a 4 |beforeOrToEnd leaves: [ [ 2 3 ] ]
-  a echo
-  "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
+  a leaves: [ [ 1 2 3 | 4 5 6 ] ]
   ```
   """
   over $: list
@@ -1974,13 +1946,9 @@
    cursor in List block *before* the matching item.
 
   ```
-  [ 1 2 3 4 5 6 ] $: a
-  a 1 |to
-  a toQuote leaves: '[ 1 | 2 3 4 5 6 ]'
-
+  [ 1 | 2 3 4 5 6 ] $: a
   a 4 |beforeOrDie leaves: [ [ 2 3 ] ]
-  a echo
-  "STDOUT: [ 1 2 3 | 4 5 6 ]⏎"
+  a leaves: [ [ 1 2 3 | 4 5 6 ] ]
   ```
   """
   over $: list
@@ -2189,7 +2157,7 @@
   And in code:
 
   ```
-  [ 1 2 3 "|" 4 5 6 ] dup 3 |to $: block
+  [ 1 2 3 | 4 5 6 ] $: block
 
   block 1 |ring toQuote leaves: '[ 3 | 4 · ${firstAt :: 2} ${lastAt :: 3} ]'
   block 2 |ring toQuote leaves: '[ 2 3 | 4 5 · ${firstAt :: 1} ${lastAt :: 4} ]'

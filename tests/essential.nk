@@ -340,7 +340,7 @@ describe 'resub' [
 
     b 2 |-
     a b resub
-    b toTape [ 1 2 3 ] dup 1 |to assert=
+    b toTape [ 1 | 2 3 ] assert=
     b ls [ x ] assert=
   ]
 ]
@@ -888,8 +888,8 @@ describe 'toQuote block' [
 
   it should 'enquote small block' [
     [ 1 2 3 ] toQuote '[ 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 0 |to toQuote '[ | 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 1 |to toQuote '[ 1 | 2 3 ]' assert=
+    [ | 1 2 3 ] toQuote '[ | 1 2 3 ]' assert=
+    [ 1 | 2 3 ] toQuote '[ 1 | 2 3 ]' assert=
     [ 'hello world' 1 2 3 ] toQuote '[ \'hello world\' 1 2 3 ]' assert=
   ]
 
@@ -922,10 +922,7 @@ describe 'toQuote block' [
     b b shove
     b toQuote '[ 1 2 3 ⭮ ]' assert=
 
-    [ 1 2 3 ] $: c
-    c 1 |to
-    c toQuote '[ 1 | 2 3 ]' assert=
-
+    [ 1 | 2 3 ] $: c
     c c shove
     c toQuote '[ 1 ⭮ | 2 3 ]' assert=
   ]
@@ -1498,7 +1495,7 @@ describe '|slice' [
 
   it should 'slice when |at 0' [
     [ [ ] |slice ] vals [ [ ] [ ] ] assert=
-    [ [ 1 2 3 ] dup 0 |to |slice ] vals [ [ ] [ 1 2 3 ] ] assert=
+    [ [ | 1 2 3 ] |slice ] vals [ [ ] [ 1 2 3 ] ] assert=
   ]
 
   it should 'slice when |at count' [
@@ -1506,11 +1503,11 @@ describe '|slice' [
   ]
 
   it should 'slice when |at in first half' [
-    [ [ 1 2 3 4 ] dup 1 |to |slice ] vals [ [ 1 ] [ 2 3 4 ] ] assert=
+    [ [ 1 | 2 3 4 ] |slice ] vals [ [ 1 ] [ 2 3 4 ] ] assert=
   ]
 
   it should 'slice when |at in second half' [
-    [ [ 1 2 3 4 ] dup 3 |to |slice ] vals [ [ 1 2 3 ] [ 4 ] ] assert=
+    [ [ 1 2 3 | 4 ] |slice ] vals [ [ 1 2 3 ] [ 4 ] ] assert=
   ]
 ]
 

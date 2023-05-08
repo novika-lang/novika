@@ -41,12 +41,12 @@ describe 'peek?' [
   ]
 
   it should 'leave form, true when block cursor is at start' [
-    [ [ 1 2 3 ] dup 0 |to peek? ] vals [ 1 true ] here assert=
+    [ [ | 1 2 3 ] peek? ] vals [ 1 true ] here assert=
   ]
 
   it should 'leave form, true when block cursor is in the middle' [
-    [ [ 1 2 3 ] dup 1 |to peek? ] vals [ 2 true ] here assert=
-    [ [ 1 2 3 ] dup 2 |to peek? ] vals [ 3 true ] here assert=
+    [ [ 1 | 2 3 ] peek? ] vals [ 2 true ] here assert=
+    [ [ 1 2 | 3 ] peek? ] vals [ 3 true ] here assert=
   ]
 ]
 
@@ -54,11 +54,11 @@ describe '|-' [
   in lang
 
   it dies 'when cursor is at 0' [
-    [ 1 2 3 ] dup 0 |to 1 |-
+    [ | 1 2 3 ] 1 |-
   ]
 
   it should 'not die when cursor at 0, but moving 0 times' [
-    [ 1 2 3 ] dup 0 |to dup 0 |- |at 0 assert=
+    [ | 1 2 3 ] dup 0 |- |at 0 assert=
   ]
 
   it should 'not move cursor when 0 times' [
@@ -90,7 +90,7 @@ describe '|+' [
   ]
 
   it should 'move cursor' [
-    [ 1 2 3 ] dup 1 |to dup 1 |+ |at 2 assert=
+    [ 1 | 2 3 ] dup 1 |+ |at 2 assert=
   ]
 
   it should 'move cursor for stack' [
@@ -133,12 +133,12 @@ describe '|clamp' [
     [ ] dup -123 |clamp [ ] assert=
     [ ] dup 123 |clamp [ ] assert=
 
-    [ 1 2 3 ] dup -123 |clamp toQuote '[ | 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 0 |clamp toQuote '[ | 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 1 |clamp toQuote '[ 1 | 2 3 ]' assert=
-    [ 1 2 3 ] dup 2 |clamp toQuote '[ 1 2 | 3 ]' assert=
-    [ 1 2 3 ] dup 3 |clamp toQuote '[ 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 123 |clamp toQuote '[ 1 2 3 ]' assert=
+    [ 1 2 3 ] dup -123 |clamp [ | 1 2 3 ] assert=
+    [ 1 2 3 ] dup 0 |clamp [ | 1 2 3 ] assert=
+    [ 1 2 3 ] dup 1 |clamp [ 1 | 2 3 ] assert=
+    [ 1 2 3 ] dup 2 |clamp [ 1 2 | 3 ] assert=
+    [ 1 2 3 ] dup 3 |clamp [ 1 2 3 ] assert=
+    [ 1 2 3 ] dup 123 |clamp [ 1 2 3 ] assert=
   ]
 ]
 
@@ -160,26 +160,26 @@ describe '|hydrate' [
     [ ] $: blk
 
     blk 0 [ 1 2 3 ] |hydrate
-    blk toQuote leaves: '[ | 1 2 3 ]'
+    blk [ | 1 2 3 ] assert=
 
     blk 2 [ drop ] |hydrate
-    blk toQuote leaves: '[ | 1 3 ]'
+    blk [ | 1 3 ] assert=
 
     blk 2 [ + ] |hydrate
-    blk toQuote leaves: '[ | 4 ]'
+    blk [ | 4 ] assert=
 
     blk 0 [ |> ] |hydrate
-    blk toQuote leaves: '[ | 4 ]'
+    blk [ | 4 ] assert=
 
     blk 1 |to
     blk 1 [ 5 6 ] |hydrate
-    blk toQuote leaves: '[ 4 | 5 6 ]'
+    blk [ 4 | 5 6 ] assert=
 
     blk 2 [ 2drop ] |hydrate
-    blk toQuote leaves: '[ 6 ]'
+    blk [ 6 ] assert=
 
     blk 1 [ drop ] |hydrate
-    blk toQuote leaves: '[ ]'
+    blk [ ] assert=
   ]
 ]
 
@@ -205,11 +205,9 @@ describe 'gulp' [
   ]
 
   it should 'add at cursor' [
-    [ 1 2 3 ] $: block
+    [ 1 2 | 3 ] $: block
 
-    block 2 |to
-
-    #foo block gulp block [ 1 2 foo 3 ] dup 3 |to assert=
+    #foo block gulp block [ 1 2 foo | 3 ] assert=
   ]
 
   it should 'add at end' [
@@ -223,14 +221,13 @@ describe 'spit' [
   in lang
 
   it dies 'at start' [
-    [ 1 2 3 ] dup 0 |to spit
+    [ | 1 2 3 ] spit
   ]
 
   it should 'drop at cursor' [
-    [ 1 2 3 ] $: block
+    [ 1 2 | 3 ] $: block
 
-    block 2 |to
-    block spit 2enclose 2 [ 1 3 ] dup 1 |to 2enclose assert=
+    block spit 2enclose 2 [ 1 | 3 ] 2enclose assert=
   ]
 
   it should 'add at end' [
@@ -248,7 +245,7 @@ describe '<<' [
   ]
 
   it should 'add at cursor' [
-    [ 1 2 3 ] dup 1 |to #foo << [ 1 foo 2 3 ] dup 2 |to assert=
+    [ 1 | 2 3 ] #foo << [ 1 foo | 2 3 ] assert=
   ]
 
   it should 'add at end' [
@@ -267,7 +264,7 @@ describe '>>' [
     [ 1 2 3 ] $: b
     b 1 |to
     b >> 1 assert=
-    b [ 2 3 ] dup 0 |to assert=
+    b [ | 2 3 ] assert=
   ]
 
   it should 'drop at end' [
@@ -740,47 +737,46 @@ describe '|slideRight' [
   ]
 
   it should 'modify the original block' [
-    [ 1 2 3 ] dup 0 |to $: a
+    [ | 1 2 3 ] $: a
     a [ 1 + ] |slideRight a same? true assert=
     a [ 2 3 4 ] assert=
   ]
 
   it should 'start at cursor' [
-    [ 1 2 3 ] dup 1 |to [ 1 + ] |slideRight [ 1 3 4 ] assert=
+    [ 1 | 2 3 ] [ 1 + ] |slideRight [ 1 3 4 ] assert=
   ]
 
   it should 'handle insertion before' [
-    [ 1 2 3 ] dup 1 |to [ #boo swap 1 + ] |slideRight
+    [ 1 | 2 3 ] [ #boo swap 1 + ] |slideRight
     [ 1 boo 3 boo 4 ] assert=
   ]
 
   it should 'handle insertion after' [
-    [ 1 2 3 ] dup 1 |to [ 1 + #boo ] |slideRight
+    [ 1 | 2 3 ] [ 1 + #boo ] |slideRight
     [ 1 3 boo 4 boo ] assert=
   ]
 
   it should 'handle deletion' [
-    [ 1 2 3 ] dup 0 |to [ drop ] |slideRight [ ] assert=
+    [ | 1 2 3 ] [ drop ] |slideRight [ ] assert=
   ]
 
   it should 'work with multiple items' [
-    [ 1 2 3 ] dup 1 |to [ + ] |slideRight [ 6 ] assert=
+    [ 1 | 2 3 ] [ + ] |slideRight [ 6 ] assert=
   ]
 
   it should 'support cursor movement' [
-    [ 1 2 3 ] dup 0 |to [ <| 'Hi!' |> ] |slideRight
+    [ | 1 2 3 ] [ <| 'Hi!' |> ] |slideRight
     [ 'Hi!' 1 'Hi!' 2 'Hi!' 3 ] assert=
   ]
 
   it should 'support reusing results from old iterations' [
     "Add sum of previous elements to the current element."
-    [ 3 4 5 6 ] dup 1 |to [ over + ] |slideRight [ 3 7 12 18 ] assert=
+    [ 3 | 4 5 6 ] [ over + ] |slideRight [ 3 7 12 18 ] assert=
   ]
 
   it should 'support next' [
-    [ 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 ] $: numbers
+    [ | 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 ] $: numbers
 
-    numbers 0 |to
     numbers |-> [
       dup 15 /?  => [ drop 'FizzBuzz' next ]
       dup  5 /?  => [ drop 'Buzz' next ]
@@ -796,9 +792,8 @@ describe '|slideRight' [
   ]
 
   it should 'support break' [
-    [ 1 2 3 4 5 6 7 8 ] $: numbers
+    [ | 1 2 3 4 5 6 7 8 ] $: numbers
 
-    numbers 0 |to
     numbers |-> [
       dup 5 > => [ break ]
       100 +
@@ -806,11 +801,11 @@ describe '|slideRight' [
 
     "As you can see, break leaves the cursor AFTER the item
      that failed to match."
-    [ 101 102 103 104 105 6 "|" 7 8 ] dup 6 |to assert=
+    [ 101 102 103 104 105 6 | 7 8 ] assert=
   ]
 
   it dies 'upon underflow' [
-    [ 1 2 3 ] dup 0 |to [ swap ] |slideRight
+    [ | 1 2 3 ] [ swap ] |slideRight
   ]
 ]
 
@@ -820,23 +815,21 @@ describe '|~>' [
   it should 'work like |slideRight but remember cursor position' [
     [ ] |~> [ ] [ ] assert=
     [ ] |~> [ 1 + ] [ ] assert=
-    [ 1 2 3 ] |~> [ ] toQuote '[ 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 1 |to |~> [ 1 + ] toQuote '[ 1 | 3 4 ]' assert=
+    [ 1 2 3 ] |~> [ ] [ 1 2 3 ] assert=
+    [ 1 | 2 3 ] |~> [ 1 + ] [ 1 | 3 4 ] assert=
 
-    [ 1 2 3 ] $: blk
-    blk 2 |to
+    [ 1 2 | 3 ] $: blk
     [ blk |~> drop ] vals [ blk ] vals assert=
-    blk toQuote '[ 1 2 ]' assert=
-    blk |~> [ 4 ] toQuote '[ 1 2 ]' assert=
+    blk [ 1 2 ] assert=
+    blk |~> [ 4 ] [ 1 2 ] assert=
     blk 1 |to
-    blk |~> [ drop 3 4 ] toQuote '[ 1 | 3 4 ]' assert=
-    blk |~> [ 1 + ] toQuote '[ 1 | 4 5 ]' assert=
+    blk |~> [ drop 3 4 ] [ 1 | 3 4 ] assert=
+    blk |~> [ 1 + ] [ 1 | 4 5 ] assert=
   ]
 
   it should 'support next and break' [
-    [ 0 1 2 3 4 5 6 7 8 9 10 ] $: xs
+    [ 0 1 2 3 | 4 5 6 7 8 9 10 ] $: xs
 
-    xs 4 |to
     xs |~> [
       "Yeah yeah I know this is some random bullshit"
       [ even? next
@@ -844,7 +837,8 @@ describe '|~>' [
           [ ] [ 2 * |> 1 + <| ]
       ] choose
     ]
-    xs toQuote '[ 0 1 2 3 | 4 10 14 8 8 9 10 ]' assert=
+
+    xs [ 0 1 2 3 | 4 10 14 8 8 9 10 ] assert=
   ]
 ]
 
@@ -854,24 +848,22 @@ describe '||~>' [
   it should 'work like |~> but set cursor to 0 first' [
     [ ] ||~> [ ] [ ] assert=
     [ ] ||~> [ 1 + ] [ ] assert=
-    [ 1 2 3 ] ||~> [ ] toQuote '[ 1 2 3 ]' assert=
-    [ 1 2 3 ] dup 1 |to ||~> [ 1 + ] toQuote '[ 2 | 3 4 ]' assert=
+    [ 1 2 3 ] ||~> [ ] [ 1 2 3 ] assert=
+    [ 1 | 2 3 ] ||~> [ 1 + ] [ 2 | 3 4 ] assert=
 
-    [ 1 2 3 ] $: blk
-    blk 2 |to
+    [ 1 2 | 3 ] $: blk
     blk ||~> drop
-    blk toQuote '[ ]' assert=
-    blk ||~> [ 4 ] toQuote '[ ]' assert=
+    blk [ ] assert=
+    blk ||~> [ 4 ] [ ] assert=
     blk [ 1 2 3 ] shove*
     blk 2 |to
-    blk ||~> [ drop 3 4 ] toQuote '[ 3 4 | 3 4 3 4 ]' assert=
-    blk ||~> [ 1 + ] toQuote '[ 4 5 | 4 5 4 5 ]' assert=
+    blk ||~> [ drop 3 4 ] [ 3 4 | 3 4 3 4 ] assert=
+    blk ||~> [ 1 + ] [ 4 5 | 4 5 4 5 ] assert=
   ]
 
   it should 'support next and break' [
-    [ 0 1 2 3 4 5 6 7 8 9 10 ] $: xs
+    [ 0 1 2 3 | 4 5 6 7 8 9 10 ] $: xs
 
-    xs 4 |to
     xs ||~> [
       "Yeah yeah I know this is some random bullshit too"
       [ even? next
@@ -880,7 +872,7 @@ describe '||~>' [
       ] choose
     ]
 
-    xs toQuote '[ 0 2 6 4 | 4 10 7 7 8 9 10 ]' assert=
+    xs [ 0 2 6 4 | 4 10 7 7 8 9 10 ] assert=
   ]
 ]
 
@@ -894,21 +886,21 @@ describe '|slideLeft' [
   it should 'modify the original block' [
     [ 1 2 3 ] $: a
     a [ 1 + ] |slideLeft a same? true assert=
-    a [ 2 3 4 ] dup 0 |to assert=
+    a [ | 2 3 4 ] assert=
   ]
 
   it should 'start at cursor' [
-    [ 1 2 3 ] dup 2 |to [ 1 + ] |slideLeft [ 2 3 3 ] dup 0 |to assert=
+    [ 1 2 | 3 ] [ 1 + ] |slideLeft [ | 2 3 3 ] assert=
   ]
 
   it should 'handle insertion before' [
-    [ 1 2 3 ] dup 2 |to [ #boo #foo rot 1 + ] |slideLeft
-    [ boo foo 2 boo foo 3 3 ] dup 0 |to assert=
+    [ 1 2 | 3 ] [ #boo #foo rot 1 + ] |slideLeft
+    [ | boo foo 2 boo foo 3 3 ] assert=
   ]
 
   it should 'handle insertion after' [
-    [ 1 2 3 ] dup 2 |to [ 1 + #boo ] |slideLeft
-    [ 2 boo 3 boo 3 ] dup 0 |to assert=
+    [ 1 2 | 3 ] [ 1 + #boo ] |slideLeft
+    [ | 2 boo 3 boo 3 ] assert=
   ]
 
   it should 'handle deletion' [
@@ -921,21 +913,21 @@ describe '|slideLeft' [
 
   it should 'support cursor movement' [
     [ 1 2 3 ] [ <| 'Hi!' |> ] |slideLeft
-    [ 'Hi!' 1 'Hi!' 2 'Hi!' 3 ] dup 0 |to assert=
+    [ | 'Hi!' 1 'Hi!' 2 'Hi!' 3 ] assert=
   ]
 
   it should 'support next' [
     [ 1 2 3 4 5 ] <-| [
       dup 3 > => [ next ]
       1 +
-    ] [ 2 3 4 4 5 ] dup 0 |to assert=
+    ] [ | 2 3 4 4 5 ] assert=
   ]
 
   it should 'support break' [
     [ 1 2 3 4 5 ] <-| [
       dup 3 < => [ break ]
       1 +
-    ] [ 1 2 "|" 4 5 6 ] dup 2 |to assert=
+    ] [ 1 2 | 4 5 6 ] assert=
   ]
 
   it dies 'upon underflow' [
@@ -964,7 +956,7 @@ describe 'eachWithIndex' [
   it should 'iterate over whole block with cursor at start' [
     [ ] $: items [ ] $: indices
 
-    [ 2 3 4 ] dup 0 |to eachWithIndex: [ items gulp indices gulp ]
+    [ | 2 3 4 ] eachWithIndex: [ items gulp indices gulp ]
 
     [ 2 3 4 ] items   assert=
     [ 0 1 2 ] indices assert=
@@ -973,15 +965,14 @@ describe 'eachWithIndex' [
   it should 'iterate over whole block with cursor anywhere else' [
     [ ] $: items [ ] $: indices
 
-    [ 2 3 4 ] dup 1 |to eachWithIndex: [ items gulp indices gulp ]
+    [ 2 | 3 4 ] eachWithIndex: [ items gulp indices gulp ]
 
     [ 2 3 4 ] items   assert=
     [ 0 1 2 ] indices assert=
   ]
 
   it should 'leave cursor intact' [
-    [ 2 3 4 ] $: a
-    a 1 |to
+    [ 2 | 3 4 ] $: a
     a eachWithIndex: [ ]
     a |at 1 assert=
   ]
@@ -1024,20 +1015,19 @@ describe 'each' [
   it should 'iterate over whole block with cursor at start' [
     [ ] $: items
 
-    [ 2 3 4 ] dup 0 |to each: [ items gulp ]
+    [ | 2 3 4 ] each: [ items gulp ]
     [ 2 3 4 ] items assert=
   ]
 
   it should 'iterate over whole block with cursor anywhere else' [
     [ ] $: items
 
-    [ 2 3 4 ] dup 1 |to each: [ items gulp ]
+    [ 2 | 3 4 ] each: [ items gulp ]
     [ 2 3 4 ] items assert=
   ]
 
   it should 'leave cursor intact' [
-    [ 2 3 4 ] $: a
-    a 1 |to
+    [ 2 | 3 4 ] $: a
     a each: [ ]
     a |at 1 assert=
   ]
@@ -1088,8 +1078,7 @@ describe 'pairs' [
   it should 'leave cursor intact' [
     [ ] $: stacks
 
-    [ 1 2 3 4 ] $: a
-    a 2 |to
+    [ 1 2 | 3 4 ] $: a
     a pairs: [ stack shallowCopy stacks gulp ]
     a |at 2 assert=
     stacks [ [ 1 2 ] [ 3 4 ] ] assert=
@@ -1188,8 +1177,7 @@ describe 'consPairs' [
 
   it should 'leave cursor intact' [
     [ ] $: stacks
-    [ 1 2 3 4 ] $: a
-    a 2 |to
+    [ 1 2 | 3 4 ] $: a
     a consPairs: [ stack shallowCopy stacks gulp ]
     a |at 2 assert=
     stacks [ [ 1 2 ] [ 2 3 ] [ 3 4 ] ] assert=
@@ -1295,8 +1283,7 @@ describe 'map' [
   ]
 
   it should 'leave cursor intact' [
-    [ 1 2 3 ] $: a
-    a 1 |to
+    [ 1 | 2 3 ] $: a
     a map: [ 1 + ] [ 2 3 4 ] assert=
     a |at 1 assert=
   ]
@@ -1338,8 +1325,7 @@ describe 'only' [
   ]
 
   it should 'leave cursor intact' [
-    [ 1 2 3 ] $: a
-    a 1 |to
+    [ 1 | 2 3 ] $: a
     a only: [ 1 > ] [ 2 3 ] assert=
     a |at 1 assert=
   ]
@@ -1380,11 +1366,10 @@ describe 'reduce' [
   ]
 
   it should 'reduce stack with cursor at some other position' [
-    [ 1 2 3 4 5 ] $: stackBlock
+    [ 1 2 3 4 | 5 ] $: stackBlock
 
-    stackBlock 4 |to
     stackBlock [ stack [ * ] 1 reduce ] hydrate
-    stackBlock [ 24 5 ] dup 1 |to assert=
+    stackBlock [ 24 | 5 ] assert=
   ]
 
   it should 'support next' [
@@ -1396,20 +1381,18 @@ describe 'reduce' [
   ]
 
   it should 'support next on stack with cursor at some other position' [
-    [ 1 2 3 4 5 6 7 8 9 ] $: stackBlock
+    [ 1 2 3 4 5 | 6 7 8 9 ] $: stackBlock
 
-    stackBlock 5 |to
     stackBlock [ stack [ dup odd? => [ drop "memo left here" next ] + ] 0 reduce ] hydrate
-    stackBlock [ 6 6 7 8 9 ] dup 1 |to assert=
+    stackBlock [ 6 | 6 7 8 9 ] assert=
   ]
 
 
   it should 'support break on stack with cursor at some other position' [
-    [ 1 1 7 3 2 3 4 5 734 92 6 2 764 ] $: stackBlock
+    [ 1 1 7 3 2 3 4 5 | 734 92 6 2 764 ] $: stackBlock
 
-    stackBlock 8 |to
     stackBlock [ stack [ dup even? => [ break ] + ] 0 reduce ] there
-    [ 12 734 92 6 2 764 ] dup 1 |to assert=
+    [ 12 | 734 92 6 2 764 ] assert=
   ]
 ]
 
@@ -2091,10 +2074,9 @@ describe 'join' [
   ]
 
   it should 'join stack at some other position' [
-    [ 'A' 'B' 'C' 'D' 'E' 'F' ] $: stackBlock
-    stackBlock 3 |to
+    [ 'A' 'B' 'C' | 'D' 'E' 'F' ] $: stackBlock
     stackBlock [ stack join  ] hydrate
-    stackBlock [ 'ABC' 'D' 'E' 'F' ] dup 1 |to assert=
+    stackBlock [ 'ABC' | 'D' 'E' 'F' ] assert=
   ]
 
   it should 'enquote non-quotes' [
@@ -2146,12 +2128,10 @@ describe 'concat!' [
   ]
 
   it should 'move the cursor in A block, but not B block' [
-    [ 1 2 3 ] $: a
-    [ 4 5 6 ] $: b
-    a 1 |to
-    b 2 |to
+    [ 1 | 2 3 ] $: a
+    [ 4 5 | 6 ] $: b
     a b concat!
-    a [ 1 4 5 2 3 ] dup 3 |to assert=
+    a [ 1 4 5 | 2 3 ] assert=
     b |at 2 assert=
   ]
 ]
@@ -2193,8 +2173,7 @@ describe '|afterOrToEnd?/|afterOrDie/|afterOrToEnd' [
   in lang
 
   it should 'put cursor |afterOrToEnd matching form' [
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 6 = ] |afterOrToEnd? ] vals [ [ 2 3 4 5 ] true ] here assert=
     a |at 6 assert=
 
@@ -2212,13 +2191,11 @@ describe '|afterOrToEnd?/|afterOrDie/|afterOrToEnd' [
   ]
 
   it should 'die when using |afterOrDie, with proper details' [
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 6 = ] |afterOrDie ] vals [ [ 2 3 4 5 ] ] assert=
     a |at 6 assert=
 
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 8 = ] |afterOrDie ] 'expected ⸢[ 8 = ]⸥ to match, but reached end of block' assertDies
     [ a 8 |afterOrDie ] 'expected ⸢8⸥ to match, but reached end of block' assertDies
   ]
@@ -2229,15 +2206,13 @@ describe '|beforeOrToEnd/|beforeOrToEnd?/|beforeOrDie' [
   in lang
 
   it should 'put cursor before matching item' [
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 6 = ] |beforeOrToEnd? ] vals [ [ 2 3 4 5 ] true ] here assert=
     a |at 5 assert=
   ]
 
   it should 'not move if reached the end' [
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a 8 |beforeOrToEnd? ] vals [ [ 2 3 4 5 6 7 ] false ] here assert=
     a |at 7 assert=
   ]
@@ -2249,13 +2224,11 @@ describe '|beforeOrToEnd/|beforeOrToEnd?/|beforeOrDie' [
   ]
 
   it should 'die when using |beforeOrDie, with proper details' [
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 6 = ] |beforeOrDie ] vals [ [ 2 3 4 5 ] ] assert=
     a |at 5 assert=
 
-    [ 1 2 3 4 5 6 7 ] $: a
-    a 1 |to
+    [ 1 | 2 3 4 5 6 7 ] $: a
     [ a [ 8 = ] |beforeOrDie ] 'expected ⸢[ 8 = ]⸥ to match, but reached end of block' assertDies
     [ a 8 |beforeOrDie ] 'expected ⸢8⸥ to match, but reached end of block' assertDies
   ]
@@ -2418,8 +2391,7 @@ describe '|around' [
 
   it should 'work when <= N and keep cursor' [
     [ 1 2 3 4 ] $: b1
-    [ 1 2 3 4 ] $: b2
-    b2 2 |to
+    [ 1 2 | 3 4 ] $: b2
 
     [ b1 1 |around ] vals count 1 assert=
 
@@ -2441,8 +2413,8 @@ describe '|around' [
   ]
 
   it should 'handle even N' [
-    [ 1 "|" 2 3 4 5 6 ] dup 1 |to $: b1
-    [ 1 2 3 4 5 "|" 6 ] dup 5 |to $: b2
+    [ 1 | 2 3 4 5 6 ] $: b1
+    [ 1 2 3 4 5 | 6 ] $: b2
 
     b1 4 |around $: lhalfTest
     b2 4 |around $: rhalfTest
@@ -2451,22 +2423,22 @@ describe '|around' [
     b1 lhalfTest sanityCheck
     b2 rhalfTest sanityCheck
 
-    lhalfTest toTape [ 1 "|" 2 3 4 ] dup 1 |to assert=
-    rhalfTest toTape [ 3 4 5 "|" 6 ] dup 3 |to assert=
+    lhalfTest toTape [ 1 | 2 3 4 ] assert=
+    rhalfTest toTape [ 3 4 5 | 6 ] assert=
   ]
 
   it should 'handle odd N' [
-    [ 1 2 "|" 3 4 5 ] dup 2 |to $: b
+    [ 1 2 | 3 4 5 ] $: b
     b 3 |around $: result
     b result sanityCheck
-    result toTape [ 1 2 "|" 3 ] dup 2 |to assert=
+    result toTape [ 1 2 | 3 ] assert=
   ]
 
   it should 'handle cursor at the end' [
-    [ 1 2 3 4 "|" ] $: b
+    [ 1 2 3 4 | ] $: b
     b 3 |around $: result
     b result sanityCheck
-    result toTape [ 2 3 4 "|" ] assert=
+    result toTape [ 2 3 4 | ] assert=
   ]
 
   "TODO: this is one of the most complex words yet, needs more tests."
@@ -2496,7 +2468,7 @@ describe '|ring' [
   ]
 
   it should 'work at block start' [
-    [ 1 2 3 ] dup 0 |to $: 0block
+    [ | 1 2 3 ] $: 0block
 
     0block 1 |ring toQuote '[ | 1 · ${firstAt :: 0} ${lastAt :: 0} ]' assert=
     0block 2 |ring toQuote '[ | 1 2 · ${firstAt :: 0} ${lastAt :: 1} ]' assert=
@@ -2505,7 +2477,7 @@ describe '|ring' [
   ]
 
   it should 'work at block mid sides=' [
-    [ 1 2 3 "|" 4 5 6 ] dup 3 |to $: b
+    [ 1 2 3 | 4 5 6 ] $: b
     b 1 |ring toQuote '[ 3 | 4 · ${firstAt :: 2} ${lastAt :: 3} ]' assert=
     b 2 |ring toQuote '[ 2 3 | 4 5 · ${firstAt :: 1} ${lastAt :: 4} ]' assert=
     b 3 |ring toQuote '[ 1 2 3 | 4 5 6 · ${firstAt :: 0} ${lastAt :: 5} ]' assert=
@@ -2513,7 +2485,7 @@ describe '|ring' [
   ]
 
   it should 'work at block mid sides!=' [
-    [ 1 2 3 4 "|" 5 6 ] dup 4 |to $: b
+    [ 1 2 3 4 | 5 6 ] $: b
     b 1 |ring toQuote '[ 4 | 5 · ${firstAt :: 3} ${lastAt :: 4} ]' assert=
     b 2 |ring toQuote '[ 3 4 | 5 6 · ${firstAt :: 2} ${lastAt :: 5} ]' assert=
     b 3 |ring toQuote '[ 2 3 4 | 5 6 · ${firstAt :: 1} ${lastAt :: 5} ]' assert=
@@ -2642,7 +2614,7 @@ describe 'flat aka flat:deep' [
     [ [ 1 [ 2 3 ] 4 ] flat ] vals [ [ 1 2 3 4 ] ] assert=
     [ [ 1 [ 2 [[[3]]] ] 4 ] flat ] vals [ [ 1 2 3 4 ] ] assert=
     [ [ 1 [ 2 [[[3]]] ] 4 ] dup << flat ] vals [ [ 1 2 3 4 ] ] assert=
-    [ [ 1 [ 2 [[[3]]] ] 4 ] dup dup 1 |to << flat ] vals [ [ 1 2 3 4 ] ] assert=
+    [ [ 1 [ 2 [[[3]]] ] | 4 ] dup << flat ] vals [ [ 1 2 3 4 ] ] assert=
   ]
 ]
 
@@ -2678,14 +2650,12 @@ describe 'gsub[:]/gsubOn:' [
   ]
 
   it should 'do flat replace regardless of cursor but keep it' [
-    [ 1 `foo 2 `bar 3 ] (dup 3 |to) $: b
-
-    b toQuote '[ 1 `foo 2 | `bar 3 ]' assert=
+    [ 1 `foo 2 | `bar 3 ] $: b
 
     b #`foo gsub: 100
     b #`bar gsub: 200
 
-    b toQuote '[ 1 100 2 | 200 3 ]' assert=
+    b [ 1 100 2 | 200 3 ] assert=
 
     stack empty? true assert= "stack hygiene"
   ]
@@ -2718,16 +2688,13 @@ describe 'gsub[:]/gsubOn:' [
   ]
 
   it should 'keep track of the cursor with multi flat replace' [
-    [ 1 `foo 2 `bar 3 ] $: b
-    b 2 |to
-    b toQuote '[ 1 `foo | 2 `bar 3 ]' assert=
+    [ 1 `foo | 2 `bar 3 ] $: b
 
     b #`foo gsub: [ 'hello' 'world' ]
-    b toQuote '[ 1 \'hello\' \'world\' | 2 `bar 3 ]' assert=
+    b [ 1 'hello' 'world' | 2 `bar 3 ] assert=
 
     b #`bar gsub: [ 'bye' #frob ]
-
-    b toQuote '[ 1 \'hello\' \'world\' | 2 \'bye\' frob 3 ]' assert=
+    b [ 1 'hello' 'world' | 2 'bye' frob 3 ] assert=
 
     stack empty? true assert= "stack hygiene"
   ]
@@ -2822,9 +2789,9 @@ describe 'gsub[:]/gsubOn:' [
     block [ (stack shallowCopy) stacks gulp false ] gsub: 100
     block [ 1 2 3 ] assert=
 
-    [ [ 1 2 3 "|" ]
-      [ 1 2 "|" 3 ] (dup 2 |to)
-      [ 1 "|" 2 3 ] (dup 1 |to)
+    [ [ 1 2 3 | ]
+      [ 1 2 | 3 ]
+      [ 1 | 2 3 ]
     ] vals stacks assert=
 
     block [ true ] gsub: 100
