@@ -279,7 +279,7 @@ Blocks are dictionaries for themselves and for other blocks. The former is usefu
 
 Again, you can imagine something like a Python dictionary or — even better — a JavaScript object.
 
-Blocks dictionaries hold *entries*.
+Block dictionaries hold *entries*.
 
 When the key form is seen, looked up in the dictionary, and *opened*, *opener entries* (or *openers* for short) in turn *open* the value form (*open* is Novika-speak for "run", "execute", "evaluate").
 
@@ -309,7 +309,7 @@ B.x B.y 2echo "STDOUT: 300⏎400⏎"
 
 As simple as that: blocks are also stacks, you just have to look at them differently.
 
-Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-based programming languages. You can then move the cursor, which helps to avoid `rot`s and other nasty Forth-isms. Here is how `rot` can be implemented in Novika:
+Applying operations immediately before (or even after!) the cursor enables brevity often associated with stack-oriented programming languages. You can also move the cursor — this allows to avoid `rot`s and other nasty Forth-isms. Here is how `rot` can be implemented in Novika:
 
 ```novika
 [ <| swap |> swap ] @: rot
@@ -340,14 +340,14 @@ Voilá! It does rotate: `1 2 3 -- 2 3 1`.
 
 Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: *is a friend of*, and *is **the** parent of*.
 
-- Blocks can have only one, or no *parent*.
+- Blocks can have only one *parent*, or no parents.
 - Blocks can have zero or more *friends*.
 
-Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how (and which) entries are looked up and so on.
+Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how, which, and whose entries are looked up and opened.
 
-Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...).
+Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...)
 
-For instance, first, *is parent of* relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as *the first echelon* in Novika.
+For instance, first, *is the parent of* relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as *the first echelon* in Novika.
 
 *The second echelon* is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.
 
@@ -382,7 +382,7 @@ this echo  "STDOUT: [ this echo · ${__path__ :: '/path/to/folder'} ${__file__ :
 
 ### Blocks are continuations
 
-A Novika continuation is a block that consists of two blocks: the stack block, and the code block (often referred to simply as *block*), like so: `[ [ …code… ] [ …stack… ] ]`. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called *builtins*, which are pieces of runnable native code as seen from Novika. Here are some examples:
+A Novika continuation is a block that consists of two blocks: the stack block, and the code block, like so: `[ [ …code… ] [ …stack… ] ]`. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called *builtins*, which are bits of runnable native code as seen from Novika. Here are some examples:
 
 - [hydrate](https://novika-lang.github.io/words/#hydrate), as in:
 
@@ -390,7 +390,7 @@ A Novika continuation is a block that consists of two blocks: the stack block, a
   [ 1 2 ] [ + echo ] hydrate  "STDOUT: 3"
   ```
 
-- [open](https://novika-lang.github.io/words/#open) — this is an ancient (and often used) word from which the term *opening* came. What is described as *opening* is often some form of *hydration*, however, the term *opening* stuck for historical reasons.
+- [open](https://novika-lang.github.io/words/#open) — this is an ancient (and often used) word from which the term *to open* came. What is described as *opening* is in reality a form of *hydration*, but for historical reasons *opening* is used anyway.
 
   ```novika
   4 [ dup + ] open echo  "STDOUT: 8"
@@ -411,7 +411,7 @@ In the code block, the cursor is kept immediately after the form that is being o
 - The current (active) continuation can be accessed using the word `cont`, as in:
 
   ```novika
-  1 2 cont echo 3 4  "STDOUT: [ [ cont echo | 3 4 ] [ 1 2 ] ]"
+  1 2 cont echo 3 4  "STDOUT: [ [ 1 2 cont echo | 3 4 ] [ 1 2 ] ]"
   ```
 
 - The stack of the current continuation (dubbed the *active stack* or simply the stack) can be accessed using the word `stack`, as in:
@@ -434,7 +434,7 @@ In the code block, the cursor is kept immediately after the form that is being o
   1 2 sneakyPeaky 3 4  "STDOUT: [ 1 2 sneakyPeaky | 3 4 ]"
   ```
 
-Finally, the *continuations block* is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type `conts shallowCopy each: echo` in the REPL. Do not forget `shallowCopy`, or the language will gain consciousness this that never ends well!! :)
+Finally, the *continuations block* is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type `conts shallowCopy each: echo` in the REPL. Do not forget `shallowCopy`, or the language will gain consciousness — and this never ends well!! :)
 
 ```novika
 [ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
@@ -488,7 +488,7 @@ Maybe you want your code to look cryptic — so your friends think you’re a ha
 
 But wait, why is that? Why is Novika not *designed* to be readable? Isn't that popular nowadays?
 
-See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete control over the language and the machinery involved vs. performance is up to you.
+See, in Novika, it is easy to make your code readable — even natural language-like. This ease, however, degrades performance. That is, enforcing style or syntax degrades performance. Even if Novika someday gets a JIT, writing natural-language-like code will still impose a performance penalty, however minuscule it will be. The choice between complete, high-level control over the language and the machinery involved vs. performance is up to you.
 
 ### Big projects
 
