@@ -50,6 +50,32 @@ describe 'peek?' [
   ]
 ]
 
+
+describe '|afterFirst?' [
+  in lang
+
+  it should 'leave whether the cursor is after the first form in block' [
+    [ | ] |afterFirst? false assert=
+    [ 1 | ] |afterFirst? true assert=
+    [ 1 | 2 3 ] |afterFirst? true assert=
+    [ 1 2 3 | ] |afterFirst? false assert=
+  ]
+]
+
+
+describe '|afterLast?' [
+  in lang
+
+  it should 'leave whether the cursor is after the last form in block' [
+    [ | ] |afterLast? true assert=
+    [ 1 | ] |afterLast? true assert=
+    [ | 1 2 3 ] |afterLast? false assert=
+    [ 1 | 2 3 ] |afterLast? false assert=
+    [ 1 2 3 | ] |afterLast? true assert=
+  ]
+]
+
+
 describe '|-' [
   in lang
 

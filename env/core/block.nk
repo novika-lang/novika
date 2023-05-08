@@ -11,6 +11,35 @@
 ] @: peek?
 
 
+[ """( B -- true/false ): leaves whether cursor is after the
+   first form in Block.
+
+  ```
+  [ | ] |afterFirst? leaves: false
+  [ 1 | ] |afterFirst? leaves: true
+  [ 1 | 2 3 ] |afterFirst? leaves: true
+  [ 1 2 3 | ] |afterFirst? leaves: false
+  ```
+  """
+  |at 1 =
+] @: |afterFirst?
+
+
+[ """( B -- true/false ): leaves whether cursor is after the
+   last form in Block.
+
+  ```
+  [ | ] |afterLast? leaves: true
+  [ 1 | ] |afterLast? leaves: true
+  [ | 1 2 3 ] |afterLast? leaves: false
+  [ 1 | 2 3 ] |afterLast? leaves: false
+  [ 1 2 3 | ] |afterLast? leaves: true
+  ```
+  """
+  bi: |at count =
+] @: |afterLast?
+
+
 [ """( B N -- ): decrements block cursor position: moves
    cursor back N times in Block.
 
