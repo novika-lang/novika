@@ -1397,6 +1397,25 @@ module Novika::Capabilities::Impl
         Decimal.new(ord).onto(stack)
       end
 
+      target.at("rpad", <<-END
+      ( Q Tl Pq -- Jq ): appends consecutive characters in Padding quote
+       to the right of Quote (the last one is repeated if no more follow),
+       until Quote count becomes equal to Total length. Leaves the resulting
+       Justified quote.
+
+      ```
+      'hello' 10 '-' rpad leaves: 'hello-----'
+      'hello' 10 ' -' rpad leaves: 'hello ----'
+      'hello' 7 'foobar' rpad leaves: 'hellofo'
+      ```
+      END
+      ) do |_, stack|
+        padder = stack.drop.a(Quote)
+        total = stack.drop.a(Decimal).posint
+        quote = stack.drop.a(Quote)
+        quote.rpad(total.to_i, padder).onto(stack)
+      end
+
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |_, stack|
         block = stack.drop.a(Block)
         cursor = Decimal.new(block.cursor)

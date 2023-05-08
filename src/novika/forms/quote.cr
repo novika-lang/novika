@@ -55,7 +55,7 @@ module Novika
     abstract def string : String
 
     # Returns the grapheme at *index* as `Quote`, or nil.
-    abstract def at?(index : Int32) : Quote?
+    abstract def at?(index : Int32) : GraphemeQuote?
 
     # Returns a subquote from *b* to *e*. Clamps *b* and *e*
     # to bounds of this quote. Returns an empty quote if this
@@ -81,6 +81,10 @@ module Novika
     # Replaces instances of *pattern* with *repl*. Returns
     # the resulting quote.
     abstract def replace_all(pattern : Quote, repl : Quote) : Quote
+
+    # Adds *padder* to the right of this quote until this quote is of
+    # *total* perceived characters. Returns the resulting quote.
+    abstract def rpad(total : Int, padder : _) : Quote
 
     # Slices this quote variant at *slicept*.
     #
@@ -154,7 +158,7 @@ module Novika
     end
 
     # Returns the grapheme at *index* as `Quote`, or dies.
-    def at(index : Int32) : Quote
+    def at(index : Int32) : GraphemeQuote
       at?(index) || die("grapheme index out of bounds")
     end
 
@@ -228,7 +232,7 @@ module Novika
        Quote.new(rhs, count: size - slicept, ascii: rhs_ascii_only)}
     end
 
-    def at?(index : Int32) : Quote?
+    def at?(index : Int32) : GraphemeQuote?
       return if index.negative?
 
       if ascii_only?
@@ -298,6 +302,42 @@ module Novika
 
     def ==(other : Quote) : Bool
       other.is_a?(StringQuote) && string == other.string
+    end
+
+    def rpad(total : Int, padder : GraphemeQuote) : Quote
+      return self unless total > count
+      return stitch(padder) if total == count + 1
+
+      string = String.build(total) do |io|
+        io << self.string
+        (total - count).times do
+          io << padder.grapheme
+        end
+      end
+
+      StringQuote.new(string)
+    end
+
+    def rpad(total : Int, padder : StringQuote) : Quote
+      return self if padder.empty?
+      return self unless total > count
+      return stitch(padder.at(0)) if total == count + 1
+
+      string = String.build(total) do |io|
+        io << self.string
+
+        needed = total - count
+
+        head = padder.at(0, Math.min(padder.count - 2, needed - 1))
+        tail = padder.at(Math.min(padder.count - 1, needed)).string
+
+        io << head.string
+        (needed - head.count).times do
+          io << tail
+        end
+      end
+
+      StringQuote.new(string)
     end
 
     def each_occurrence_of(pattern : GraphemeQuote, &)
@@ -414,7 +454,7 @@ module Novika
       other.empty? ? self : super
     end
 
-    def at?(index : Int32) : Quote?
+    def at?(index : Int32) : GraphemeQuote?
       self if index.zero?
     end
 
@@ -451,6 +491,43 @@ module Novika
       if grapheme == pattern.grapheme
         yield 0
       end
+    end
+
+    def rpad(total : Int, padder : GraphemeQuote) : Quote
+      return self if total <= 1
+      return StringQuote.new(grapheme.to_s + padder.grapheme.to_s) if total == 2
+
+      string = String.build do |io|
+        io << grapheme
+        last = padder.grapheme
+        (total - 1).times do
+          io << last
+        end
+      end
+
+      StringQuote.new(string)
+    end
+
+    def rpad(total : Int, padder : StringQuote) : Quote
+      return self if padder.empty?
+      return self if total <= 1
+      return stitch(padder.at(0)) if total == 1
+
+      string = String.build(total) do |io|
+        io << grapheme
+
+        needed = total - 1
+
+        head = padder.at(0, Math.min(padder.count - 2, needed - 1))
+        tail = padder.at(Math.min(padder.count - 1, needed)).string
+
+        io << head.string # TODO: use something like IO#copy?
+        (needed - head.count).times do
+          io << tail
+        end
+      end
+
+      StringQuote.new(string)
     end
 
     def each_occurrence_of(pattern : StringQuote, &)
