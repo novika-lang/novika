@@ -273,7 +273,7 @@ each 'top' number. Finally, move the cursor back to where it was.
 
 ### Blocks are dictionaries — and objects
 
-<img src="res/blocks-are-dictionaries.svg" align=right width=512 />
+<img src="img/blocks-are-dictionaries.svg" align=right width=512 />
 
 Blocks are dictionaries for themselves and for other blocks. The former is useful for *running* blocks, and the latter is useful for *connecting* blocks to each other — to form scopes, object hierarchies, and so on.
 
@@ -332,11 +332,11 @@ Let's execute `1 2 3 rot` step-by-step, as if we were a Novika interpreter.
 
 Voilá! It does rotate: `1 2 3 -- 2 3 1`.
 
-<img src="res/blocks-are-stacks.svg"  width=1024 />
+<img src="img/blocks-are-stacks.svg"  width=1024 />
 
 ### Blocks are vertices
 
-<img src="res/blocks-are-vertices.svg" align=right width=512 />
+<img src="img/blocks-are-vertices.svg" align=right width=512 />
 
 Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: *is a friend of*, and *is **the** parent of*.
 
