@@ -86,6 +86,12 @@ module Novika
     # *total* perceived characters. Returns the resulting quote.
     abstract def rpad(total : Int, padder : _) : Quote
 
+    # Ensures this quote is of *total* characters or less. In case of
+    # overflow, truncates with *ellipsis*. If even *ellipsis* cannot
+    # fit, truncates ellipsis so that it is of *total* characters.
+    # Returns the resulting quote.
+    abstract def fit(total : Int, ellipsis : _) : Quote
+
     # Slices this quote variant at *slicept*.
     #
     # *size* is the `count` of this quote.
@@ -340,6 +346,18 @@ module Novika
       StringQuote.new(string)
     end
 
+    def fit(total : Int, ellipsis : Quote) : Quote
+      return StringQuote.new("") if total == 0
+      return self if count <= total
+
+      nvisible = total - ellipsis.count
+
+      # Even the ellipsis doesn't fit. Truncate it and output it instead.
+      return ellipsis.at(0, total - 1) if nvisible <= 0
+
+      at(0, nvisible - 1).stitch(ellipsis)
+    end
+
     def each_occurrence_of(pattern : GraphemeQuote, &)
       index = 0
 
@@ -487,12 +505,6 @@ module Novika
       other.is_a?(GraphemeQuote) && other.grapheme == grapheme
     end
 
-    def each_occurrence_of(pattern : GraphemeQuote, &)
-      if grapheme == pattern.grapheme
-        yield 0
-      end
-    end
-
     def rpad(total : Int, padder : GraphemeQuote) : Quote
       return self if total <= 1
       return StringQuote.new(grapheme.to_s + padder.grapheme.to_s) if total == 2
@@ -528,6 +540,18 @@ module Novika
       end
 
       StringQuote.new(string)
+    end
+
+    def fit(total : Int, ellipsis : Quote) : Quote
+      return StringQuote.new("") if total == 0
+
+      self
+    end
+
+    def each_occurrence_of(pattern : GraphemeQuote, &)
+      if grapheme == pattern.grapheme
+        yield 0
+      end
     end
 
     def each_occurrence_of(pattern : StringQuote, &)

@@ -1229,6 +1229,82 @@ describe 'rpad' [
   ]
 ]
 
+describe 'fit' [
+  in lang
+
+  it should 'expect quote, positive integer decimal, quote' [
+    [ 1 0 '' fit ] 'bad type: decimal, expected: a quote' assertDies
+    [ '' '' '' fit ] 'bad type: quote, expected: a decimal' assertDies
+    [ '' 0 1 fit ] 'bad type: decimal, expected: a quote' assertDies
+    [ '' -100 '' fit ] 'decimal is not a positive integer: -100' assertDies
+    [ '' -100.3 '' fit ] 'decimal is not a positive integer: -100.3' assertDies
+    [ '' 100.3 '' fit ] 'decimal is not a positive integer: 100.3' assertDies
+  ]
+
+  it should 'fit when content is a grapheme, ellipsis is a grapheme' [
+    'x' 0 'y' fit '' assert=
+    'x' 1 'y' fit 'x' assert=
+    'x' 5 'y' fit 'x' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'fit when content is a grapheme, ellipsis is a quote' [
+    'x' 0 '' fit '' assert=
+    'x' 0 'foo' fit '' assert=
+    'x' 1 'foo' fit 'x' assert=
+    'x' 2 'foo' fit 'x' assert=
+    'a' 5 'ba' fit 'a' assert=
+    'a' 5 'foozy' fit 'a' assert=
+    '👨‍👧‍👦' 5 'foxtrot' fit '👨‍👧‍👦' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'fit when content is a quote, ellipsis is a grapheme' [
+    '' 5 'x' fit '' assert=
+    'foo' 2 'a' fit 'fa' assert=
+    'foo' 5 'a' fit 'foo' assert=
+    'foo' 10 'a' fit 'foo' assert=
+    'hello world' 10 '…' fit 'hello wor…' assert=
+    'hello world' 10 '👨‍👧‍👦' fit 'hello wor👨‍👧‍👦' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'fit when content is a quote, ellipsis is a quote' [
+    '' 5 '' fit '' assert=
+    'foo' 2 '' fit 'fo' assert=
+    'foo' 3 '' fit 'foo' assert=
+    'foo' 5 '' fit 'foo' assert=
+    '' 0 'x' fit '' assert=
+    '' 5 'x' fit '' assert=
+    'foobar' 2 'xyz' fit 'xy' assert=
+    'foobar' 3 'xyz' fit 'xyz' assert=
+    'foobar' 4 'xyz' fit 'fxyz' assert=
+    'foobar' 5 'xyz' fit 'foxyz' assert=
+    'foobar' 6 'xyz' fit 'foobar' assert=
+    'foobar' 7 'xyz' fit 'foobar' assert=
+    'foobar' 10 'xyz' fit 'foobar' assert=
+    'foobar' 5 '👨‍👩‍👧🍎' fit 'foo👨‍👩‍👧🍎' assert=
+    'Lorem ipsum dolor sit amet' 24 '… (hidden)' fit 'Lorem ipsum do… (hidden)' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'fit with block that implements __quote__' [
+    [ $: __quote__ this ] @: myEllipsis
+
+    '…' myEllipsis $: dots
+    '-' myEllipsis $: dash
+
+    'Hello! My name is John Doe, and I live in a grave.' $: q
+
+    q 12 dots fit 'Hello! My n…' assert=
+    q 12 dash fit 'Hello! My n-' assert=
+  ]
+]
+
 describe 'fromLeft' [
   in lang
 

@@ -1416,6 +1416,30 @@ module Novika::Capabilities::Impl
         quote.rpad(total.to_i, padder).onto(stack)
       end
 
+      target.at("fit", <<-END
+      ( Q Tl Eq -- Fq ): if Quote is longer than Total length, truncates
+       it so that it can fit Ellipsis quote, and stitches the truncated
+       Quote with the Ellipsis quote, forming Fit quote which is then
+       left on the stack.
+
+      Essentially, Fit quote is guaranteed to be of Total length
+      characters **or less!**.
+
+      ```
+      'hello' 10 '…' fit leaves: 'hello'
+      'hello world' 10 '…' fit leaves: 'hello wor…'
+      'hello world' 8 '' fit leaves: 'hello wo'
+      'Lorem ipsum dolor sit amet' 10 '-' fit leaves: 'Lorem ipsu-'
+      'Lorem ipsum dolor sit amet' 24 '… (hidden)' fit leaves: 'Lorem ipsum do… (hidden)'
+      ```
+      END
+      ) do |_, stack|
+        ellipsis = stack.drop.a(Quote)
+        total = stack.drop.a(Decimal).posint
+        quote = stack.drop.a(Quote)
+        quote.fit(total.to_i, ellipsis).onto(stack)
+      end
+
       target.at("|at", "( B -- N ): leaves N, the position of the cursor in Block.") do |_, stack|
         block = stack.drop.a(Block)
         cursor = Decimal.new(block.cursor)
