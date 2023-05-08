@@ -994,14 +994,14 @@ that much anymore. This is the case with Novika.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#at%28index%3AInt32%29%3AQuote-instance-method" class="signature"><strong>#at</strong>(index : Int32) : Quote</a>
+        <a href="#at%28index%3AInt32%29%3AGraphemeQuote-instance-method" class="signature"><strong>#at</strong>(index : Int32) : GraphemeQuote</a>
         
           <div class="summary"><p>Returns the grapheme at <em>index</em> as <code><a href="../Novika/Quote.html">Quote</a></code>, or dies.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#at%3F%28index%3AInt32%29%3AQuote%7CNil-instance-method" class="signature"><strong>#at?</strong>(index : Int32) : Quote | Nil</a>
+        <a href="#at%3F%28index%3AInt32%29%3AGraphemeQuote%7CNil-instance-method" class="signature"><strong>#at?</strong>(index : Int32) : GraphemeQuote | Nil</a>
         
           <div class="summary"><p>Returns the grapheme at <em>index</em> as <code><a href="../Novika/Quote.html">Quote</a></code>, or nil.</p></div>
         
@@ -1060,6 +1060,13 @@ that much anymore. This is the case with Novika.</p>
         <a href="#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="signature"><strong>#replace_all</strong>(pattern : Quote, repl : Quote) : Quote</a>
         
           <div class="summary"><p>Replaces instances of <em>pattern</em> with <em>repl</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : _) : Quote</a>
+        
+          <div class="summary"><p>Adds <em>padder</em> to the right of this quote until this quote is of <em>total</em> perceived characters.</p></div>
         
       </li>
     
@@ -1347,12 +1354,12 @@ quote is empty without regarding <em>b</em> and <em>e</em>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="at(index:Int32):Quote-instance-method">
+    <div class="entry-detail" id="at(index:Int32):GraphemeQuote-instance-method">
       <div class="signature">
         
-        def <strong>at</strong>(index : Int32) : <a href="../Novika/Quote.html">Quote</a>
+        def <strong>at</strong>(index : Int32) : <a href="../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>
 
-        <a class="method-permalink" href="#at%28index%3AInt32%29%3AQuote-instance-method">#</a>
+        <a class="method-permalink" href="#at%28index%3AInt32%29%3AGraphemeQuote-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -1366,12 +1373,12 @@ quote is empty without regarding <em>b</em> and <em>e</em>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="at?(index:Int32):Quote|Nil-instance-method">
+    <div class="entry-detail" id="at?(index:Int32):GraphemeQuote|Nil-instance-method">
       <div class="signature">
         abstract 
-        def <strong>at?</strong>(index : Int32) : <a href="../Novika/Quote.html">Quote</a> | Nil
+        def <strong>at?</strong>(index : Int32) : <a href="../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a> | Nil
 
-        <a class="method-permalink" href="#at%3F%28index%3AInt32%29%3AQuote%7CNil-instance-method">#</a>
+        <a class="method-permalink" href="#at%3F%28index%3AInt32%29%3AGraphemeQuote%7CNil-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -1536,6 +1543,26 @@ this quote, or nil if this quote is empty.</p>
           
           <p>Replaces instances of <em>pattern</em> with <em>repl</em>. Returns
 the resulting quote.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="rpad(total:Int,padder:_):Quote-instance-method">
+      <div class="signature">
+        abstract 
+        def <strong>rpad</strong>(total : Int, padder : _) : <a href="../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Adds <em>padder</em> to the right of this quote until this quote is of
+<em>total</em> perceived characters. Returns the resulting quote.</p>
         </div>
       
       <br/>

@@ -939,7 +939,7 @@
       </li>
     
       <li class="entry-summary">
-        <a href="#at%3F%28index%3AInt32%29%3AQuote%7CNil-instance-method" class="signature"><strong>#at?</strong>(index : Int32) : Quote | Nil</a>
+        <a href="#at%3F%28index%3AInt32%29%3AGraphemeQuote%7CNil-instance-method" class="signature"><strong>#at?</strong>(index : Int32) : GraphemeQuote | Nil</a>
         
           <div class="summary"><p>Returns the grapheme at <em>index</em> as <code><a href="../../Novika/Quote.html">Quote</a></code>, or nil.</p></div>
         
@@ -984,6 +984,16 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#rpad%28total%3AInt%2Cpadder%3AStringQuote%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : StringQuote) : Quote</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#rpad%28total%3AInt%2Cpadder%3AGraphemeQuote%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : GraphemeQuote) : Quote</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#stitch%28other%3AStringQuote%29-instance-method" class="signature"><strong>#stitch</strong>(other : StringQuote)</a>
         
       </li>
@@ -1019,12 +1029,12 @@
     
   
     <a href="../../Novika/Quote.html#at%28b%3AInt32%2Ce%3AInt32%29%3AQuote-instance-method" class="tooltip">
-      <span>at(b : Int32, e : Int32) : Quote<br/>at(index : Int32) : Quote</span>
+      <span>at(b : Int32, e : Int32) : Quote<br/>at(index : Int32) : GraphemeQuote</span>
     at</a>, 
     
   
-    <a href="../../Novika/Quote.html#at%3F%28index%3AInt32%29%3AQuote%7CNil-instance-method" class="tooltip">
-      <span>at?(index : Int32) : Quote | Nil</span>
+    <a href="../../Novika/Quote.html#at%3F%28index%3AInt32%29%3AGraphemeQuote%7CNil-instance-method" class="tooltip">
+      <span>at?(index : Int32) : GraphemeQuote | Nil</span>
     at?</a>, 
     
   
@@ -1066,6 +1076,11 @@
     <a href="../../Novika/Quote.html#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="tooltip">
       <span>replace_all(pattern : Quote, repl : Quote) : Quote</span>
     replace_all</a>, 
+    
+  
+    <a href="../../Novika/Quote.html#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method" class="tooltip">
+      <span>rpad(total : Int, padder : _) : Quote</span>
+    rpad</a>, 
     
   
     <a href="../../Novika/Quote.html#slice_at%28slicept%3AInt32%29%3ATuple%28Quote%2CQuote%29-instance-method" class="tooltip">
@@ -1377,12 +1392,12 @@ quote is empty without regarding <em>b</em> and <em>e</em>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="at?(index:Int32):Quote|Nil-instance-method">
+    <div class="entry-detail" id="at?(index:Int32):GraphemeQuote|Nil-instance-method">
       <div class="signature">
         
-        def <strong>at?</strong>(index : Int32) : <a href="../../Novika/Quote.html">Quote</a> | Nil
+        def <strong>at?</strong>(index : Int32) : <a href="../../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a> | Nil
 
-        <a class="method-permalink" href="#at%3F%28index%3AInt32%29%3AQuote%7CNil-instance-method">#</a>
+        <a class="method-permalink" href="#at%3F%28index%3AInt32%29%3AGraphemeQuote%7CNil-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -1511,6 +1526,34 @@ string quote, or nil.</p>
           <p>Replaces instances of <em>pattern</em> with <em>repl</em>. Returns
 the resulting quote.</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="rpad(total:Int,padder:StringQuote):Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>rpad</strong>(total : Int, padder : <a href="../../Novika/Quote/StringQuote.html">StringQuote</a>) : <a href="../../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3AStringQuote%29%3AQuote-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="rpad(total:Int,padder:GraphemeQuote):Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>rpad</strong>(total : Int, padder : <a href="../../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>) : <a href="../../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3AGraphemeQuote%29%3AQuote-instance-method">#</a>
+      </div>
       
       <br/>
       <div>
