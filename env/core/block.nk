@@ -2213,16 +2213,27 @@
 ] @: sample
 
 
-[ """( B sample: C -- S ): samples the given Block Count times,
-   and leaves the resulting block of Samples
+[ """( B C samples -- S ): samples the given Block Count times,
+   and leaves the resulting block of Samples.
+
+  ```
+  [ 1 2 3 4 ] 2 samples leaves: "... [ (a random form) (a random form) ]"
+  'hello world' 2 samples leaves: "... [ (a random quote) (a random quote) ]"
+  ```
+  """
+  swap $: block
+
+  asDecimal collect: [ block sample ]
+] @: samples
+
+
+[ """( B sample: C -- S ): infix version of `samples`.
 
   ```
   [ 1 2 3 4 ] sample: 2 leaves: "... [ (a random form) (a random form) ]"
   ```
   """
-  $: block
-
-  (ahead thruVal asDecimal) collect: [ block sample ]
+  ahead thruVal samples
 ] @: sample:
 
 
