@@ -1013,6 +1013,51 @@ selfModify</code></pre>
 selfModify &quot;Will print from any of the branches randomly...&quot;
 selfModify
 selfModify</code></pre>
+<ol start="8">
+<li><a href="https://leetcode.com/problems/zigzag-conversion/">Zigzag problem</a> from LeetCode, with the examples as tests.</li>
+</ol>
+<pre><code class="language-novika">&quot;&quot;&quot;
+Not the mathy one but the naive one, because programming is
+not math thank goodness!
+&quot;&quot;&quot;
+
+[ dup 1 = =&gt; [ drop ^ ]
+
+  collect: '' dup 1 |to $: grid
+
+  0 $: col
+
+  [ grid |: |&gt; |afterLast? asc desc sel ] $: desc
+  [ grid |: &lt;| |afterFirst? desc asc sel (col 1 + =: col) ] $: asc
+  desc @: action
+
+  [ $: char grid |: [ char ~ ] ] @: put
+
+  each: [ put action =: action ]
+
+  grid join
+] @: convert
+
+
+describe 'Zigzag Conversion' [
+  in leetcode
+
+  it should 'follow the happy path' [
+    'A' 1 convert 'A' assert=
+    'A' 3 convert 'A' assert=
+    'HELLOWORLD' 1 convert 'HELLOWORLD' assert=
+  ]
+
+  it should 'convert given 3 rows' [
+    'PAYPALISHIRING' 3 convert 'PAHNAPLSIIGYIR' assert=
+  ]
+
+  it should 'convert given 4 rows' [
+    'PAYPALISHIRING' 4 convert 'PINALSIGYAHRPI' assert=
+  ]
+]
+
+runTestsInGroup: leetcode</code></pre>
 <p>Now, if you want to look at something a bit more elaborate, there's:</p>
 <ul>
 <li>A snake game <a href="https://github.com/novika-lang/novika/blob/rev10/examples/snake.new.nk">example</a></li>
