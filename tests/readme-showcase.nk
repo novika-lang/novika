@@ -165,3 +165,35 @@ describe 'definfix example' [
     [ 1 + 2 * 3 / [ 6 * 6 + 5 * 44 ] ** 0.25 ] withInfixMath vals [ 2.5 ] assert=
   ]
 ]
+
+
+describe 'zigzag example' [
+  in lang
+
+  it should 'run the example' [
+    [ dup 1 = => [ drop ^ ]
+
+      collect: '' dup 1 |to $: grid
+
+      0 $: col
+
+      [ grid |: |> |afterLast? asc desc sel ] $: desc
+      [ grid |: <| |afterFirst? desc asc sel (col 1 + =: col) ] $: asc
+      desc @: action
+
+      [ $: char grid |: [ char ~ ] ] @: put
+
+      each: [ put action =: action ]
+
+      grid join
+    ] @: convert
+
+    'A' 1 convert 'A' assert=
+    'A' 3 convert 'A' assert=
+    'HELLOWORLD' 1 convert 'HELLOWORLD' assert=
+    'PAYPALISHIRING' 3 convert 'PAHNAPLSIIGYIR' assert=
+    'PAYPALISHIRING' 4 convert 'PINALSIGYAHRPI' assert=
+
+    stack count 0 assert=
+  ]
+]
