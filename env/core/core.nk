@@ -1,21 +1,5 @@
-"""This is the entry point of Novika core.
-
-We need to quickly go from low-level and playground-ish to
-high-level and serious. Novika core is all about that.
+"""This is the entry point of env/core, Novika's standard library.
 """
-
-this #there [
-  """( S B -- S ): opens Block with Stack set as the active
-   stack. Leaves Stack. Ahead is transferred to block.
-
-  ```
-  [ 1 2 ] [ + ] there leaves: [ [ 3 ] ]
-  [ 1 2 ] [ ahead thruBlock open ] + leaves: [ [ 3 ] ]
-  ```
-  """
-  <| dup |> ahead #hydrate inject
-] opens
-
 
 this #@: [
   """( F @: N -- ): creates an opener entry with the given
@@ -40,7 +24,7 @@ this #@: [
   litPlus leaves: [ + ]
   ```
   """
-  ahead swap ahead thru swap opens
+  <| ahead dup thru |> opens
 ] opens
 
 
@@ -63,7 +47,7 @@ this #@: [
   getThree leaves: [ 1 2 + ]
   ```
   """
-  ahead swap ahead thru swap pushes
+  <| ahead dup thru |> pushes
 ] @: $:
 
 
@@ -91,7 +75,7 @@ this #@: [
   "..."
   ```
   """
-  ahead swap ahead thru swap entry:submit
+  <| ahead dup thru |> entry:submit
 ] @: =:
 
 

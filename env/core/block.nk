@@ -843,7 +843,7 @@
   """
   $: block
 
-  [ ] $: result
+  ahead child $: result
 
   dup empty? => [ drop result ^ ]
   dup count odd? => [ 'for mapPairs to work, there should be an even count of items in block' die ]
@@ -933,7 +933,7 @@
   """
   $: block
 
-  [ ] $: result
+  ahead child $: result
 
   dup empty? => [ drop result ^ ]
 
@@ -977,7 +977,9 @@
   a leaves: [ [ 1 2 3 ] ]
   ```
   """
-  $: block $: list [ ] $: result
+  $: block $: list
+
+  ahead child $: result
 
   list empty? => [ result ^ ]
 
@@ -1022,7 +1024,9 @@
     leaves: [ [ 300 600 ] ]
   ```
   """
-  $: block $: list [ ] $: result
+  $: block $: list
+
+  ahead child $: result
 
   list empty? => [ result ^ ]
 
@@ -1330,8 +1334,8 @@
 
 
 [ """( S D -- I ): given a Source block and a Destination
-   block, leaves an Instance of Destination block with all
-   words (see `word?`) replaced with entry values from
+   block, leaves an Instance of the Destination block with all
+   words (see `word?`) replaced with entry values from the
    dictionary of Source (they are **not** opened), and all
    quoted words unquoted (see `quotedWord?`). Recurses on
    sub-blocks.
@@ -1354,7 +1358,7 @@
    it's a quoted word, unquote it, if it's a block, then recurse
    on its elements, else, leave it."
   dup word?       => [ source swap entry:fetch      ^ ]
-  dup block?      => [ map: [ source swap conjure ] ^ ]
+  dup block?      => [ new ||-> [ source swap conjure ] ^ ]
   dup quotedWord? => [ open ^ ]
 ] @: conjure
 
@@ -1571,7 +1575,9 @@
   leaves: [ [ 3 5 12 ] ]
   ```
   """
-  $: block $: max [ ] $: result
+  $: block $: max
+
+  ahead child $: result
 
   max negative? => [ 'collect: cannot have negative amount' die ]
 
@@ -1602,7 +1608,9 @@
 
   Does **not** support `break` and `next`.
   """
-  $: block $: max [ ] $: result
+  $: block $: max
+
+  ahead child $: result
 
   max negative? => [ 'compiledCollect: cannot have negative amount' die ]
   max compiledTimes: [ "( I -- I )"
@@ -1840,7 +1848,8 @@
   0 $: y [ 1 $: x this ls ] open leaves: [ [ x ] ]
   ```
   """
-  [ ] $: result
+  ahead child $: result
+
   [
     result over ls concat! drop
     dup orphan?

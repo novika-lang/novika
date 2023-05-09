@@ -232,6 +232,21 @@ module Novika::Capabilities::Impl
         engine.schedule(form, stack)
       end
 
+      target.at("there", <<-END
+      ( S B -- S ): opens Block with Stack set as the active
+       stack. Leaves Stack. Ahead is transferred to block.
+
+      ```
+      [ 1 2 ] [ + ] there leaves: [ [ 3 ] ]
+      [ 1 2 ] [ ahead thruBlock open ] there + leaves: [ [ 3 ] ]
+      ```
+      END
+      ) do |engine, stack|
+        form = stack.drop
+        new_stack = stack.top.a(Block)
+        engine.schedule(form, new_stack)
+      end
+
       target.at("do", <<-END
       ( F -- ): opens Form with an empty stack activated, and
        disposed when Form has been evaluated.
@@ -1623,7 +1638,7 @@ module Novika::Capabilities::Impl
 
 
       ```
-      [ 3 2 1 ] [ - ] sortUsing leaves: [ 1 2 3 ]
+      [ 3 2 1 ] [ - ] sortUsing! leaves: [ 1 2 3 ]
       ```
       END
       ) do |_, stack|
