@@ -1053,13 +1053,13 @@ module Novika
 
     # Creates and returns an instance of this block, under the
     # given *parent*.
-    def instance(parent new_parent : Block = self, __tr = nil) : Block
+    def instance(parent new_parent : Block = self, shallow = false, __tr = nil) : Block
       copy = self.class.new(parent: new_parent,
         tape: has_tape? ? tape.copy : nil,
         prototype: prototype
       )
 
-      return copy if leaf?
+      return copy if leaf? || shallow
 
       # If this block isn't a leaf, we need to copy its sub-blocks
       # as well. Note that `map!` allows to skip quickly (i.e., is

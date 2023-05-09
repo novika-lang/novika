@@ -1,3 +1,81 @@
+describe 'shallowNew' [
+  in lang
+
+  it should 'instantiate a block but not the sub-blocks' [
+    [ "Some docs" [ 1 2 | 3 4 ] | [ 5 6 | 7 8 ] ] $: foos
+
+
+    foos extend: [ 100 $: x ]
+    foos 0 fromLeft extend: [ 'foo' $: a ]
+    foos 0 fromRight extend: [ 'bar' $: b ]
+
+    foos shallowNew $: si
+    si desc 'Some docs' assert=
+
+    si parent foos same? true assert=
+    si foos = false assert= "not equal because of foos's dict"
+    si (foos toTape) assert=
+    si.x 100 assert=
+
+    si 0 fromLeft parent foos same? true assert= "sub-blocks unchanged"
+    si 0 fromRight parent foos same? true assert=
+    si 0 fromLeft .a 'foo' assert=
+    si 0 fromRight .b 'bar' assert=
+  ]
+
+  it should 'work as described in the docs example' [
+    [ $: x [ x ] ] @: newBox
+
+    1 newBox $: fooBox1
+    2 newBox $: fooBox2
+    3 newBox $: fooBox3
+
+    fooBox1 open 1 assert=
+    fooBox2 open 2 assert=
+    fooBox3 open 3 assert=
+
+    [ fooBox1 fooBox2 fooBox3 ] vals $: boxes
+
+    boxes 0 fromLeft open 1 assert=
+    boxes 1 fromLeft open 2 assert=
+    "... and so on, as you'd expect. However, let's try to instantiate boxes:"
+
+    boxes new $: boxesInstance
+    [ boxesInstance 0 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
+    [ boxesInstance 1 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
+    [ boxesInstance 2 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
+
+    "Maybe defining 'x' on boxesInstance can shed some light?"
+    boxesInstance extend: [ 'Hello from boxesInstance' $: x ]
+    boxesInstance 0 fromLeft open 'Hello from boxesInstance' assert=
+    boxesInstance 1 fromLeft open 'Hello from boxesInstance' assert=
+    boxesInstance 2 fromLeft open 'Hello from boxesInstance' assert=
+
+    "You've witnessed the so-called *force-reparenting* done by 'new'.
+      Let's try using 'shallowNew' for our boxesInstance."
+
+    boxes shallowNew $: shallowBoxesInstance
+    shallowBoxesInstance 0 fromLeft open 1 assert=
+    shallowBoxesInstance 1 fromLeft open 2 assert=
+    shallowBoxesInstance 2 fromLeft open 3 assert=
+
+    "Works as expected! Note that sub-blocks are exactly the same as
+      those in the original 'boxes' block. However, 'shallowBoxesInstance'
+      and 'boxes' are different blocks now:"
+
+    (shallowBoxesInstance 0 fromLeft) (boxes 0 fromLeft) same? true assert=
+    (shallowBoxesInstance 1 fromLeft) (boxes 1 fromLeft) same? true assert=
+    (shallowBoxesInstance 2 fromLeft) (boxes 2 fromLeft) same? true assert=
+
+    boxes shallowBoxesInstance same? false assert=
+
+    "... and 'shallowBoxesInstance' does indeed have 'boxes' as its parent:"
+
+    (shallowBoxesInstance parent) boxes same? true assert=
+  ]
+]
+
+
 describe 'same?' [
   in lang
 

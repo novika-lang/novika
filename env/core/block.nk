@@ -843,8 +843,7 @@
   """
   $: block
 
-  ahead child $: result
-
+  dup child $: result
   dup empty? => [ drop result ^ ]
   dup count odd? => [ 'for mapPairs to work, there should be an even count of items in block' die ]
 
@@ -933,8 +932,7 @@
   """
   $: block
 
-  ahead child $: result
-
+  dup child $: result
   dup empty? => [ drop result ^ ]
 
   $: list 0 $: index
@@ -979,8 +977,7 @@
   """
   $: block $: list
 
-  ahead child $: result
-
+  list child $: result
   list empty? => [ result ^ ]
 
   0 $: index
@@ -1026,8 +1023,7 @@
   """
   $: block $: list
 
-  ahead child $: result
-
+  list child $: result
   list empty? => [ result ^ ]
 
   0 $: index
@@ -1354,12 +1350,15 @@
   """
   swap $: source
 
-  "If it's a word, replace it with word's value in source, if
-   it's a quoted word, unquote it, if it's a block, then recurse
-   on its elements, else, leave it."
-  dup word?       => [ source swap entry:fetch      ^ ]
-  dup block?      => [ new ||-> [ source swap conjure ] ^ ]
-  dup quotedWord? => [ open ^ ]
+  [ "If it's a word, replace it with word's value in source, if
+     it's a quoted word, unquote it, if it's a block, then recurse
+     on its elements, else, leave it."
+    dup word?       => [ source swap entry:fetch ^ ]
+    dup block?      => [ shallowNew ||~> rec ^ ]
+    dup quotedWord? => [ open ^ ]
+  ] @: rec
+
+  rec
 ] @: conjure
 
 
@@ -1577,7 +1576,7 @@
   """
   $: block $: max
 
-  ahead child $: result
+  orphan $: result
 
   max negative? => [ 'collect: cannot have negative amount' die ]
 
@@ -1610,7 +1609,7 @@
   """
   $: block $: max
 
-  ahead child $: result
+  orphan $: result
 
   max negative? => [ 'compiledCollect: cannot have negative amount' die ]
   max compiledTimes: [ "( I -- I )"

@@ -1607,6 +1607,31 @@ describe 'conjure/here' [
     assert=
   ]
 
+  it should 'instantiate blocks it encounters' [
+    100 $: a
+    200 $: b
+    [ "Foo" [ "Some documentation..." 1 a | b ] [ 2 ] [ 3 ] ] $: foos
+
+    foos 0 fromLeft extend: [ 'foo' $: quux ]
+    foos 0 fromRight extend: [ 'bar' $: fuux ]
+
+    foos here $: hereResult
+
+    hereResult map: toTape [ [ 1 100 | 200 ] [ 2 ] [ 3 ] ] assert=
+
+    hereResult parent foos same? true assert=
+
+    hereResult desc 'Foo' assert=
+    hereResult 0 fromLeft desc 'Some documentation...' assert=
+
+    hereResult 0 fromLeft . quux 'foo' assert=
+    hereResult 0 fromRight . fuux 'bar' assert=
+
+    (hereResult 0 fromLeft parent) (foos 0 fromLeft) same? true assert=
+    (hereResult 1 fromLeft parent) (foos 1 fromLeft) same? true assert=
+    (hereResult 2 fromLeft parent) (foos 2 fromLeft) same? true assert=
+  ]
+
   it dies 'on undefined words' [
     foo here
   ]

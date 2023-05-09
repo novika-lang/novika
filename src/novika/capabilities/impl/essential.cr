@@ -266,6 +266,75 @@ module Novika::Capabilities::Impl
         block.instance.onto(stack)
       end
 
+      target.at("shallowNew", <<-END
+      ( B -- Si ): leaves a Shallow instance of Block.
+
+      `shallowNew` is different from `new` in that it does not force-
+      reparent sub-blocks to the parent instance, and so on recursively --
+      sometimes such behavior is not desired.
+
+      The difference is very subtle, and you mostly don't need to care.
+      As a word implementor you should, however, choose carefully between
+      `new`, `shallowNew`, and `shallowCopy` (and perhaps `toTape` too).
+      Novika is all about blocks, and there are different ways to copy,
+      instantiate, and work with them.
+
+      ```
+      [ $: x [ x ] ] @: newBox
+
+      1 newBox $: fooBox1
+      2 newBox $: fooBox2
+      3 newBox $: fooBox3
+
+      fooBox1 open leaves: 1
+      fooBox2 open leaves: 2
+      fooBox3 open leaves: 3
+
+      [ fooBox1 fooBox2 fooBox3 ] vals $: boxes
+
+      boxes 0 fromLeft open leaves: 1
+      boxes 1 fromLeft open leaves: 2
+      "... and so on, as you'd expect. However, let's try to instantiate boxes:"
+
+      boxes new $: boxesInstance
+      boxesInstance 0 fromLeft open "DIES: x is undefined"
+      boxesInstance 1 fromLeft open "DIES: x is undefined"
+      boxesInstance 2 fromLeft open "DIES: x is undefined"
+
+      "Maybe defining 'x' on boxesInstance can shed some light?"
+      boxesInstance extend: [ 'Hello from boxesInstance' $: x ]
+      boxesInstance 0 fromLeft open leaves: 'Hello from boxesInstance'
+      boxesInstance 1 fromLeft open leaves: 'Hello from boxesInstance'
+      boxesInstance 2 fromLeft open leaves: 'Hello from boxesInstance'
+
+      "You've witnessed the so-called *force-reparenting* done by 'new'.
+       Let's try using 'shallowNew' for our boxesInstance."
+
+      boxes shallowNew $: shallowBoxesInstance
+      shallowBoxesInstance 0 fromLeft open leaves: 1
+      shallowBoxesInstance 1 fromLeft open leaves: 2
+      shallowBoxesInstance 2 fromLeft open leaves: 3
+
+      "Works as expected! Note that sub-blocks are exactly the same as
+       those in the original 'boxes' block. However, 'shallowBoxesInstance'
+       and 'boxes' are different blocks now:"
+
+      (shallowBoxesInstance 0 fromLeft) (boxes 0 fromLeft) same? leaves: true
+      (shallowBoxesInstance 1 fromLeft) (boxes 1 fromLeft) same? leaves: true
+      (shallowBoxesInstance 2 fromLeft) (boxes 2 fromLeft) same? leaves: true
+
+      boxes shallowBoxesInstance same? leaves: false
+
+      "... and 'shallowBoxesInstance' does indeed have 'boxes' as its parent:"
+
+      (shallowBoxesInstance parent) boxes same? leaves: true
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        block.instance(shallow: true).onto(stack)
+      end
+
       target.at("sel", <<-END
       ( D A B -- A/B ): selects A (Determiner is truthy) or B
        (Determiner is falsey)
