@@ -86,6 +86,36 @@
 ] @: =>
 
 
+[ """( D => Tb -- ? ): opens True branch form if Determiner
+   is truthy.
+
+  If Determiner is a block, creates a copy of the stack and
+  opens Determiner with that stack. If Determiner leaves a
+  truthy form, opens True branch form with the old stack.
+  Otherwise, does nothing.
+
+  ```
+  100 even? ~> 1 leaves: [ 1 ]
+  101 even? ~> 1 leaves: [ ]
+
+  100 ([ even? ] ~> [ 2 * ]) leaves: [ 200 ]
+  101 ([ even? ] ~> [ 2 * ]) leaves: [ 101 ]
+
+  2 4 ([ * even? ] ~> +) leaves: 6
+  5 5 ([ * even? ] ~> +) leaves: [ 5 5 ]
+  ```
+  """
+  ahead thruBlock $: trueBranch
+
+  dup block? [ $: determiner
+    (stack shallowCopy) determiner there
+      cherry [ trueBranch open ]
+  ] [ trueBranch ] br
+
+  [ ] br
+] @: ~>
+
+
 [ "( A B -- A/false ): leaves whether both A and B are truthy."
   $: b @: a
 

@@ -1,6 +1,7 @@
 """
 Patch some core words for performance, now that we have a
-standard library.
+standard library. Note that this only could be done to words
+that *entirely* consist of builtins (at least at here-time).
 
 > Optimization in Novika is mostly about reducing the word count,
 > reducing word lookup and block climbing, and using more builtins.

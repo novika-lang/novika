@@ -7,6 +7,24 @@ describe 'obj' [
 ]
 
 
+describe '~>' [
+  in lang
+
+  it should 'preserve stack if determiner is a block' [
+    [ 100 [ 100 = ] ~> [ ] ] vals [ 100 ] assert=
+    [ 100 [ 200 = ] ~> [ ] ] vals [ 100 ] assert=
+    [ 2 4 [ + even? ] ~> *
+      2 5 [ + even? ] ~> * ] vals [ 8 2 5 ] assert=
+
+    [ 100 $: tmp
+      2 5 ([ + dup =: tmp even? ] ~> /) tmp + ] vals [ 2 12 ] assert=
+
+    [ 100 $: tmp
+      2 4 ([ + dup =: tmp even? ] ~> /) tmp + ] vals [ 6.5 ] assert=
+  ]
+]
+
+
 describe 'thruWord:' [
   in lang
 
