@@ -576,7 +576,7 @@ module Novika
       self.tape = tape.inject(form)
     end
 
-    # Drops and returns the element after the cursor. Dies if
+    # Drops and returns the form after the cursor. Dies if
     # cursor is at the end.
     def eject : Form
       die("eject out of bounds") unless has_tape?
@@ -616,12 +616,12 @@ module Novika
       self
     end
 
-    # Mutably adds elements before the cursor in *elems* block's
+    # Mutably adds forms before the cursor in *forms* block's
     # tape after the cursor in this block's tape.
-    def paste(elems : Block)
-      return if elems.count.zero?
+    def paste(forms : Block)
+      return if forms.count.zero?
 
-      self.tape = tape.paste(elems.tape)
+      self.tape = tape.paste(forms.tape)
     end
 
     # Returns the top form, dies if none.
