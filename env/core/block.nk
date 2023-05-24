@@ -1566,12 +1566,10 @@
    Block.
 
   ```
-  3 [ readLine br: [ stack swap slurp ] 0 ] collect
-  INPUT: 0 3
-  INPUT: 1 5
-  INPUT: 2 12
-
-  leaves: [ [ 3 5 12 ] ]
+  10 collect: [ [ odd? ] ~> drop ]
+         map: [ 2 * ]
+        only: [ 10 < ]
+      leaves: [ [ 0 4 8 ] ]
   ```
   """
   $: block $: max

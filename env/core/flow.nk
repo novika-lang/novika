@@ -1,16 +1,34 @@
-[ "( B -- S ): activates an empty Stack for the duration
-   of Block."
+[ """( B -- S ): activates an empty Stack for the duration
+   of Block.
+
+  ```
+  [ 1 2 3 ] vals leaves: [ 1 2 3 ]
+  [ (1 2 + 2 *) 'hello' ] vals leaves: [ 6 'hello' ]
+  ```
+  """
   orphan swap there
 ] @: vals
 
 
-[ "( B -- T ): activates an empty stack for the duration of Block,
-   and leaves Top form in the stack. Dies if none."
+[ """( B -- T ): activates an empty stack for the duration of Block,
+   and leaves Top form in the stack. Dies if none.
+
+  ```
+  [ 1 2 3 ] val leaves: 3
+  [ 'foo' 'bar' ~ ] val leaves: 'foobar'
+  ```
+  """
   vals cherry
 ] @: val
 
-[ "( B1 B2 -- T1 T2 ): activates individual empty stacks for each
-   of the two Blocks, and leaves their corresponding Top forms."
+
+[ """( B1 B2 -- T1 T2 ): activates individual empty stacks for each
+   of the two Blocks, and leaves their corresponding Top forms.
+
+  ```
+  [ 1 2 + ] [ 3 4 + ] 2val leaves: [ 3 7 ]
+  ```
+  """
   bi*: val val
 ] @: 2val
 
@@ -73,20 +91,35 @@
 ] @: obj
 
 
-[ "( D br: T F -- ? ): infix version of `br`."
+[ """( D br: T F -- ? ): infix version of `br`.
+
+  ```
+  (0 randTo: 100) odd? br:
+    [ 'Yay!' echo ]
+    [ 'Nay!' echo ]
+
+  "Say no to repetition!"
+  (0 randTo: 100) odd? (br: 'Yay!' 'Nay!') echo
+  ```
+  """
   ahead thruBlock "T"
   ahead thruBlock "F"
   br
 ] @: br:
 
 
-[ "( D => Tb -- ? ): opens True branch form if Determiner
-   is truthy."
+[ """( D => Tb -- ? ): opens True branch form if Determiner
+   is truthy.
+
+  ```
+  (0 randTo: 100) even? => [ 'Yay!' echo ]
+  ```
+  """
   ahead thruBlock [ ] br
 ] @: =>
 
 
-[ """( D => Tb -- ? ): opens True branch form if Determiner
+[ """( D ~> Tb -- ? ): opens True branch form if Determiner
    is truthy.
 
   If Determiner is a block, creates a copy of the stack and
@@ -116,22 +149,62 @@
 ] @: ~>
 
 
-[ "( A B -- A/false ): leaves whether both A and B are truthy."
+[ """( A B -- A/false ): leaves whether both A and B are truthy.
+
+  Supports short-circuiting. Remember that in Novika, only `false`
+  itself is falsey. Everything else is truthy.
+
+  ```
+  (false false and) leaves: false
+  (true false and) leaves: false
+  (false true and) leaves: false
+  (true true and) leaves: true
+
+  (100 200 and) leaves: true
+  (100 false and) leaves: false
+
+  [ 100 even? ] [ 200 odd? ] and leaves: false
+  ```
+  """
   $: b @: a
 
   a b false br
 ] @: and
 
 
-[ "( A B -- true/A ): leaves whether A or B or both are truthy."
+[ """( A B -- true/A ): leaves whether A or B or both are truthy.
+
+  Supports short-circuiting. Remember that in Novika, only `false`
+  itself is falsey. Everything else is truthy.
+
+  ```
+  (false false or) leaves: false
+  (true false or) leaves: true
+  (false true or) leaves: true
+  (true true or) leaves: true
+
+  (100 200 or) leaves: true
+  (100 false or) leaves: true
+
+  [ 100 even? ] [ 200 odd? ] or leaves: false
+  ```
+  """
   $: b @: a
 
   a true b br
 ] @: or
 
 
-[ "( A B -- true/A ): same as `or not`, leaves whether neither
-   A nor B is truthy."
+[ """( A B -- true/A ): same as `or not`, leaves whether neither
+   A nor B is truthy.
+
+  Supports short-circuiting. Remember that in Novika, only `false`
+  itself is falsey. Everything else is truthy.
+
+  ```
+  [ 100 odd? ] [ 201 even? ] neither? leaves: true
+  ```
+  """
   or not
 ] @: neither?
 
@@ -148,9 +221,18 @@
 ] @: continues
 
 
-[ "( -- ): executes caller again. Looping primitive. Too low-
+[ """( -- ): executes caller again. Looping primitive. Too low-
    level for users, prefer not to use (use `loop` instead).
-   Beware that it does not re-instantiate the block."
+   Beware that it does not re-instantiate the block.
+
+  ```
+  [
+    'Looping indefinitely, yay!' echo
+
+    repeat
+  ] do
+  ```
+  """
   ahead 0 |to
 ] @: repeat
 
@@ -180,10 +262,27 @@
 ] @: ^
 
 
-[ "( Ib -- Sh Bh Nh ): takes an Iteration body block and
+[ """( Ib -- Sh Bh Nh ): takes an Iteration body block and
    leaves three handles: Start handle to start the loop,
    Next handle to continue the loop, and Break handle to
-   break the loop."
+   break the loop.
+
+  ```
+  [ '> ' readLine not => nextCycle
+    [ 'quit' quitLoop
+      'next' nextCycle
+    ] choose
+    'You have entered: ' swap ~ echo
+  ] createLoop
+    @: nextCycle
+    @: quitLoop
+    @: startLoop
+
+  'Hello! Type `quit` to quit!' echo
+    startLoop
+  'Bye!' echo
+  ```
+  """
   $: iterBody
 
   #nil $: breakTo
@@ -196,11 +295,44 @@
 ] @: createLoop
 
 
-[ "( Bb C Cb -- Sh ): defines `break` and `next` for a Body
+[ """( Bb C Cb -- Sh ): defines `break` and `next` for a Body
    block that is being evaluated indirectly by a Control block,
    and only if Condition leaves a truthy value on top of the
    stack it hydrated. `next` resumes the Control block.
-   Leaves Start handle to start the loop."
+   Leaves Start handle to start the loop.
+
+  ```
+  "Body block is the 'client' block of sorts:"
+  [ dup even? (br: ' is even!' ' is odd!') ~ echo
+  ] $: bodyBlock
+
+
+  0 $: n
+
+  "Control block chooses whether, and how to run
+  the body block."
+  [ n enclose bodyBlock hydrate
+    n 1 + =: n
+  ] $: controlBlock
+
+  "Condition block chooses whether to stop looping."
+  [ n 5 <
+  ] $: conditionBlock
+
+  bodyBlock conditionBlock controlBlock createDetachedLoop
+    @: startLoop
+
+  startLoop
+
+  "STDOUT: 0 is even!⏎"
+  "STDOUT: 1 is odd!⏎"
+  "STDOUT: 2 is even!⏎"
+  "STDOUT: 3 is odd!⏎"
+  "STDOUT: 4 is even!⏎"
+
+  n leaves: 5
+  ```
+  """
   @: ctrl $: cond new $: bodyInstance
 
   #nil $: blockToResume
@@ -224,9 +356,23 @@
 ] @: createDetachedLoop
 
 
-[ "( Ib -- ): basic infinite loop over an Iteration body block.
+[ """( Ib -- ): basic infinite loop over an Iteration body block.
    `break` and `next` are available in the block. A new
-   stack created for each iteration."
+   stack created for each iteration.
+
+  ```
+  'Hello! Type `quit` to quit!' echo
+
+  [ '> ' readLine not => next
+    [ 'quit' break
+      'next' next
+    ] choose
+    'You have entered: ' swap ~ echo
+  ] loop
+
+  'Bye!' echo
+  ```
+  """
   new $: iterBody
 
   iterBody createLoop
@@ -246,10 +392,28 @@
 ] @: loop:
 
 
-[ "( C B -- ): hydrates an empty stack with Condition; if ToS
+[ """( C B -- ): hydrates an empty stack with Condition; if ToS
    is truthy afterwards, Block is opened over an empty stack.
    Repeats until ToS is false. Similar to `loop`, words `break`
-   and `next` are available in Block."
+   and `next` are available in Block.
+
+  ```
+  1 to: 10 sample: 10 p $: numbers
+
+  0 $: index
+
+  while: [ numbers index fromLeft even? ]
+  [
+    index 1 + =: index
+    index (numbers count) = => [
+      'No odd numbers :(' echo
+      1 bye
+    ]
+  ]
+
+  'First odd number is: ' (numbers index fromLeft) ~ echo
+  ```
+  """
   swap [ open ] createDetachedLoop open
 ] @: while
 
@@ -261,9 +425,27 @@
 ] @: while:
 
 
-[ "( C B -- ): inverse of `while` (opens Block while Condition
-   is **false**), for more info see `while`."
-  <| shallowCopy #not << |> while
+[ """( C B -- ): inverse of `while` (opens Block while Condition
+   is **false**), for more info see `while`.
+
+  ```
+  1 to: 10 sample: 10 p $: numbers
+
+  0 $: index
+
+  until: [ numbers index fromLeft odd? ]
+  [
+    index 1 + =: index
+    index (numbers count) = => [
+      'No odd numbers :(' echo
+      1 bye
+    ]
+  ]
+
+  'First odd number is: ' (numbers index fromLeft) ~ echo
+  ```
+  """
+  <| @: condition [ condition not ] |> while
 ] @: until
 
 
@@ -274,9 +456,23 @@
 ] @: until:
 
 
-[ "( C B -- ): opens Block Count times. For each iteration
+[ """( C B -- ): opens Block Count times. For each iteration
    of Block, a new stack block is activated with current Count
-   on top. `break` and `next` available."
+   on top. `break` and `next` available.
+
+  ```
+  16 times: [
+    even? ~> next
+    9 >= ~> break
+    echo
+  ]
+
+  "STDOUT: 1⏎"
+  "STDOUT: 3⏎"
+  "STDOUT: 5⏎"
+  "STDOUT: 7⏎"
+  ```
+  """
   $: block $: max
 
   max negative? => [ 'times: cannot have negative bound' die ]
@@ -315,6 +511,13 @@
   of your block **must** be `( I -- I )`.
 
   `next` and `break` are **not** supported.
+
+  ```
+  10_000 compiledTimes: [ $: index
+    index 2 * echo
+    index
+  ]
+  ```
   """
   $: iteratee
   $: ntimes
@@ -357,7 +560,7 @@
 
   ```
   0 $: acc
-  100000 compiledTimes: [ "( I -- I )"
+  100_000 compiledTimes: [ "( I -- I )"
     dup acc + =: acc
   ]
   acc echo "STDOUT: 5000050000⏎"
