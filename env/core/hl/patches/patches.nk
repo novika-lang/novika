@@ -84,7 +84,16 @@ this $: _toplevel
 (this -> _chewbaccaTemplate) nki:captureAllRaw nki:toBlock @: chewbacca
 (this -> chewbacca) _toplevel chewbacca
 
-"For all currenly defined words, apply chewbacca."
-ls* each: [
-  _toplevel dup <| swap entry:fetch dup block? => [ |> chewbacca ]
+__runtime__ 'novika' = => [
+  """For all currenly defined words, apply chewbacca.
+
+  Note how applying the chewbacca patch to env/core is disabled when
+  running NOT under novika. Eg in NKAS, it won't (really) work because
+  it will apply to *everything* and not just to env/core -- and it's
+  expected to apply to env/core ONLY. Past env/core invoking chewbacca
+  is up to the user.
+  """
+  ls* each: [
+    _toplevel dup <| swap entry:fetch dup block? => [ |> chewbacca ]
+  ]
 ]

@@ -87,6 +87,7 @@ module Novika::Frontend::Nki
         block.parent = Block.new(caps.block)
         block.at(Word.new("__path__"), Quote.new(filedir.to_s))
         block.at(Word.new("__file__"), Quote.new(filepath.to_s))
+        block.at(Word.new("__runtime__"), Quote.new("nki"))
         engine.schedule!(block, stack: Block.new)
         engine.exhaust
       end

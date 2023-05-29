@@ -110,6 +110,7 @@ module Novika::Frontend::CLI
     block = Block.new(toplevel).slurp(source)
     block.at(Word.new("__path__"), Quote.new(path.parent.to_s))
     block.at(Word.new("__file__"), Quote.new(path.to_s))
+    block.at(Word.new("__runtime__"), Quote.new("novika"))
     engine.schedule!(block, stack: Block.new)
     engine.exhaust
     toplevel.import!(from: block)
