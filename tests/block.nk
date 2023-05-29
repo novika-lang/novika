@@ -2901,4 +2901,34 @@ describe 'gsub[:]/gsubOn:' [
 
     stack empty? true assert= "stack hygiene"
   ]
+
+  it should 'allow to implement preempt resolution for optimization' [
+    [ "I am a chewbacca, I eat people"
+      ahead $: caller
+      #nil $: form
+
+      dup [form] gsubOn: [[
+        "If current form resolves to a builtin, overwrite with
+         the builtin."
+        caller over entry:fetch? br: [ dup builtin? dup <| br: [ nip dup =: form ] drop |> ] false
+      ]]
+    ] @: chewbacca
+
+    30 times: [
+      drop
+
+      [ 1 2 3 ] chewbacca [ 1 2 3 ] assert=
+      [ a b c ] chewbacca [ a b c ] assert=
+      [ true a ] chewbacca [ true a ] assert=
+      [ 1 2 + ] chewbacca [ 1 2 ] #+ here << assert=
+      [ x y + z > br: a b ] chewbacca [ #x #y (#+ here) #z #> #br: #a #b ] vals assert=
+      [ x y + z > br: [a] [b] ] chewbacca [ #x #y (#+ here) #z #> #br: [a] [b] ] vals assert=
+      [ [ x y + ] z > br: [a] [b] ] chewbacca [ [ x y ] (#+ here) << #z #> #br: [a] [b] ] vals assert=
+      (this -> chewbacca) desc 'I am a chewbacca, I eat people' assert=
+
+      "Now to the interesting part, self-optimization. We do it repeatedly
+       to make sure nothing breaks."
+      (this -> chewbacca) chewbacca drop
+    ]
+  ]
 ]

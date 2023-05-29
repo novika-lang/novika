@@ -1,0 +1,90 @@
+"""
+Patch some core words for performance, now that we have a
+standard library. Note that this only could be done to words
+that *entirely* consist of builtins (at least at here-time).
+
+> Optimization in Novika is mostly about reducing the word count,
+> reducing word lookup and block climbing, and using more builtins.
+"""
+
+(this -> @:) here =: @:
+(this -> $:) here =: $:
+(this -> =:) here =: =:
+
+(this -> br:) here =: br:
+(this -> =>) here =: =>
+
+
+[ """
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣴⣶⣶⣶⣦⣤⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠁⠟⢿⢿⠇⠉⡿⣿⣿⣿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢠⣴⣿⣿⣿⣿⣿⣿⢻⢸⣿⣿⣿⣿⠁⠀⠀⠀⠈⠀⠀⠀⠘⠿⢿⣿⢿⣿⣿⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⡿⠟⢹⠈⠀⣿⣿⢿⡟⠀⢀⠆⢀⠀⠀⠀⡀⠀⢀⡼⠃⠟⢻⣿⣿⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢰⣿⣿⣿⣿⣿⢿⢷⠀⠈⠀⠀⢸⠏⢸⠁⠀⡾⢠⡇⢀⣠⣾⡿⠀⠞⠁⠀⡴⢋⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣾⣿⣿⣿⣿⣿⣦⡁⠁⠀⠀⠀⠀⠀⠀⠀⢰⠇⠛⠀⠜⠟⠉⠃⠀⠀⡠⠊⠀⣈⣽⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠠⣿⣿⣿⣿⡿⣿⣿⠛⠢⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢞⡽⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⣿⣿⡇⠑⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢊⠕⡵⢟⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⣿⠏⠁⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⣤⣄⣤⣤⣀⣀⣀⢀⠀⠀⠀⠀⠀⠨⠟⠉⠁⠀⠙⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⣿⡄⠀⠀⣶⣶⣾⣿⣿⣿⣿⣷⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣀⣀⡀⠀⠀⠀⠠⣾⣦⠄⢸⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⣿⣿⠀⠼⣿⣿⣿⣿⡿⢿⣿⣷⣶⣌⠛⠿⠿⢛⣟⣙⣹⡿⣿⣯⡉⠁⠀⠀⢀⡀⣲⣿⣿⣷⡀⠉⡙⠻⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢹⣿⡅⠀⠀⠛⠛⠛⢛⣾⡏⠉⢀⣤⣿⣷⡄⠀⠀⠀⠀⠀⠀⠈⠉⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⢿⣶⣤⣙⣾⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣿⡄⡀⣀⠄⠀⠀⠘⠛⠓⠘⠋⠉⠉⠉⠉⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣰⣶⣶⣿⣿⣿⠋⠀⢀⣙⠻⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣿⣿⠞⠡⣶⡿⠋⢤⡔⠀⠀⠤⢶⣶⣤⣤⣤⣄⣀⠀⠒⠛⠒⠀⠀⠙⠻⣿⣿⣿⣿⣿⣿⡆⠀⠀⠙⢷⣮⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⢸⣿⣯⠀⠀⢿⡿⢂⣉⣀⠀⠀⠀⣀⣉⣉⣉⡙⠻⣿⣿⣿⣶⣤⣄⣀⡀⣀⣼⣿⣿⣿⣿⣿⡇⠀⠀⢀⢘⣿⣿⣿⣿⣷⣄⣀⣀⡀⠀⠀
+⠀⠀⠀⢸⣿⣿⡆⠀⣿⡇⢿⠁⣠⡄⢤⣴⣶⣿⡅⢹⣉⣂⡈⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⠁⠀⠀⢈⣿⣿⣿⣿⣿⣿⣧⡄⠈⠛⣳⡀
+⠀⠀⠀⢾⣿⣿⣷⠀⣿⡇⠘⣴⣿⣿⡄⠙⠋⠙⡷⢺⡿⠿⠿⠦⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠃⠀⢠⡷⣾⣿⣿⣿⣿⣿⣿⣿⡿⠂⠘⠷⡅
+⠀⠀⠀⠈⣿⣿⣿⠀⢸⡇⢀⡙⡁⠁⠀⠀⠠⠤⠄⠀⠐⠒⠒⢂⣡⠔⠁⢰⣆⠙⠛⠟⠉⠉⠂⠀⠀⠀⠘⣿⣜⢿⣿⣿⣿⣿⠇⠀⣠⡴⠚⠉⠉
+⠀⠀⢰⡇⢻⣿⣿⠀⠈⢠⣴⣯⠁⡀⠀⢀⣠⣴⣶⣾⣾⠏⠉⡁⠀⣠⣤⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣷⠀⠙⢿⠃⡰⠚⠉⠀⠀⠀⠀
+⠀⠀⣾⠀⢸⣿⡏⠀⠀⠸⣿⣿⣤⣿⣴⣿⣿⡿⠿⠛⠋⠀⠀⠙⣿⣿⣿⣿⣿⣿⡄⠀⡆⠀⠀⠀⣄⠀⠀⠀⠀⢻⣿⣄⡄⠀⡁⠀⠀⠀⠀⠀⠀
+⠀⢠⣿⠀⠘⠇⣇⠀⠀⠀⠙⠘⣿⣿⣿⠻⠍⠑⠀⠀⠀⠀⠱⣶⣍⣻⣿⣿⣿⣿⣧⠘⠇⠀⠀⠀⢹⡄⠀⠀⠀⠀⢻⣿⣾⡀⠁⠀⠀⠀⠀⠀⠀
+⠀⢸⣿⡀⠀⠀⢸⣦⣦⡆⠀⠀⠸⢿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠈⠉⢻⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠸⣿⣦⠀⠀⢀⢸⣿⣿⢁⠃⠀⠀⠀⠀⠀⠀
+⠀⢰⣿⠀⠀⠀⠈⣿⣿⣿⣧⡇⠀⠀⠹⣿⣦⠀⠘⢾⣾⣶⣶⣶⠀⣘⣿⣿⣿⠿⡄⠀⠀⠀⠀⠀⠀⠹⣿⠗⠀⠘⠛⣿⠇⢈⠀⠀⠀⠀⠀⠀⠀
+⠀⣾⣿⠄⠀⠀⠀⠉⠻⣿⣿⣧⠀⢾⣷⣿⣿⣷⣀⣀⢹⣿⣿⣧⣴⣿⣿⣿⣿⠀⠈⠀⠠⡀⢳⡄⠈⢄⠙⠀⠀⠀⣤⣿⠈⠈⠄⠀⠀⠀⠀⠀⠀
+⢰⢻⡟⡀⣀⠀⠀⠀⣴⠀⠀⠈⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠛⠻⡀⠀⠀⢠⣧⡀⠱⠀⢮⡆⠀⣇⠀⢹⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⢸⣿⣿⠇⢀⡌⡀⢹⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠋⠀⠀⠁⠀⠀⠈⣿⣷⡄⠀⠘⡟⠀⣧⠀⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠘⣿⡏⣴⣿⣼⢁⠀⠀⠀⠀⠀⠀⠀⢻⣿⣿⣿⣿⠟⠋⠹⣿⠙⢿⡆⠀⠀⠀⠀⠀⠀⠸⣿⢿⠀⠀⠈⠈⣿⡆⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⡟⣷⣿⣿⣧⡇⠀⠀⠀⠀⣠⠀⠀⠈⠟⠏⡟⠇⠀⠀⠀⠃⠀⡈⠑⠀⠀⢀⠀⠀⠀⠀⢿⠈⠀⠀⢰⠀⢸⡇⢸⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⣷⡏⣿⣿⣿⣵⢼⠃⠀⢸⣷⣤⠀⠀⠀⢀⢁⡀⣄⠀⠀⠀⣾⣿⡄⠀⡄⢈⣆⠀⠀⠀⠈⠀⠀⡄⢸⢧⠸⣹⡌⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⡿⠇⣿⣿⡟⠏⡜⠀⡀⢸⣿⣿⠀⠀⠀⢸⣿⡟⠛⠀⠀⠀⢻⣿⣿⣧⡇⠈⣿⠀⢀⠀⠀⡆⠀⣷⣸⠘⡆⡏⢻⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣿⣿⠀⠀⣷⢰⡇⢸⣿⣿⠀⡜⢰⡌⢿⢀⠀⠀⠀⢄⠀⠇⢿⣿⡇⠀⢻⠀⣿⣧⢀⣷⡀⢃⠹⡆⣇⡇⠈⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠙⠹⠀⠀⣿⡸⡇⣿⣿⣿⢀⡇⠈⢣⢸⣦⡆⣇⠀⠈⣆⠀⠈⣿⣧⠀⢸⡀⡿⣿⣸⡿⠟⢞⡄⠀⠸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢿⢳⢱⡇⢻⡏⣼⢱⢠⠀⢂⡟⣿⣿⣆⡆⢻⢷⡄⠹⣿⣦⠘⣧⠸⡘⠹⡏⠀⠀⢹⠀⠀⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠌⡆⢷⠀⢣⠹⡆⢻⡀⠀⢧⠇⢇⠈⢿⠈⠈⠻⢦⡙⣏⢆⠹⡄⠱⡀⠙⠄⠀⠈⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠈⢧⠀⠀⠑⠀⠁⠀⠸⠀⠈⠀⠀⠃⠀⠀⠀⠈⢮⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+          In a galaxy far, far away,
+        Chewbacca had something to say.
+
+  To all the env/core poets and writers out there,
+    A warning he gave, with a fearsome glare.
+
+      "Name your entries like a builtin,
+     And you'll be eaten, without a doubt.
+     For I am Chewbacca, fierce and strong,
+      And I won't tolerate such a wrong."
+
+  Credits:
+  -  For poem to Perplexity AI, and me
+  -  For art to https://emojicombos.com/chewbacca-ascii-art
+  """
+  $: caller #nil $: form
+
+  [
+    "If form resolves to a builtin, overwrite with the builtin."
+    caller over entry:fetch? br: [ dup builtin? dup <| br: [ nip dup =: form ] drop |> ] false
+  ] [form] gsub
+] @: _chewbaccaTemplate
+
+this $: _toplevel
+
+"Perform a deep clone of chewbacca via NKI. This is more
+ of a hack but nah, all of this is a hack anyway."
+(this -> _chewbaccaTemplate) nki:captureAllRaw nki:toBlock @: chewbacca
+(this -> chewbacca) _toplevel chewbacca
+
+"For all currenly defined words, apply chewbacca."
+ls* each: [
+  _toplevel dup <| swap entry:fetch dup block? => [ |> chewbacca ]
+]

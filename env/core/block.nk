@@ -2395,12 +2395,12 @@
     seen (block address) entry:exists? => [ block ^ ]
     seen (block address) true pushes
 
-    block |at $: curs
-
-    0 $: delta
-
     (block count) times: [ dup 1 + $: n
       (block count) over - $: fromEnd
+
+      0 $: delta
+
+      block |at $: curs
 
       fromEnd curs > br:
         [ "Do not modify delta if replacement occurs after
@@ -2415,9 +2415,10 @@
           block count $: postCount
           postCount preCount - delta + =: delta
         ]
+
+        block (curs delta +) |to
     ]
 
-    block (curs delta +) |to
     block
   ] @: visit
 

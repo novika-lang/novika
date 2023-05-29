@@ -62,7 +62,7 @@ orphan $: _groups
     [ '\n\n=== Wrong description for \'' section.id '\':' ] vals join echo
 
     section each: [ $: failedCase
-      failedCase.desc $: failedCaseDesc
+      failedCase.description $: failedCaseDesc
       failedCase.died? br:
         [ _DIE-COLOR '☠' ]
         [ _ERR-COLOR '⨯' ]
@@ -198,7 +198,7 @@ orphan $: _groups
     "[fail]"
     ```
     """
-    dup thru asQuote $: desc
+    dup thru asQuote $: description
         thru asBlock $: block
 
     [ "( -- ): runs this it should case."
@@ -342,11 +342,11 @@ orphan $: _groups
     Note: scheduled for removal. Prefer using 'it should' together
     with `assertDies`.
     """
-    dup thru asQuote $: desc
+    dup thru asQuote $: description
         thru asBlock $: block
 
     [ ":inherit:"
-      desc $: desc "Hoist desc here. We'll (maybe) redefine it."
+      description $: description "Hoist description here. We'll (maybe) redefine it."
       this $: self
 
       "See `createItShould` for what these mean. We're agreeing with
@@ -360,8 +360,8 @@ orphan $: _groups
       block do
 
       ok? not => [
-        'die ' desc stitch =: desc
-        'Did not die ' desc stitch failures gulp
+        'die ' description stitch =: description
+        'Did not die ' description stitch failures gulp
       ]
 
       this
