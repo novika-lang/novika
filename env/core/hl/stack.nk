@@ -1,0 +1,22 @@
+[ """( A B -- B A ): same as `swap`, but is more readable and
+   compact in certain scenarios.
+
+  ```
+  [ 'Judy' 'Mark' 'Fabian' 'Huggee' ] $: pets
+
+  orphan $: ages
+
+  pets each: [
+    ages _ (0 randTo: 15) pushes
+  ]
+
+  "Your numbers will probably be different because we're
+   generating them randomly:"
+  ages -> 'Judy' leaves: 1
+  ages -> 'Mark' leaves: 8
+  ages -> 'Fabian' leaves: 11
+  ages -> 'Huggee' leaves: 14
+  ```
+  """
+  swap
+] @: _
