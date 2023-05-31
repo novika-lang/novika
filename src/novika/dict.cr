@@ -28,9 +28,6 @@ module Novika
     # Returns whether this dictionary currently stores no entries.
     abstract def empty? : Bool
 
-    # Lists all name forms stored in this dictionary.
-    abstract def names : Array(Form)
-
     # Returns a *shallow* copy of this dictionary.
     abstract def copy : IDict
 
@@ -98,10 +95,6 @@ module Novika
 
     def empty? : Bool
       @store.empty?
-    end
-
-    def names : Array(Form)
-      @store.keys
     end
 
     def copy : IDict

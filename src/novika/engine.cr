@@ -210,6 +210,14 @@ module Novika
       cont.at(C_STACK_AT).a(Block)
     end
 
+    # Yields active blocks, starting from the oldest active block
+    # up to the current active block.
+    def each_active_block
+      conts.each do |cont|
+        yield cont.a(Block).at(C_BLOCK_AT).a(Block)
+      end
+    end
+
     # See `Form#die`.
     delegate :die, to: block
 

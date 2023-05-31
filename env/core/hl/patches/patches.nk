@@ -82,7 +82,6 @@ this $: _toplevel
 "Perform a deep clone of chewbacca via NKI. This is more
  of a hack but nah, all of this is a hack anyway."
 (this -> _chewbaccaTemplate) nki:captureAllRaw nki:toBlock @: chewbacca
-(this -> chewbacca) _toplevel chewbacca
 
 __runtime__ 'novika' = => [
   """For all currenly defined words, apply chewbacca.
@@ -93,7 +92,7 @@ __runtime__ 'novika' = => [
   expected to apply to env/core ONLY. Past env/core invoking chewbacca
   is up to the user.
   """
-  ls* each: [
+  _toplevel entry:names* each: [
     _toplevel dup <| swap entry:fetch dup block? => [ |> chewbacca ]
   ]
 ]

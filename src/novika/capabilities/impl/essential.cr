@@ -1150,6 +1150,71 @@ module Novika::Capabilities::Impl
         Boolean[true].onto(stack)
       end
 
+      target.at("entry:names", <<-END
+      ( B -- Nb ): gathers all dictionary entry names into Name block.
+
+      ```
+      [ 100 200 ${ x y } ] obj $: myParent
+      [ 300 $: z ] obj $: myChild
+      [ 'Hello World' $: greeting ] obj $: myFriend
+
+      myParent -- myChild drop
+      myParent ·> myFriend drop
+      myChild ·> myFriend drop "for good measure :)"
+
+      myParent entry:names leaves: [ [x y] ]
+      myChild entry:names leaves: [ [z] ]
+      myFriend entry:names leaves: [ [greeting] ]
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        result = Block.new
+        block.each_name do |form|
+          result.add(form)
+        end
+        result.onto(stack)
+      end
+
+      target.at("entry:names*", <<-END
+      ( B -- Nb ): gathers *all* dictionary entry names reachable from
+       Block to Name block, that is, gathers all entry names in Block,
+       Block's parents, Block's friends, and so on. Explores the entire
+       relative graph of Block.
+
+      Order is not guaranteed, and mainly depends on the appearance of
+      Block's relative graph.
+
+      ```
+      [ 100 200 ${ x y } ] obj $: myParent
+      [ 300 $: z ] obj $: myChild
+      [ 'Hello World' $: greeting ] obj $: myFriend
+
+      myParent -- myChild drop
+      myParent ·> myFriend drop
+      myChild ·> myFriend drop "for good measure :)"
+
+      myParent entry:names* leaves: [ [x y greeting] ]
+      myChild entry:names* leaves: [ [z x y greeting] ]
+      myFriend entry:names* leaves: [ [greeting] ]
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        names = [] of Form
+        leaf = false
+        block.each_relative_fetch do |relative|
+          relative.each_name do |name|
+            names << name
+            next if leaf
+            leaf = name.is_a?(Block)
+          end
+          nil
+        end
+        names.uniq!
+        Block.with(names, leaf).onto(stack)
+      end
+
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
        of Block's tape and dictionary, and leaves a Copy block with
@@ -1794,19 +1859,6 @@ module Novika::Capabilities::Impl
         b = stack.drop.a(Quote)
         a = stack.drop.a(Quote)
         stack.add a.stitch(b)
-      end
-
-      target.at("ls", <<-END
-      ( B -- Nb ): gathers all dictionary entry names into
-       Name block.
-      END
-      ) do |_, stack|
-        block = stack.drop.a(Block)
-        result = Block.new
-        block.ls.each do |form|
-          result.add(form)
-        end
-        result.onto(stack)
       end
 
       target.at("reparent", <<-END

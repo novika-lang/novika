@@ -856,6 +856,15 @@ module Novika
       each_neighbor(payload, visited)
     end
 
+    # Yields all name forms in this block's dictionary.
+    def each_name(&)
+      return unless has_dict?
+
+      dict.each do |name, _|
+        yield name
+      end
+    end
+
     # Returns a tuple that consists of the dictionary entry
     # corresponding to *name*, followed by the path block which
     # holds all blocks leading to the entry.

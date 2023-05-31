@@ -2215,7 +2215,7 @@ describe 'toTape' [
     a toTape $: aTape
     aTape [ 1 2 3 ] assert=
     aTape orphan? true assert=
-    aTape ls [ ] assert=
+    aTape entry:names [ ] assert=
   ]
 ]
 
@@ -2428,7 +2428,7 @@ describe '|around' [
     aroundResult origBlock same? false assert=
 
     "Has ONLY the start and end fields:"
-    aroundResult ls [ start end ] assert=
+    aroundResult entry:names [ start end ] assert=
 
     "Are orphans:"
     aroundResult orphan? true assert=

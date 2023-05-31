@@ -1,10 +1,11 @@
 "Outputs to STDOUT JSON documentation for all toplevel entries
  defined at the time of running this script."
 
-"Do these before everything else so that the 'ls*' result
+"Do these before everything else so that the 'names*' result
  doesn't include the JSON generation words."
 this $: _toplevel
- ls* $: _toplevelWords
+
+_toplevel entry:names* $: _toplevelWords
 
 
 [ "( Q -- Js ): leaves a JSON string literal for Quote.
@@ -56,8 +57,6 @@ this $: _toplevel
 [
   'words'
     _toplevelWords map: [ $: word
-      "Guess we'll have to do this in ls* sometime in
-       the future."
       word private? => next
 
       _toplevel word entry:fetch $: form

@@ -1669,7 +1669,7 @@
     element shove
   ]
 
-  groupMap ls map: [ groupMap swap entry:fetch ]
+  groupMap entry:names map: [ groupMap swap entry:fetch ]
 ] @: groupBy
 
 
@@ -1830,33 +1830,6 @@
   """
   <| shallowCopy |> concat!
 ] @: concat
-
-
-[ """( -- Wl ): leaves Word list block that contains words
-   defined (*resolvable*) in caller and in its relatives.
-
-  ```
-  0 $: y [ 1 $: x ls* ] open leaves: [ [ "..." y x ] ]
-  ```
-
-  As opposed to `ls`, which leaves only block's own words:
-
-  ```
-  0 $: y [ 1 $: x this ls ] open leaves: [ [ x ] ]
-  ```
-  """
-  ahead child $: result
-
-  [
-    result over ls concat! drop
-    dup orphan?
-      [ drop ]
-      [ parent rec ]
-    br
-  ] @: rec
-
-  ahead rec result
-] @: ls*
 
 
 [ "( B -- true/false ): leaves whether Block has a description."
@@ -2023,7 +1996,7 @@
     bag item rot pushes
   ]
 
-  bag ls ||-> [ bag over entry:fetch body ]
+  bag entry:names ||-> [ bag over entry:fetch body ]
 ] @: tally
 
 

@@ -385,6 +385,46 @@ describe 'entry:pathTo?' [
 ]
 
 
+describe 'entry:names' [
+  in lang
+
+  it should 'leave owned entry names' [
+    [ 100 200 ${ x y } ] obj $: myParent
+    [ 300 $: z ] obj $: myChild
+    [ 'Hello World' $: greeting ] obj $: myFriend
+
+    myParent -- myChild drop
+    myParent ·> myFriend drop
+    myChild ·> myFriend drop
+
+    myParent entry:names [ y x ] assert=
+    myChild entry:names [ z ] assert=
+    myFriend entry:names [ greeting ] assert=
+
+    this entry:names [ myParent myChild myFriend ] assert=
+  ]
+]
+
+
+describe 'entry:names*' [
+  in lang
+
+  it should 'leave reachable entry names' [
+    orphan [ 100 200 ${ x y } ] tuck extendWith $: myParent
+    orphan [ 300 $: z ] tuck extendWith $: myChild
+    orphan [ 'Hello World' $: greeting ] tuck extendWith $: myFriend
+
+    myParent -- myChild drop
+    myParent ·> myFriend drop
+    myChild ·> myFriend drop
+
+    myParent entry:names* [ y x greeting ] assert=
+    myChild entry:names* [ z y x greeting ] assert=
+    myFriend entry:names* [ greeting ] assert=
+  ]
+]
+
+
 describe 'shallowCopy' [
   in lang
 
@@ -396,10 +436,10 @@ describe 'shallowCopy' [
     b 1 shove
 
     a toTape [ 1 2 3 ] assert=
-    a ls [ x ] assert=
+    a entry:names [ x ] assert=
 
     b toTape [ 1 2 3 1 ] assert=
-    b ls [ x y ] assert=
+    b entry:names [ x y ] assert=
   ]
 ]
 
@@ -414,12 +454,12 @@ describe 'resub' [
 
     b toTape [ 'a' 'b' 'c' ] assert=
     b |at 3 assert=
-    b ls [ x ] assert=
+    b entry:names [ x ] assert=
 
     b 2 |-
     a b resub
     b toTape [ 1 | 2 3 ] assert=
-    b ls [ x ] assert=
+    b entry:names [ x ] assert=
   ]
 ]
 

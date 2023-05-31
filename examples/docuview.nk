@@ -1,5 +1,5 @@
 this $: _toplevel
- ls* $: _toplevelWords
+this entry:names* $: _toplevelWords
 
 
 [ "( Q -- Q' ): ensures Quote ends with newline. If it does
