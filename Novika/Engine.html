@@ -1126,6 +1126,13 @@ checks. See <code>Engine.count</code>.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#each_active_block%28%26%29-instance-method" class="signature"><strong>#each_active_block</strong>(&)</a>
+        
+          <div class="summary"><p>Yields active blocks, starting from the oldest active block up to the current active block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#execute%28form%3AForm%29-instance-method" class="signature"><strong>#execute</strong>(form : Form)</a>
         
       </li>
@@ -1587,6 +1594,26 @@ resulting entry to block (does not distinguish between
 openers and pushers). Returns that block.</p>
 <p>If all continuations were exhausted and no <code><a href="../Novika/Hook.html#died%3AWord-instance-method">Hook.died</a></code>
 had been found, returns nil.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_active_block(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_active_block</strong>(&)
+
+        <a class="method-permalink" href="#each_active_block%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields active blocks, starting from the oldest active block
+up to the current active block.</p>
         </div>
       
       <br/>
