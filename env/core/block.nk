@@ -1669,7 +1669,7 @@
     element shove
   ]
 
-  groupMap entry:names map: [ groupMap swap entry:fetch ]
+  groupMap entry:values
 ] @: groupBy
 
 

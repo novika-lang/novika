@@ -62,9 +62,7 @@
        with that block on top of an otherwise empty stack."
       @: iteratee
 
-      _set entry:names each: [
-        _set _ entry:fetch iteratee
-      ]
+      _set entry:values each: iteratee
     ] _self reparent @: each
       "^ We reparent to self to avoid infinite recursion,
        because `each:` is defined below as an infix for

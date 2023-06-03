@@ -425,6 +425,28 @@ describe 'entry:names*' [
 ]
 
 
+describe 'entry:values' [
+  in lang
+
+  it should 'leave owned entry values' [
+    [ 100 200 ${ x y } ] obj $: myParent
+    [ 300 $: z ] obj $: myChild
+    [ 'Hello World' $: greeting ] obj $: myFriend
+
+    myParent -- myChild drop
+    myParent ·> myFriend drop
+    myChild ·> myFriend drop
+
+    myParent entry:values [ 200 100 ] assert=
+    myChild entry:values [ 300 ] assert=
+    myFriend entry:values [ 'Hello World' ] assert=
+
+    this entry:values [ myParent myChild myFriend ] vals assert=
+    stack count 0 assert=
+  ]
+]
+
+
 describe 'shallowCopy' [
   in lang
 

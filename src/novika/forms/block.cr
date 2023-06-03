@@ -851,12 +851,21 @@ module Novika
       each_neighbor(payload, visited)
     end
 
-    # Yields all name forms in this block's dictionary.
-    def each_name(&)
+    # Yields entry name forms in this block's dictionary.
+    def each_entry_name(&)
       return unless has_dict?
 
       dict.each do |name, _|
         yield name
+      end
+    end
+
+    # Yields entry value forms in this block's dictionary.
+    def each_entry_value(&)
+      return unless has_dict?
+
+      dict.each do |_, entry|
+        yield entry.form
       end
     end
 

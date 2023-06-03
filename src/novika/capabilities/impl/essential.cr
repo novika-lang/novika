@@ -1162,7 +1162,7 @@ module Novika::Capabilities::Impl
       myParent ·> myFriend drop
       myChild ·> myFriend drop "for good measure :)"
 
-      myParent entry:names leaves: [ [x y] ]
+      myParent entry:names leaves: [ [y x] ]
       myChild entry:names leaves: [ [z] ]
       myFriend entry:names leaves: [ [greeting] ]
       ```
@@ -1170,7 +1170,7 @@ module Novika::Capabilities::Impl
       ) do |_, stack|
         block = stack.drop.a(Block)
         result = Block.new
-        block.each_name do |form|
+        block.each_entry_name do |form|
           result.add(form)
         end
         result.onto(stack)
@@ -1186,16 +1186,16 @@ module Novika::Capabilities::Impl
       Block's relative graph.
 
       ```
-      [ 100 200 ${ x y } ] obj $: myParent
-      [ 300 $: z ] obj $: myChild
-      [ 'Hello World' $: greeting ] obj $: myFriend
+      [ 100 200 ${ x y } ] obj toOrphan $: myParent
+      [ 300 $: z ] obj toOrphan $: myChild
+      [ 'Hello World' $: greeting ] obj toOrphan $: myFriend
 
       myParent -- myChild drop
       myParent ·> myFriend drop
       myChild ·> myFriend drop "for good measure :)"
 
-      myParent entry:names* leaves: [ [x y greeting] ]
-      myChild entry:names* leaves: [ [z x y greeting] ]
+      myParent entry:names* leaves: [ [y x greeting] ]
+      myChild entry:names* leaves: [ [z y x greeting] ]
       myFriend entry:names* leaves: [ [greeting] ]
       ```
       END
@@ -1204,7 +1204,7 @@ module Novika::Capabilities::Impl
         names = [] of Form
         leaf = false
         block.each_relative_fetch do |relative|
-          relative.each_name do |name|
+          relative.each_entry_name do |name|
             names << name
             next if leaf
             leaf = name.is_a?(Block)
@@ -1213,6 +1213,33 @@ module Novika::Capabilities::Impl
         end
         names.uniq!
         Block.with(names, leaf).onto(stack)
+      end
+
+      target.at("entry:values", <<-END
+      ( B -- Vb ): gathers all dictionary entry value forms
+       into Value block.
+
+      ```
+      [ 100 200 ${ x y } ] obj $: myParent
+      [ 300 $: z ] obj $: myChild
+      [ 'Hello World' $: greeting ] obj $: myFriend
+
+      myParent -- myChild drop
+      myParent ·> myFriend drop
+      myChild ·> myFriend drop "for good measure :)"
+
+      myParent entry:values leaves: [ [200 100] ]
+      myChild entry:values leaves: [ [300] ]
+      myFriend entry:values leaves: [ ['Hello World'] ]
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        result = Block.new
+        block.each_entry_value do |form|
+          result.add(form)
+        end
+        result.onto(stack)
       end
 
       target.at("shallowCopy", <<-END
