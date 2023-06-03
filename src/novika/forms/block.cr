@@ -540,11 +540,6 @@ module Novika
       Block.with((b..e).map { |index| at(index) })
     end
 
-    # Lists all name forms in this block's dictionary.
-    def ls : Array(Form)
-      has_dict? ? dict.names : [] of Form
-    end
-
     # Imports entries from *donor* to this block's dictionary
     # by mutating this block's dictionary.
     def import!(from donor : Block) : self
