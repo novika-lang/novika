@@ -1,0 +1,47 @@
+describe 'newBlockAddressSet' [
+  in lang
+
+  it should 'store blocks by address in insertion order' [
+    newBlockAddressSet $: set
+
+    [ 1 2 ] $: foo
+    [ 3 4 ] $: bar
+    [ 1 2 ] $: baz
+    [ 'saluton' ] $: boo
+
+    set.add: foo
+    set.add: bar
+
+    set.has: foo true assert=
+    set.has: bar true assert=
+    set.has: baz false assert=
+    set.has: boo false assert=
+
+    10 times: [
+      set.remove: bar
+    ]
+    set.has: bar false assert=
+
+    10 times: [
+      set.add: baz
+      set.add: boo
+    ]
+
+    set.has: baz true assert=
+    set.has: boo true assert=
+
+    [ ] $: tmp
+
+    set.each: [ tmp gulp ]
+
+    tmp [ foo baz boo ] vals assert=
+  ]
+
+  it should 'die when given non-block' [
+    newBlockAddressSet $: set
+
+    [ set.add: 'hello world' ] 'bad type: quote, expected: a block' assertDies
+    [ set.has: 'hello world' ] 'bad type: quote, expected: a block' assertDies
+    [ set.remove: 'hello world' ] 'bad type: quote, expected: a block' assertDies
+  ]
+]

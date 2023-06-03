@@ -1,0 +1,89 @@
+[ """( -- ::set:: ): a set-like data structure for storing blocks
+   (and only blocks) by their address. Entry order (and iteration
+   order) is exactly the insertion order.
+
+  **Important**: no equality checks are performed, ever. Unless
+  two blocks are truly the same block (i.e. their addresses are
+  the same), they will be considered different, and stored
+  appropriately.
+
+  Exposes the following words: `add[:]`, `remove[:]`, `has?`
+  and `has:`, `each[:]`.
+
+  ```
+  blockAddressSet $: set
+
+  [ 1 2 ] $: foo
+  [ 3 4 ] $: bar
+  [ 1 2 ] $: baz
+
+  set.add: foo
+  set.add: bar
+
+  set.has: foo leaves: true
+  set.has: bar leaves: true
+  set.has: baz leaves: false
+
+  set.remove: bar
+  set.has: bar leaves: false
+
+  set.add: baz
+  set.has: baz leaves: true
+
+  set.each: [ echo ]
+  "STDOUT: [ 1 2 ]⏎[ 1 2 ]⏎"
+
+  "The first printed block is `foo` and the second is `baz`.
+   Despite looking the same, they are different blocks stored
+   at different addresses!"
+  ```
+  """
+  orphan $: _set
+
+  this $: _self
+
+  orphan dup extend: [ "::set::"
+    [ "( B -- ): adds Block to this set. Noop if it's in this
+       set already."
+      _set (_ keep: address) pushes
+    ] @: add
+
+    [ "( B -- ): removes Block if it's in this set. Otherwise
+       a noop."
+      _set (_ address) entry:delete
+    ] @: remove
+
+    [ "( B -- true/false ): leaves whether Block is stored
+       in this set."
+      _set (_ address) entry:exists?
+    ] @: has?
+
+    [ "( I -- ): opens Iteratee for each block in this set,
+       with that block on top of an otherwise empty stack."
+      @: iteratee
+
+      _set entry:names each: [
+        _set _ entry:fetch iteratee
+      ]
+    ] _self reparent @: each
+      "^ We reparent to self to avoid infinite recursion,
+       because `each:` is defined below as an infix for
+       this word."
+
+    [ "( add: B -- ): infix version of `add`."
+      ahead thruVal add
+    ] @: add:
+
+    [ "( remove: B -- ): infix version of `remove`."
+      ahead thruVal remove
+    ] @: remove:
+
+    [ "( has: B -- true/false ): infix version of `has?`."
+      ahead thruVal has?
+    ] @: has:
+
+    [ "( each: I -- ): infix version of `each`."
+      ahead thruBlock each
+    ] @: each:
+  ]
+] @: newBlockAddressSet
