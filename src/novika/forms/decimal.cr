@@ -125,11 +125,22 @@ module Novika
       Decimal.new(Math.sin(val))
     end
 
-    # Asserts this decimal is in *range*. Dies if it isn't.
-    def in(range) : Decimal
-      return self if range.includes?(val)
+    # Asserts this decimal is in one of *ranges*. Dies if it isn't.
+    def in(*ranges) : Decimal
+      return self if ranges.any? &.includes?(val)
 
-      die("decimal out of range: expected #{range.begin} to: #{range.end}, got: #{self}")
+      message = String.build do |io|
+        io << "decimal out of range: expected "
+        if ranges.size > 1
+          io << "any of: "
+        end
+        ranges.join(io, ", ") do |range|
+          io << "[" << range.begin << "; " << range.end
+          io << (range.exclusive? ? ")" : "]")
+        end
+      end
+
+      die(message)
     end
 
     # Asserts this decimal is a positive integer (i.e., >= 0).
@@ -137,7 +148,7 @@ module Novika
     def posint : Decimal
       return self if val >= 0 && val == val.to_big_i
 
-      die("decimal is not a positive integer: #{self}")
+      die("decimal is not a positive integer")
     end
 
     def to_s(io)

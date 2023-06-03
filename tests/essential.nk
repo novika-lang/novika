@@ -1247,14 +1247,25 @@ describe 'chr' [
     65 chr 'A' assert=
     '👨‍👧‍👦' ord chr '👨' assert= "only the first codepoint"
   ]
+
+  it should 'die when codepoint is invalid' [
+    [ -1000 chr ] 'decimal is not a positive integer' assertDies
+    [ 0.123 chr ] 'decimal is not a positive integer' assertDies
+    [ 1234567 chr ] 'decimal out of range: expected any of: [0; 55295], [57344; 1114111]' assertDies
+  ]
 ]
 
 describe 'ord' [
   in lang
 
-  it should 'leave codepoint corresponding to quote' [
+  it should 'leave codepoint corresponding to first grapheme in quote' [
     'A' ord 65 assert=
     '👨‍👧‍👦' ord 128104 assert=
+    'Ä' ord chr 'Ä' assert=
+  ]
+
+  it should 'die when quote is invalid' [
+    [ '' ord ] 'ord: quote must contain at least one character' assertDies
   ]
 ]
 
@@ -1331,9 +1342,9 @@ describe 'rpad' [
     [ 1 0 '' rpad ] 'bad type: decimal, expected: a quote' assertDies
     [ '' '' '' rpad ] 'bad type: quote, expected: a decimal' assertDies
     [ '' 0 1 rpad ] 'bad type: decimal, expected: a quote' assertDies
-    [ '' -100 '' rpad ] 'decimal is not a positive integer: -100' assertDies
-    [ '' -100.3 '' rpad ] 'decimal is not a positive integer: -100.3' assertDies
-    [ '' 100.3 '' rpad ] 'decimal is not a positive integer: 100.3' assertDies
+    [ '' -100 '' rpad ] 'decimal is not a positive integer' assertDies
+    [ '' -100.3 '' rpad ] 'decimal is not a positive integer' assertDies
+    [ '' 100.3 '' rpad ] 'decimal is not a positive integer' assertDies
   ]
 
   it should 'pad with block that implements __quote__' [
@@ -1354,9 +1365,9 @@ describe 'fit' [
     [ 1 0 '' fit ] 'bad type: decimal, expected: a quote' assertDies
     [ '' '' '' fit ] 'bad type: quote, expected: a decimal' assertDies
     [ '' 0 1 fit ] 'bad type: decimal, expected: a quote' assertDies
-    [ '' -100 '' fit ] 'decimal is not a positive integer: -100' assertDies
-    [ '' -100.3 '' fit ] 'decimal is not a positive integer: -100.3' assertDies
-    [ '' 100.3 '' fit ] 'decimal is not a positive integer: 100.3' assertDies
+    [ '' -100 '' fit ] 'decimal is not a positive integer' assertDies
+    [ '' -100.3 '' fit ] 'decimal is not a positive integer' assertDies
+    [ '' 100.3 '' fit ] 'decimal is not a positive integer' assertDies
   ]
 
   it should 'fit when content is a grapheme, ellipsis is a grapheme' [
@@ -1503,7 +1514,7 @@ describe 'fromRight' [
     [ [ ] 0 fromRight ] 'index out of bounds' assertDies
     [ '' 0 fromRight ] 'grapheme index out of bounds' assertDies
     [ [ 1 2 3 ] 3 fromRight ] 'index out of bounds' assertDies
-    [ [ 1 2 3 ] -1 fromRight ] 'decimal is not a positive integer: -1' assertDies
+    [ [ 1 2 3 ] -1 fromRight ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
@@ -1547,7 +1558,7 @@ describe 'fromLeft*' [
   ]
 
   it should 'die when index is invalid' [
-    [ [ 1 2 3 ] -1 fromLeft* ] 'decimal is not a positive integer: -1' assertDies
+    [ [ 1 2 3 ] -1 fromLeft* ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
@@ -1590,7 +1601,7 @@ describe 'fromRight' [
   ]
 
   it should 'die when index is invalid' [
-    [ [ 1 2 3 ] -1 fromRight* ] 'decimal is not a positive integer: -1' assertDies
+    [ [ 1 2 3 ] -1 fromRight* ] 'decimal is not a positive integer' assertDies
   ]
 ]
 

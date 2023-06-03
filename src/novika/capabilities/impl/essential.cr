@@ -1527,7 +1527,7 @@ module Novika::Capabilities::Impl
        character with the given Unicode codepoint.
       END
       ) do |_, stack|
-        ord = stack.drop.a(Decimal)
+        ord = stack.drop.a(Decimal).posint.in(0..0xd7ff, 0xe000..0x10ffff)
 
         Quote.new(ord.chr).onto(stack)
       end

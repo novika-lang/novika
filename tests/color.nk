@@ -22,20 +22,20 @@ describe 'rgb' [
   ]
 
   it should 'die when channel values are out of range' [
-    [ -1 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
-    [ 0 -1 0 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
-    [ 0 0 -1 rgb ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
-    [ 0 0 0 rgb -1 withAlpha ] 'decimal out of range: expected 0 to: 255, got: -1' assertDies
+    [ -1 0 0 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 -1 0 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 0 -1 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 0 0 rgb -1 withAlpha ] 'decimal out of range: expected [0; 255]' assertDies
 
-    [ 256 0 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
-    [ 0 256 0 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
-    [ 0 0 256 rgb ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
-    [ 0 0 0 rgb 256 withAlpha ] 'decimal out of range: expected 0 to: 255, got: 256' assertDies
+    [ 256 0 0 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 256 0 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 0 256 rgb ] 'decimal out of range: expected [0; 255]' assertDies
+    [ 0 0 0 rgb 256 withAlpha ] 'decimal out of range: expected [0; 255]' assertDies
 
-    [ 0.123 0 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0.123 0 rgb ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0 0.123 rgb ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0 0 rgb 0.123 withAlpha ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0.123 0 0 rgb ] 'decimal is not a positive integer' assertDies
+    [ 0 0.123 0 rgb ] 'decimal is not a positive integer' assertDies
+    [ 0 0 0.123 rgb ] 'decimal is not a positive integer' assertDies
+    [ 0 0 0 rgb 0.123 withAlpha ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
@@ -113,17 +113,17 @@ describe 'hsl' [
   ]
 
   it should 'die when values are out of range' [
-    [ -1 0 0 hsl ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
-    [ 0 -1 0 hsl ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
-    [ 0 0 -1 hsl ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ -1 0 0 hsl ] 'decimal out of range: expected [0; 360]' assertDies
+    [ 0 -1 0 hsl ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 0 -1 hsl ] 'decimal out of range: expected [0; 100]' assertDies
 
-    [ 361 0 0 hsl ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
-    [ 0 101 0 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
-    [ 0 0 101 hsl ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 361 0 0 hsl ] 'decimal out of range: expected [0; 360]' assertDies
+    [ 0 101 0 hsl ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 0 101 hsl ] 'decimal out of range: expected [0; 100]' assertDies
 
-    [ 0.123 0 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0.123 0 hsl ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0 0.123 hsl ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0.123 0 0 hsl ] 'decimal is not a positive integer' assertDies
+    [ 0 0.123 0 hsl ] 'decimal is not a positive integer' assertDies
+    [ 0 0 0.123 hsl ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
@@ -197,17 +197,17 @@ describe 'hsv/hsb' [
   ]
 
   it should 'die when values are out of range' [
-    [ -1 0 0 hsv ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
-    [ 0 -1 0 hsv ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
-    [ 0 0 -1 hsv ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
+    [ -1 0 0 hsv ] 'decimal out of range: expected [0; 360]' assertDies
+    [ 0 -1 0 hsv ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 0 -1 hsv ] 'decimal out of range: expected [0; 100]' assertDies
 
-    [ 361 0 0 hsv ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
-    [ 0 101 0 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
-    [ 0 0 101 hsv ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
+    [ 361 0 0 hsv ] 'decimal out of range: expected [0; 360]' assertDies
+    [ 0 101 0 hsv ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 0 101 hsv ] 'decimal out of range: expected [0; 100]' assertDies
 
-    [ 0.123 0 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0.123 0 hsv ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0 0.123 hsv ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0.123 0 0 hsv ] 'decimal is not a positive integer' assertDies
+    [ 0 0.123 0 hsv ] 'decimal is not a positive integer' assertDies
+    [ 0 0 0.123 hsv ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
@@ -271,17 +271,17 @@ describe 'lch' [
   ]
 
   it should 'die when values are out of range' [
-    [ -1 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: -1' assertDies
-    [ 0 -1 0 lch ] 'decimal out of range: expected 0 to: 132, got: -1' assertDies
-    [ 0 0 -1 lch ] 'decimal out of range: expected 0 to: 360, got: -1' assertDies
+    [ -1 0 0 lch ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 -1 0 lch ] 'decimal out of range: expected [0; 132]' assertDies
+    [ 0 0 -1 lch ] 'decimal out of range: expected [0; 360]' assertDies
 
-    [ 101 0 0 lch ] 'decimal out of range: expected 0 to: 100, got: 101' assertDies
-    [ 0 133 0 lch ] 'decimal out of range: expected 0 to: 132, got: 133' assertDies
-    [ 0 0 361 lch ] 'decimal out of range: expected 0 to: 360, got: 361' assertDies
+    [ 101 0 0 lch ] 'decimal out of range: expected [0; 100]' assertDies
+    [ 0 133 0 lch ] 'decimal out of range: expected [0; 132]' assertDies
+    [ 0 0 361 lch ] 'decimal out of range: expected [0; 360]' assertDies
 
-    [ 0.123 0 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0.123 0 lch ] 'decimal is not a positive integer: 0.123' assertDies
-    [ 0 0 0.123 lch ] 'decimal is not a positive integer: 0.123' assertDies
+    [ 0.123 0 0 lch ] 'decimal is not a positive integer' assertDies
+    [ 0 0.123 0 lch ] 'decimal is not a positive integer' assertDies
+    [ 0 0 0.123 lch ] 'decimal is not a positive integer' assertDies
   ]
 ]
 
