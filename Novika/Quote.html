@@ -656,6 +656,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/Quote/PadSide" data-name="novika::quote::padside">
+      <a href="../Novika/Quote/PadSide.html">PadSide</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Quote/StringQuote" data-name="novika::quote::stringquote">
       <a href="../Novika/Quote/StringQuote.html">StringQuote</a>
       
@@ -826,8 +831,8 @@ of those, and cache grapheme counts here and there.</p>
 over <em>non- ASCII</em> quotes. Both are currently O(N) in terms
 of iterations only; they do a lot of other work besides
 iteration as well.</p>
-<p>When you are slow, being even more slower doesn't matter
-that much anymore. This is the case with Novika.</p>
+<p>When you are slow, being even slower doesn't matter that much
+anymore. This is the case with Novika.</p>
 <p>And yes, quotes do rely on the experimental grapheme API.</p>
 
 
@@ -1064,16 +1069,16 @@ that much anymore. This is the case with Novika.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="signature"><strong>#replace_all</strong>(pattern : Quote, repl : Quote) : Quote</a>
+        <a href="#pad%28total%3AInt%2Cpadder%3A_%2Cside%3APadSide%29%3AQuote-instance-method" class="signature"><strong>#pad</strong>(total : Int, padder : _, side : PadSide) : Quote</a>
         
-          <div class="summary"><p>Replaces instances of <em>pattern</em> with <em>repl</em>.</p></div>
+          <div class="summary"><p>Pads this quote with <em>padder</em> until it becomes <em>total</em> perceived characters long.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : _) : Quote</a>
+        <a href="#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="signature"><strong>#replace_all</strong>(pattern : Quote, repl : Quote) : Quote</a>
         
-          <div class="summary"><p>Adds <em>padder</em> to the right of this quote until this quote is of <em>total</em> perceived characters.</p></div>
+          <div class="summary"><p>Replaces instances of <em>pattern</em> with <em>repl</em>.</p></div>
         
       </li>
     
@@ -1560,6 +1565,27 @@ this quote, or nil if this quote is empty.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="pad(total:Int,padder:_,side:PadSide):Quote-instance-method">
+      <div class="signature">
+        abstract 
+        def <strong>pad</strong>(total : Int, padder : _, side : <a href="../Novika/Quote/PadSide.html">PadSide</a>) : <a href="../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#pad%28total%3AInt%2Cpadder%3A_%2Cside%3APadSide%29%3AQuote-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Pads this quote with <em>padder</em> until it becomes <em>total</em> perceived
+characters long. The side where the padding should apply is specified
+by <em>side</em>. Returns the resulting quote.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="replace_all(pattern:Quote,repl:Quote):Quote-instance-method">
       <div class="signature">
         abstract 
@@ -1572,26 +1598,6 @@ this quote, or nil if this quote is empty.</p>
           
           <p>Replaces instances of <em>pattern</em> with <em>repl</em>. Returns
 the resulting quote.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="rpad(total:Int,padder:_):Quote-instance-method">
-      <div class="signature">
-        abstract 
-        def <strong>rpad</strong>(total : Int, padder : _) : <a href="../Novika/Quote.html">Quote</a>
-
-        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Adds <em>padder</em> to the right of this quote until this quote is of
-<em>total</em> perceived characters. Returns the resulting quote.</p>
         </div>
       
       <br/>

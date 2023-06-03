@@ -656,6 +656,11 @@
       
     </li>
   
+  <li class=" " data-id="novika/Novika/Quote/PadSide" data-name="novika::quote::padside">
+      <a href="../../Novika/Quote/PadSide.html">PadSide</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Quote/StringQuote" data-name="novika::quote::stringquote">
       <a href="../../Novika/Quote/StringQuote.html">StringQuote</a>
       
@@ -985,19 +990,19 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#pad%28total%3AInt%2Cpadder%3AGraphemeQuote%2Cside%3APadSide%29%3AQuote-instance-method" class="signature"><strong>#pad</strong>(total : Int, padder : GraphemeQuote, side : PadSide) : Quote</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pad%28total%3AInt%2Cpadder%3AStringQuote%2Cside%3APadSide%29%3AQuote-instance-method" class="signature"><strong>#pad</strong>(total : Int, padder : StringQuote, side : PadSide) : Quote</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="signature"><strong>#replace_all</strong>(pattern : Quote, repl : Quote) : Quote</a>
         
           <div class="summary"><p>Replaces instances of <em>pattern</em> with <em>repl</em>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#rpad%28total%3AInt%2Cpadder%3AGraphemeQuote%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : GraphemeQuote) : Quote</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#rpad%28total%3AInt%2Cpadder%3AStringQuote%29%3AQuote-instance-method" class="signature"><strong>#rpad</strong>(total : Int, padder : StringQuote) : Quote</a>
         
       </li>
     
@@ -1086,14 +1091,14 @@
     ord?</a>, 
     
   
+    <a href="../../Novika/Quote.html#pad%28total%3AInt%2Cpadder%3A_%2Cside%3APadSide%29%3AQuote-instance-method" class="tooltip">
+      <span>pad(total : Int, padder : _, side : PadSide) : Quote</span>
+    pad</a>, 
+    
+  
     <a href="../../Novika/Quote.html#replace_all%28pattern%3AQuote%2Crepl%3AQuote%29%3AQuote-instance-method" class="tooltip">
       <span>replace_all(pattern : Quote, repl : Quote) : Quote</span>
     replace_all</a>, 
-    
-  
-    <a href="../../Novika/Quote.html#rpad%28total%3AInt%2Cpadder%3A_%29%3AQuote-instance-method" class="tooltip">
-      <span>rpad(total : Int, padder : _) : Quote</span>
-    rpad</a>, 
     
   
     <a href="../../Novika/Quote.html#slice_at%28slicept%3AInt32%29%3ATuple%28Quote%2CQuote%29-instance-method" class="tooltip">
@@ -1539,6 +1544,34 @@ variant. Returns nil if there is no cached count.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="pad(total:Int,padder:GraphemeQuote,side:PadSide):Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>pad</strong>(total : Int, padder : <a href="../../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>, side : <a href="../../Novika/Quote/PadSide.html">PadSide</a>) : <a href="../../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#pad%28total%3AInt%2Cpadder%3AGraphemeQuote%2Cside%3APadSide%29%3AQuote-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pad(total:Int,padder:StringQuote,side:PadSide):Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>pad</strong>(total : Int, padder : <a href="../../Novika/Quote/StringQuote.html">StringQuote</a>, side : <a href="../../Novika/Quote/PadSide.html">PadSide</a>) : <a href="../../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#pad%28total%3AInt%2Cpadder%3AStringQuote%2Cside%3APadSide%29%3AQuote-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="replace_all(pattern:Quote,repl:Quote):Quote-instance-method">
       <div class="signature">
         
@@ -1556,34 +1589,6 @@ variant. Returns nil if there is no cached count.</p>
           <p>Replaces instances of <em>pattern</em> with <em>repl</em>. Returns
 the resulting quote.</p>
         </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="rpad(total:Int,padder:GraphemeQuote):Quote-instance-method">
-      <div class="signature">
-        
-        def <strong>rpad</strong>(total : Int, padder : <a href="../../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>) : <a href="../../Novika/Quote.html">Quote</a>
-
-        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3AGraphemeQuote%29%3AQuote-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="rpad(total:Int,padder:StringQuote):Quote-instance-method">
-      <div class="signature">
-        
-        def <strong>rpad</strong>(total : Int, padder : <a href="../../Novika/Quote/StringQuote.html">StringQuote</a>) : <a href="../../Novika/Quote.html">Quote</a>
-
-        <a class="method-permalink" href="#rpad%28total%3AInt%2Cpadder%3AStringQuote%29%3AQuote-instance-method">#</a>
-      </div>
       
       <br/>
       <div>
