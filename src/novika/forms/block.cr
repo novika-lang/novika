@@ -1171,7 +1171,7 @@ module Novika
     #
     # Does not respect `MAX_COUNT_TO_S`. Does not display quotes.
     # Does not display nested blocks.
-    def spot(io, vicinity = 10)
+    def spot(io, vicinity = 10, colorful = true)
       io << "["
 
       b = (cursor - vicinity).clamp(0..count - 1)
@@ -1181,7 +1181,7 @@ module Novika
         form = at(index)
         focus = index == cursor - 1
 
-        Colorize.with.bold.toggle(focus).surround(io) do
+        Colorize.with.bold.toggle(focus && colorful).surround(io) do
           case form
           when Block then io << " […]"
           when Quote then io << " '…'"
@@ -1190,7 +1190,7 @@ module Novika
           end
         end
 
-        io << " |".colorize.red if focus
+        io << " |".colorize.toggle(colorful).red if focus
       end
 
       io << " ]"

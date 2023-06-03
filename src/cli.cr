@@ -35,7 +35,7 @@ module Novika::Frontend::CLI
       end
 
       def to_row?(nperiods)
-        [@str, @samples, @samples/nperiods]
+        [@str, @samples]
       end
     end
 
@@ -54,7 +54,11 @@ module Novika::Frontend::CLI
     # Returns a string version of *form* to be the key in the
     # profiles hash.
     private def encode(form : Form)
-      "#{form} (#{form.class.typedesc})"
+      String.build do |io|
+        form.spot(io, vicinity: 16, colorful: false)
+
+        io << " (" << form.class.typedesc << ")"
+      end
     end
 
     def on_form_begin(engine : Engine, form : Form)
@@ -63,12 +67,12 @@ module Novika::Frontend::CLI
         return
       end
 
-      key = encode(form)
-
-      profile = @profiles[key]
-      profile.sample
-
-      @profiles[key] = profile
+      # Capture blocks of the continuations stack.
+      engine.each_active_block do |block|
+        profile = @profiles[repr = encode(block)]
+        profile.sample
+        @profiles[repr] = profile
+      end
 
       @start = @ticks
       @ticks += 1
@@ -79,7 +83,7 @@ module Novika::Frontend::CLI
     #
     # *cutoff* specifies the ratio [0-1] below which profiles
     # should be rejected (i.e., too insignificant).
-    def to_table(cutoff = 0.0001)
+    def to_table(cutoff = 0.01)
       nperiods = @ticks / @period
 
       rows = @profiles.values
@@ -87,12 +91,11 @@ module Novika::Frontend::CLI
         .unstable_sort! { |a, b| b <=> a }
         .compact_map &.to_row?(nperiods)
 
-      rows << ["(coverage: ticks, sampled-ticks%)", @ticks, nperiods / @ticks]
+      rows << ["(coverage: ticks)", @ticks]
 
       Tablo::Table.new(rows) do |table|
         table.add_column("Form (typedesc)") { |row| row[0] }
         table.add_column("No. of samples") { |row| row[1] }
-        table.add_column("Of all samples, %") { |row| "#{(row[2].as(Float64) * 100).round(4)}%" }
         table.shrinkwrap!(128)
       end
     end
