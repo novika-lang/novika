@@ -97,8 +97,7 @@ _pgRoot #? [
 ] opens
 
 
-[
-  "Whether there was an error."
+[ "Whether there was an error."
   false $: error
 
   "Global stack, persisted for the entire REPL session."
@@ -121,8 +120,7 @@ _pgRoot #? [
      we'd like to restore back to the 'good' stack."
     pgStack shallowCopy $: pgStackCopy
 
-    [
-      "This block is required to isolate deaths inside the REPL line
+    [ "This block is required to isolate deaths inside the REPL line
        session from deaths inside the REPL code itself."
 
       [ "This death handler will catch all errors that are made in
@@ -163,7 +161,7 @@ _pgRoot #? [
       [ "Line was read successfully:" runLine ]
       [ "The user had pressed Ctrl-D:" 'Bye.' echo break ]
   ]
-] @: startSession
+] @: _startSession
 
   0 87 183 rgb withEchoBg ' ' withColorAppendEcho dropEchoBg
 255 215 0 rgb withEchoBg ' ' withColorAppendEcho dropEchoBg
@@ -176,4 +174,4 @@ _pgRoot #? [
   'Hit Ctrl-D or Ctrl-C to quit. Type "?" for more information.'
 ] vals join echo
 
-startSession
+_startSession
