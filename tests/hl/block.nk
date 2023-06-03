@@ -35,6 +35,8 @@ describe 'newBlockAddressSet' [
     set.each: [ tmp gulp ]
 
     tmp [ foo baz boo ] vals assert=
+
+    stack count 0 assert=
   ]
 
   it should 'die when given non-block' [
