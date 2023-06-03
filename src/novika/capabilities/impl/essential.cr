@@ -1546,9 +1546,29 @@ module Novika::Capabilities::Impl
         Decimal.new(ord).onto(stack)
       end
 
+      target.at("lpad", <<-END
+      ( Q Tl Pq -- Jq ): appends consecutive characters from Padding quote
+       (the last one is repeated if no more follow) to the left of Quote,
+       until Quote count becomes equal to Total length. Leaves the resulting
+       Justified quote.
+
+      ```
+      'hello' 10 '-' lpad leaves: '-----hello'
+      'hello' 10 ':-' lpad leaves: ':----hello'
+      'hello' 7 'XYZABC' lpad leaves: 'XYhello'
+      'hello' 9 'XYZABC' lpad leaves: 'XYZAhello'
+      ```
+      END
+      ) do |_, stack|
+        padder = stack.drop.a(Quote)
+        total = stack.drop.a(Decimal).posint
+        quote = stack.drop.a(Quote)
+        quote.pad(total.to_i, padder, side: Quote::PadSide::Left).onto(stack)
+      end
+
       target.at("rpad", <<-END
-      ( Q Tl Pq -- Jq ): appends consecutive characters in Padding quote
-       to the right of Quote (the last one is repeated if no more follow),
+      ( Q Tl Pq -- Jq ): appends consecutive characters from Padding quote
+       (the last one is repeated if no more follow) to the right of Quote,
        until Quote count becomes equal to Total length. Leaves the resulting
        Justified quote.
 
@@ -1562,7 +1582,7 @@ module Novika::Capabilities::Impl
         padder = stack.drop.a(Quote)
         total = stack.drop.a(Decimal).posint
         quote = stack.drop.a(Quote)
-        quote.rpad(total.to_i, padder).onto(stack)
+        quote.pad(total.to_i, padder, side: Quote::PadSide::Right).onto(stack)
       end
 
       target.at("fit", <<-END

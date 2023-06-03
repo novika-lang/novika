@@ -11,8 +11,8 @@ module Novika
   # of iterations only; they do a lot of other work besides
   # iteration as well.
   #
-  # When you are slow, being even more slower doesn't matter
-  # that much anymore. This is the case with Novika.
+  # When you are slow, being even slower doesn't matter that much
+  # anymore. This is the case with Novika.
   #
   # And yes, quotes do rely on the experimental grapheme API.
   module Quote
@@ -82,9 +82,10 @@ module Novika
     # the resulting quote.
     abstract def replace_all(pattern : Quote, repl : Quote) : Quote
 
-    # Adds *padder* to the right of this quote until this quote is of
-    # *total* perceived characters. Returns the resulting quote.
-    abstract def rpad(total : Int, padder : _) : Quote
+    # Pads this quote with *padder* until it becomes *total* perceived
+    # characters long. The side where the padding should apply is specified
+    # by *side*. Returns the resulting quote.
+    abstract def pad(total : Int, padder : _, side : PadSide) : Quote
 
     # Ensures this quote is of *total* characters or less. In case of
     # overflow, truncates with *ellipsis*. If even *ellipsis* cannot
@@ -174,6 +175,25 @@ module Novika
 
     # Yields occurrences of the given *pattern* in this quote.
     def each_occurrence_of(pattern : Form, &)
+    end
+  end
+
+  # Represents the side where padding should apply.
+  #
+  # See `Quote#pad`.
+  enum Quote::PadSide
+    # Apply padding to the left of the quote.
+    Left
+
+    # Apply padding to the right of the quote.
+    Right
+
+    # Applies padding to the side specified by `self`.
+    def apply(quote : Quote, padding : Quote)
+      case self
+      in .left?  then padding.stitch(quote)
+      in .right? then quote.stitch(padding)
+      end
     end
   end
 
@@ -310,40 +330,47 @@ module Novika
       other.is_a?(StringQuote) && string == other.string
     end
 
-    def rpad(total : Int, padder : GraphemeQuote) : Quote
+    def pad(total : Int, padder : GraphemeQuote, side : PadSide) : Quote
       return self unless total > count
-      return stitch(padder) if total == count + 1
 
-      string = String.build(total) do |io|
-        io << self.string
-        (total - count).times do
-          io << padder.grapheme
+      if total == count + 1
+        padding = padder
+      else
+        string = String.build(total) do |io|
+          (total - count).times do
+            io << padder.grapheme
+          end
         end
+
+        padding = StringQuote.new(string)
       end
 
-      StringQuote.new(string)
+      side.apply(self, padding)
     end
 
-    def rpad(total : Int, padder : StringQuote) : Quote
+    def pad(total : Int, padder : StringQuote, side : PadSide) : Quote
       return self if padder.empty?
       return self unless total > count
-      return stitch(padder.at(0)) if total == count + 1
 
-      string = String.build(total) do |io|
-        io << self.string
+      if total == count + 1
+        padding = padder.at(0)
+      else
+        string = String.build(total) do |io|
+          needed = total - count
 
-        needed = total - count
+          head = padder.at(0, Math.min(padder.count - 2, needed - 1))
+          tail = padder.at(Math.min(padder.count - 1, needed)).string
 
-        head = padder.at(0, Math.min(padder.count - 2, needed - 1))
-        tail = padder.at(Math.min(padder.count - 1, needed)).string
-
-        io << head.string
-        (needed - head.count).times do
-          io << tail
+          io << head.string
+          (needed - head.count).times do
+            io << tail
+          end
         end
+
+        padding = StringQuote.new(string)
       end
 
-      StringQuote.new(string)
+      side.apply(self, padding)
     end
 
     def fit(total : Int, ellipsis : Quote) : Quote
@@ -505,41 +532,48 @@ module Novika
       other.is_a?(GraphemeQuote) && other.grapheme == grapheme
     end
 
-    def rpad(total : Int, padder : GraphemeQuote) : Quote
+    def pad(total : Int, padder : GraphemeQuote, side : PadSide) : Quote
       return self if total <= 1
-      return StringQuote.new(grapheme.to_s + padder.grapheme.to_s) if total == 2
 
-      string = String.build do |io|
-        io << grapheme
-        last = padder.grapheme
-        (total - 1).times do
-          io << last
+      if total == 2
+        padding = padder
+      else
+        string = String.build do |io|
+          last = padder.grapheme
+          (total - 1).times do
+            io << last
+          end
         end
+
+        padding = StringQuote.new(string)
       end
 
-      StringQuote.new(string)
+      side.apply(self, padding)
     end
 
-    def rpad(total : Int, padder : StringQuote) : Quote
+    def pad(total : Int, padder : StringQuote, side : PadSide) : Quote
       return self if padder.empty?
       return self if total <= 1
-      return stitch(padder.at(0)) if total == 1
 
-      string = String.build(total) do |io|
-        io << grapheme
+      if total == 2
+        padding = padder.at(0)
+      else
+        string = String.build(total) do |io|
+          needed = total - 1
 
-        needed = total - 1
+          head = padder.at(0, Math.min(padder.count - 2, needed - 1))
+          tail = padder.at(Math.min(padder.count - 1, needed)).string
 
-        head = padder.at(0, Math.min(padder.count - 2, needed - 1))
-        tail = padder.at(Math.min(padder.count - 1, needed)).string
-
-        io << head.string # TODO: use something like IO#copy?
-        (needed - head.count).times do
-          io << tail
+          io << head.string
+          (needed - head.count).times do
+            io << tail
+          end
         end
+
+        padding = StringQuote.new(string)
       end
 
-      StringQuote.new(string)
+      side.apply(self, padding)
     end
 
     def fit(total : Int, ellipsis : Quote) : Quote

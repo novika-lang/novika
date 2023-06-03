@@ -1269,6 +1269,95 @@ describe 'ord' [
   ]
 ]
 
+describe 'lpad' [
+  in lang
+
+  it should 'pad left when content is a grapheme, padder is a grapheme' [
+    'x' 0 'y' lpad 'x' assert=
+    'x' 1 'y' lpad 'x' assert=
+    'x' 2 'y' lpad 'yx' assert=
+    'x' 5 'y' lpad 'yyyyx' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'pad left when content is a grapheme, padder is a quote' [
+    'x' 0 '' lpad 'x' assert=
+    'x' 0 'foo' lpad 'x' assert=
+    'x' 1 'foo' lpad 'x' assert=
+    'x' 2 'foo' lpad 'fx' assert=
+    'y' 5 'ba' lpad 'baaay' assert=
+    'a' 5 'foozy' lpad 'fooza' assert=
+    'a' 6 'foozy' lpad 'foozya' assert=
+    '👨‍👧‍👦' 5 'foxtrot' lpad 'foxt👨‍👧‍👦' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'pad left when content is a quote, padder is a grapheme' [
+    '' 5 'x' lpad 'xxxxx' assert=
+    'foo' 2 'a' lpad 'foo' assert=
+    'foo' 5 'a' lpad 'aafoo' assert=
+    'foo' 10 'a' lpad 'aaaaaaafoo' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'pad left when content is a quote, padder is a quote' [
+    '' 5 '' lpad '' assert=
+    'foo' 2 '' lpad 'foo' assert=
+    'foo' 3 '' lpad 'foo' assert=
+    'foo' 5 '' lpad 'foo' assert=
+    '' 0 'x' lpad '' assert=
+    '' 5 'x' lpad 'xxxxx' assert=
+    'foobar' 2 'xyz' lpad 'foobar' assert=
+    'foobar' 6 'xyz' lpad 'foobar' assert=
+    'foobar' 7 'xyz' lpad 'xfoobar' assert=
+    'foobar' 10 'xyz' lpad 'xyzzfoobar' assert=
+    'foobar' 10 'abcdefghjk' lpad 'abcdfoobar' assert=
+    'foobar' 10 'abcdefghjklmno' lpad 'abcdfoobar' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'pad quote left in general' [
+    '' 0 '' lpad '' assert=
+    '' 0 ' ' lpad '' assert=
+    '' 10 ' ' lpad '          ' assert=
+    'x' 10 'y' lpad 'yyyyyyyyyx' assert=
+    'x' 10 ' =*' lpad ' =*******x' assert=
+    'helloworld' 0 ' ' lpad 'helloworld' assert=
+    'hello' 10 ' -' lpad ' ----hello' assert=
+    'foobar' 10 ' ' lpad '    foobar' assert=
+    '🍎👨‍👩‍👧😡😈ああa' 10 '💩' lpad '💩💩💩🍎👨‍👩‍👧😡😈ああa' assert=
+    'he👨‍👧‍👦llo' 7 '👨‍👧‍👦' lpad '👨‍👧‍👦he👨‍👧‍👦llo' assert=
+    'foobrazaur' 10 ' ' lpad 'foobrazaur' assert=
+    'foobrazaurs are awesome' 10 ' ' lpad 'foobrazaurs are awesome' assert=
+    'hello' 7 'foobar' lpad 'fohello' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'expect quote, positive integer decimal, quote' [
+    [ 1 0 '' lpad ] 'bad type: decimal, expected: a quote' assertDies
+    [ '' '' '' lpad ] 'bad type: quote, expected: a decimal' assertDies
+    [ '' 0 1 lpad ] 'bad type: decimal, expected: a quote' assertDies
+    [ '' -100 '' lpad ] 'decimal is not a positive integer' assertDies
+    [ '' -100.3 '' lpad ] 'decimal is not a positive integer' assertDies
+    [ '' 100.3 '' lpad ] 'decimal is not a positive integer' assertDies
+  ]
+
+  it should 'pad with block that implements __quote__' [
+    [ $: __quote__ this ] @: spacer
+
+    ' ' spacer $: ws
+    '\t' spacer $: tab
+
+    'hello' 10 ws lpad '     hello' assert=
+    'hello' 10 tab lpad '\t\t\t\t\thello' assert=
+  ]
+]
+
 describe 'rpad' [
   in lang
 
