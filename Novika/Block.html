@@ -1118,16 +1118,23 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#each_friend%28%26%29-instance-method" class="signature"><strong>#each_friend</strong>(&)</a>
+        <a href="#each_entry_name%28%26%29-instance-method" class="signature"><strong>#each_entry_name</strong>(&)</a>
         
-          <div class="summary"><p>Yields friends of this block.</p></div>
+          <div class="summary"><p>Yields entry name forms in this block's dictionary.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#each_name%28%26%29-instance-method" class="signature"><strong>#each_name</strong>(&)</a>
+        <a href="#each_entry_value%28%26%29-instance-method" class="signature"><strong>#each_entry_value</strong>(&)</a>
         
-          <div class="summary"><p>Yields all name forms in this block's dictionary.</p></div>
+          <div class="summary"><p>Yields entry value forms in this block's dictionary.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_friend%28%26%29-instance-method" class="signature"><strong>#each_friend</strong>(&)</a>
+        
+          <div class="summary"><p>Yields friends of this block.</p></div>
         
       </li>
     
@@ -2189,6 +2196,44 @@ case it doesn't have a comment already.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="each_entry_name(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_entry_name</strong>(&)
+
+        <a class="method-permalink" href="#each_entry_name%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields entry name forms in this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_entry_value(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_entry_value</strong>(&)
+
+        <a class="method-permalink" href="#each_entry_value%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields entry value forms in this block's dictionary.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="each_friend(&amp;)-instance-method">
       <div class="signature">
         
@@ -2202,25 +2247,6 @@ case it doesn't have a comment already.</p>
           <p>Yields friends of this block. Asserts each is a block,
 otherwise, dies (e.g. the user may have mistakenly
 added some other form).</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="each_name(&amp;)-instance-method">
-      <div class="signature">
-        
-        def <strong>each_name</strong>(&)
-
-        <a class="method-permalink" href="#each_name%28%26%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Yields all name forms in this block's dictionary.</p>
         </div>
       
       <br/>
