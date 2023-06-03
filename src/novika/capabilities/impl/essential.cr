@@ -1151,7 +1151,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:names", <<-END
-      ( B -- Nb ): gathers all dictionary entry names into Name block.
+      ( B -- Nb ): gathers all dictionary entry names of Block
+       into Name block.
 
       ```
       [ 100 200 ${ x y } ] obj $: myParent
@@ -1192,7 +1193,7 @@ module Novika::Capabilities::Impl
 
       myParent -- myChild drop
       myParent ·> myFriend drop
-      myChild ·> myFriend drop "for good measure :)"
+      myChild ·> myFriend drop
 
       myParent entry:names* leaves: [ [y x greeting] ]
       myChild entry:names* leaves: [ [z y x greeting] ]
@@ -1216,7 +1217,7 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:values", <<-END
-      ( B -- Vb ): gathers all dictionary entry value forms
+      ( B -- Vb ): gathers all dictionary entry value forms of Block
        into Value block.
 
       ```
@@ -1226,7 +1227,7 @@ module Novika::Capabilities::Impl
 
       myParent -- myChild drop
       myParent ·> myFriend drop
-      myChild ·> myFriend drop "for good measure :)"
+      myChild ·> myFriend drop
 
       myParent entry:values leaves: [ [200 100] ]
       myChild entry:values leaves: [ [300] ]
@@ -1240,6 +1241,45 @@ module Novika::Capabilities::Impl
           result.add(form)
         end
         result.onto(stack)
+      end
+
+      target.at("entry:values*", <<-END
+      ( B -- Nb ): gathers *all* dictionary entry values reachable from
+       Block to Name block, that is, gathers all entry values in Block,
+       Block's parents, Block's friends, and so on. Explores the entire
+       relative graph of Block.
+
+      Order is not guaranteed, and mainly depends on the appearance
+      of Block's relative graph. Values may repeat if some blocks
+      in this graph define entries with the same name.
+
+      ```
+      [ 100 200 ${ x y } ] obj toOrphan $: myParent
+      [ 300 $: z ] obj toOrphan $: myChild
+      [ 'Hello World' $: greeting ] obj toOrphan $: myFriend
+
+      myParent -- myChild drop
+      myParent ·> myFriend drop
+      myChild ·> myFriend drop
+
+      myParent entry:values* leaves: [ [200 100 'Hello World'] ]
+      myChild entry:values* leaves: [ [300 200 100 'Hello World'] ]
+      myFriend entry:values* leaves: [ ['Hello World'] ]
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        values = [] of Form
+        leaf = false
+        block.each_relative_fetch do |relative|
+          relative.each_entry_value do |value|
+            values << value
+            next if leaf
+            leaf = value.is_a?(Block)
+          end
+          nil
+        end
+        Block.with(values, leaf).onto(stack)
       end
 
       target.at("shallowCopy", <<-END

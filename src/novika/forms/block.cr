@@ -265,6 +265,7 @@ module Novika
         # of parents.
         #
         each_adjacent(block, echelon1) do |adj|
+          next if marked?(adj)
           next if p_ilist && p_ilist.ignore?(adj)
 
           fetch?(adj) { |form| return form }

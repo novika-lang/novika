@@ -410,9 +410,9 @@ describe 'entry:names*' [
   in lang
 
   it should 'leave reachable entry names' [
-    orphan [ 100 200 ${ x y } ] tuck extendWith $: myParent
-    orphan [ 300 $: z ] tuck extendWith $: myChild
-    orphan [ 'Hello World' $: greeting ] tuck extendWith $: myFriend
+    [ 100 200 ${ x y } ] obj toOrphan $: myParent
+    [ 300 $: z ] obj toOrphan $: myChild
+    [ 'Hello World' $: greeting ] obj toOrphan $: myFriend
 
     myParent -- myChild drop
     myParent ·> myFriend drop
@@ -443,6 +443,35 @@ describe 'entry:values' [
 
     this entry:values [ myParent myChild myFriend ] vals assert=
     stack count 0 assert=
+  ]
+]
+
+
+describe 'entry:values*' [
+  in lang
+
+  it should 'leave reachable entry values' [
+    [ 100 200 ${ x y } ] obj toOrphan $: myParent
+    [ 300 $: z ] obj toOrphan $: myChild
+    [ 'Hello World' $: greeting ] obj toOrphan $: myFriend
+    [ 'Bye World' $: greeting ] obj toOrphan $: myFriend2
+
+    myParent -- myChild drop
+    myParent ·> myFriend drop
+    myChild ·> myFriend drop
+    myChild ·> myFriend2 drop
+
+    myParent entry:names* [ y x greeting ] assert=
+    myParent entry:values* [ 200 100 'Hello World' ] assert=
+
+    myChild entry:names* [ z y x greeting ] assert=
+    myChild entry:values* [ 300 200 100 'Bye World' 'Hello World' ] assert=
+
+    myFriend entry:names* [ greeting ] assert=
+    myFriend entry:values* [ 'Hello World' ] assert=
+
+    myFriend2 entry:names* [ greeting ] assert=
+    myFriend2 entry:values* [ 'Bye World' ] assert=
   ]
 ]
 
