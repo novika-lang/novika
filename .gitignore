@@ -2,11 +2,14 @@
 /lib/
 /bin/
 !/bin/dl.dll
+/tests/res/ffi-test.so
+/tests/res/ffi-test.dll
 /env/permissions
 /.shards/
 *.dwarf
 cachegrind.out.*
 callgrind.out.*
+massif.out.*
 flamegraph.svg
 perf.data
 perf.data.*
