@@ -28,6 +28,9 @@ module Novika
     # Returns whether this dictionary currently stores no entries.
     abstract def empty? : Bool
 
+    # Returns the amount of entries in this dictionary.
+    abstract def count : Int32
+
     # Returns a *shallow* copy of this dictionary.
     abstract def copy : IDict
 
@@ -95,6 +98,10 @@ module Novika
 
     def empty? : Bool
       @store.empty?
+    end
+
+    def count : Int32
+      @store.size
     end
 
     def copy : IDict

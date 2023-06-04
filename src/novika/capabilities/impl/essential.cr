@@ -1282,6 +1282,22 @@ module Novika::Capabilities::Impl
         Block.with(values, leaf).onto(stack)
       end
 
+      target.at("entry:count", <<-END
+      ( B -- Ec ): leaves Entry count, that is, the amount of entries
+       owned by (defined in) Block.
+
+      ```
+      [ 100 200 ${ x y } ] obj $: myBlock
+
+      myBlock entry:count leaves: 2 "'x' and 'y'"
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+
+        Decimal.new(block.entry_count).onto(stack)
+      end
+
       target.at("shallowCopy", <<-END
       ( B -- C ): makes a shallow copy (sub-blocks are not copied)
        of Block's tape and dictionary, and leaves a Copy block with

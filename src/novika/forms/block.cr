@@ -513,6 +513,11 @@ module Novika
       has_tape? ? tape.count : 0
     end
 
+    # Returns the amount of entries owned by (defined in) this block.
+    def entry_count
+      has_dict? ? dict.count : 0
+    end
+
     # Yields all forms in this block.
     def each(&)
       tape.each { |form| yield form } if has_tape?

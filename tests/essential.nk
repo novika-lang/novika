@@ -476,6 +476,24 @@ describe 'entry:values*' [
 ]
 
 
+describe 'entry:count' [
+  in lang
+
+  it should 'leave the amount of owned entries' [
+    [ ] $: b
+    b entry:count 0 assert=
+    b extend: [ 100 200 300 ${ x y z } ]
+    b entry:count 3 assert=
+    b #x entry:delete
+    b entry:count 2 assert=
+    b #y entry:delete
+    b entry:count 1 assert=
+    b #z entry:delete
+    b entry:count 0 assert=
+  ]
+]
+
+
 describe 'shallowCopy' [
   in lang
 
