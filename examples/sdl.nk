@@ -1,8 +1,10 @@
 """
 Run this with:
 
-  $ novika sdl examples/sdl.nk
+  $ novika sdl disk examples/sdl.nk
 """
+
+needsCapability: disk
 
 "TODO: handle this automatically somehow. also font close"
 [ sdl:quit
