@@ -117,11 +117,11 @@ module Novika
       end
     end
 
-    def opens?(name : Form)
+    def opener?(name : Form)
       false
     end
 
-    def pushes?(name : Form)
+    def pusher?(name : Form)
       has_form_for?(name)
     end
 

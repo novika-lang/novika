@@ -1069,16 +1069,16 @@ module Novika::Capabilities::Impl
         Boolean[!!form].onto(stack)
       end
 
-      target.at("entry:isOpenEntry?", <<-END
+      target.at("entry:opener?", <<-END
       ( Rs N -- true/false ): leaves whether an entry with the
        given Name in Readable store (usually a block) is an
-       open entry. Dies if Readable store has no entry with
+       opener entry. Dies if Readable store has no entry with
        the given Name.
       END
       ) do |_, stack|
         name = stack.drop
         store = stack.drop.a(IReadableStore)
-        Boolean[store.opens?(name)].onto(stack)
+        Boolean[store.opener?(name)].onto(stack)
       end
 
       target.at("entry:delete", <<-END

@@ -310,7 +310,7 @@ describe 'toOrphan' [
 ]
 
 
-"TODO: test: entry:submit entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:isOpenEntry?"
+"TODO: test: entry:submit entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
 
 
 describe 'entry:delete' [

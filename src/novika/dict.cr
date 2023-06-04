@@ -158,7 +158,7 @@ module Novika
   # restricted subset of block methods for dictionary access).
   #
   # Implementors can be targets of `entry:fetch`, `entry:fetch?`,
-  # `entry:exists?`, `entry:isOpenEntry?`.
+  # `entry:exists?`, `entry:opener?`.
   module IReadableStore
     def self.typedesc
       "readable store"
@@ -171,15 +171,13 @@ module Novika
     # nil if no such entry exists.
     abstract def form_for?(name : Form) : Form?
 
-    # Returns whether *name* opens its value form, as defined in
-    # this block. Returns false if *name* is not defined in the
-    # this block.
-    abstract def opens?(name : Form)
+    # Returns whether *name* opens its value form, as defined in this
+    # store. Returns false if *name* is not defined in this store.
+    abstract def opener?(name : Form)
 
-    # Returns whether *name* pushes its value form, as defined in
-    # this block. Returns false if *name* is not defined in the
-    # this block.
-    abstract def pushes?(name : Form)
+    # Returns whether *name* pushes its value form, as defined in this
+    # store. Returns false if *name* is not defined in this store.
+    abstract def pusher?(name : Form)
 
     # Returns the value form for an entry with the given *name*, or
     # dies if no such entry exists.

@@ -924,11 +924,11 @@ module Novika
       entry_for?(name).try &.submit(form)
     end
 
-    def opens?(name : Form)
+    def opener?(name : Form)
       entry_for?(name).is_a?(OpenEntry)
     end
 
-    def pushes?(name : Form)
+    def pusher?(name : Form)
       !!entry_for?(name).try { |entry| !entry.is_a?(OpenEntry) }
     end
 
