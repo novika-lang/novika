@@ -1,14 +1,11 @@
 [ """( -- ::set:: ): a set-like data structure for storing blocks
-   (and only blocks) by their address. Entry order (and iteration
-   order) is exactly the insertion order.
+   (and only blocks) by their address, or some other property based
+   on the key (mapper) block, see `::set::/keyBy` .
 
-  **Important**: no equality checks are performed, ever. Unless
-  two blocks are truly the same block (i.e. their addresses are
-  the same), they will be considered different, and stored
-  appropriately.
+  Entry order (and iteration order) is exactly the insertion order.
 
   Exposes the following words: `add[:]`, `remove[:]`, `has?`
-  and `has:`, `each[:]`.
+  and `has:`, `each[:]`, `keyBy[:]`.
 
   ```
   blockAddressSet $: set
@@ -41,21 +38,28 @@
   orphan $: _set
 
   this $: _self
+  [ address ] @: _toKey
 
   orphan dup extend: [ "::set::"
+    [ "( -- A ): leaves the Amount of blocks in this set."
+      _set entry:count
+    ] @: size
+
     [ "( B -- ): adds Block to this set. Noop if it's in this
        set already."
-      _set (_ keep: address) pushes
+      dup has? => [ drop ^ ]
+
+      _set (_ keep: _toKey) pushes
     ] @: add
 
     [ "( B -- ): removes Block if it's in this set. Otherwise
        a noop."
-      _set (_ address) entry:delete
+      _set (_ _toKey) entry:delete
     ] @: remove
 
     [ "( B -- true/false ): leaves whether Block is stored
        in this set."
-      _set (_ address) entry:exists?
+      _set (_ _toKey) entry:exists?
     ] @: has?
 
     [ "( I -- ): opens Iteratee for each block in this set,
@@ -68,20 +72,56 @@
        because `each:` is defined below as an infix for
        this word."
 
+    [ """( M -- ): sets the Mapper block with which the key
+       for the block should be obtained. The default Mapper
+       block is `[ address ]`.
+
+      ```
+      newBlockSet $: set
+
+      "Blocks are going to be keyed by their count, e.g.
+       blocks with the same count are going to be considered
+       the same blocks."
+      set keyBy: count
+
+      set.add: [ 1 2 ]
+      set.add: [ 1 2 3 ]
+      set.add: [ 1 2 3 4 ]
+
+      set.has: [ 3 4 ] leaves: true "count = 2, exists"
+      set.has: [ 5 6 7 ] leaves: true "count = 3, exists"
+      set.has: [ 100 ] leaves: false "count = 1, does not exist"
+
+      set.add: [ 100 200 300 ] "count = 3, exists, do not add"
+      set.count leaves: 3
+      set.each: [ echo ]
+
+      "STDOUT: [ 1 2 ]⏎[ 1 2 3 ]⏎[ 1 2 3 4 ]⏎"
+      ```
+      """
+      $: mapper
+
+      [ enclose mapper there top ] =: _toKey
+    ] @: keyBy
+
     [ "( add: B -- ): infix version of `add`."
-      ahead thruVal add
+      ahead thruLitBlock add
     ] @: add:
 
     [ "( remove: B -- ): infix version of `remove`."
-      ahead thruVal remove
+      ahead thruLitBlock remove
     ] @: remove:
 
     [ "( has: B -- true/false ): infix version of `has?`."
-      ahead thruVal has?
+      ahead thruLitBlock has?
     ] @: has:
 
     [ "( each: I -- ): infix version of `each`."
       ahead thruBlock each
     ] @: each:
+
+    [ "( keyBy: M -- ): infix version of `keyBy`."
+      ahead thruBlock keyBy
+    ] @: keyBy:
   ]
-] @: newBlockAddressSet
+] @: newBlockSet

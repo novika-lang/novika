@@ -1,8 +1,8 @@
-describe 'newBlockAddressSet' [
+describe 'newBlockSet' [
   in lang
 
   it should 'store blocks by address in insertion order' [
-    newBlockAddressSet $: set
+    newBlockSet $: set
 
     [ 1 2 ] $: foo
     [ 3 4 ] $: bar
@@ -21,6 +21,7 @@ describe 'newBlockAddressSet' [
       set.remove: bar
     ]
     set.has: bar false assert=
+    set.size 1 assert=
 
     10 times: [
       set.add: baz
@@ -29,6 +30,7 @@ describe 'newBlockAddressSet' [
 
     set.has: baz true assert=
     set.has: boo true assert=
+    set.size 3 assert=
 
     [ ] $: tmp
 
@@ -39,8 +41,30 @@ describe 'newBlockAddressSet' [
     stack count 0 assert=
   ]
 
+  it should 'support different (non-address) keyBy' [
+    newBlockSet $: set
+
+    set.keyBy: count
+
+    set.add: [ 1 2 ]
+    set.add: [ 1 2 3 ]
+    set.add: [ 1 2 3 4 ]
+    set.size 3 assert=
+
+    set.has: [ 3 4 ] true assert= "size = 2, exists"
+    set.has: [ 5 6 7 ] true assert= "size = 3, exists"
+    set.has: [ 100 ] false assert= "size = 1, does not exist"
+
+    set.add: [ 100 200 300 ] "size = 3, exists, do not add"
+    set.size 3 assert=
+
+    [ ] $: tmp
+    set.each: [ tmp gulp ]
+    tmp [ [ 1 2 ] [ 1 2 3 ] [ 1 2 3 4 ] ] assert=
+  ]
+
   it should 'die when given non-block' [
-    newBlockAddressSet $: set
+    newBlockSet $: set
 
     [ set.add: 'hello world' ] 'bad type: quote, expected: a block' assertDies
     [ set.has: 'hello world' ] 'bad type: quote, expected: a block' assertDies
