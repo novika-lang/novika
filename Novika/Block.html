@@ -1314,9 +1314,9 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#opens%3F%28name%3AForm%29-instance-method" class="signature"><strong>#opens?</strong>(name : Form)</a>
+        <a href="#opener%3F%28name%3AForm%29-instance-method" class="signature"><strong>#opener?</strong>(name : Form)</a>
         
-          <div class="summary"><p>Returns whether <em>name</em> opens its value form, as defined in this block.</p></div>
+          <div class="summary"><p>Returns whether <em>name</em> opens its value form, as defined in this store.</p></div>
         
       </li>
     
@@ -1377,9 +1377,9 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#pushes%3F%28name%3AForm%29-instance-method" class="signature"><strong>#pushes?</strong>(name : Form)</a>
+        <a href="#pusher%3F%28name%3AForm%29-instance-method" class="signature"><strong>#pusher?</strong>(name : Form)</a>
         
-          <div class="summary"><p>Returns whether <em>name</em> pushes its value form, as defined in this block.</p></div>
+          <div class="summary"><p>Returns whether <em>name</em> pushes its value form, as defined in this store.</p></div>
         
       </li>
     
@@ -1568,14 +1568,14 @@ of <em>nested</em> blocks.</p>
     has_form_for?</a>, 
     
   
-    <a href="../Novika/IReadableStore.html#opens%3F%28name%3AForm%29-instance-method" class="tooltip">
-      <span>opens?(name : Form)</span>
-    opens?</a>, 
+    <a href="../Novika/IReadableStore.html#opener%3F%28name%3AForm%29-instance-method" class="tooltip">
+      <span>opener?(name : Form)</span>
+    opener?</a>, 
     
   
-    <a href="../Novika/IReadableStore.html#pushes%3F%28name%3AForm%29-instance-method" class="tooltip">
-      <span>pushes?(name : Form)</span>
-    pushes?</a>
+    <a href="../Novika/IReadableStore.html#pusher%3F%28name%3AForm%29-instance-method" class="tooltip">
+      <span>pusher?(name : Form)</span>
+    pusher?</a>
     
   
 
@@ -2865,12 +2865,12 @@ current stack is used).</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="opens?(name:Form)-instance-method">
+    <div class="entry-detail" id="opener?(name:Form)-instance-method">
       <div class="signature">
         
-        def <strong>opens?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+        def <strong>opener?</strong>(name : <a href="../Novika/Form.html">Form</a>)
 
-        <a class="method-permalink" href="#opens%3F%28name%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#opener%3F%28name%3AForm%29-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2879,9 +2879,8 @@ current stack is used).</p>
               Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
             </div>
           
-          <p>Returns whether <em>name</em> opens its value form, as defined in
-this block. Returns false if <em>name</em> is not defined in the
-this block.</p>
+          <p>Returns whether <em>name</em> opens its value form, as defined in this
+store. Returns false if <em>name</em> is not defined in this store.</p>
         </div>
       
       <br/>
@@ -3055,12 +3054,12 @@ their prototype (AST) blocks, AST blocks return themselves.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="pushes?(name:Form)-instance-method">
+    <div class="entry-detail" id="pusher?(name:Form)-instance-method">
       <div class="signature">
         
-        def <strong>pushes?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+        def <strong>pusher?</strong>(name : <a href="../Novika/Form.html">Form</a>)
 
-        <a class="method-permalink" href="#pushes%3F%28name%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#pusher%3F%28name%3AForm%29-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3069,9 +3068,8 @@ their prototype (AST) blocks, AST blocks return themselves.</p>
               Description copied from module <a href="../Novika/IReadableStore.html">Novika::IReadableStore</a>
             </div>
           
-          <p>Returns whether <em>name</em> pushes its value form, as defined in
-this block. Returns false if <em>name</em> is not defined in the
-this block.</p>
+          <p>Returns whether <em>name</em> pushes its value form, as defined in this
+store. Returns false if <em>name</em> is not defined in this store.</p>
         </div>
       
       <br/>
