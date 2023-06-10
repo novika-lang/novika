@@ -176,6 +176,27 @@ module Novika
     # Yields occurrences of the given *pattern* in this quote.
     def each_occurrence_of(pattern : Form, &)
     end
+
+    # Specifies the maximum amount of characters to display before
+    # the quote gets cut off in `effect` (see `Form#effect`).
+    EFFECT_MAX_CHARS = 32
+
+    # Specifies how many characters to take from the left and right
+    # boundaries of the quote for a shorter representation in `effect`.
+    EFFECT_BOUND_TAKE = 12
+
+    def effect(io)
+      nchars = count
+
+      return super if nchars <= EFFECT_MAX_CHARS
+
+      l = at(0, EFFECT_BOUND_TAKE)
+      r = at(nchars - EFFECT_BOUND_TAKE - 1, nchars - 1)
+
+      io << "'"; l.string.dump_unquoted(io)
+      io << "…"; r.string.dump_unquoted(io)
+      io << "'"
+    end
   end
 
   # Represents the side where padding should apply.

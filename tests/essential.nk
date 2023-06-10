@@ -1144,6 +1144,11 @@ describe 'effect' [
     'hello \n world' effect '\'hello \\n world\'' assert=
   ]
 
+  it should 'shorten quotes longer than 32 characters' [
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Vestibulum lorem sed risus ultricies tristique nulla aliquet enim. Nunc vel risus commodo viverra maecenas accumsan lacus vel.'
+      effect '\'Lorem ipsum d…an lacus vel.\'' assert=
+  ]
+
   it should 'work for builtins' [
     #+ here effect '( A B -- S )' assert=
   ]

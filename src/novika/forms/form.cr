@@ -155,9 +155,6 @@ module Novika
     # Generates and returns a description for the stack effect
     # of this form.
     #
-    # For all forms except blocks and builtins, simply returns
-    # their string representation.
-    #
     # For blocks and builtins, tries to extract a `( ... -- ... )`
     # (but see `EFFECT_PATTERN`) from their corresponding
     # comment. If could not extract or no comment, returns
