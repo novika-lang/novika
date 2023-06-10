@@ -978,7 +978,7 @@ of <em>nested</em> blocks.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#%3D%3D%28other%29-instance-method" class="signature"><strong>#==</strong>(other)</a>
+        <a href="#%3D%3D%28other%29%3ABool-instance-method" class="signature"><strong>#==</strong>(other) : Bool</a>
         
           <div class="summary"><p>Loose equality: for two blocks to be loosely equal, their tapes and their dictionaries must be loosely equal.</p></div>
         
@@ -1048,14 +1048,14 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#befriend%28other%3ABlock%29-instance-method" class="signature"><strong>#befriend</strong>(other : Block)</a>
+        <a href="#befriend%28other%3ABlock%29%3Aself-instance-method" class="signature"><strong>#befriend</strong>(other : Block) : <span class="k">self</span></a>
         
           <div class="summary"><p>Adds <em>other</em> to the friendlist of this block.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#can_be%3F%28type%3AT.class%29forallT-instance-method" class="signature"><strong>#can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) forall T</a>
+        <a href="#can_be%3F%28type%3AT.class%29%3ABoolforallT-instance-method" class="signature"><strong>#can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : Bool forall T</a>
         
           <div class="summary"><p>Returns whether this block implements hook(s) needed for behaving like <em>type</em>.</p></div>
         
@@ -1076,9 +1076,23 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#delete%28name%3AForm%29-instance-method" class="signature"><strong>#delete</strong>(name : Form)</a>
+        <a href="#delete_at%28index%3AInt32%29%3Aself-instance-method" class="signature"><strong>#delete_at</strong>(index : Int32) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Deletes the form at <em>index</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#delete_entry%28name%3AForm%29-instance-method" class="signature"><strong>#delete_entry</strong>(name : Form)</a>
         
           <div class="summary"><p>Deletes the entry corresponding to <em>name</em> form from the dictionary of this block if it exists there.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#delete_if%28%26%3AForm-%3EBool%29%3Aself-instance-method" class="signature"><strong>#delete_if</strong>(& : Form -> Bool) : <span class="k">self</span></a>
+        
+          <div class="summary"><p>Yields forms from left to right until the block returns <code>true</code> for one, then deletes that form.</p></div>
         
       </li>
     
@@ -1113,7 +1127,14 @@ of <em>nested</em> blocks.</p>
       <li class="entry-summary">
         <a href="#each%28%26%29-instance-method" class="signature"><strong>#each</strong>(&)</a>
         
-          <div class="summary"><p>Yields all forms in this block.</p></div>
+          <div class="summary"><p>Yields all forms in this block, <em>going from left to right</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_entry%28%26%29-instance-method" class="signature"><strong>#each_entry</strong>(&)</a>
+        
+          <div class="summary"><p>Yields entry names and <code><a href="../Novika/Entry.html">Entry</a></code> objects from the dictionary of this block.</p></div>
         
       </li>
     
@@ -1160,14 +1181,14 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29forallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(fetcher : Block -> T | Nil, seen : BlockIdMap | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : Block | Nil = <span class="n">nil</span>) forall T</a>
+        <a href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29%3AT%7CNilforallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(fetcher : Block -> T | Nil, seen : BlockIdMap | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : Block | Nil = <span class="n">nil</span>) : T | Nil forall T</a>
         
           <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29forallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(*args, **kwargs, &fetcher : Block -> T | Nil) forall T</a>
+        <a href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29%3AT%7CNilforallT-instance-method" class="signature"><strong>#each_relative_fetch</strong>(*args, **kwargs, &fetcher : Block -> T | Nil) : T | Nil forall T</a>
         
           <div class="summary"><p>Explores this block's relatives, i.e., its vertical (parent) and horizontal (friend) hierarchy, calls <em>fetcher</em> on each relative.</p></div>
         
@@ -1251,14 +1272,14 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#has_friends%3F-instance-method" class="signature"><strong>#has_friends?</strong></a>
+        <a href="#has_friends%3F%3ABool-instance-method" class="signature"><strong>#has_friends?</strong> : Bool</a>
         
           <div class="summary"><p>Returns whether this block has any friends.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#has_relatives%3F-instance-method" class="signature"><strong>#has_relatives?</strong></a>
+        <a href="#has_relatives%3F%3ABool-instance-method" class="signature"><strong>#has_relatives?</strong> : Bool</a>
         
           <div class="summary"><p>Returns whether this block has a parent, friends, or both.</p></div>
         
@@ -1279,14 +1300,14 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#includes%3F%28other%3AForm%29-instance-method" class="signature"><strong>#includes?</strong>(other : Form)</a>
+        <a href="#includes%3F%28other%3AForm%29%3ABool-instance-method" class="signature"><strong>#includes?</strong>(other : Form) : Bool</a>
         
-          <div class="summary"><p>Returns whether the tape of this block includes <em>other</em>, as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p></div>
+          <div class="summary"><p>Returns whether the tape of this block includes <em>other</em>, as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29%3ABool-instance-method">#==(other)</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#inject%28form%3AForm%29-instance-method" class="signature"><strong>#inject</strong>(form : Form)</a>
+        <a href="#inject%28form%3AForm%29%3Aself-instance-method" class="signature"><strong>#inject</strong>(form : Form) : <span class="k">self</span></a>
         
           <div class="summary"><p>Adds <em>form</em> after the cursor.</p></div>
         
@@ -1391,14 +1412,21 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule</strong>(engine : Engine, stack : Block)</a>
+        <a href="#reverse_each%28%26%29-instance-method" class="signature"><strong>#reverse_each</strong>(&)</a>
+        
+          <div class="summary"><p>Yields all forms in this block, <em>going from right to left</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29%3Aself-instance-method" class="signature"><strong>#schedule</strong>(engine : Engine, stack : Block) : <span class="k">self</span></a>
         
           <div class="summary"><p>Schedules an instance of this block for execution, with <em>stack</em> set as the stack that will be used by the instance during execution.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(engine : Engine, stack : Block)</a>
+        <a href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29%3Aself-instance-method" class="signature"><strong>#schedule!</strong>(engine : Engine, stack : Block) : <span class="k">self</span></a>
         
           <div class="summary"><p>Schedules this block for execution, with <em>stack</em> set as the stack that will be used by this block during execution.</p></div>
         
@@ -1426,7 +1454,7 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29-instance-method" class="signature"><strong>#sort_using!</strong>(&cmp : Form, Form -> Int32)</a>
+        <a href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29%3Aself-instance-method" class="signature"><strong>#sort_using!</strong>(&cmp : Form, Form -> Int32) : <span class="k">self</span></a>
         
           <div class="summary"><p>Sorts this block's tape inplace, calls <em>cmp</em> comparator proc for each form pair for a comparison integer -1, 0, or 1.</p></div>
         
@@ -1454,7 +1482,7 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#thru-instance-method" class="signature"><strong>#thru</strong></a>
+        <a href="#thru%3AForm-instance-method" class="signature"><strong>#thru</strong> : Form</a>
         
           <div class="summary"><p>Returns form after cursor, and moves cursor past it.</p></div>
         
@@ -1501,7 +1529,7 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#unfriend%28other%3ABlock%29-instance-method" class="signature"><strong>#unfriend</strong>(other : Block)</a>
+        <a href="#unfriend%28other%3ABlock%29%3Aself-instance-method" class="signature"><strong>#unfriend</strong>(other : Block) : <span class="k">self</span></a>
         
           <div class="summary"><p>Removes <em>other</em> from the friendlist of this block.</p></div>
         
@@ -1803,12 +1831,12 @@ its tape substrate's container. See <code><a href="../Novika/Tape.html#for%28ele
     Instance Method Detail
   </h2>
   
-    <div class="entry-detail" id="==(other)-instance-method">
+    <div class="entry-detail" id="==(other):Bool-instance-method">
       <div class="signature">
         
-        def <strong>==</strong>(other)
+        def <strong>==</strong>(other) : Bool
 
-        <a class="method-permalink" href="#%3D%3D%28other%29-instance-method">#</a>
+        <a class="method-permalink" href="#%3D%3D%28other%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2004,12 +2032,12 @@ in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="befriend(other:Block)-instance-method">
+    <div class="entry-detail" id="befriend(other:Block):self-instance-method">
       <div class="signature">
         
-        def <strong>befriend</strong>(other : <a href="../Novika/Block.html">Block</a>)
+        def <strong>befriend</strong>(other : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#befriend%28other%3ABlock%29-instance-method">#</a>
+        <a class="method-permalink" href="#befriend%28other%3ABlock%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2023,12 +2051,12 @@ in <code><a href="../Novika/Builtin.html">Builtin</a></code>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="can_be?(type:T.class)forallT-instance-method">
+    <div class="entry-detail" id="can_be?(type:T.class):BoolforallT-instance-method">
       <div class="signature">
         
-        def <strong>can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) forall T
+        def <strong>can_be?</strong>(type : <span class="t">T</span>.<span class="k">class</span>) : Bool forall T
 
-        <a class="method-permalink" href="#can_be%3F%28type%3AT.class%29forallT-instance-method">#</a>
+        <a class="method-permalink" href="#can_be%3F%28type%3AT.class%29%3ABoolforallT-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2081,12 +2109,32 @@ for behaving like <em>type</em>. See also: <code>a(type)</code>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="delete(name:Form)-instance-method">
+    <div class="entry-detail" id="delete_at(index:Int32):self-instance-method">
       <div class="signature">
         
-        def <strong>delete</strong>(name : <a href="../Novika/Form.html">Form</a>)
+        def <strong>delete_at</strong>(index : Int32) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#delete%28name%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#delete_at%28index%3AInt32%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Deletes the form at <em>index</em>. Does nothing if index is out
+of bounds.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="delete_entry(name:Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>delete_entry</strong>(name : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#delete_entry%28name%3AForm%29-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2094,6 +2142,27 @@ for behaving like <em>type</em>. See also: <code>a(type)</code>.</p>
           <p>Deletes the entry corresponding to <em>name</em> form from the
 dictionary of this block if it exists there. Otherwise,
 does nothing.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="delete_if(&amp;:Form-&gt;Bool):self-instance-method">
+      <div class="signature">
+        
+        def <strong>delete_if</strong>(& : <a href="../Novika/Form.html">Form</a> -> Bool) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#delete_if%28%26%3AForm-%3EBool%29%3Aself-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields forms from left to right until the block returns <code>true</code>
+for one, then deletes that form. If the block does not return
+<code>true</code> for any form, does nothing.</p>
         </div>
       
       <br/>
@@ -2194,7 +2263,27 @@ case it doesn't have a comment already.</p>
       
         <div class="doc">
           
-          <p>Yields all forms in this block.</p>
+          <p>Yields all forms in this block, <em>going from left to right</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_entry(&amp;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_entry</strong>(&)
+
+        <a class="method-permalink" href="#each_entry%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields entry names and <code><a href="../Novika/Entry.html">Entry</a></code> objects from the dictionary
+of this block.</p>
         </div>
       
       <br/>
@@ -2349,7 +2438,7 @@ explicitly nested neighbor blocks, and so on, recursively.</p>
         <div class="doc">
           
           <p>Yields occurrences of the given <em>pattern</em> found in this
-block. Matching is done using loose equality  <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p>
+block. Matching is done using loose equality  <code><a href="../Novika/Block.html#%3D%3D%28other%29%3ABool-instance-method">#==(other)</a></code>.</p>
         </div>
       
       <br/>
@@ -2358,12 +2447,12 @@ block. Matching is done using loose equality  <code><a href="../Novika/Block.htm
       </div>
     </div>
   
-    <div class="entry-detail" id="each_relative_fetch(fetcher:Block-&gt;T|Nil,seen:BlockIdMap|Nil=nil,skip_self:Bool=false,history:Block|Nil=nil)forallT-instance-method">
+    <div class="entry-detail" id="each_relative_fetch(fetcher:Block-&gt;T|Nil,seen:BlockIdMap|Nil=nil,skip_self:Bool=false,history:Block|Nil=nil):T|NilforallT-instance-method">
       <div class="signature">
         
-        def <strong>each_relative_fetch</strong>(fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil, seen : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : <a href="../Novika/Block.html">Block</a> | Nil = <span class="n">nil</span>) forall T
+        def <strong>each_relative_fetch</strong>(fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil, seen : <a href="../Novika/BlockIdMap.html">BlockIdMap</a> | Nil = <span class="n">nil</span>, skip_self : Bool = <span class="n">false</span>, history : <a href="../Novika/Block.html">Block</a> | Nil = <span class="n">nil</span>) : T | Nil forall T
 
-        <a class="method-permalink" href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29forallT-instance-method">#</a>
+        <a class="method-permalink" href="#each_relative_fetch%28fetcher%3ABlock-%3ET%7CNil%2Cseen%3ABlockIdMap%7CNil%3Dnil%2Cskip_self%3ABool%3Dfalse%2Chistory%3ABlock%7CNil%3Dnil%29%3AT%7CNilforallT-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2405,12 +2494,12 @@ explored blocks leading to the &quot;discovery&quot; of <code>T</code>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="each_relative_fetch(*args,**kwargs,&amp;fetcher:Block-&gt;T|Nil)forallT-instance-method">
+    <div class="entry-detail" id="each_relative_fetch(*args,**kwargs,&amp;fetcher:Block-&gt;T|Nil):T|NilforallT-instance-method">
       <div class="signature">
         
-        def <strong>each_relative_fetch</strong>(*args, **kwargs, &fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil) forall T
+        def <strong>each_relative_fetch</strong>(*args, **kwargs, &fetcher : <a href="../Novika/Block.html">Block</a> -> T | Nil) : T | Nil forall T
 
-        <a class="method-permalink" href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29forallT-instance-method">#</a>
+        <a class="method-permalink" href="#each_relative_fetch%28%2Aargs%2C%2A%2Akwargs%2C%26fetcher%3ABlock-%3ET%7CNil%29%3AT%7CNilforallT-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2688,12 +2777,12 @@ nil if no such entry exists.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="has_friends?-instance-method">
+    <div class="entry-detail" id="has_friends?:Bool-instance-method">
       <div class="signature">
         
-        def <strong>has_friends?</strong>
+        def <strong>has_friends?</strong> : Bool
 
-        <a class="method-permalink" href="#has_friends%3F-instance-method">#</a>
+        <a class="method-permalink" href="#has_friends%3F%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2707,12 +2796,12 @@ nil if no such entry exists.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="has_relatives?-instance-method">
+    <div class="entry-detail" id="has_relatives?:Bool-instance-method">
       <div class="signature">
         
-        def <strong>has_relatives?</strong>
+        def <strong>has_relatives?</strong> : Bool
 
-        <a class="method-permalink" href="#has_relatives%3F-instance-method">#</a>
+        <a class="method-permalink" href="#has_relatives%3F%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2765,18 +2854,18 @@ by mutating this block's dictionary.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="includes?(other:Form)-instance-method">
+    <div class="entry-detail" id="includes?(other:Form):Bool-instance-method">
       <div class="signature">
         
-        def <strong>includes?</strong>(other : <a href="../Novika/Form.html">Form</a>)
+        def <strong>includes?</strong>(other : <a href="../Novika/Form.html">Form</a>) : Bool
 
-        <a class="method-permalink" href="#includes%3F%28other%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#includes%3F%28other%3AForm%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
           
           <p>Returns whether the tape of this block includes <em>other</em>,
-as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29-instance-method">#==(other)</a></code>.</p>
+as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29%3ABool-instance-method">#==(other)</a></code>.</p>
         </div>
       
       <br/>
@@ -2785,12 +2874,12 @@ as per loose equality <code><a href="../Novika/Block.html#%3D%3D%28other%29-inst
       </div>
     </div>
   
-    <div class="entry-detail" id="inject(form:Form)-instance-method">
+    <div class="entry-detail" id="inject(form:Form):self-instance-method">
       <div class="signature">
         
-        def <strong>inject</strong>(form : <a href="../Novika/Form.html">Form</a>)
+        def <strong>inject</strong>(form : <a href="../Novika/Form.html">Form</a>) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#inject%28form%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#inject%28form%3AForm%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3097,12 +3186,31 @@ store. Returns false if <em>name</em> is not defined in this store.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="schedule(engine:Engine,stack:Block)-instance-method">
+    <div class="entry-detail" id="reverse_each(&amp;)-instance-method">
       <div class="signature">
         
-        def <strong>schedule</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
+        def <strong>reverse_each</strong>(&)
 
-        <a class="method-permalink" href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
+        <a class="method-permalink" href="#reverse_each%28%26%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields all forms in this block, <em>going from right to left</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="schedule(engine:Engine,stack:Block):self-instance-method">
+      <div class="signature">
+        
+        def <strong>schedule</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
+
+        <a class="method-permalink" href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3120,12 +3228,12 @@ so that the entire block will be executed by <em>engine</em>.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="schedule!(engine:Engine,stack:Block)-instance-method">
+    <div class="entry-detail" id="schedule!(engine:Engine,stack:Block):self-instance-method">
       <div class="signature">
         
-        def <strong>schedule!</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
+        def <strong>schedule!</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
+        <a class="method-permalink" href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3201,12 +3309,12 @@ this block.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="sort_using!(&amp;cmp:Form,Form-&gt;Int32)-instance-method">
+    <div class="entry-detail" id="sort_using!(&amp;cmp:Form,Form-&gt;Int32):self-instance-method">
       <div class="signature">
         
-        def <strong>sort_using!</strong>(&cmp : <a href="../Novika/Form.html">Form</a>, <a href="../Novika/Form.html">Form</a> -> Int32)
+        def <strong>sort_using!</strong>(&cmp : <a href="../Novika/Form.html">Form</a>, <a href="../Novika/Form.html">Form</a> -> Int32) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29-instance-method">#</a>
+        <a class="method-permalink" href="#sort_using%21%28%26cmp%3AForm%2CForm-%3EInt32%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3288,12 +3396,12 @@ Returns nil if no such entry exists.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="thru-instance-method">
+    <div class="entry-detail" id="thru:Form-instance-method">
       <div class="signature">
         
-        def <strong>thru</strong>
+        def <strong>thru</strong> : <a href="../Novika/Form.html">Form</a>
 
-        <a class="method-permalink" href="#thru-instance-method">#</a>
+        <a class="method-permalink" href="#thru%3AForm-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -3424,12 +3532,12 @@ and at all times no dictionary.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="unfriend(other:Block)-instance-method">
+    <div class="entry-detail" id="unfriend(other:Block):self-instance-method">
       <div class="signature">
         
-        def <strong>unfriend</strong>(other : <a href="../Novika/Block.html">Block</a>)
+        def <strong>unfriend</strong>(other : <a href="../Novika/Block.html">Block</a>) : <span class="k">self</span>
 
-        <a class="method-permalink" href="#unfriend%28other%3ABlock%29-instance-method">#</a>
+        <a class="method-permalink" href="#unfriend%28other%3ABlock%29%3Aself-instance-method">#</a>
       </div>
       
         <div class="doc">
