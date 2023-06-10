@@ -1267,6 +1267,35 @@ definesY.y leaves: 200</code></pre>
 <li><a href="https://github.com/novika-lang/novika/blob/rev10/src/novika/error.cr">Errors</a> happen. Or don't.</li>
 </ol>
 <p>Note that most of these components interact with each other, making this list pretty pointless &quot;for science&quot;.</p>
+<h3><a id="implementing-features-as-a-capability-in-crystal-vs.-in-novika" class="anchor" href="#implementing-features-as-a-capability-in-crystal-vs.-in-novika">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Implementing features as a capability (in Crystal) vs. in Novika</h3>
+<p>TL; DR: The rule of thumb for me is if something requires awareness of the
+user's OS or isn't portable/<code>ffi</code>-compatible, it should be implemented as a
+capability (meaning in Crystal).</p>
+<p>For instance, networking, reading/writing files, building paths -- all of this
+requires awareness of the underlying OS, due to different syscalls, permission
+jugglery, and other slash-vs-backslash kinds of issues.</p>
+<p>Novika is a high-level interface -- you won't believe it, a <em>language</em>! Whether
+the underlying (&quot;discussed&quot;) objects are from the native code &quot;reality&quot; or
+constructed with the means of the language, is completely irrelevant to
+the end user, nor to Novika the High-Level Interface.</p>
+<p>Again, Novika is a slightly different way of thinking, sure, but certainly
+not an operating system!</p>
+<p>Note that e.g. SDL is cross-platform provided you put the dynamic libraries
+for it in the proper place. Moreover, <code>ffi</code> is a capability and is cross-platform.
+So it's perfectly valid to use <code>ffi</code>, the only requirement being that the library
+you're <code>ffi</code>-ing is cross-platform.</p>
+<p>Novika code is supposed to be run in a sandbox of sorts, like JavaScript in the
+browser. The gatekeeper of sorts is called the <em>resolver</em> (perhaps I should
+rename it to gatekeeper though 💩).</p>
+<p>Inside the sandbox, there is no information about the OS. However, the resolver
+does have access to this information, so you can branch in your <code>.nk.app</code> or <code>.nk.lib</code>
+like so: <code>[ windows, linux | myWindowsFile, myLinuxFile ].nk</code>.</p>
+<p>Now, I know the sandbox is &quot;breachy&quot;, but I can't do anything about it! The
+world is a dangerous place, huh?</p>
 <h3><a id="and-the-usual-procedure" class="anchor" href="#and-the-usual-procedure">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>

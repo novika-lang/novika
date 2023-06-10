@@ -2557,8 +2557,6 @@ explored blocks leading to the &quot;discovery&quot; of <code>T</code>.</p>
           
           <p>Generates and returns a description for the stack effect
 of this form.</p>
-<p>For all forms except blocks and builtins, simply returns
-their string representation.</p>
 <p>For blocks and builtins, tries to extract a <code>( ... -- ... )</code>
 (but see <code><a href="../Novika.html#EFFECT_PATTERN">EFFECT_PATTERN</a></code>) from their corresponding
 comment. If could not extract or no comment, returns

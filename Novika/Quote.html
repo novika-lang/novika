@@ -907,6 +907,26 @@ anymore. This is the case with Novika.</p>
   
   <dl>
     
+      <dt class="entry-const" id="EFFECT_BOUND_TAKE">
+        <strong>EFFECT_BOUND_TAKE</strong> = <code><span class="n">12</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Specifies how many characters to take from the left and right
+boundaries of the quote for a shorter representation in <code><a href="../Novika/Quote.html#effect%28io%29-instance-method">#effect</a></code>.</p>
+      </dd>
+      
+    
+      <dt class="entry-const" id="EFFECT_MAX_CHARS">
+        <strong>EFFECT_MAX_CHARS</strong> = <code><span class="n">32</span></code>
+      </dt>
+      
+      <dd class="entry-const-doc">
+        <p>Specifies the maximum amount of characters to display before
+the quote gets cut off in <code><a href="../Novika/Quote.html#effect%28io%29-instance-method">#effect</a></code> (see <code><a href="../Novika/Form.html#effect-instance-method">Form#effect</a></code>).</p>
+      </dd>
+      
+    
       <dt class="entry-const" id="EMPTY">
         <strong>EMPTY</strong> = <code><span class="t">StringQuote</span>.new(<span class="s">&quot;&quot;</span>, count: <span class="n">0</span>, ascii_only: <span class="n">true</span>)</code>
       </dt>
@@ -1037,6 +1057,13 @@ anymore. This is the case with Novika.</p>
         <a href="#each_occurrence_of%28pattern%3AForm%2C%26%29-instance-method" class="signature"><strong>#each_occurrence_of</strong>(pattern : Form, &)</a>
         
           <div class="summary"><p>Yields occurrences of the given <em>pattern</em> in this quote.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#effect%28io%29-instance-method" class="signature"><strong>#effect</strong>(io)</a>
+        
+          <div class="summary"><p>Generates and returns a description for the stack effect of this form.</p></div>
         
       </li>
     
@@ -1477,6 +1504,34 @@ variant. Returns nil if there is no cached count.</p>
         <div class="doc">
           
           <p>Yields occurrences of the given <em>pattern</em> in this quote.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="effect(io)-instance-method">
+      <div class="signature">
+        
+        def <strong>effect</strong>(io)
+
+        <a class="method-permalink" href="#effect%28io%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Form.html">Novika::Form</a>
+            </div>
+          
+          <p>Generates and returns a description for the stack effect
+of this form.</p>
+<p>For blocks and builtins, tries to extract a <code>( ... -- ... )</code>
+(but see <code><a href="../Novika.html#EFFECT_PATTERN">EFFECT_PATTERN</a></code>) from their corresponding
+comment. If could not extract or no comment, returns
+'a block' for blocks and 'native code' for builtins.</p>
         </div>
       
       <br/>
