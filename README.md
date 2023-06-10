@@ -520,10 +520,44 @@ When you do your `bin/novika hello.nk`, here's *roughly* the order in which vari
 5. [Scissors](https://github.com/novika-lang/novika/blob/rev10/src/novika/scissors.cr) cut the contents of `hello.nk` (or any other blob of source code) into pieces called *unclassified forms*
 6. [Classifier](https://github.com/novika-lang/novika/blob/rev10/src/novika/classifier.cr) classifies them, and shoves the resulting [forms](https://github.com/novika-lang/novika/tree/rev10/src/novika/forms) into a *file block*.
 7. [Blocks](https://github.com/novika-lang/novika/blob/rev10/src/novika/forms/block.cr) are *the* most important forms in Novika.
-7. [Engine](https://github.com/novika-lang/novika/blob/rev10/src/novika/engine.cr) [runs](https://github.com/novika-lang/novika/blob/db440e7f8ba4342a9eaacf77f76b6c59bc49528f/src/novika/engine.cr#L307) file blocks and all blocks "subordinate" to them. **This is the entrypoint for code execution, and one of the cornerstones of Novika**.
-8. [Errors](https://github.com/novika-lang/novika/blob/rev10/src/novika/error.cr) happen. Or don't.
+8. [Engine](https://github.com/novika-lang/novika/blob/rev10/src/novika/engine.cr) [runs](https://github.com/novika-lang/novika/blob/db440e7f8ba4342a9eaacf77f76b6c59bc49528f/src/novika/engine.cr#L307) file blocks and all blocks "subordinate" to them. **This is the entrypoint for code execution, and one of the cornerstones of Novika**.
+9. [Errors](https://github.com/novika-lang/novika/blob/rev10/src/novika/error.cr) happen. Or don't.
 
 Note that most of these components interact with each other, making this list pretty pointless "for science".
+
+### Implementing features as a capability (in Crystal) vs. in Novika
+
+TL; DR: The rule of thumb for me is if something requires awareness of the
+user's OS or isn't portable/`ffi`-compatible, it should be implemented as a
+capability (meaning in Crystal).
+
+For instance, networking, reading/writing files, building paths -- all of this
+requires awareness of the underlying OS, due to different syscalls, permission
+jugglery, and other slash-vs-backslash kinds of issues.
+
+Novika is a high-level interface -- you won't believe it, a *language*! Whether
+the underlying ("discussed") objects are from the native code "reality" or
+constructed with the means of the language, is completely irrelevant to
+the end user, nor to Novika the High-Level Interface.
+
+Again, Novika is a slightly different way of thinking, sure, but certainly
+not an operating system!
+
+Note that e.g. SDL is cross-platform provided you put the dynamic libraries
+for it in the proper place. Moreover, `ffi` is a capability and is cross-platform.
+So it's perfectly valid to use `ffi`, the only requirement being that the library
+you're `ffi`-ing is cross-platform.
+
+Novika code is supposed to be run in a sandbox of sorts, like JavaScript in the
+browser. The gatekeeper of sorts is called the *resolver* (perhaps I should
+rename it to gatekeeper though 💩).
+
+Inside the sandbox, there is no information about the OS. However, the resolver
+does have access to this information, so you can branch in your `.nk.app` or `.nk.lib`
+like so: `[ windows, linux |  myWindowsFile, myLinuxFile ].nk`.
+
+Now, I know the sandbox is "breachy", but I can't do anything about it! The
+world is a dangerous place, huh?
 
 ### And the usual procedure
 
