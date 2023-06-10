@@ -2272,11 +2272,10 @@
   dup child $: forms
   dup empty? => [ drop forms ^ ]
 
-  orphan $: _seen
+  newBlockSet $: _seen
 
-  [
-    _seen (over address) entry:exists? => [ drop ^ ]
-    _seen (over address) true pushes
+  [ dup _seen.has? => [ drop ^ ]
+    dup _seen.add
 
     each: [
       dup block? => [ visit next ]
@@ -2351,7 +2350,7 @@
       caller ([ dup pat = ] here) adopt =: pat
     ]
 
-  orphan $: seen
+  newBlockSet $: _seen
 
   [ "( F -- F/Rb' ): leaves the result of Replacement block
      if Form matches the Pattern. Otherwise, visits Form if
@@ -2365,8 +2364,8 @@
 
     "Quit if we've already seen this block. This prevents
      us from recursing indefinitely."
-    seen (block address) entry:exists? => [ block ^ ]
-    seen (block address) true pushes
+    _seen.has: block => [ block ^ ]
+    _seen.add: block
 
     (block count) times: [ dup 1 + $: n
       (block count) over - $: fromEnd
