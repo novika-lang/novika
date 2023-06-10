@@ -377,10 +377,11 @@ module Novika
     # lookup pathway: when parent hierarchy fails to find an entry
     # matching some name, friends are asked for that entry.
     #
-    # Traversal and lookup is performed in reverse insertion
-    # order. Therefore, MRO is parent followed by friends from
-    # latest friend to oldest friend.
-    protected getter friends : Array(Form) { [] of Form }
+    # Traversal and lookup is performed in reverse insertion order
+    # (right to left). Therefore, MRO (i.e., its Novika counterpart)
+    # is parent followed by friends, from the newest friend to the
+    # oldest friend.
+    protected getter friends : Block { Block.new }
 
     # Holds a reference to the parent block (them all in a
     # linked list of ancestors).
@@ -431,15 +432,18 @@ module Novika
       "block"
     end
 
-    # Returns whether this block has a comment.
-    def has_comment? : Bool
-      !!@comment.try { |it| !it.empty? }
-    end
-
     # Returns this block's comment, or nil if the comment was
     # not defined or is empty.
     protected def comment? : String?
-      @comment unless @comment.try &.empty?
+      return unless comment = @comment
+      return if comment.empty?
+
+      comment
+    end
+
+    # Returns whether this block has a comment.
+    def has_comment? : Bool
+      !!comment?
     end
 
     # Sets the block comment of this block to *comment* in
@@ -518,14 +522,27 @@ module Novika
       has_dict? ? dict.count : 0
     end
 
-    # Yields all forms in this block.
+    # Yields all forms in this block, *going from left to right*.
     def each(&)
-      tape.each { |form| yield form } if has_tape?
+      return unless has_tape?
+
+      tape.each { |form| yield form }
+    end
+
+    # Yields all forms in this block, *going from right to left*.
+    def reverse_each(&)
+      return unless has_tape?
+
+      (0...tape.count).reverse_each do |index|
+        yield tape.at!(index)
+      end
     end
 
     # Returns the form at *index*, or nil.
     def at?(index)
-      tape.at?(index) if has_tape?
+      return unless has_tape?
+
+      tape.at?(index)
     end
 
     # Returns the form at *index* in the tape. Dies if *index*
@@ -549,7 +566,9 @@ module Novika
     # Imports entries from *donor* to this block's dictionary
     # by mutating this block's dictionary.
     def import!(from donor : Block) : self
-      tap { dict.import!(donor.dict) }
+      dict.import!(donor.dict)
+
+      self
     end
 
     # See `Tape#next?`.
@@ -573,8 +592,9 @@ module Novika
     end
 
     # Adds *form* after the cursor.
-    def inject(form : Form)
+    def inject(form : Form) : self
       self.tape = tape.inject(form)
+      self
     end
 
     # Drops and returns the form after the cursor. Dies if
@@ -588,7 +608,7 @@ module Novika
     # Returns form after cursor, and moves cursor past it.
     #
     # Similar to `eject`, but doesn't modify the block.
-    def thru
+    def thru : Form
       die("thru out of bounds") unless has_tape?
 
       self.tape, _ = tape.thru? || die("thru out of bounds")
@@ -645,7 +665,6 @@ module Novika
     # Swaps two forms before the cursor, dies if none.
     def swap : self
       self.tape = tape.swap? || die("at least two forms required before the cursor")
-
       self
     end
 
@@ -679,20 +698,20 @@ module Novika
 
     # Sorts this block's tape inplace, calls *cmp* comparator proc
     # for each form pair for a comparison integer -1, 0, or 1.
-    def sort_using!(&cmp : Form, Form -> Int32)
-      return unless has_tape?
+    def sort_using!(&cmp : Form, Form -> Int32) : self
+      return self unless has_tape?
 
       self.tape = tape.sort_using!(cmp)
       self
     end
 
     # Returns whether this block has any friends.
-    def has_friends?
-      !!@friends && !friends.empty?
+    def has_friends? : Bool
+      !!@friends && !friends.count.zero?
     end
 
     # Returns whether this block has a parent, friends, or both.
-    def has_relatives?
+    def has_relatives? : Bool
       !!parent? || has_friends?
     end
 
@@ -711,15 +730,19 @@ module Novika
     end
 
     # Adds *other* to the friendlist of this block.
-    def befriend(other : Block)
-      friends << other
+    def befriend(other : Block) : self
+      friends.add(other)
+
+      self
     end
 
     # Removes *other* from the friendlist of this block.
-    def unfriend(other : Block)
-      return unless has_friends?
+    def unfriend(other : Block) : self
+      return self unless has_friends?
 
-      friends.delete(other)
+      friends.delete_if { |friend| friend.is_a?(Block) && friend.same?(other) }
+
+      self
     end
 
     # Explores this block's relatives, i.e., its vertical (parent) and
@@ -757,7 +780,7 @@ module Novika
       seen : BlockIdMap? = nil,
       skip_self : Bool = false,
       history : Block? = nil
-    ) forall T
+    ) : T? forall T
       return unless !skip_self || has_relatives?
 
       # If history is enabled we're screwed with the fast paths.
@@ -787,7 +810,7 @@ module Novika
     end
 
     # :ditto:
-    def each_relative_fetch(*args, **kwargs, &fetcher : Block -> T?) forall T
+    def each_relative_fetch(*args, **kwargs, &fetcher : Block -> T?) : T? forall T
       each_relative_fetch(fetcher, *args, **kwargs)
     end
 
@@ -857,20 +880,26 @@ module Novika
       each_neighbor(payload, visited)
     end
 
-    # Yields entry name forms in this block's dictionary.
-    def each_entry_name(&)
+    # Yields entry names and `Entry` objects from the dictionary
+    # of this block.
+    def each_entry(&)
       return unless has_dict?
 
-      dict.each do |name, _|
+      dict.each do |name, entry|
+        yield name, entry
+      end
+    end
+
+    # Yields entry name forms in this block's dictionary.
+    def each_entry_name(&)
+      each_entry do |name, _|
         yield name
       end
     end
 
     # Yields entry value forms in this block's dictionary.
     def each_entry_value(&)
-      return unless has_dict?
-
-      dict.each do |_, entry|
+      each_entry do |_, entry|
         yield entry.form
       end
     end
@@ -969,10 +998,37 @@ module Novika
       at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
     end
 
+    # Yields forms from left to right until the block returns `true`
+    # for one, then deletes that form. If the block does not return
+    # `true` for any form, does nothing.
+    def delete_if(& : Form -> Bool) : self
+      index = nil
+
+      each do |other|
+        index ||= 0
+        break if yield other
+        index += 1
+      end
+
+      return self unless index
+
+      delete_at(index)
+    end
+
+    # Deletes the form at *index*. Does nothing if index is out
+    # of bounds.
+    def delete_at(index : Int32) : self
+      return self unless delpt = tape.to?(index + 1)
+      return self unless delpt.drop?
+
+      self.tape = tape.to?(Math.min(cursor, delpt.count)).not_nil!
+      self
+    end
+
     # Deletes the entry corresponding to *name* form from the
     # dictionary of this block if it exists there. Otherwise,
     # does nothing.
-    def delete(name : Form)
+    def delete_entry(name : Form)
       dict.del(name)
     end
 
@@ -981,7 +1037,9 @@ module Novika
     # a *stack* block may be provided (otherwise, the *engine*'s
     # current stack is used).
     def on_open(engine : Engine, stack : Block = engine.stack) : self
-      tap { engine.schedule(self, stack) }
+      engine.schedule(self, stack)
+
+      self
     end
 
     # Schedules this block for execution, with *stack* set as the
@@ -989,10 +1047,12 @@ module Novika
     #
     # Moves the cursor before the first form so that the entire
     # block will be executed by *engine*.
-    def schedule!(engine : Engine, stack : Block)
-      return if count.zero?
+    def schedule!(engine : Engine, stack : Block) : self
+      return self if count.zero?
 
       engine.schedule!(stack: stack, block: to(0))
+
+      self
     end
 
     # Schedules an instance of this block for execution, with *stack*
@@ -1001,10 +1061,12 @@ module Novika
     #
     # Moves the cursor of the instance before the first form
     # so that the entire block will be executed by *engine*.
-    def schedule(engine : Engine, stack : Block)
-      return if count.zero?
+    def schedule(engine : Engine, stack : Block) : self
+      return self if count.zero?
 
       instance.schedule!(engine, stack)
+
+      self
     end
 
     # Returns a shallow copy of this block.
@@ -1039,7 +1101,7 @@ module Novika
     # a a shove
     # a first a = "=> true"
     # ```
-    def ==(other)
+    def ==(other) : Bool
       return false unless other.is_a?(self)
       return true if same?(other)
       return false unless count == other.count
@@ -1054,7 +1116,7 @@ module Novika
 
     # Returns whether the tape of this block includes *other*,
     # as per loose equality `==(other)`.
-    def includes?(other : Form)
+    def includes?(other : Form) : Bool
       each { |form| return true if other == form }
 
       false
@@ -1155,7 +1217,7 @@ module Novika
 
     # Returns whether this block implements hook(s) needed
     # for behaving like *type*. See also: `a(type)`.
-    def can_be?(type : T.class) forall T
+    def can_be?(type : T.class) : Bool forall T
       return true if is_a?(T)
 
       case T

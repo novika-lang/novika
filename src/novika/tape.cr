@@ -25,7 +25,7 @@ module Novika
     end
 
     # See the same method in `Substrate`.
-    delegate :at?, :each, :count, to: substrate
+    delegate :at!, :at?, :each, :count, to: substrate
 
     # Returns whether this tape is empty (has no elements).
     def empty?

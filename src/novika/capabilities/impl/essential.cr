@@ -1102,7 +1102,7 @@ module Novika::Capabilities::Impl
       ) do |_, stack|
         name = stack.drop
         block = stack.drop.a(Block)
-        block.delete(name)
+        block.delete_entry(name)
       end
 
       target.at("entry:pathTo?", <<-END
@@ -2060,7 +2060,7 @@ module Novika::Capabilities::Impl
       END
       ) do |_, stack|
         source = stack.drop.a(Block)
-        Block.with(source.friends, leaf: source.friends.empty?).onto(stack)
+        source.friends.onto(stack)
       end
 
       target.at("slurp", <<-END
