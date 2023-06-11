@@ -1028,8 +1028,17 @@ module Novika
     # Deletes the entry corresponding to *name* form from the
     # dictionary of this block if it exists there. Otherwise,
     # does nothing.
-    def delete_entry(name : Form)
+    def delete_entry(name : Form) : self
       dict.del(name)
+
+      self
+    end
+
+    # Removes all owned dictionary entries in this block.
+    def clear_entries : self
+      dict.clear
+
+      self
     end
 
     # Schedules this block for execution in *engine* using the

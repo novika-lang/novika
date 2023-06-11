@@ -361,6 +361,38 @@ describe 'entry:delete' [
 ]
 
 
+describe 'entry:wipeout' [
+  in lang
+
+  it should 'remove all owned entries in block' [
+    orphan $: a
+    orphan $: b
+
+    a -- b drop
+
+    b entry:wipeout
+    b entry:names [ ] assert=
+
+    a extend: [ 100 $: x ]
+    b entry:wipeout
+    a entry:names [ x ] assert=
+    b entry:names [ ] assert=
+
+    b extend: [ 200 $: y 300 $: z ]
+    b entry:names [ y z ] assert=
+
+    a entry:wipeout
+    a entry:names [ ] assert=
+    b entry:names [ y z ] assert=
+
+    b entry:wipeout
+    b entry:names [ ] assert=
+
+    stack count 0 assert=
+  ]
+]
+
+
 describe 'entry:pathTo?' [
   in lang
 

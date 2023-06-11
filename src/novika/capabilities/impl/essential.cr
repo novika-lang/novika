@@ -1082,7 +1082,7 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:delete", <<-END
-      ( B N -- ): deletes the entry corresponding to Name form
+      ( B N -- ): removes the entry corresponding to Name form
        from the dictionary of Block if it exists there. Otherwise,
        does nothing.
 
@@ -1103,6 +1103,25 @@ module Novika::Capabilities::Impl
         name = stack.drop
         block = stack.drop.a(Block)
         block.delete_entry(name)
+      end
+
+      target.at("entry:wipeout", <<-END
+      ( B -- ): removes all *owned* dictionary entries in Block.
+
+      ```
+      [ 100 $: x
+        200 $: y
+      ] obj $: numbers
+
+      numbers entry:names leaves: [ [x y] ]
+
+      numbers entry:wipeout
+      numbers entry:names leaves: [ [] ]
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        block.clear_entries
       end
 
       target.at("entry:pathTo?", <<-END
@@ -1151,7 +1170,7 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:names", <<-END
-      ( B -- Nb ): gathers all dictionary entry names of Block
+      ( B -- Nb ): gathers all *owned* dictionary entry names of Block
        into Name block.
 
       ```
@@ -1178,8 +1197,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:names*", <<-END
-      ( B -- Nb ): gathers *all* dictionary entry names reachable from
-       Block to Name block, that is, gathers all entry names in Block,
+      ( B -- Nb ): gathers all dictionary entry names *reachable* from
+       Block to Name block. That is, gathers all entry names in Block,
        Block's parents, Block's friends, and so on. Explores the entire
        relative graph of Block.
 
@@ -1217,8 +1236,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:values", <<-END
-      ( B -- Vb ): gathers all dictionary entry value forms of Block
-       into Value block.
+      ( B -- Vb ): gathers all *owned* dictionary entry value forms of
+       Block into Value block.
 
       ```
       [ 100 200 ${ x y } ] obj $: myParent
@@ -1244,8 +1263,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:values*", <<-END
-      ( B -- Nb ): gathers *all* dictionary entry values reachable from
-       Block to Name block, that is, gathers all entry values in Block,
+      ( B -- Nb ): gathers all dictionary entry values *reachable* from
+       Block to Name block. That is, gathers all entry values in Block,
        Block's parents, Block's friends, and so on. Explores the entire
        relative graph of Block.
 

@@ -15,6 +15,9 @@ module Novika
     # dictionary if it exists. Otherwise, does nothing.
     abstract def del(name : Form)
 
+    # Removes all entries in this dictionary.
+    abstract def clear
+
     # Returns whether this dictionary has an entry corresponding
     # to *name* form.
     abstract def has?(name : Form) : Bool
@@ -84,6 +87,10 @@ module Novika
 
     def del(name : Form)
       @store.delete(name)
+    end
+
+    def clear
+      @store.clear
     end
 
     def has?(name : Form) : Bool
