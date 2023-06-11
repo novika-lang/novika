@@ -92,7 +92,7 @@ not math thank goodness!
 
   0 $: col
 
-  [ grid |: |> |afterLast? asc desc sel ] $: desc
+  [ grid |: |> |atRightBound? asc desc sel ] $: desc
   [ grid |: <| |afterFirst? desc asc sel (col 1 + =: col) ] $: asc
   desc @: action
 

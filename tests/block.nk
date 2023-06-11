@@ -63,15 +63,28 @@ describe '|afterFirst?' [
 ]
 
 
-describe '|afterLast?' [
+describe '|atLeftBound?' [
   in lang
 
-  it should 'leave whether the cursor is after the last form in block' [
-    [ | ] |afterLast? true assert=
-    [ 1 | ] |afterLast? true assert=
-    [ | 1 2 3 ] |afterLast? false assert=
-    [ 1 | 2 3 ] |afterLast? false assert=
-    [ 1 2 3 | ] |afterLast? true assert=
+  it should 'leave whether the cursor is at the left end of block' [
+    [ | ] |atLeftBound? true assert=
+    [ 1 | ] |atLeftBound? false assert=
+    [ | 1 2 3 ] |atLeftBound? true assert=
+    [ 1 | 2 3 ] |atLeftBound? false assert=
+    [ 1 2 3 | ] |atLeftBound? false assert=
+  ]
+]
+
+
+describe '|atRightBound?' [
+  in lang
+
+  it should 'leave whether the cursor is at the right end of block' [
+    [ | ] |atRightBound? true assert=
+    [ 1 | ] |atRightBound? true assert=
+    [ | 1 2 3 ] |atRightBound? false assert=
+    [ 1 | 2 3 ] |atRightBound? false assert=
+    [ 1 2 3 | ] |atRightBound? true assert=
   ]
 ]
 

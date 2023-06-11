@@ -11,6 +11,36 @@
 ] @: peek?
 
 
+[ """( B -- true/false ): leaves whether cursor is at the
+   left end in Block.
+
+  ```
+  [ | ] |atLeftBound? leaves: true
+  [ 1 | ] |atLeftBound? leaves: false
+  [ | 1 2 3 ] |atLeftBound? leaves: true
+  [ 1 | 2 3 ] |atLeftBound? leaves: false
+  [ 1 2 3 | ] |atLeftBound? leaves: false
+  ```
+  """
+  |at 0 =
+] @: |atLeftBound?
+
+
+[ """( B -- true/false ): leaves whether cursor is at the
+   right end in Block.
+
+  ```
+  [ | ] |atRightBound? leaves: true
+  [ 1 | ] |atRightBound? leaves: true
+  [ | 1 2 3 ] |atRightBound? leaves: false
+  [ 1 | 2 3 ] |atRightBound? leaves: false
+  [ 1 2 3 | ] |atRightBound? leaves: true
+  ```
+  """
+  bi: |at count =
+] @: |atRightBound?
+
+
 [ """( B -- true/false ): leaves whether cursor is after the
    first form in Block.
 
@@ -23,21 +53,6 @@
   """
   |at 1 =
 ] @: |afterFirst?
-
-
-[ """( B -- true/false ): leaves whether cursor is after the
-   last form in Block.
-
-  ```
-  [ | ] |afterLast? leaves: true
-  [ 1 | ] |afterLast? leaves: true
-  [ | 1 2 3 ] |afterLast? leaves: false
-  [ 1 | 2 3 ] |afterLast? leaves: false
-  [ 1 2 3 | ] |afterLast? leaves: true
-  ```
-  """
-  bi: |at count =
-] @: |afterLast?
 
 
 [ """( B N -- ): decrements block cursor position: moves
