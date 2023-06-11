@@ -212,3 +212,23 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 [ "( X Y bi@: B -- Bx By ): infix version of `bi@`."
   ahead thruBlock bi@
 ] @: bi@:
+
+
+[ """( -- ): moves cursor left twice in the active stack,
+   opposite of `|>>`. Same as `<| <|` but looks nicer.
+
+  ```
+  [ a b c | ] |: [ <<| 123 |>> 456 ] leaves: [ [ a 123 b c 456 ] ]
+  ```
+  """
+  <| <|
+] @: <<|
+
+
+[ """( -- ): moves cursor right twice in the active stack,
+   opposite of `<<|`. Same as `|> |>` but looks nicer.
+
+  See `<<|` for an example of how you can use this word.
+  """
+  |> |>
+] @: |>>

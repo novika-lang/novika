@@ -134,3 +134,12 @@ describe 'bi@' [
     [ 'john' 'John' bi@: toUppercase = ] val true assert=
   ]
 ]
+
+
+describe '<<| and |>>' [
+  in lang
+
+  it should 'move cursor twice left/right in the active stack' [
+    [ a b c | ] |: [ <<| 123 |>> 456 ] [ a 123 b c 456 ] assert=
+  ]
+]
