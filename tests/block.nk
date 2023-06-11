@@ -1,3 +1,15 @@
+describe 'top?' [
+  in lang
+
+  it should 'leave top form true or false' [
+    [ [ ] top? ] vals [ false ] vals assert=
+    [ [ 1 2 3 | ] top? ] vals [ 3 true ] vals assert=
+    [ [ 1 2 | 3 ] top? ] vals [ 2 true ] vals assert=
+    [ [ 1 | 2 3 ] top? ] vals [ 1 true ] vals assert=
+    [ [ | 1 2 3 ] top? ] vals [ false ] vals assert=
+  ]
+]
+
 describe 'anyof:' [
   in lang
 

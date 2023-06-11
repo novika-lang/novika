@@ -1,3 +1,20 @@
+[ """( B -- Tf true / false ): leaves Top form in Block followed
+   by `true` if there is one, otherwise leaves `false` only.
+
+  Top form is the form before the cursor in Block.
+
+  ```
+  [ ] top? leaves: false
+  [ 1 2 3 | ] top? leaves: [ 3 true ]
+  [ 1 2 | 3 ] top? leaves: [ 2 true ]
+  [ 1 | 2 3 ] top? leaves: [ 1 true ]
+  [ | 1 2 3 ] top? leaves: false
+  ```
+  """
+  dup |atLeftBound? br: [ drop false ] [ top true ]
+] @: top?
+
+
 [ """( [ ... | F ... ]B -- F true / false ): leaves Form and/
    or a boolean for whether Form exists in Block.
 
