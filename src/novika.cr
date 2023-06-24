@@ -41,7 +41,7 @@ require "./novika/resolver"
 module Novika
   extend self
 
-  VERSION = "0.0.11"
+  VERSION = "0.0.12"
 
   # Returns whether the output of Novika should be colorful.
   #
