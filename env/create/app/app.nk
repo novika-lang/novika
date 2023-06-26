@@ -1,0 +1,14 @@
+'app' $: template
+
+[
+  ok: 'Created a Novika application in the current directory.'
+
+'''
+  Now you can open core/core.nk in your favorite text
+  editor and build something cool with Novika!
+
+  Use the following command to run the application:
+
+     $ novika
+''' echo
+] @: beforeExit

@@ -51,11 +51,11 @@ describe 'newBlockSet' [
     set.add: [ 1 2 3 4 ]
     set.size 3 assert=
 
-    set.has: [ 3 4 ] true assert= "size = 2, exists"
-    set.has: [ 5 6 7 ] true assert= "size = 3, exists"
-    set.has: [ 100 ] false assert= "size = 1, does not exist"
+    set.has: [ 3 4 ] true assert= "count = 2, exists"
+    set.has: [ 5 6 7 ] true assert= "count = 3, exists"
+    set.has: [ 100 ] false assert= "count = 1, does not exist"
 
-    set.add: [ 100 200 300 ] "size = 3, exists, do not add"
+    set.add: [ 100 200 300 ] "count = 3, exists, do not add"
     set.size 3 assert=
 
     [ ] $: tmp

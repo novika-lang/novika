@@ -1,0 +1,6 @@
+**
+
+hl/patches
+
+# The following files are exempt from the Chewbacca patch,
+# which requires names to be different from builtins.

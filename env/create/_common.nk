@@ -1,0 +1,35 @@
+"""
+Scaffolds a Novika application/library.
+
+Sub-apps must expose the following two entries:
+
+* `template`: directory name of the template from '_templates' folder
+* `beforeExit`: some code to run before quitting
+"""
+
+this #template entry:exists? not => [
+  '''Usage:
+
+[1] create/app — creates a Novika application
+[2] create/lib — creates a Novika library
+  ''' echo
+
+  0 bye
+]
+
+"Get the current working directory..."
+disk:pwd $: cwd
+
+"Quit if it's not empty..."
+cwd disk:dirEmpty? not => [
+  sorry: 'Please create an empty directory for your next awesome Novika project, and \'cd\' into it!'
+  1 bye
+]
+
+"... and copy the template folder to the current working
+directory otherwise."
+(__path__ '_templates' disk:join) (template disk:join) ('.' disk:join) cwd disk:copy
+
+beforeExit
+
+0 bye

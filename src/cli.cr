@@ -101,58 +101,15 @@ module Novika::Frontend::CLI
     end
   end
 
-  # Runs the file at *path* using *engine*. A new block is
-  # created for *path* as a child of *toplevel*.
-  #
-  # Words from the new block are imported into *toplevel*
-  # after the engine successfully exhausts it.
-  #
-  # Returns *toplevel*.
-  def run(engine : Engine, toplevel : Block, path : Path) : Block
-    source = File.read(path)
-    block = Block.new(toplevel).slurp(source)
-    block.at(Word.new("__path__"), Quote.new(path.parent.to_s))
-    block.at(Word.new("__file__"), Quote.new(path.to_s))
-    block.at(Word.new("__runtime__"), Quote.new("novika"))
-    engine.schedule!(block, stack: Block.new)
-    engine.exhaust
-    toplevel.import!(from: block)
-  end
-
-  # Runs the given *folder*.
-  #
-  # If *folder* is an app, all other files in it (if any) are
-  # run first, then its entry file (again, only if it exists).
-  #
-  # If *folder* is a lib, its entry file is run first (if it
-  # exists), followed by all other files.
-  #
-  # The "philosophy" is as follows:
-  #
-  # * For apps, it's all other files contributing to the entry
-  #   file, which generally contains run instructions.
-  #
-  # * For libs, it's the lib's entry file contributing to all
-  #   other files -- allowing to share code in load order-
-  #   agnostic way.
-  def run(engine : Engine, toplevel : Block, folder : Folder)
-    run(engine, toplevel, folder.files) if folder.app?
-
-    if entry = folder.entry?
-      run(engine, toplevel, entry)
+  private def print_traceback(focus : Resolver::Runnable)
+    traceback = [focus] of Resolver::Runnable::Ancestor
+    focus.each_ancestor do |ancestor|
+      traceback.unshift(ancestor)
     end
 
-    run(engine, toplevel, folder.files) unless folder.app?
-  end
-
-  # Runs each of the *paths* (each is assumed to be a file).
-  def run(engine : Engine, toplevel : Block, paths : Set(Path))
-    paths.each { |path| run(engine, toplevel, path) }
-  end
-
-  # Runs each of the *folders*.
-  def run(engine : Engine, toplevel : Block, folders : Set(Folder))
-    folders.each { |folder| run(engine, toplevel, folder) }
+    traceback.each do |runnable|
+      puts "  ╿ in #{runnable}"
+    end
   end
 
   # Appends the CLI help message to *io*.
@@ -302,115 +259,106 @@ module Novika::Frontend::CLI
     profiler = nil
 
     args.reject! do |arg|
-      if status = arg =~ /^\-p(?::([1-9]\d*))?$/
+      case arg
+      when /^\-p(?::([1-9]\d*))?$/
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
+      else
+        next false
       end
-      status
+
+      true
     end
 
-    profiler.try { |it| Engine.trackers << it }
+    profiler.try { |prof| Engine.trackers << prof }
 
-    # Populate the capability collection with all available
-    # capabilities. Only enable default ones.
-    #
-    # We'll then enable those that the user wants.
-    caps = CapabilityCollection.with_available
-    caps.enable_default
+    caps = CapabilityCollection.with_available.enable_default
+    resolver = RunnableResolver.new(caps, cwd)
 
-    resolver = RunnableResolver.new(args, caps, cwd)
-    unless resolver.resolve?
+    caps.on_load_library? do |name|
+      Library.new?(name, resolver)
+    end
+
+    # Autoload env and cwd. We don't really care whether env autoloading
+    # had succeeded. On the other hand, if cwd autoloading hadn't, we
+    # have an opportunity to show help.
+    env_set = resolver.autoload_env?
+    cwd_set = resolver.autoload_cwd?
+
+    if ARGV.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
       help(STDOUT)
       exit(0)
     end
 
-    # If more than one app, try to reject core (it is assumed
-    # to be picked up implicitly; the "cost" of ignoring it is
-    # less than that of an explicitly specified app).
-    if resolver.apps.size > 1
-      resolver.apps.reject! do |app|
-        next if !app.core? || app.explicit?
+    # Now that autoloading is done, try to process the arguments.
+    resolver.from_queries(args)
 
-        # Also reject capabilities that the app requested!
-        resolver.capabilities.reject! do |cap|
-          next if cap.manual?
-
-          cap.root == app.path
-        end
-
-        true
+    # If there are any unresolved runnables, print them and their
+    # backtraces and quit. This is an error.
+    unless resolver.rejected.empty?
+      resolver.rejected.each do |runnable|
+        print_traceback(runnable)
+        Frontend.errln("could not resolve runnable: #{runnable}")
       end
-    end
 
-    # If still more than one, then we don't know what to do
-    # with them.
-    if resolver.apps.size > 1
-      Frontend.errln("cannot determine which app to run (given apps: #{resolver.apps.join(", ", &.path.basename)})")
       exit(1)
     end
 
-    # Found a bunch of unknown... things. We don't know what
-    # to do with them either.
-    #
-    # TODO: this takes into account things from .nk.app and .nk.lib
-    # files, which makes everything a bit confusing.
-    unless resolver.unknowns.empty?
-      resolver.unknowns.each do |arg|
-        Frontend.errln(
-          "could not resolve runnable #{arg.colorize.bold}: it's not a file, \
-           directory, shared object, Novika app, or capability id")
+    # Then, if there are any ignored runnables, print them as
+    # well but do not quit.
+    resolver.ignored.each do |runnable|
+      print_traceback(runnable)
+      Frontend.noteln("the following runnable is not allowed here: #{runnable}")
+    end
+
+    # Collect apps for further analysis.
+    apps = Set(Resolver::RunnableGroup).new
+    resolver.accepted.each do |set|
+      apps.concat(set.unique_apps)
+    end
+
+    if apps.size > 1
+      apps.each do |app|
+        print_traceback(app)
+        Frontend.noteln("cannot run #{app} because it's not the only one\n")
       end
+
+      Frontend.errln("cannot determine which one of the above apps to run")
+
       exit(1)
     end
 
-    # Create a library for each shared object, and put it in
-    # the capability collection.
-    #
-    # For each shared object, a library ID is made by taking the stem
-    # of path to the object and stripping it of the lib prefix, if it
-    # has one. For example, given `/lib/libmath.so` or `/lib/math.so`,
-    # the library ID would be `math` in both cases.
-    #
-    # Err if a library with the same id exists already.
-    resolver.shared_objects.each do |shared_object|
-      id = shared_object.stem.lchop("lib")
-
-      if caps.has_library?(id)
-        Frontend.errln("multiple libraries with the same id: #{id}")
-        exit(1)
-      end
-
-      caps << Library.new(id, shared_object)
+    # If one app was accepted and cwd is also an app, reject cwd
+    # because it is implicitly loaded (i.e. prefer explicit
+    # app over magic).
+    if cwd_set && cwd_set.app? && (apps.size == 1 || !args.empty?)
+      cwd_set = nil
     end
 
-    caps.on_load_library? do |id|
-      Library.new?(id, resolver)
-    end
+    # Form one big properly ordered 'sets' array of ResolutionSets
+    # that we are going to run.
+    sets = [] of Resolver::ResolutionSet
+    sets << env_set if env_set
+    sets << cwd_set if cwd_set
+    sets.concat(resolver.accepted)
 
-    engine = Engine.push(caps)
+    # Enable dependencies required by these resolution sets.
+    #
+    # Currently we do it in a way that completely throws away any
+    # actual usefulness/safety guarantees the dependency system
+    # may have provided. There are reasons but hopefully this
+    # isn't going to be the case in the future.
+    sets.each &.each_unique_dependency &.enable(in: caps)
 
     # Important: wrap capability block in another block! This is
     # required to make it possible to ignore capability block in
     # Image emission, saving some time and space!
     toplevel = Block.new(caps.block)
+    toplevel.at(Word.new("__runtime__"), Quote.new("novika"))
 
-    resolver.capabilities.each do |req|
-      allowed =
-        req.allowed? do
-          # If we've got it here, then it's in the capability
-          # collection, therefore, the capability class exists.
-          purpose = caps.get_capability_class?(req.id).not_nil!.purpose
-
-          print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
-          (gets.try &.downcase) == "y"
-        end
-
-      caps.enable(req.id) if allowed
-    end
+    engine = Engine.push(caps)
 
     begin
-      run(engine, toplevel, resolver.folders)
-      run(engine, toplevel, resolver.files)
-      run(engine, toplevel, resolver.apps)
+      sets.each &.each &.run(engine, toplevel)
     ensure
       profiler.try { |it| puts it.to_table }
     end

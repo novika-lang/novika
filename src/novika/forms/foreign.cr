@@ -344,16 +344,15 @@ module Novika
         # https://github.com/crystal-lang/crystal/blob/42a3f91335852613824a6a2587da6e590b540518/src/compiler/crystal/loader/msvc.cr#L65
 
         candidates.each do |candidate|
-          if library = Library.new?(id, Path[search_path] / candidate)
-            return library
-          end
+          next unless library = Library.new?(id, Path[search_path] / candidate)
+          return library
         end
       end
 
       # If not in search paths or no search paths, try looking
       # in Novika-specific directories.
       candidates.each do |candidate|
-        next unless path = resolver.expand_runnable_path?(Path[candidate])
+        next unless path = resolver.expand?(Path[candidate])
         next unless library = Library.new?(id, path)
         return library
       end
