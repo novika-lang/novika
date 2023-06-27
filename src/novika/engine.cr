@@ -168,7 +168,7 @@ module Novika
     # called simply the *block* (found at `C_BLOCK_AT`), and the
     # second is called the *stack* block (found at `C_STACK_AT`).
     def self.cont(*, block, stack)
-      Block[block, stack]
+      Block.with([block, stack] of Form, leaf: false)
     end
 
     {% for name, schedule in {:exhaust => :schedule, :exhaust! => :schedule!} %}
@@ -306,7 +306,7 @@ module Novika
         raise error
       end
 
-      schedule(handler, stack: conts.count.zero? ? Block[error] : stack.add(error))
+      schedule(handler, stack: conts.count.zero? ? Block.with(error) : stack.add(error))
     end
 
     # Exhausts all scheduled continuations, starting from the
