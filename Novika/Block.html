@@ -945,13 +945,6 @@ of <em>nested</em> blocks.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#%5B%5D%28%2Aforms%3AForm%29-class-method" class="signature"><strong>.[]</strong>(*forms : Form)</a>
-        
-          <div class="summary"><p>Creates and returns an orphan block whose tape will contain <em>forms</em>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
         <a href="#typedesc-class-method" class="signature"><strong>.typedesc</strong></a>
         
       </li>
@@ -960,6 +953,20 @@ of <em>nested</em> blocks.</p>
         <a href="#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method" class="signature"><strong>.with</strong>(array : Array(Form), leaf : Bool | Nil = <span class="n">nil</span>)</a>
         
           <div class="summary"><p>Creates and returns an orphan block with <em>array</em> being its tape substrate's container.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#with%28form1%3AForm%2Cform2%3AForm%29-class-method" class="signature"><strong>.with</strong>(form1 : Form, form2 : Form)</a>
+        
+          <div class="summary"><p>Double-<em>form</em> optimized version of <code><a href="../Novika/Block.html#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method">Block.with</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#with%28form%3AForm%29-class-method" class="signature"><strong>.with</strong>(form : Form)</a>
+        
+          <div class="summary"><p>Single-<em>form</em> optimized version of <code><a href="../Novika/Block.html#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method">Block.with</a></code>.</p></div>
         
       </li>
     
@@ -1772,26 +1779,6 @@ of <em>nested</em> blocks.</p>
     Class Method Detail
   </h2>
   
-    <div class="entry-detail" id="[](*forms:Form)-class-method">
-      <div class="signature">
-        
-        def self.<strong>[]</strong>(*forms : <a href="../Novika/Form.html">Form</a>)
-
-        <a class="method-permalink" href="#%5B%5D%28%2Aforms%3AForm%29-class-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Creates and returns an orphan block whose tape will
-contain <em>forms</em>.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
     <div class="entry-detail" id="typedesc-class-method">
       <div class="signature">
         
@@ -1818,6 +1805,44 @@ contain <em>forms</em>.</p>
           
           <p>Creates and returns an orphan block with <em>array</em> being
 its tape substrate's container. See <code><a href="../Novika/Tape.html#for%28elements%3AArray%28T%29%29-class-method">Tape.for</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="with(form1:Form,form2:Form)-class-method">
+      <div class="signature">
+        
+        def self.<strong>with</strong>(form1 : <a href="../Novika/Form.html">Form</a>, form2 : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#with%28form1%3AForm%2Cform2%3AForm%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Double-<em>form</em> optimized version of <code><a href="../Novika/Block.html#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method">Block.with</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="with(form:Form)-class-method">
+      <div class="signature">
+        
+        def self.<strong>with</strong>(form : <a href="../Novika/Form.html">Form</a>)
+
+        <a class="method-permalink" href="#with%28form%3AForm%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Single-<em>form</em> optimized version of <code><a href="../Novika/Block.html#with%28array%3AArray%28Form%29%2Cleaf%3ABool%7CNil%3Dnil%29-class-method">Block.with</a></code>.</p>
         </div>
       
       <br/>
