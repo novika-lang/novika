@@ -293,7 +293,7 @@ module Novika::Frontend::CLI
     end
 
     # Now that autoloading is done, try to process the arguments.
-    resolver.from_queries(args)
+    explicits = resolver.from_queries(args)
 
     # If there are any unresolved runnables, print them and their
     # backtraces and quit. This is an error.
@@ -348,13 +348,22 @@ module Novika::Frontend::CLI
       program.append(set)
     end
 
+    permissions = PermissionServer.new(caps, resolver, explicits)
+    permissions.load
+
     # Enable dependencies required by these resolution sets.
     #
     # Currently we do it in a way that completely throws away any
     # actual usefulness/safety guarantees the dependency system
     # may have provided. There are reasons but hopefully this
     # isn't going to be the case in the future.
-    program.each_unique_dependency &.enable(in: caps)
+    program.each_unique_dependency_with_dependents do |dependency, dependents|
+      permissions.request(dependency, for: dependents)
+
+      dependency.enable(in: caps)
+    end
+
+    permissions.save
 
     # Important: wrap capability block in another block! This is
     # required to make it possible to ignore capability block in
@@ -365,9 +374,11 @@ module Novika::Frontend::CLI
     engine = Engine.push(caps)
 
     begin
-      program.each &.run(engine, toplevel)
+      program.each do |resolution|
+        resolution.run(engine, toplevel)
+      end
     ensure
-      profiler.try { |it| puts it.to_table }
+      profiler.try { |prof| puts prof.to_table }
     end
   rescue e : Error
     e.report(STDERR)

@@ -1,3 +1,5 @@
+require "csv"
+
 module Dir::Globber
   # I guess all of this is private for a reason, but I still need
   # it for performance!
@@ -19,6 +21,9 @@ module Novika::Resolver
   # but is actually intended as a Novika environment directory.
   ENV_LOCAL_PROOF_FILENAME = ".nk.env"
 
+  # Specifies the name of the file that will contain saved permissions.
+  PERMISSIONS_FILENAME = "permissions"
+
   # Selector for `Disk#glob`.
   enum GlobSelector
     # Match all Novika scripts (glob '*.nk')
@@ -33,6 +38,13 @@ module Novika::Resolver
       in .directories? then io << "*/"
       end
     end
+  end
+
+  # Represents the permission state of a dependency.
+  enum Permission
+    Undecided
+    Allowed
+    Denied
   end
 
   # Mainly a caching/Novika-specific optimization abstraction over
@@ -172,8 +184,54 @@ module Novika::Resolver
   struct Resolution
     # Includers can be listed as dependencies in a `Resolution`.
     module Dependency
-      # Enables this dependency in the given capability collection *caps*.
+      # Returns the string name of this dependency which can be used
+      # to identify it.
+      abstract def depname : String
+
+      # Enables this dependency in the given capability collection *caps*
+      # if this dependency is `allowed?`.
       abstract def enable(*, in caps : CapabilityCollection)
+
+      # Promps the user for whether the use of this dependency should
+      # be allowed to *group*, and returns the resulting `Permission`
+      # state.
+      abstract def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+
+      @permission = Permission::Undecided
+
+      # Returns whether this dependency is allowed. Depends on the permission
+      # state of this dependency, which is normally set by `PermissionServer`.
+      def allowed?
+        @permission.allowed?
+      end
+
+      # Sets the permission state of this dependency to "allowed".
+      def allow
+        @permission = Permission::Allowed
+      end
+
+      # Sets the permission state of this dependency to "denied".
+      def deny
+        @permission = Permission::Denied
+      end
+
+      # Communicates with *server* in order to determine whether
+      # this dependency is allowed for the given *group*.
+      #
+      # See `PermissionServer#request` for more information.
+      def request(server : PermissionServer, *, for group : RunnableGroup)
+        return unless @permission.undecided?
+
+        # Ask the server if this dependency is explicit. A dependency
+        # is considered explicit when it is specified in the arguments
+        # by hand.
+        if server.explicit?(self)
+          @permission = Permission::Allowed
+          return
+        end
+
+        @permission = server.query_permission?(group, self)
+      end
     end
 
     @abspath : Path
@@ -287,22 +345,12 @@ module Novika::Resolver
       @resolutions.each { |resolution| yield resolution }
     end
 
-    # Yields unique `Resolution::Dependency` objects found in
-    # this resolution set.
-    def each_unique_dependency(& : Resolution::Dependency ->)
-      deps = Set(Resolution::Dependency).new
-      each &.dump!(deps)
-      deps.each do |dep|
-        yield dep
-      end
-    end
-
     # Yields all `RunnableGroup` objects that have contributed
     # to this resolution set. The yielded groups can repeat.
-    def each_group(& : RunnableGroup ->)
+    def each_group(& : RunnableGroup, Resolution ->)
       each do |resolution|
         resolution.each_source_group do |group|
-          yield group
+          yield group, resolution
         end
       end
     end
@@ -411,7 +459,7 @@ module Novika::Resolver
 
     # Yields `Resolution::Dependency` objects and a `ResolutionSet`
     # of their dependents.
-    def each_dependency_with_dependents(& : Resolution::Dependency, ResolutionSet ->)
+    def each_unique_dependency_with_dependents(& : Resolution::Dependency, ResolutionSet ->)
       map = {} of Resolution::Dependency => ResolutionSet
 
       each do |resolution|
@@ -586,7 +634,24 @@ module Novika::Resolver
       super(ancestor)
     end
 
+    def depname : String
+      @datum
+    end
+
+    def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+      server.ask_permission?("Do you allow #{group.abspath} to use #{@datum} (#{server.describe(self)})? [Y/n]")
+    end
+
+    def purpose(*, in caps : CapabilityCollection)
+      unless cls = caps.get_capability_class?(@datum)
+        raise "BUG: capability runnable for which there is no capability class"
+      end
+
+      cls.purpose
+    end
+
     def enable(*, in caps : CapabilityCollection)
+      return unless allowed?
       return if caps.has_capability_enabled?(@datum)
 
       caps.enable(@datum)
@@ -631,7 +696,16 @@ module Novika::Resolver
       @datum.stem.lchop("lib")
     end
 
+    def depname : String
+      @datum.to_s
+    end
+
+    def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+      server.ask_permission?("Do you allow #{group.abspath} to load shared object #{@datum}? [Y/n]")
+    end
+
     def enable(*, in caps : CapabilityCollection)
+      return unless allowed?
       return if caps.has_library?(id = self.id)
 
       caps << Library.new(id, @datum)
@@ -684,16 +758,11 @@ module Novika::Resolver
       super(ancestor)
     end
 
-    # Converts this directory to a runnable group with the
-    # given *manifest*.
-    def to_group(manifest) : RunnableGroup
-      RunnableGroup.new(@datum, manifest, ancestor: @ancestor)
-    end
-
     def specialize(root : RunnableRoot, container : RunnableContainer)
-      Manifest
-        .find(root.disk, @datum, ancestor: self)
-        .specialize(self, root, container)
+      group = RunnableGroup.allocate
+      manifest = Manifest.find(root.disk, @datum, ancestor: group)
+      group.initialize(@datum, manifest, ancestor: @ancestor)
+      container.append(group)
     end
 
     def to_s(io)
@@ -778,13 +847,6 @@ module Novika::Resolver
       container.append(subtree)
 
       layout(subtree, group)
-    end
-
-    # Specializes the given *dir*ectory based on the type of this
-    # manifest. For example, if this manifest is an application
-    # manifest, *dir* is specialized into an application `RunnableGroup`.
-    def specialize(dir : RunnableDir, root : RunnableRoot, container : RunnableContainer)
-      container.append dir.to_group(self)
     end
   end
 
@@ -1501,21 +1563,19 @@ module Novika::Resolver
 
       # All resolutions under this container will inherit the
       # following dependencies.
-      deps = @runnables.select(Resolution::Dependency).to_set.concat(inherit)
+      deps = inherit.concat(@runnables.select(Resolution::Dependency).to_set)
 
       @runnables.each do |runnable|
         case runnable
         when RunnableContainer
-          res = runnable.to_resolution_set(deps)
+          resolution = runnable.to_resolution_set(deps.dup)
         when RunnableScript
-          # Make sure each resolution actually owns the set
-          # rather than shares a mutable reference.
-          res = Resolution.new(runnable, deps: deps.dup)
+          resolution = Resolution.new(runnable, deps: deps.dup)
         else
           next
         end
 
-        set.append(res)
+        set.append(resolution)
       end
 
       set
@@ -1727,107 +1787,268 @@ module Novika::Resolver
   end
 end
 
-class Novika::RunnableResolver
-  include Resolver
+module Novika
+  class RunnableResolver
+    include Resolver
 
-  getter accepted = [] of ResolutionSet
-  getter rejected = [] of Runnable
-  getter ignored = [] of Runnable
+    getter accepted = [] of ResolutionSet
+    getter rejected = [] of Runnable
+    getter ignored = [] of Runnable
 
-  @env : Path?
+    @env : Path?
 
-  def initialize(caps : CapabilityCollection, @cwd : Path)
-    @disk = Disk.new
-    @root = RunnableRoot.new(caps, @disk, ->(runnable : Runnable) { @ignored << runnable })
-    @env = @disk.env?(cwd)
+    def initialize(caps : CapabilityCollection, @cwd : Path)
+      @disk = Disk.new
+      @root = RunnableRoot.new(caps, @disk, ->(runnable : Runnable) { @ignored << runnable })
+      @env = @disk.env?(cwd)
 
-    # Current working directory is the primary origin. We'll
-    # search there first.
-    @root.push_origin(cwd)
+      # Current working directory is the primary origin. We'll
+      # search there first.
+      @root.push_origin(cwd)
 
-    # If we found an environment directory, we'll search there
-    # later, in case there's no match in cwd.
-    @env.try do |env|
-      @root.push_origin(env)
-    end
-
-    # Set flags for OS etc. Only true stuff is stored internally,
-    # so don't worry about the mutual exclusivity of all (or most)
-    # of these.
-    @root.set_flag("bsd", {{ flag?(:bsd) }})
-    @root.set_flag("darwin", {{ flag?(:darwin) }})
-    @root.set_flag("dragonfly", {{ flag?(:dragonfly) }})
-    @root.set_flag("freebsd", {{ flag?(:freebsd) }})
-    @root.set_flag("linux", {{ flag?(:linux) }})
-    @root.set_flag("netbsd", {{ flag?(:netbsd) }})
-    @root.set_flag("openbsd", {{ flag?(:openbsd) }})
-    @root.set_flag("unix", {{ flag?(:unix) }})
-    @root.set_flag("windows", {{ flag?(:windows) }})
-  end
-
-  private def submit(&)
-    @root.commit do |container|
-      container.flatten!
-
-      nonterminals = Set(Runnable).new
-      container.recursive_nonterminal_each do |nonterminal|
-        nonterminals << nonterminal
+      # If we found an environment directory, we'll search there
+      # later, in case there's no match in cwd.
+      @env.try do |env|
+        @root.push_origin(env)
       end
 
-      yield container.to_resolution_set, nonterminals
+      # Set flags for OS etc. Only true stuff is stored internally,
+      # so don't worry about the mutual exclusivity of all (or most)
+      # of these.
+      @root.set_flag("bsd", {{ flag?(:bsd) }})
+      @root.set_flag("darwin", {{ flag?(:darwin) }})
+      @root.set_flag("dragonfly", {{ flag?(:dragonfly) }})
+      @root.set_flag("freebsd", {{ flag?(:freebsd) }})
+      @root.set_flag("linux", {{ flag?(:linux) }})
+      @root.set_flag("netbsd", {{ flag?(:netbsd) }})
+      @root.set_flag("openbsd", {{ flag?(:openbsd) }})
+      @root.set_flag("unix", {{ flag?(:unix) }})
+      @root.set_flag("windows", {{ flag?(:windows) }})
     end
-  end
 
-  private def to_resolution_set?(query : Query)
-    qobj = @root.push_query(query)
+    private def submit(&)
+      @root.commit do |container|
+        container.flatten!
 
-    submit do |set, nonterminals|
-      # If the same query object is still in the list of nonterminals,
-      # then it wasn't rewritten. Therefore, autoloading failed.
-      unless nonterminals.empty?
-        nonterminals.each do |nonterminal|
-          @rejected << nonterminal
+        nonterminals = Set(Runnable).new
+        container.recursive_nonterminal_each do |nonterminal|
+          nonterminals << nonterminal
         end
-        return nil, qobj
+
+        yield container.to_resolution_set, nonterminals
       end
-      return set, qobj
     end
 
-    {nil, nil}
-  end
+    private def to_resolution_set?(query : Query)
+      qobj = @root.push_query(query)
 
-  def expand?(path : Path)
-    @disk.file?(path.expand(@cwd)) || @env.try { |env| @disk.file?(path.expand(env)) }
-  end
-
-  def autoload_env?
-    return nil, nil unless env = @env
-
-    to_resolution_set?(env / "core")
-  end
-
-  def autoload_cwd?
-    # Try to autoload core in cwd if cwd is an app
-    # or a lib.
-    return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
-
-    to_resolution_set?(@cwd)
-  end
-
-  def from_queries(queries : Array(String))
-    queries.each do |query|
-      @root.push_query(query)
-    end
-
-    submit do |set, nonterminals|
-      unless nonterminals.empty?
-        nonterminals.each do |nonterminal|
-          @rejected << nonterminal
+      submit do |set, nonterminals|
+        # If the same query object is still in the list of nonterminals,
+        # then it wasn't rewritten. Therefore, autoloading failed.
+        unless nonterminals.empty?
+          nonterminals.each do |nonterminal|
+            @rejected << nonterminal
+          end
+          return nil, qobj
         end
-        return
+        return set, qobj
       end
 
-      @accepted << set
+      {nil, nil}
+    end
+
+    def in_env(path : Path, &)
+      @env.try { |env| yield path.expand(env) }
+    end
+
+    def expand_in_env?(path : Path)
+      in_env(path) do |path|
+        return @disk.file?(path)
+      end
+    end
+
+    def expand_in_cwd?(path : Path)
+      @disk.file?(path.expand(@cwd))
+    end
+
+    def expand?(path : Path)
+      expand_in_cwd?(path) || expand_in_env?(path)
+    end
+
+    def autoload_env?
+      return nil, nil unless env = @env
+
+      to_resolution_set?(env / "core")
+    end
+
+    def autoload_cwd?
+      # Try to autoload core in cwd if cwd is an app
+      # or a lib.
+      return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
+
+      to_resolution_set?(@cwd)
+    end
+
+    def from_queries(queries : Array(String))
+      qobjs = queries.map { |query| @root.push_query(query) }
+
+      submit do |set, nonterminals|
+        unless nonterminals.empty?
+          nonterminals.each do |nonterminal|
+            @rejected << nonterminal
+          end
+          return qobjs
+        end
+
+        @accepted << set
+      end
+
+      qobjs
+    end
+  end
+
+  # Permission server allows to prompt the user for permissions, and
+  # save the user's choices in the *permissions file*.
+  #
+  # Note that you have to manually call `load` and `save` when
+  # appropriate in order to load permissions from disk, and save
+  # them on disk for better user experience.
+  class PermissionServer
+    include Resolver
+
+    # Creates a new permission server.
+    #
+    # *resolver* is the resolver with which this server will talk about
+    # resolver-related things.
+    #
+    # *explicit* is the list of explicit runnable queries. An explicit
+    # query is that query which was specified manually, e.g. via the
+    # arguments. In other words, the user had to *type them in* here
+    # and now rather than receive them from manifest or whatnot. The
+    # explicit query list is mainly used to be less annoying when it
+    # comes to asking for permissions.
+    def initialize(
+      @caps : CapabilityCollection,
+      @resolver : RunnableResolver,
+      @explicit : Array(RunnableQuery)
+    )
+      @permissions = {} of {String, String} => Permission
+    end
+
+    # Fills the permissions hash with saved permissions.
+    def load
+      return unless saved = @resolver.expand_in_env?(Path[PERMISSIONS_FILENAME])
+
+      csv = CSV.new File.read(saved)
+      csv.each do |(dependent, dependency, state)|
+        next unless id = state.to_i?
+        next unless permission = Permission.from_value?(id)
+
+        @permissions[{dependent, dependency}] = permission
+      end
+    end
+
+    # Flushes the internal permissions store to disk. Can create the
+    # permissions file, if necessary.
+    #
+    # Note: this method does nothing in case the internal permissions
+    # store is empty.
+    def save
+      return if @permissions.empty?
+
+      @resolver.in_env(Path[PERMISSIONS_FILENAME]) do |savefile|
+        csv = CSV.build do |builder|
+          @permissions.each do |(dependent, dependency), permission|
+            builder.row(dependent, dependency, permission.to_i)
+          end
+        end
+
+        File.write(savefile, csv)
+      end
+    end
+
+    # Describes the purpose of *dependency*.
+    def describe(dependency : RunnableCapability) : String
+      dependency.purpose(in: @caps)
+    end
+
+    # Asks user a *question*, converts the answer to `Permission`
+    # based on whether it matches *pattern*.
+    def ask_permission?(question : String, pattern = /^\s*[Yy]\s*$/) : Permission
+      print question, " "
+
+      return Permission::Denied unless answer = gets
+
+      state = answer.matches?(pattern)
+      state ? Permission::Allowed : Permission::Denied
+    end
+
+    # Returns whether *dependency* is explicit.
+    #
+    # This is done by checking whether the *first* `RunnableQuery`
+    # ancestor of *dependency* is in the explicit list. See `new`
+    # to learn what "explicitness" means.
+    def explicit?(dependency : Resolution::Dependency) : Bool
+      dependency.each_ancestor do |ancestor|
+        next unless ancestor.is_a?(RunnableQuery)
+        return @explicit.any?(ancestor)
+      end
+
+      false
+    end
+
+    # Queries (possibly prompts) and returns the permission state of
+    # *dependency* for the given *group*.
+    def query_permission?(group : RunnableGroup, dependency : Resolution::Dependency)
+      @permissions[{group.abspath.to_s, dependency.depname}] ||=
+        dependency.prompt?(self, for: group)
+    end
+
+    # Requests *dependency* for the given set of *dependents*.
+    #
+    # This process happens in two steps.
+    #
+    # First, we determine whether the user allows the use of
+    # *dependency* in groups from *dependents* (this is done by
+    # asking the user or reading the saved permissions file).
+    #
+    # The decision is also saved in the permissions file *if it
+    # was positive*.
+    #
+    # Note that you still have to explicitly enable depenendencies
+    # using `Resolution::Dependency#enable`. Dependencies that weren't
+    # allowed are simply going to refuse enabling themselves.
+    def request(dependency : Resolution::Dependency, for dependents : ResolutionSet)
+      skiplist = Set(Resolution).new
+      visited = Set(RunnableGroup).new
+
+      # Go through apps and libs, add their resolutions to the skiplist.
+      # React only to never-seen-before groups.
+      dependents.each_group do |group, resolution|
+        next unless group.app? || group.lib?
+
+        if group.in?(visited)
+          skiplist << resolution
+          next
+        end
+
+        dependency.request(self, for: group)
+
+        visited << group
+        skiplist << resolution
+      end
+
+      # For all resultions not belonging to an app or lib, simply
+      # allow the use of the dependency.
+      #
+      # `request` isn't expected to be called recursively, therefore,
+      # we only allow dependencies from `explicit?` queries -- the same
+      # thing we'd do with some other more "elegant" way.
+      dependents.each do |resolution|
+        next if resolution.in?(skiplist)
+
+        resolution.each_dependency(&.allow)
+      end
     end
   end
 end
