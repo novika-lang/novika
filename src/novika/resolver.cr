@@ -354,13 +354,13 @@ module Novika::Resolver
     def app?
       return false if empty?
 
-      groups = self.groups
-      return false unless groups.size == size
+      apps = unique_apps
+      return false unless apps.size == size
 
-      first = groups.first
-      return false unless groups.all? &.same?(first)
+      head = apps.first
+      return false unless apps.all? &.same?(head)
 
-      first.app?
+      true
     end
 
     # Yields library `RunnableGroup`s that have contributed
@@ -387,13 +387,13 @@ module Novika::Resolver
     def lib?
       return false if empty?
 
-      groups = self.groups
-      return false unless groups.size == size
+      libs = unique_libs
+      return false unless libs.size == size
 
-      first = groups.first
-      return false unless groups.all? &.same?(first)
+      head = libs.first
+      return false unless libs.all? &.same?(head)
 
-      first.lib?
+      true
     end
 
     # Yields resolutions that were contributed by the given *group*.
@@ -1778,7 +1778,7 @@ class Novika::RunnableResolver
     end
   end
 
-  private def to_resolution_set?(query : Query) : ResolutionSet?
+  private def to_resolution_set?(query : Query)
     qobj = @root.push_query(query)
 
     submit do |set, nonterminals|
@@ -1788,26 +1788,28 @@ class Novika::RunnableResolver
         nonterminals.each do |nonterminal|
           @rejected << nonterminal
         end
-        return
+        return nil, qobj
       end
-      return set
+      return set, qobj
     end
+
+    {nil, nil}
   end
 
   def expand?(path : Path)
     @disk.file?(path.expand(@cwd)) || @env.try { |env| @disk.file?(path.expand(env)) }
   end
 
-  def autoload_env? : ResolutionSet?
-    return unless env = @env
+  def autoload_env?
+    return nil, nil unless env = @env
 
     to_resolution_set?(env / "core")
   end
 
-  def autoload_cwd? : ResolutionSet?
+  def autoload_cwd?
     # Try to autoload core in cwd if cwd is an app
     # or a lib.
-    return if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
+    return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
 
     to_resolution_set?(@cwd)
   end

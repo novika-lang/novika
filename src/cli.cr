@@ -101,14 +101,14 @@ module Novika::Frontend::CLI
     end
   end
 
-  private def print_traceback(focus : Resolver::Runnable)
+  private def print_traceback(io : IO, focus : Resolver::Runnable)
     traceback = [focus] of Resolver::Runnable::Ancestor
     focus.each_ancestor do |ancestor|
       traceback.unshift(ancestor)
     end
 
     traceback.each do |runnable|
-      puts "  ╿ in #{runnable}"
+      io.puts "  ╿ in #{runnable}"
     end
   end
 
@@ -281,8 +281,11 @@ module Novika::Frontend::CLI
     # Autoload env and cwd. We don't really care whether env autoloading
     # had succeeded. On the other hand, if cwd autoloading hadn't, we
     # have an opportunity to show help.
-    env_set = resolver.autoload_env?
-    cwd_set = resolver.autoload_cwd?
+    env_set, env_q = resolver.autoload_env?
+    cwd_set, cwd_q = resolver.autoload_cwd?
+
+    resolver.rejected.reject!(env_q) if env_q
+    resolver.rejected.reject!(cwd_q) if cwd_q
 
     if ARGV.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
       help(STDOUT)
@@ -296,7 +299,7 @@ module Novika::Frontend::CLI
     # backtraces and quit. This is an error.
     unless resolver.rejected.empty?
       resolver.rejected.each do |runnable|
-        print_traceback(runnable)
+        print_traceback(STDERR, runnable)
         Frontend.errln("could not resolve runnable: #{runnable}")
       end
 
@@ -306,8 +309,8 @@ module Novika::Frontend::CLI
     # Then, if there are any ignored runnables, print them as
     # well but do not quit.
     resolver.ignored.each do |runnable|
-      print_traceback(runnable)
-      Frontend.noteln("the following runnable is not allowed here: #{runnable}")
+      print_traceback(STDERR, runnable)
+      Frontend.noteln("the following runnable is not allowed here: #{runnable}", io: STDERR)
     end
 
     # Collect apps for further analysis.
@@ -318,8 +321,8 @@ module Novika::Frontend::CLI
 
     if apps.size > 1
       apps.each do |app|
-        print_traceback(app)
-        Frontend.noteln("cannot run #{app} because it's not the only one\n")
+        print_traceback(STDERR, app)
+        Frontend.noteln("cannot run #{app} because it's not the only one\n", io: STDERR)
       end
 
       Frontend.errln("cannot determine which one of the above apps to run")
@@ -334,12 +337,16 @@ module Novika::Frontend::CLI
       cwd_set = nil
     end
 
-    # Form one big properly ordered 'sets' array of ResolutionSets
-    # that we are going to run.
-    sets = [] of Resolver::ResolutionSet
-    sets << env_set if env_set
-    sets << cwd_set if cwd_set
-    sets.concat(resolver.accepted)
+    # Form one big ResolutionSet from all ResolutionSets we are going
+    #  to run. This take scare of any repetitions, in dependencies, as
+    # well as in resolutions themselves.
+    program = Resolver::ResolutionSet.new
+    program.append(env_set) if env_set
+    program.append(cwd_set) if cwd_set
+
+    resolver.accepted.each do |set|
+      program.append(set)
+    end
 
     # Enable dependencies required by these resolution sets.
     #
@@ -347,7 +354,7 @@ module Novika::Frontend::CLI
     # actual usefulness/safety guarantees the dependency system
     # may have provided. There are reasons but hopefully this
     # isn't going to be the case in the future.
-    sets.each &.each_unique_dependency &.enable(in: caps)
+    program.each_unique_dependency &.enable(in: caps)
 
     # Important: wrap capability block in another block! This is
     # required to make it possible to ignore capability block in
@@ -358,7 +365,7 @@ module Novika::Frontend::CLI
     engine = Engine.push(caps)
 
     begin
-      sets.each &.each &.run(engine, toplevel)
+      program.each &.run(engine, toplevel)
     ensure
       profiler.try { |it| puts it.to_table }
     end
