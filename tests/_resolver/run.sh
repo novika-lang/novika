@@ -1,6 +1,7 @@
 #!/bin/bash
 
 root=$(pwd)/../../
+status=0
 
 for dir in ./[0-9]*/; do
   if [[ -d "$dir" ]]; then
@@ -34,8 +35,10 @@ for dir in ./[0-9]*/; do
     if ! diff -q <(echo "$output") "baseline"; then
       echo "$dir: error: some test case(s) failed"
       diff <(echo "$output") "baseline"
+      status=1
     fi
     cd ..
   fi
 done
 
+exit $status
