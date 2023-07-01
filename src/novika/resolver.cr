@@ -166,8 +166,8 @@ module Novika::Resolver
       env : Path?
 
       return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
-      return env if dir?(env = origin / ENV_GLOBAL_DIRNAME)
-      return env if dir?(env = origin / ENV_LOCAL_DIRNAME) && file?(env / ENV_LOCAL_PROOF_FILENAME)
+      return Path[File.realpath(env)] if dir?(env = origin / ENV_GLOBAL_DIRNAME)
+      return Path[File.realpath(env)] if dir?(env = origin / ENV_LOCAL_DIRNAME) && file?(env / ENV_LOCAL_PROOF_FILENAME)
       return if origin == origin.root
 
       env?(origin.parent)
