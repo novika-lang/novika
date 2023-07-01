@@ -366,6 +366,56 @@ module Novika::Resolver
       groups
     end
 
+    # Returns an array of application `RunnableGroup`s that have
+    # contributed to this resolution set.
+    def apps : Array(RunnableGroup)
+      apps = [] of RunnableGroup
+      each_group do |group|
+        next unless group.app?
+        apps << group
+      end
+      apps
+    end
+
+    # Returns an array of library `RunnableGroup`s that have
+    # contributed to this resolution set.
+    def libs : Array(RunnableGroup)
+      libs = [] of RunnableGroup
+      each_group do |group|
+        next unless group.lib?
+        libs << group
+      end
+      libs
+    end
+
+    # Returns whether all resolutions in this set come from the
+    # same application `RunnableGroup`.
+    def app?
+      return false if empty?
+
+      apps = self.apps
+      return false if apps.size < size
+
+      head = apps.first
+      return false unless apps.all? &.same?(head)
+
+      true
+    end
+
+    # Returns whether all resolutions in this set come from the
+    # same library `RunnableGroup`.
+    def lib?
+      return false if empty?
+
+      libs = self.libs
+      return false if libs.size < size
+
+      head = libs.first
+      return false unless libs.all? &.same?(head)
+
+      true
+    end
+
     # Yields all `RunnableGroup` objects that have contributed
     # to this resolution set. The yielded groups do not repeat.
     def each_unique_group(& : RunnableGroup ->)
@@ -387,30 +437,6 @@ module Novika::Resolver
       end
     end
 
-    # Returns an array of application `RunnableGroup`s that have
-    # contributed to this resolution set.
-    def unique_apps : Array(RunnableGroup)
-      unique_apps = [] of RunnableGroup
-      each_unique_app do |app|
-        unique_apps << app
-      end
-      unique_apps
-    end
-
-    # Returns whether all resolutions in this set come from the
-    # same application `RunnableGroup`.
-    def app?
-      return false if empty?
-
-      apps = unique_apps
-      return false unless apps.size == size
-
-      head = apps.first
-      return false unless apps.all? &.same?(head)
-
-      true
-    end
-
     # Yields library `RunnableGroup`s that have contributed
     # to this resolution set.
     def each_unique_lib(& : RunnableGroup ->)
@@ -420,7 +446,17 @@ module Novika::Resolver
       end
     end
 
-    # Returns an array of library `RunnableGroup`s that have
+    # Returns an array of unique application `RunnableGroup`s that have
+    # contributed to this resolution set.
+    def unique_apps : Array(RunnableGroup)
+      unique_apps = [] of RunnableGroup
+      each_unique_app do |app|
+        unique_apps << app
+      end
+      unique_apps
+    end
+
+    # Returns an array of unique library `RunnableGroup`s that have
     # contributed to this resolution set.
     def unique_libs : Array(RunnableGroup)
       unique_libs = [] of RunnableGroup
@@ -428,20 +464,6 @@ module Novika::Resolver
         unique_libs << lib_
       end
       unique_libs
-    end
-
-    # Returns whether all resolutions in this set come from the
-    # same library `RunnableGroup`.
-    def lib?
-      return false if empty?
-
-      libs = unique_libs
-      return false unless libs.size == size
-
-      head = libs.first
-      return false unless libs.all? &.same?(head)
-
-      true
     end
 
     # Yields resolutions that were contributed by the given *group*.
