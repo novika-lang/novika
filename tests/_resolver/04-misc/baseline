@@ -1,0 +1,31 @@
+
+./0-nolayout-absent/:
+bar.nk
+baz.nk
+foo.nk
+nolayout.nk
+a.nk
+b.nk
+./1-nolayout-only/:
+./2-nolayout-present/:
+a.nk
+bar.nk
+baz.nk
+./3-nolayout-inheritance/:
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+./4-nolayout-inheritance-link/:
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!

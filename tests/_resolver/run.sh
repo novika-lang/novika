@@ -27,7 +27,7 @@ for dir in ./[0-9]*/; do
           cd ..
           continue
         fi
-        output+="$command_output"
+        output+=$(cat <(echo -ne "\n$subdir:\n$command_output"))
         cd ..
       fi
     done

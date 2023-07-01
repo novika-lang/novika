@@ -1000,6 +1000,7 @@ module Novika::Resolver
       root : RunnableRoot,
       container : RunnableContainer,
       group : RunnableGroup,
+      directives : Array(String),
       fragments : Array(String),
       inherited : Bool
     )
@@ -1024,7 +1025,7 @@ module Novika::Resolver
 
       # If no explicit subtree slot, create one & make it so that
       # it is loaded first (this seems to mak most sense).
-      unless subtree_slot || inherited
+      unless subtree_slot || inherited || directives.includes?("nolayout")
         subtree_slot = SubtreeSlot.new(ancestor: self)
         child.prepend(subtree_slot)
       end
@@ -1038,24 +1039,26 @@ module Novika::Resolver
       replace_subtree_slot(root, child, group, subtree_slot, existing: container.paths) if subtree_slot
     end
 
+    # A set of allowed manifest directives.
+    DIRECTIVES = Set{"noinherit", "nolayout"}
+
     def populate(root : RunnableRoot, container : RunnableContainer, group : RunnableGroup)
       # We have to run manifests in grandparent-parent-child-etc. order,
       # but we climb in child-parent-grandparent order and, moreover,
       # child, parent, etc. can interrupt climbing with 'noinherit' or
       # by being of a non-inheritable kind, such as '.nk.app' parent
       # of '.nk.lib'.
-      manifests = [] of {Manifest::Present, Array(String), Bool}
+      manifests = [] of {Manifest::Present, Array(String), Array(String), Bool}
 
       climb(root) do |manifest, isself|
-        fragments = manifest.fragments(within: root)
-        noinherit = !!fragments.delete("noinherit")
-        manifests << {manifest, fragments, !isself}
+        directives, fragments = manifest.fragments(within: root).partition &.in?(DIRECTIVES)
+        manifests << {manifest, directives, fragments, !isself}
 
-        break if noinherit
+        break if directives.includes?("noinherit")
       end
 
-      manifests.reverse_each do |manifest, fragments, inherited|
-        manifest.process(root, container, group, fragments, inherited)
+      manifests.reverse_each do |manifest, directives, fragments, inherited|
+        manifest.process(root, container, group, directives, fragments, inherited)
       end
     end
 
