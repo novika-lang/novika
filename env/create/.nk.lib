@@ -1,7 +1,13 @@
+nolayout
+
 # This manifest is inherited by manifests below, unless they
 # explicitly say `noinherit` or there is a .nk.app in the chain
 # (but, importantly, .nk.app is *allowed* at the end of the chain!).
 
 disk
 
-** _common.nk
+# FIXME: the fact that this works is pretty much magic. Instead,
+# what's below should be reading as: `** <> entry.nk`. However,
+# inheritance slots are not implemented yet.
+
+** entry.nk
