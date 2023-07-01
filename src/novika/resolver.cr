@@ -1737,8 +1737,10 @@ module Novika::Resolver
     # queries apparently unrelated to Novika, perhaps typos or something else.
     def push_origin(origin : Path)
       if @committing
-        raise "Cannot push new origin during a commit"
+        raise "BUG: cannot push new origin during a commit"
       end
+
+      return if origin.in?(@origins)
 
       @origins.push(origin)
     end
@@ -1754,7 +1756,7 @@ module Novika::Resolver
     # You cannot push a query during a `commit`.
     def push_query(query : Query) : RunnableQuery
       if @committing
-        raise "Cannot push new queries during a commit"
+        raise "BUG: cannot push new queries during a commit"
       end
 
       RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
@@ -1929,6 +1931,17 @@ module Novika
       end
 
       qobjs
+    end
+
+    def to_s(io)
+      origins = [] of Path
+      @root.each_origin do |origin|
+        origins << origin
+      end
+
+      io << "("
+      origins.join(io, " | ")
+      io << ")"
     end
   end
 

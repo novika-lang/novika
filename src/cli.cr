@@ -101,11 +101,13 @@ module Novika::Frontend::CLI
     end
   end
 
-  private def print_traceback(io : IO, focus : Resolver::Runnable)
+  private def print_traceback(io : IO, focus : Resolver::Runnable, resolver : RunnableResolver)
     traceback = [focus] of Resolver::Runnable::Ancestor
     focus.each_ancestor do |ancestor|
       traceback.unshift(ancestor)
     end
+
+    io.puts(resolver)
 
     traceback.each do |runnable|
       io.puts "  ╿ in #{runnable}"
@@ -299,7 +301,7 @@ module Novika::Frontend::CLI
     # backtraces and quit. This is an error.
     unless resolver.rejected.empty?
       resolver.rejected.each do |runnable|
-        print_traceback(STDERR, runnable)
+        print_traceback(STDERR, runnable, resolver)
         Frontend.errln("could not resolve runnable: #{runnable}")
       end
 
@@ -309,7 +311,7 @@ module Novika::Frontend::CLI
     # Then, if there are any ignored runnables, print them as
     # well but do not quit.
     resolver.ignored.each do |runnable|
-      print_traceback(STDERR, runnable)
+      print_traceback(STDERR, runnable, resolver)
       Frontend.noteln("the following runnable is not allowed here: #{runnable}", io: STDERR)
     end
 
@@ -321,7 +323,7 @@ module Novika::Frontend::CLI
 
     if apps.size > 1
       apps.each do |app|
-        print_traceback(STDERR, app)
+        print_traceback(STDERR, app, resolver)
         Frontend.noteln("cannot run #{app} because it's not the only one\n", io: STDERR)
       end
 
