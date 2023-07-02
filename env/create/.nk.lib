@@ -6,8 +6,4 @@ nolayout
 
 disk
 
-# FIXME: the fact that this works is pretty much magic. Instead,
-# what's below should be reading as: `** <> entry.nk`. However,
-# inheritance slots are not implemented yet.
-
-** entry.nk
+** <> entry.nk

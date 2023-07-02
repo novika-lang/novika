@@ -1,3 +1,5 @@
 
-./core-runs-once/:
+./0-core-runs-once/:
 corecore
+./1-star-star/:
+hello

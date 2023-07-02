@@ -50,43 +50,67 @@ module Novika::Resolver
   # Mainly a caching/Novika-specific optimization abstraction over
   # Crystal's `Dir` and `File` methods.
   class Disk
-    private record FileAbsentInstance
+    private record InfoPresence, path : Path, info : File::Info
+    private record InfoAbsence
 
-    # Sentinel that stands for an absent file.
-    private FileAbsent = FileAbsentInstance.new
+    # Sentinel that stands for an absent Info.
+    private InfoAbsent = InfoAbsence.new
 
     def initialize
-      @info = {} of Path => File::Info | FileAbsentInstance
-      @globs = {} of Path => Array({Path, Bool})
+      @info = {} of Path => InfoPresence | InfoAbsence
+      @globs = {} of Path => Array(GlobEntry)
       @content = {} of Path => String
     end
 
     # Reads, catches, and returns the `File::Info` object for a
     # specific *path*. Returns nil if there is nothing at *path*.
-    # The absence is also cached.
+    # The absence is also cached. The returned file info is guaranteed
+    # to contain a real path.
     #
     # *path* is assumed to be absolute and normalized.
-    def info?(path : Path)
-      info = @info[path] ||= (File.info?(path) || FileAbsent)
-      info.as?(File::Info)
+    def info?(path : Path) : InfoPresence?
+      # If there's matching cached info, return that.
+      if presence = @info[path]?
+        return presence.as?(InfoPresence)
+      end
+
+      # If the entry is absent on disk, cache that and
+      # bail out.
+      unless info = File.info?(path, follow_symlinks: false)
+        @info[path] = InfoAbsent
+        return
+      end
+
+      # If the entry exists but is a symlink, resolve its
+      # real path and repeat.
+      if info.symlink?
+        real = Path[File.realpath(path)]
+        info = File.info?(real, follow_symlinks: false)
+        presence = info.try { |it| InfoPresence.new(real, it) } || InfoAbsent
+        @info[real] = @info[path] = presence
+      else
+        @info[path] = presence = InfoPresence.new(path, info)
+      end
+
+      presence.as?(InfoPresence)
     end
 
     # If *path* points to a file, returns *path*. Otherwise,
     # returns nil.
     def file?(path : Path)
-      return unless info = info?(path)
-      return unless info.file?
+      return unless presence = info?(path)
+      return unless presence.info.file?
 
-      path
+      Path[presence.path]
     end
 
     # If *path* points to a directory, returns *path*. Otherwise,
     # returns nil.
     def dir?(path : Path)
-      return unless info = info?(path)
-      return unless info.directory?
+      return unless presence = info?(path)
+      return unless presence.info.directory?
 
-      path
+      Path[presence.path]
     end
 
     # Returns the content of the file *path* points to.
@@ -96,54 +120,87 @@ module Novika::Resolver
       @content[path] ||= File.read(path)
     end
 
-    private def glob(origin : Path, selector : GlobSelector, stack : Array(Path), fn : Path ->)
-      if children = @globs[origin]?
-        children.each do |path, directory|
-          case selector
-          in .scripts?     then next if directory || path.extension != RunnableScript::EXTENSION
-          in .directories? then next unless directory
-          end
+    private struct GlobEntry
+      # Returns whether this entry is a directory.
+      getter? directory
 
-          fn.call(path)
-        end
-        return
+      def initialize(@path : Path, @directory : Bool)
       end
 
-      children = @globs[origin] = [] of {Path, Bool}
+      # Returns whether this entry is a Novika script.
+      def script?
+        !directory? && @path.extension == RunnableScript::EXTENSION
+      end
+
+      # Returns whether *selector* applies to this entry.
+      def selected_by?(selector : GlobSelector)
+        case selector
+        in .scripts?     then script?
+        in .directories? then directory?
+        end
+      end
+
+      # Calls *fn* if *selector* applies to this entry.
+      def if(selector : GlobSelector, *, call fn : Path ->)
+        return unless selected_by?(selector)
+
+        fn.call(@path)
+      end
+    end
+
+    # The disk-y version of glob. Includes some recursive wizardry
+    # that prevents it from following symlink cycles etc.
+    private def glob(origin : Path, selector : GlobSelector, stack : Array(Path), fn : Path ->)
+      entries = @globs[origin] = [] of GlobEntry
 
       Dir::Globber.each_child_entry(origin) do |entry|
         path = origin / entry.name
 
-        is_dir = entry.dir?
-        if is_dir.nil?
-          next unless info = info?(path)
+        directory = entry.dir?
+        if directory.nil?
+          next unless presence = info?(path)
 
-          if is_dir = info.type.directory?
-            if File.symlink?(path)
-              realpath = Path[File.realpath(path)]
-              next if stack.includes?(realpath)
+          path = presence.path
 
-              stack << realpath
-              begin
-                glob(realpath, selector, stack, fn)
-              ensure
-                stack.pop
-              end
+          if directory = presence.info.directory?
+            next if stack.includes?(path)
 
-              next
+            stack << path
+            begin
+              # FIXME: BUG: this shouldn't recurse. Glob is a flat glob.
+              # Recursive symlinks should be avoided at a higher-level
+              # instead. Recursing here leads to unexpected execution
+              # order.
+              glob(path, selector, stack, fn)
+            ensure
+              stack.pop
             end
+
+            next
           end
         end
 
-        children << {path, is_dir}
+        entry = GlobEntry.new(path, directory)
+        entries << entry
 
-        case selector
-        in .scripts?     then next if is_dir || path.extension != RunnableScript::EXTENSION
-        in .directories? then next unless is_dir
-        end
-
-        fn.call(path)
+        entry.if(selector, call: fn)
       end
+    end
+
+    # The cached version of glob. Calls *fn* for every cached glob
+    # entry that matches *selector*.
+    private def glob(entries : Array(GlobEntry), selector : GlobSelector, fn : Path ->)
+      entries.each &.if(selector, call: fn)
+    end
+
+    # Branches between the cached and disk-y version of glob.
+    private def glob(origin : Path, selector : GlobSelector, fn : Path ->)
+      if entries = @globs[origin]?
+        glob(entries, selector, fn)
+        return
+      end
+
+      glob(origin, selector, [] of Path, fn)
     end
 
     # A simpler, Novika- and `Disk`-specific globbing mechanism.
@@ -151,7 +208,7 @@ module Novika::Resolver
     # Calls *fn* with paths in *origin* directory that match the
     # given *selector*.
     def glob(origin : Path, selector : GlobSelector, &fn : Path ->)
-      glob(origin, selector, [] of Path, fn)
+      glob(origin, selector, fn)
     end
 
     # Determines and returns the path to the environment directory,
@@ -792,14 +849,15 @@ module Novika::Resolver
     end
   end
 
-  # Base class of `ScriptsSlot` (known to the user as `*`) and
-  # `SubtreeSlot` (known to the user as `**`).
+  # Base class of `ScriptsSlot` (known to the user as `*`), `SubtreeSlot`
+  # (known to the user as `**`), and `ChildSlot` (`<>`).
   #
-  # Slots act as mere sentinels (or placeholders). They get replaced with
-  # actual `RunnableScript`s and `RunnableDir`s during postprocessing of
-  # the manifest file, provided the latter uses either of them or both.
+  # Slots act as mere sentinels (or placeholders). They get `replace`d
+  # with runnable containers that hold the appropriate runnables during
+  # postprocessing of the manifest file, provided the latter has some
+  # slots to begin with.
   #
-  # The use of slot literals `*` and `**` is only allowed inside
+  # The use of slot literals `*`, `**`, and `<>` is only allowed inside
   # manifest files.
   #
   # Even though using several `*`s is allowed, it is pointless to do
@@ -808,11 +866,52 @@ module Novika::Resolver
   # third, etc. `*` or `**`.
   abstract class Slot < Runnable
     include Terminal
+
+    # Replaces any occurences of this slot in *local* with a
+    # container holding the runnables this slot stands for.
+    #
+    # *manifest* is the manifest that contains this slot.
+    #
+    # *group* is the `RunnableGroup` of the manifest that contains
+    # this slot.
+    #
+    # Returns the next global container.
+    abstract def replace(
+      root : RunnableRoot,
+      group : RunnableGroup,
+      manifest : Manifest::Present,
+      global : RunnableContainer,
+      local : RunnableContainer
+    ) : RunnableContainer
   end
 
   # Slot (placeholder) that stands for "all not otherwise mentioned
   # Novika scripts" in the container's directory, represented with `**`.
   class ScriptsSlot < Slot
+    def replace(
+      root : RunnableRoot,
+      group : RunnableGroup,
+      manifest : Manifest::Present,
+      global : RunnableContainer,
+      local : RunnableContainer
+    ) : RunnableContainer
+      mentioned = global.paths
+
+      # Fill a shallow container with Novika scripts from the
+      # directory where the manifest is located.
+      content = local.child(manifest.directory, shallow: true)
+
+      root.disk.glob(manifest.directory, GlobSelector::Scripts) do |datum|
+        next if datum.in?(mentioned)
+
+        content.append RunnableScript.new(datum, ancestor: self)
+      end
+
+      local.replace(self, content)
+
+      global
+    end
+
     def to_s(io)
       io << "*"
     end
@@ -823,8 +922,80 @@ module Novika::Resolver
   # except for Novika application and library directories",
   # represented with `**`.
   class SubtreeSlot < Slot
+    def replace(
+      root : RunnableRoot,
+      group : RunnableGroup,
+      manifest : Manifest::Present,
+      global : RunnableContainer,
+      local : RunnableContainer
+    ) : RunnableContainer
+      mentioned = global.paths
+
+      # Note how we ignore apps and libs. This is necessary due to
+      # the use of `layout` as it is unaware of our intent.
+      content = local.child(manifest.directory, shallow: true)
+      content.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
+
+      local.replace(self, content)
+
+      manifest.layout(content, group)
+
+      # Rewrite for good measure. We don't need an exhaustive rewrite
+      # here because `layout` is file system-only, and all files in the
+      # file system exist by definition.
+      content.rewrite
+
+      # Leave only containers for non-application directories, and
+      # optionally those scripts that aren't already specified (incl.
+      # by the scripts slot, which has higher precedence and is therefore
+      # expanded before the subtree slot).
+      content.recursive_select! do |runnable|
+        case runnable
+        when RunnableScript
+        when RunnableContainer
+          next false if runnable.app? || runnable.lib?
+        end
+
+        # It'd be more elegant to have `else next false` above but
+        # Crystal doesn't get that.
+        unless runnable.is_a?(RunnableScript) || runnable.is_a?(RunnableContainer)
+          next false
+        end
+
+        !runnable.abspath.in?(mentioned)
+      end
+
+      global
+    end
+
     def to_s(io)
       io << "**"
+    end
+  end
+
+  # Slot (placeholder) that stands for "runnables of whomever
+  # inherits me".
+  class ChildSlot < Slot
+    def replace(
+      root : RunnableRoot,
+      group : RunnableGroup,
+      manifest : Manifest::Present,
+      global : RunnableContainer,
+      local : RunnableContainer
+    ) : RunnableContainer
+      # Create an empty container, allow everything in it -- make
+      # it opaque to filter inheritance.
+      content = global.child
+
+      # Replace myself with the container.
+      local.replace(self, content)
+
+      # Next manifests should continue filling the container.
+      content
+    end
+
+    def to_s(io)
+      io << "<>"
     end
   end
 
@@ -854,7 +1025,7 @@ module Novika::Resolver
       container.append(RunnableSelector.new(GlobSelector::Directories, ancestor: group))
     end
 
-    # Populates *container* with runnables from *group* according
+    # Populates *container* with runnables from *origin* according
     # to the content of the manifest.
     #
     # * If there is no explicit `*` or `**`, `**` is automatically
@@ -863,12 +1034,12 @@ module Novika::Resolver
     #
     # * A directory with no manifest is laid out directly using `layout`,
     #   since there is no "manifest content" to speak of.
-    def populate(root : RunnableRoot, container : RunnableContainer, group : RunnableGroup)
+    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
       subtree = container.child(shallow: true)
       subtree.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
       container.append(subtree)
 
-      layout(subtree, group)
+      layout(subtree, origin)
     end
   end
 
@@ -881,7 +1052,7 @@ module Novika::Resolver
 
     # Returns a path that points to the directory where this
     # manifest is located.
-    private def directory
+    def directory
       @path.parent
     end
 
@@ -889,14 +1060,14 @@ module Novika::Resolver
     # starting from `self` and up to the higest manifest in
     # the chain, followed by `true` or `false` for whether the
     # yielded manifest is `self`.
-    private def climb(root : RunnableRoot, &)
-      yield self, true
-
+    private def climb(root : RunnableRoot, origin : RunnableGroup, &)
       current = directory.parent
       manifest = self
 
+      yield manifest, origin, true
+
       while manifest = Manifest::Lib.find?(root.disk, current, ancestor: manifest)
-        yield manifest, false
+        yield manifest, RunnableGroup.new(current, manifest), false
 
         current = current.parent
       end
@@ -923,7 +1094,7 @@ module Novika::Resolver
             break branch = block
           end
 
-          next branch || ""
+          branch || ""
         end
       end
     end
@@ -941,67 +1112,11 @@ module Novika::Resolver
         case fragment
         when "*"  then ScriptsSlot.new(ancestor: self)
         when "**" then SubtreeSlot.new(ancestor: self)
+        when "<>" then ChildSlot.new(ancestor: self)
         else
           RunnableQuery.new(fragment, ancestor: self)
         end
       end
-    end
-
-    # Replace scripts slot with scripts from the manifest's directory.
-    private def replace_scripts_slot(
-      root : RunnableRoot,
-      container : RunnableContainer,
-      slot : ScriptsSlot,
-      existing : Set(Path)
-    )
-      slot_container = container.child(directory, shallow: true)
-
-      root.disk.glob(directory, GlobSelector::Scripts) do |datum|
-        next if datum.in?(existing)
-
-        slot_container.append RunnableScript.new(datum, ancestor: slot)
-      end
-
-      container.replace(slot, slot_container)
-    end
-
-    # Replaces subtree *slot* with subtree starting from current directory.
-    private def replace_subtree_slot(
-      root : RunnableRoot,
-      container : RunnableContainer,
-      group : RunnableGroup,
-      slot : SubtreeSlot,
-      existing : Set(Path)
-    )
-      # Note how we ignore apps and libs. This is necessary due to
-      # the use of `layout` as it is unaware of our intent.
-      slot_container = container.child(directory, shallow: true)
-      slot_container.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
-
-      layout(slot_container, group)
-
-      # Rewrite for good measure. We don't need an exhaustive rewrite
-      # here because `layout` is file system-only, and all files in the
-      # file system exist by definition.
-      slot_container.rewrite
-
-      # Leave only containers for non-application directories, and
-      # optionally those scripts that aren't already specified (incl.
-      # by the scripts slot, which has higher precedence and is therefore
-      # expanded before the subtree slot).
-      slot_container.recursive_select! do |runnable|
-        case runnable
-        when RunnableScript
-        when RunnableContainer
-          next false if runnable.app? || runnable.lib?
-        end
-
-        next false unless runnable.is_a?(RunnableScript) || runnable.is_a?(RunnableContainer)
-
-        !runnable.abspath.in?(existing)
-      end
-
-      container.replace(slot, slot_container)
     end
 
     # Reads the manifest content from the disk, expands preprocessor
@@ -1020,67 +1135,80 @@ module Novika::Resolver
     # results in more restrictive automatic gathering of files.
     protected def process(
       root : RunnableRoot,
-      container : RunnableContainer,
       group : RunnableGroup,
+      global : RunnableContainer,
       directives : Array(String),
       fragments : Array(String),
       inherited : Bool
-    )
-      # Create a child container for this manifest specifically. Remember
+    ) : RunnableContainer
+      # Create a local container for this manifest specifically. Remember
       # that multiple manifests  can populate the same *container* through
       # inheritance, therefore, some bit of separation is necessary.
-      child = container.child(directory, shallow: true)
-      container.append(child)
+      local = global.child(directory, shallow: true)
+      global.append(local)
 
       # Disallow apps inside manifests.
-      child.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
+      local.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
 
-      # Get an array of queries. Find scripts slot and subtree slot
-      # there, if they're there at all. Determine if this manifest is
-      # noinherit, which means it's the last in the inheritance chain.
+      # Get an array of queries.
       queries = to_runnables(fragments)
-      scripts_slot = queries.find(&.is_a?(ScriptsSlot)).as(ScriptsSlot?)
-      subtree_slot = queries.find(&.is_a?(SubtreeSlot)).as(SubtreeSlot?)
+
+      # Find slots there, if they're there at all.
+      slots = queries.select(Slot)
 
       # Populate the manifest container with queries.
-      child.append(queries)
+      local.append(queries)
 
       # If no explicit subtree slot, create one & make it so that
-      # it is loaded first (this seems to mak most sense).
-      unless subtree_slot || inherited || directives.includes?("nolayout")
-        subtree_slot = SubtreeSlot.new(ancestor: self)
-        child.prepend(subtree_slot)
+      # it is loaded first (this seems to make most sense).
+      unless slots.any?(SubtreeSlot) || inherited || directives.includes?("nolayout")
+        slot : SubtreeSlot
+        slot = SubtreeSlot.new(ancestor: self)
+        slots.unshift(slot)
+        local.prepend(slot)
       end
 
       # Perform an exhaustive rewrite. This guarantees the child
       # *truly* cannot be rewritten any further, regardless of
       # origins etc.
-      root.exhaustive_rewrite(child)
+      root.exhaustive_rewrite(local)
 
-      replace_scripts_slot(root, child, scripts_slot, existing: container.paths) if scripts_slot
-      replace_subtree_slot(root, child, group, subtree_slot, existing: container.paths) if subtree_slot
+      cons = nil
+
+      slots.each do |slot|
+        ingress = slot.replace(root, group, self, global, local)
+
+        next if cons
+        next if ingress.same?(global)
+
+        # Set cons to the first "ingress" container different from
+        # the global container.
+        cons = ingress
+      end
+
+      cons || global
     end
 
     # A set of allowed manifest directives.
     DIRECTIVES = Set{"noinherit", "nolayout"}
 
-    def populate(root : RunnableRoot, container : RunnableContainer, group : RunnableGroup)
+    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
       # We have to run manifests in grandparent-parent-child-etc. order,
       # but we climb in child-parent-grandparent order and, moreover,
       # child, parent, etc. can interrupt climbing with 'noinherit' or
       # by being of a non-inheritable kind, such as '.nk.app' parent
       # of '.nk.lib'.
-      manifests = [] of {Manifest::Present, Array(String), Array(String), Bool}
+      manifests = [] of {Manifest::Present, RunnableGroup, Array(String), Array(String), Bool}
 
-      climb(root) do |manifest, isself|
+      climb(root, origin) do |manifest, group, isself|
         directives, fragments = manifest.fragments(within: root).partition &.in?(DIRECTIVES)
-        manifests << {manifest, directives, fragments, !isself}
+        manifests << {manifest, group, directives, fragments, !isself}
 
         break if directives.includes?("noinherit")
       end
 
-      manifests.reverse_each do |manifest, directives, fragments, inherited|
-        manifest.process(root, container, group, directives, fragments, inherited)
+      manifests.reverse_each do |manifest, group, directives, fragments, inherited|
+        container = manifest.process(root, group, container, directives, fragments, inherited)
       end
     end
 
@@ -1209,7 +1337,7 @@ module Novika::Resolver
       # Ask our manifest to populate the container. The decision on how to
       # lay out files, directories, apps, libraries and so on inside this
       # group is entirely up to the manifest.
-      @manifest.populate(root, child, group: self)
+      @manifest.populate(root, child, origin: self)
     end
 
     def to_s(io)
@@ -1396,16 +1524,18 @@ module Novika::Resolver
     end
 
     # Creates a `RunnableDir`, `RunnableScript`, or `RunnableSharedObject`
-    # depending on what kind of path *datum* is or on its extension.
+    # depending on what *datum* points to and its extension.
     #
     # *ancestor* is set as the ancestor of the created runnable.
     #
     # Returns nil if *datum* does not exist.
     def classify?(datum : Path, ancestor : Ancestor?) : Runnable?
-      return unless info = @root.disk.info?(datum)
+      return unless presence = @root.disk.info?(datum)
 
-      return RunnableDir.new(datum, ancestor) if info.directory?
-      return unless info.file?
+      datum = presence.path
+
+      return RunnableDir.new(datum, ancestor) if presence.info.directory?
+      return unless presence.info.file?
 
       case datum.extension
       when RunnableScript::EXTENSION
@@ -1643,7 +1773,7 @@ module Novika::Resolver
     def to_s(io, indent = 0)
       io << " " * indent
       io << "shallow " if shallow?
-      io << "container(" << @dir << "):\n"
+      io << "container(" << @dir << "#" << object_id << "):\n"
 
       indent += 2
 
@@ -1762,25 +1892,25 @@ module Novika::Resolver
       RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
     end
 
-    # Exhaustively rewrites the given *container*. See `push_origin`
-    # for details on the rewrite order etc.
+    # Exhaustively rewrites the given *base* runnable container. See
+    # `push_origin` for detailed information on the rewrite order etc.
     #
     # Mainly for internal use, deep (very deep!) recursions and
     # neck breaking leaps of faith.
-    def exhaustive_rewrite(container : RunnableContainer)
+    def exhaustive_rewrite(base : RunnableContainer)
       return if @origins.empty?
 
-      container.rewrite
+      base.rewrite
 
       each_origin do |origin|
-        container.recursive_nonterminal_map! do |nonterminal, container|
+        base.recursive_nonterminal_map! do |nonterminal, container|
           child = container.child(origin, shallow: true)
           child.append(nonterminal)
           child.rewrite
           child
         end
 
-        container.rewrite
+        base.rewrite
       end
     end
 
@@ -1889,8 +2019,8 @@ module Novika
     end
 
     def expand_in_env?(path : Path)
-      in_env(path) do |path|
-        return @disk.file?(path)
+      in_env(path) do |envpath|
+        return @disk.file?(envpath)
       end
     end
 

@@ -29,3 +29,34 @@ a.nk
 bar.nk
 baz.nk
 Hello from my-demo-app!
+./5-slot/:
+foo
+begin
+end
+foo
+begin
+hello from test app
+end
+./6-file-symlink/:
+a
+./7-dir-symlink/:
+Hello from bar-app
+Hello from foo/a
+Hello from foo/b
+Hello from foo/a
+Hello from foo/b
+Hello from bar-lib
+Hello from bar-app
+Hello from foo/a
+Hello from foo/b
+Hello from foo/a
+Hello from foo/b
+Hello from bar-lib
+Hello from bar-app
+./8-recursive-symlink/:
+a
+b
+x
+y
+a
+b

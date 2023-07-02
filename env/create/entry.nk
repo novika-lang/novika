@@ -8,10 +8,23 @@ Sub-apps must expose the following two entries:
 """
 
 this #template entry:exists? not => [
-  '''Usage:
+  '''novika create - a tool for scaffolding Novika applications and libraries
 
-[1] create/app — creates a Novika application
-[2] create/lib — creates a Novika library
+Syntax:
+
+  novika create/[app, lib]
+
+Examples:
+
+  Scaffold a new Novika application:
+    $ mkdir example
+    $ cd example
+    $ novika create/app
+
+  Scaffold a new Novika library
+    $ mkdir example
+    $ cd example
+    $ novika create/lib
   ''' echo
 
   0 bye
