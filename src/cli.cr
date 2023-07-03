@@ -107,10 +107,13 @@ module Novika::Frontend::CLI
       traceback.unshift(ancestor)
     end
 
-    io.puts(resolver)
-
     traceback.each do |runnable|
-      io.puts "  ╿ in #{runnable}"
+      io << "  ╿ in "
+      if runnable.is_a?(Resolver::RunnableContainer)
+        runnable.to_s(io, lead: 0, indent: 4)
+      else
+        io << runnable << '\n'
+      end
     end
   end
 
@@ -280,22 +283,28 @@ module Novika::Frontend::CLI
       Library.new?(name, resolver)
     end
 
-    # Autoload env and cwd. We don't really care whether env autoloading
-    # had succeeded. On the other hand, if cwd autoloading hadn't, we
-    # have an opportunity to show help.
-    env_set, env_q = resolver.autoload_env?
-    cwd_set, cwd_q = resolver.autoload_cwd?
+    begin
+      # Autoload env and cwd. We don't really care whether env autoloading
+      # had succeeded. On the other hand, if cwd autoloading hadn't, we
+      # have an opportunity to show help.
+      env_set, env_q = resolver.autoload_env?
+      cwd_set, cwd_q = resolver.autoload_cwd?
 
-    resolver.rejected.reject!(env_q) if env_q
-    resolver.rejected.reject!(cwd_q) if cwd_q
+      resolver.rejected.reject!(env_q) if env_q
+      resolver.rejected.reject!(cwd_q) if cwd_q
 
-    if ARGV.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
-      help(STDOUT)
-      exit(0)
+      if ARGV.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
+        help(STDOUT)
+        exit(0)
+      end
+
+      # Now that autoloading is done, try to process the arguments.
+      explicits = resolver.from_queries(args)
+    rescue e : Resolver::ResolverError
+      print_traceback(STDERR, e.runnable, resolver)
+      Frontend.errln(e.message)
+      exit(1)
     end
-
-    # Now that autoloading is done, try to process the arguments.
-    explicits = resolver.from_queries(args)
 
     # If there are any unresolved runnables, print them and their
     # backtraces and quit. This is an error.

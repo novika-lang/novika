@@ -24,6 +24,10 @@ module Novika::Resolver
   # Specifies the name of the file that will contain saved permissions.
   PERMISSIONS_FILENAME = "permissions"
 
+  # Recursion limit for the resolver. Doesn't have to be big, it's
+  # basically file system depth which isn't too big most of the time.
+  RESOLVER_RECURSION_LIMIT = 64
+
   # Selector for `Disk#glob`.
   enum GlobSelector
     # Match all Novika scripts (glob '*.nk')
@@ -45,6 +49,16 @@ module Novika::Resolver
     Undecided
     Allowed
     Denied
+  end
+
+  # Raised when there is an error during resolution.
+  class ResolverError < Exception
+    # Returns the runnable which is assumed to be the source of
+    # this error.
+    getter runnable
+
+    def initialize(@message, @runnable : Runnable)
+    end
   end
 
   # Mainly a caching/Novika-specific optimization abstraction over
@@ -97,7 +111,7 @@ module Novika::Resolver
 
     # If *path* points to a file, returns *path*. Otherwise,
     # returns nil.
-    def file?(path : Path)
+    def file?(path : Path) : Path?
       return unless presence = info?(path)
       return unless presence.info.file?
 
@@ -106,7 +120,7 @@ module Novika::Resolver
 
     # If *path* points to a directory, returns *path*. Otherwise,
     # returns nil.
-    def dir?(path : Path)
+    def dir?(path : Path) : Path?
       return unless presence = info?(path)
       return unless presence.info.directory?
 
@@ -116,7 +130,7 @@ module Novika::Resolver
     # Returns the content of the file *path* points to.
     #
     # Raises if *path* doesn't point to a file.
-    def read(path : Path)
+    def read(path : Path) : String?
       @content[path] ||= File.read(path)
     end
 
@@ -148,45 +162,6 @@ module Novika::Resolver
       end
     end
 
-    # The disk-y version of glob. Includes some recursive wizardry
-    # that prevents it from following symlink cycles etc.
-    private def glob(origin : Path, selector : GlobSelector, stack : Array(Path), fn : Path ->)
-      entries = @globs[origin] = [] of GlobEntry
-
-      Dir::Globber.each_child_entry(origin) do |entry|
-        path = origin / entry.name
-
-        directory = entry.dir?
-        if directory.nil?
-          next unless presence = info?(path)
-
-          path = presence.path
-
-          if directory = presence.info.directory?
-            next if stack.includes?(path)
-
-            stack << path
-            begin
-              # FIXME: BUG: this shouldn't recurse. Glob is a flat glob.
-              # Recursive symlinks should be avoided at a higher-level
-              # instead. Recursing here leads to unexpected execution
-              # order.
-              glob(path, selector, stack, fn)
-            ensure
-              stack.pop
-            end
-
-            next
-          end
-        end
-
-        entry = GlobEntry.new(path, directory)
-        entries << entry
-
-        entry.if(selector, call: fn)
-      end
-    end
-
     # The cached version of glob. Calls *fn* for every cached glob
     # entry that matches *selector*.
     private def glob(entries : Array(GlobEntry), selector : GlobSelector, fn : Path ->)
@@ -200,7 +175,24 @@ module Novika::Resolver
         return
       end
 
-      glob(origin, selector, [] of Path, fn)
+      entries = @globs[origin] = [] of GlobEntry
+
+      Dir::Globber.each_child_entry(origin) do |entry|
+        path = origin / entry.name
+
+        directory = entry.dir?
+        if directory.nil?
+          next unless presence = info?(path)
+          next if directory = presence.info.directory?
+
+          path = presence.path
+        end
+
+        entry = GlobEntry.new(path, directory)
+        entries << entry
+
+        entry.if(selector, call: fn)
+      end
     end
 
     # A simpler, Novika- and `Disk`-specific globbing mechanism.
@@ -219,7 +211,7 @@ module Novika::Resolver
     # - A file named '.nk.env'
     # - A directory named 'env' containing a file named '.nk.env'
     # - A directory named '.novika'
-    def env?(origin : Path)
+    def env?(origin : Path) : Path?
       env : Path?
 
       return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
@@ -258,7 +250,7 @@ module Novika::Resolver
 
       # Returns whether this dependency is allowed. Depends on the permission
       # state of this dependency, which is normally set by `PermissionServer`.
-      def allowed?
+      def allowed? : Bool
         @permission.allowed?
       end
 
@@ -308,9 +300,7 @@ module Novika::Resolver
     end
 
     # Mutably merges this and *other* resolutions.
-    #
-    # Returns self.
-    def merge!(other : Resolution)
+    def merge!(other : Resolution) : self
       other.dump!(@deps, @sources)
 
       self
@@ -1745,6 +1735,8 @@ module Novika::Resolver
     # (e.g. `R -> R' -> R -> ...`). So please don't do that nor
     # cause that!
     def rewrite
+      @root.recurse(caller: @ancestor.as?(Runnable) || self)
+
       loop do
         previous = @runnables
 
@@ -1760,6 +1752,8 @@ module Novika::Resolver
 
         break if previous == @runnables
       end
+    ensure
+      @root.unrecurse
     end
 
     def specialize(root : RunnableRoot, container : RunnableContainer)
@@ -1770,8 +1764,8 @@ module Novika::Resolver
       container.append(self)
     end
 
-    def to_s(io, indent = 0)
-      io << " " * indent
+    def to_s(io, indent = 0, lead = indent)
+      io << " " * lead
       io << "shallow " if shallow?
       io << "container(" << @dir << "#" << object_id << "):\n"
 
@@ -1843,6 +1837,22 @@ module Novika::Resolver
     # Returns whether *datum* is a capability.
     def capability?(datum : String)
       @caps.has_capability?(datum)
+    end
+
+    @depth = 0
+
+    # :nodoc:
+    def recurse(caller)
+      if @depth > RESOLVER_RECURSION_LIMIT
+        raise ResolverError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
+      end
+
+      @depth += 1
+    end
+
+    # :nodoc:
+    def unrecurse
+      @depth -= 1
     end
 
     # Pushes an *origin* path to the list of origin paths maintained

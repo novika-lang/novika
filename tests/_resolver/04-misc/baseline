@@ -43,12 +43,8 @@ a
 Hello from bar-app
 Hello from foo/a
 Hello from foo/b
-Hello from foo/a
-Hello from foo/b
 Hello from bar-lib
 Hello from bar-app
-Hello from foo/a
-Hello from foo/b
 Hello from foo/a
 Hello from foo/b
 Hello from bar-lib
@@ -58,5 +54,11 @@ a
 b
 x
 y
-a
-b
+./9-symlink-ref-in-manifest/:
+ax
+ay
+ba
+bb
+ax
+ay
+./a-symlink-rec-ref-in-manifest-raises/:
