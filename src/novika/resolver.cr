@@ -1548,6 +1548,19 @@ module Novika::Resolver
       unless path.absolute?
         path = @dir / path
         path = path.normalize
+
+        # Being in primary origin means it's safe to escape it. Current
+        # working directory is usually the primary origin, so the user
+        # will expect `../foo.nk` to work (assuming it exists).
+        #
+        # Since escaping backup (secondary) origins looks like magic
+        # and can lead to security problems if injection is allowed
+        # somewhere, we don't allow that. Injection *will* work on
+        # the primary origin *by default*. However, it's easier to
+        # ensure that doesn't happen, and hundred times easier to
+        # notice. With secondary origins on the other hand, you don't
+        # even know where they point most of the time.
+        return unless @root.in_primary_origin? || @root.belongs_to_origin?(path)
       end
 
       classify?(path, ancestor)
@@ -1855,6 +1868,18 @@ module Novika::Resolver
       @depth -= 1
     end
 
+    # Pushes a *query* to the list of queries to-be-resolved during
+    # a `commit`. Returns the `RunnableQuery` object.
+    #
+    # You cannot push a query during a `commit`.
+    def push_query(query : Query) : RunnableQuery
+      if @committing
+        raise "BUG: cannot push new queries during a commit"
+      end
+
+      RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
+    end
+
     # Pushes an *origin* path to the list of origin paths maintained
     # by this runnable root.
     #
@@ -1890,16 +1915,32 @@ module Novika::Resolver
       @origins.each { |origin| yield origin }
     end
 
-    # Pushes a *query* to the list of queries to-be-resolved during
-    # a `commit`. Returns the `RunnableQuery` object.
+    @in_primary_origin = false
+
+    # Returns whether this runnable root is currently rewriting
+    # using the primary origin.
     #
-    # You cannot push a query during a `commit`.
-    def push_query(query : Query) : RunnableQuery
-      if @committing
-        raise "BUG: cannot push new queries during a commit"
+    # This method must be called during a `commit`.
+    def in_primary_origin? : Bool
+      unless @committing
+        raise "BUG: cannot call in_primary_or_belongs_to_origin? outside of commit"
       end
 
-      RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
+      @in_primary_origin
+    end
+
+    # Returns whether *path* belongs to one of the origins
+    # registered in this runnable root.
+    def belongs_to_origin?(path : Path) : Bool
+      each_origin do |origin|
+        return true if path == origin
+
+        path.each_parent do |parent|
+          return true if parent == origin
+        end
+      end
+
+      false
     end
 
     # Exhaustively rewrites the given *base* runnable container. See
@@ -1909,6 +1950,8 @@ module Novika::Resolver
     # neck breaking leaps of faith.
     def exhaustive_rewrite(base : RunnableContainer)
       return if @origins.empty?
+
+      @in_primary_origin = true
 
       base.rewrite
 
@@ -1921,6 +1964,8 @@ module Novika::Resolver
         end
 
         base.rewrite
+
+        @in_primary_origin = false
       end
     end
 
