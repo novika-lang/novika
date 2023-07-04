@@ -1494,7 +1494,8 @@ module Novika::Resolver
 
     # Collects and yields applicable filters.
     #
-    # Please please do not nest. This will break everything.
+    # Please please do not nest for the same container. This will
+    # break everything.
     private def each_filter(& : Filter ->)
       @__acc.clear
 
@@ -1579,26 +1580,6 @@ module Novika::Resolver
       end
 
       true
-    end
-
-    # Returns whether this container's directory *exactly* matches an
-    # origin directory from the runnable root provided in `new`.
-    def origin?
-      @root.each_origin do |origin|
-        return true if @dir == origin
-      end
-
-      false
-    end
-
-    # Returns whether the directory of this container is contained
-    # within *origin* (regardless of the nesting in-between).
-    def from_origin?(origin : Path)
-      @dir.each_parent do |parent|
-        return true if origin == parent
-      end
-
-      false
     end
 
     # Returns the absolute path to the directory of this container.
