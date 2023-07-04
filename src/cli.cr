@@ -281,8 +281,9 @@ module Novika::Frontend::CLI
       # Now that autoloading is done, try to process the arguments.
       explicits = resolver.from_queries(args)
     rescue e : Resolver::ResolverError
-      e.runnable.backtrace(STDERR, indent: 2)
-      Frontend.errln(e.message)
+      e.runnable.backtrace(STDERR, indent: 2) do |io|
+        Frontend.err(e.message, io)
+      end
       exit(1)
     end
 
@@ -290,8 +291,9 @@ module Novika::Frontend::CLI
     # backtraces and quit. This is an error.
     unless resolver.rejected.empty?
       resolver.rejected.each do |runnable|
-        runnable.backtrace(STDERR, indent: 2)
-        Frontend.errln("could not resolve runnable: #{runnable}")
+        runnable.backtrace(STDERR, indent: 2) do |io|
+          Frontend.err("could not resolve runnable: #{runnable}", io)
+        end
       end
 
       exit(1)
@@ -300,8 +302,9 @@ module Novika::Frontend::CLI
     # Then, if there are any ignored runnables, print them as
     # well but do not quit.
     resolver.ignored.each do |runnable|
-      runnable.backtrace(STDERR, indent: 2)
-      Frontend.noteln("the following runnable is not allowed here: #{runnable}", io: STDERR)
+      runnable.backtrace(STDERR, indent: 2) do |io|
+        Frontend.note("the following runnable is not allowed here: #{runnable}", io)
+      end
     end
 
     # Collect apps for further analysis.
@@ -312,8 +315,9 @@ module Novika::Frontend::CLI
 
     if apps.size > 1
       apps.each do |app|
-        app.backtrace(STDERR, indent: 2)
-        Frontend.noteln("cannot run #{app} because it's not the only one\n", io: STDERR)
+        app.backtrace(STDERR, indent: 2) do |io|
+          Frontend.note("cannot run #{app} because it's not the only one\n", io)
+        end
       end
 
       Frontend.errln("cannot determine which one of the above apps to run")

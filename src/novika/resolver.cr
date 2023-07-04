@@ -269,7 +269,7 @@ module Novika::Resolver
           end
 
           loop do
-            case answer = server.ask?(prompt)
+            case server.ask?(prompt)
             when .nil?
               next
             when /^\s*([Yy?])\s*$/
@@ -278,12 +278,9 @@ module Novika::Resolver
               # Output backtrace so that the user sees where the
               # need for this dependency came from.
               answer = String.build do |io|
-                io.puts("  ┬")
+                backtrace(io, indent: 2, annex: "Showing where #{label} was referenced.")
 
-                backtrace(io, indent: 2)
-
-                io.puts("  │")
-                io << " ╰┴─ Showing where " << label << " was referenced.\n\n"
+                io.puts
               end
 
               server.answer(answer)
@@ -669,12 +666,21 @@ module Novika::Resolver
     end
 
     # Appends ancestors leading to this runnable to *io*.
-    def backtrace(io : IO, indent = 0)
+    #
+    # *indent* can be used to specify the amount of whitespace
+    # preceding each line.
+    #
+    # *annex* is the additional bit of text displayed below the
+    # backtrace. For instance, in case of an error, it can contain
+    # the error message.
+    def backtrace(io : IO, indent : Int32 = 0, annex : String? = nil)
       backtrace = [self] of Ancestor
 
       each_ancestor do |ancestor|
         backtrace.unshift(ancestor)
       end
+
+      io << "  ┬\n"
 
       ws = " " * indent
       backtrace.each do |runnable|
@@ -685,6 +691,18 @@ module Novika::Resolver
           io << runnable << '\n'
         end
       end
+
+      return unless annex
+
+      io << "  │\n ╰┴─ " << annex << '\n'
+    end
+
+    # Yields an `IO` where you can write the *annex*, otherwise
+    # the same as `backtrace`.
+    def backtrace(*args, **kwargs, & : IO ->)
+      annex = String.build { |io| yield io }
+
+      backtrace(*args, **kwargs, annex: annex)
     end
 
     # Returns an array with contained runnables. If none,
