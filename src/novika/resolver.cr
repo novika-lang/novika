@@ -233,9 +233,72 @@ module Novika::Resolver
   struct Resolution
     # Includers can be listed as dependencies in a `Resolution`.
     module Dependency
-      # Returns the string name of this dependency which can be used
-      # to identify it.
-      abstract def depname : String
+      # Represents the signature of a dependency.
+      alias Signature = {String, String}
+
+      # Provides the includer with an implementation of `Dependency#prompt?`
+      # provided it implements `label`.
+      module DefaultPrompt
+        # Returns a user-friendly string representation of this
+        # dependency. The returned string should be suitable for
+        # displaying to the user in a prompt.
+        #
+        # *server* is the server that will somehow use the label.
+        abstract def label(server : PermissionServer) : String
+
+        # Returns a user-friendly description of this dependency, or
+        # nil if none can be given. The returned description should
+        # be suitable for displaying to the user in a prompt, and
+        # should read well after "which", as in "which exposes this
+        # and that", "which creates this and that", etc.
+        #
+        # *server* is the server that will somehow use the description
+        # in case it is present.
+        def description?(server : PermissionServer) : String?
+        end
+
+        def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+          label = label(server)
+
+          prompt = String.build do |io|
+            io << "Allow " << group.abspath << " to load " << label
+            if description = description?(server)
+              io << ", which " << description
+            end
+            io << "? [" << "y".colorize.underline << " yes | " << "?".colorize.underline << " help | <other> no]"
+          end
+
+          loop do
+            case answer = server.ask?(prompt)
+            when .nil?
+              next
+            when /^\s*([Yy?])\s*$/
+              return Permission::Allowed unless $1 == "?"
+
+              # Output backtrace so that the user sees where the
+              # need for this dependency came from.
+              answer = String.build do |io|
+                io.puts("  ┬")
+
+                backtrace(io, indent: 2)
+
+                io.puts("  │")
+                io << " ╰┴─ Showing where " << label << " was referenced.\n\n"
+              end
+
+              server.answer(answer)
+
+              next
+            end
+
+            return Permission::Denied
+          end
+        end
+      end
+
+      # Returns the signature of this dependency which can be used
+      # to identify it, specifically in the 'permissions' file.
+      abstract def signature(group : RunnableGroup) : Signature
 
       # Enables this dependency in the given capability collection *caps*
       # if this dependency is `allowed?`.
@@ -605,6 +668,25 @@ module Novika::Resolver
       end
     end
 
+    # Appends ancestors leading to this runnable to *io*.
+    def backtrace(io : IO, indent = 0)
+      backtrace = [self] of Ancestor
+
+      each_ancestor do |ancestor|
+        backtrace.unshift(ancestor)
+      end
+
+      ws = " " * indent
+      backtrace.each do |runnable|
+        io << ws << "╿ in "
+        if runnable.is_a?(Resolver::RunnableContainer)
+          runnable.to_s(io, lead: 0, indent: indent + 2)
+        else
+          io << runnable << '\n'
+        end
+      end
+    end
+
     # Returns an array with contained runnables. If none,
     # returns an array with `self`.
     def constituents : Array(Runnable)
@@ -644,7 +726,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "?｢" << @datum << "｣"
+      io << "Query[" << @datum << "]"
     end
   end
 
@@ -683,7 +765,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "∀(" << @datum << " ∉ {" << @reject.join(',') << "})"
+      io << "Forall[" << @datum << " ∉ {" << @reject.join(',') << "}]"
     end
   end
 
@@ -698,17 +780,22 @@ module Novika::Resolver
     include HasDatum(String)
     include Terminal
     include Resolution::Dependency
+    include Resolution::Dependency::DefaultPrompt
 
     def initialize(@datum, ancestor = nil)
       super(ancestor)
     end
 
-    def depname : String
-      @datum
+    def signature(group : RunnableGroup) : Signature
+      {group.abspath.to_s, @datum}
     end
 
-    def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
-      server.ask_permission?("Do you allow #{group.abspath} to use #{@datum} (#{server.describe(self)})? [Y/n]")
+    def label(server : PermissionServer) : String
+      "capability #{@datum.colorize.bold}"
+    end
+
+    def description?(server : PermissionServer) : String?
+      server.brief(self)
     end
 
     def purpose(*, in caps : CapabilityCollection)
@@ -740,6 +827,7 @@ module Novika::Resolver
     include HasDatum(Path)
     include Terminal
     include Resolution::Dependency
+    include Resolution::Dependency::DefaultPrompt
 
     {% if flag?(:windows) %}
       EXTENSION = ".dll"
@@ -765,12 +853,12 @@ module Novika::Resolver
       @datum.stem.lchop("lib")
     end
 
-    def depname : String
-      @datum.to_s
+    def signature(group : RunnableGroup) : Signature
+      {group.abspath.to_s, @datum.to_s}
     end
 
-    def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
-      server.ask_permission?("Do you allow #{group.abspath} to load shared object #{@datum}? [Y/n]")
+    def label(server : PermissionServer) : String
+      "shared object #{@datum.colorize.bold}"
     end
 
     def enable(*, in caps : CapabilityCollection)
@@ -807,10 +895,11 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "script:" << @datum
+      io << "Script[" << @datum
       each_ancestor do |ancestor|
         io << " ← " << ancestor
       end
+      io << "]"
     end
   end
 
@@ -903,7 +992,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "*"
+      io << "Slot[*]"
     end
   end
 
@@ -959,7 +1048,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "**"
+      io << "Slot[**]"
     end
   end
 
@@ -985,7 +1074,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "<>"
+      io << "Slot[<>]"
     end
   end
 
@@ -1203,7 +1292,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << "manifest:" << @path
+      io << "Manifest[" << @path << "]"
     end
   end
 
@@ -1779,8 +1868,8 @@ module Novika::Resolver
 
     def to_s(io, indent = 0, lead = indent)
       io << " " * lead
-      io << "shallow " if shallow?
-      io << "container(" << @dir << "#" << object_id << "):\n"
+      io << "Shallow" if shallow?
+      io << "Container[" << @dir << "#" << object_id << "]:\n"
 
       indent += 2
 
@@ -2155,7 +2244,7 @@ module Novika
       @resolver : RunnableResolver,
       @explicit : Array(RunnableQuery)
     )
-      @permissions = {} of {String, String} => Permission
+      @permissions = {} of Resolution::Dependency::Signature => Permission
     end
 
     # Fills the permissions hash with saved permissions.
@@ -2182,6 +2271,11 @@ module Novika
       @resolver.in_env(Path[PERMISSIONS_FILENAME]) do |savefile|
         csv = CSV.build do |builder|
           @permissions.each do |(dependent, dependency), permission|
+            # Do not save undecided / denied because such decision
+            # is going to be hard to undo, and could have been made
+            # by mistake anyway.
+            next if permission.undecided? || permission.denied?
+
             builder.row(dependent, dependency, permission.to_i)
           end
         end
@@ -2190,20 +2284,21 @@ module Novika
       end
     end
 
-    # Describes the purpose of *dependency*.
-    def describe(dependency : RunnableCapability) : String
+    # Tersely describes the purpose of *dependency*.
+    def brief(dependency : RunnableCapability) : String
       dependency.purpose(in: @caps)
     end
 
-    # Asks user a *question*, converts the answer to `Permission`
-    # based on whether it matches *pattern*.
-    def ask_permission?(question : String, pattern = /^\s*[Yy]\s*$/) : Permission
+    # Asks user a *question*, and returns the answer or an empty
+    # string in case EOF was received.
+    def ask?(question : String) : String?
       print question, " "
+      gets
+    end
 
-      return Permission::Denied unless answer = gets
-
-      state = answer.matches?(pattern)
-      state ? Permission::Allowed : Permission::Denied
+    # Prints *answer* so that it can be seen by the user.
+    def answer(answer : String)
+      print answer
     end
 
     # Returns whether *dependency* is explicit.
@@ -2223,8 +2318,7 @@ module Novika
     # Queries (possibly prompts) and returns the permission state of
     # *dependency* for the given *group*.
     def query_permission?(group : RunnableGroup, dependency : Resolution::Dependency)
-      @permissions[{group.abspath.to_s, dependency.depname}] ||=
-        dependency.prompt?(self, for: group)
+      @permissions[dependency.signature(group)] ||= dependency.prompt?(self, for: group)
     end
 
     # Requests *dependency* for the given set of *dependents*.

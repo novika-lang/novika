@@ -101,32 +101,11 @@ module Novika::Frontend::CLI
     end
   end
 
-  private def print_traceback(io : IO, focus : Resolver::Runnable, resolver : RunnableResolver)
-    traceback = [focus] of Resolver::Runnable::Ancestor
-    focus.each_ancestor do |ancestor|
-      traceback.unshift(ancestor)
-    end
-
-    traceback.each do |runnable|
-      io << "  ╿ in "
-      if runnable.is_a?(Resolver::RunnableContainer)
-        runnable.to_s(io, lead: 0, indent: 4)
-      else
-        io << runnable << '\n'
-      end
-    end
-  end
-
   # Appends the CLI help message to *io*.
   private def help(io)
-    Colorize.enabled = Colorize.enabled?.tap do
-      # Contextually enable/disable colors depending on whether
-      # the user wants them.
-      Colorize.enabled = Novika.colorful?
+    on = "on by default".colorize.bold
 
-      on = "on by default".colorize.bold
-
-      io << <<-END
+    io << <<-END
       novika - command-line frontend for Novika #{VERSION}
 
       Syntax:
@@ -204,21 +183,21 @@ module Novika::Frontend::CLI
 
       END
 
-      available_caps = CapabilityCollection.available
+    available_caps = CapabilityCollection.available
 
-      available_caps.select(&.on_by_default?).each do |cap|
-        io.puts
-        io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
-      end
-
-      available_caps.reject(&.on_by_default?).each do |cap|
-        io.puts
-        io << "      - " << cap.id << " (" << cap.purpose << ")"
-      end
-
+    available_caps.select(&.on_by_default?).each do |cap|
       io.puts
+      io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
+    end
 
-      io << <<-END
+    available_caps.reject(&.on_by_default?).each do |cap|
+      io.puts
+      io << "      - " << cap.id << " (" << cap.purpose << ")"
+    end
+
+    io.puts
+
+    io << <<-END
 
       Autoloading:
 
@@ -251,11 +230,12 @@ module Novika::Frontend::CLI
         Feel free to file an issue at https://github.com/novika-lang/novika/issues/new.
 
       END
-    end
   end
 
   # Novika command-line frontend entry point.
   def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
+    Colorize.enabled = Novika.colorful?
+
     if args.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
       help(STDOUT)
       exit(0)
@@ -301,7 +281,7 @@ module Novika::Frontend::CLI
       # Now that autoloading is done, try to process the arguments.
       explicits = resolver.from_queries(args)
     rescue e : Resolver::ResolverError
-      print_traceback(STDERR, e.runnable, resolver)
+      e.runnable.backtrace(STDERR, indent: 2)
       Frontend.errln(e.message)
       exit(1)
     end
@@ -310,7 +290,7 @@ module Novika::Frontend::CLI
     # backtraces and quit. This is an error.
     unless resolver.rejected.empty?
       resolver.rejected.each do |runnable|
-        print_traceback(STDERR, runnable, resolver)
+        runnable.backtrace(STDERR, indent: 2)
         Frontend.errln("could not resolve runnable: #{runnable}")
       end
 
@@ -320,7 +300,7 @@ module Novika::Frontend::CLI
     # Then, if there are any ignored runnables, print them as
     # well but do not quit.
     resolver.ignored.each do |runnable|
-      print_traceback(STDERR, runnable, resolver)
+      runnable.backtrace(STDERR, indent: 2)
       Frontend.noteln("the following runnable is not allowed here: #{runnable}", io: STDERR)
     end
 
@@ -332,7 +312,7 @@ module Novika::Frontend::CLI
 
     if apps.size > 1
       apps.each do |app|
-        print_traceback(STDERR, app, resolver)
+        app.backtrace(STDERR, indent: 2)
         Frontend.noteln("cannot run #{app} because it's not the only one\n", io: STDERR)
       end
 
