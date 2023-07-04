@@ -1649,7 +1649,7 @@ module Novika::Resolver
         # ensure that doesn't happen, and hundred times easier to
         # notice. With secondary origins on the other hand, you don't
         # even know where they point most of the time.
-        return unless @root.in_primary_origin? || @root.belongs_to_origin?(path)
+        return unless @root.in_primary_origin? || @root.belongs_to_origin?(path, secondary: true)
       end
 
       classify?(path, ancestor)
@@ -2020,8 +2020,13 @@ module Novika::Resolver
 
     # Returns whether *path* belongs to one of the origins
     # registered in this runnable root.
-    def belongs_to_origin?(path : Path) : Bool
+    def belongs_to_origin?(path : Path, secondary = false) : Bool
       each_origin do |origin|
+        if secondary
+          secondary = false
+          next
+        end
+
         return true if path == origin
 
         path.each_parent do |parent|

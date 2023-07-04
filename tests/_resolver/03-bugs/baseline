@@ -6,4 +6,3 @@ hello
 ./2-break-out-of-env/:
 outer foo
 inner foo
-outer foo

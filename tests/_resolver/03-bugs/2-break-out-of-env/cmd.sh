@@ -13,7 +13,11 @@ fi
 
 cd ../../..
 
-$1 ../foo.nk # FIXME: should also explode, but isn't critical (in cases where env/.. == CWD)
+o3=$($1 ../foo.nk 2>&1) # doesn't exist (trying to break out of of the env)
+if [ $? -ne 1 ]; then
+  echo "$o3" >&2
+  exit 1
+fi
 
 cd booze/crazy-booze
 
