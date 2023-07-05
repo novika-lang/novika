@@ -21,7 +21,7 @@ Examples:
     $ cd example
     $ novika create/app
 
-  Scaffold a new Novika library
+  Scaffold a new Novika library:
     $ mkdir example
     $ cd example
     $ novika create/lib
