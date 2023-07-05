@@ -62,3 +62,8 @@ bb
 ax
 ay
 ./a-symlink-rec-ref-in-manifest-raises/:
+./b-env-from-path-not-cwd/:
+hello from bar
+./c-env-doesnt-leak/:
+Hi from bim!
+O hai from outer env foo

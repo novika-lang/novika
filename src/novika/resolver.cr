@@ -72,6 +72,7 @@ module Novika::Resolver
 
     def initialize
       @info = {} of Path => InfoPresence | InfoAbsence
+      @envs = {} of Path => Path?
       @globs = {} of Path => Array(GlobEntry)
       @content = {} of Path => String
     end
@@ -212,14 +213,16 @@ module Novika::Resolver
     # - A directory named 'env' containing a file named '.nk.env'
     # - A directory named '.novika'
     def env?(origin : Path) : Path?
-      env : Path?
+      @envs[origin] ||= begin
+        env : Path?
 
-      return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
-      return Path[File.realpath(env)] if dir?(env = origin / ENV_GLOBAL_DIRNAME)
-      return Path[File.realpath(env)] if dir?(env = origin / ENV_LOCAL_DIRNAME) && file?(env / ENV_LOCAL_PROOF_FILENAME)
-      return if origin == origin.root
+        return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
+        return Path[File.realpath(env)] if dir?(env = origin / ENV_GLOBAL_DIRNAME)
+        return Path[File.realpath(env)] if dir?(env = origin / ENV_LOCAL_DIRNAME) && file?(env / ENV_LOCAL_PROOF_FILENAME)
+        return if origin == origin.root
 
-      env?(origin.parent)
+        env?(origin.parent)
+      end
     end
   end
 
@@ -694,7 +697,7 @@ module Novika::Resolver
     # the same thing).
     #
     # *root* is the runnable root object. It is mainly used for flags and
-    # exhaustive rewriting.
+    # thorough rewriting.
     abstract def specialize(root : RunnableRoot, container : RunnableContainer)
   end
 
@@ -1014,7 +1017,7 @@ module Novika::Resolver
 
       manifest.layout(content, group)
 
-      # Rewrite for good measure. We don't need an exhaustive rewrite
+      # Rewrite for good measure. We don't need a thorough rewrite
       # here because `layout` is file system-only, and all files in the
       # file system exist by definition.
       content.rewrite
@@ -1242,10 +1245,10 @@ module Novika::Resolver
         local.prepend(slot)
       end
 
-      # Perform an exhaustive rewrite. This guarantees the child
+      # Perform a thorough rewrite. This guarantees the child
       # *truly* cannot be rewritten any further, regardless of
       # origins etc.
-      root.exhaustive_rewrite(local)
+      root.thorough_rewrite(local)
 
       cons = nil
 
@@ -1683,6 +1686,20 @@ module Novika::Resolver
       end
     end
 
+    # Replaces *pattern* runnable with multiple *replacement* runnables
+    # in this container only (i.e. does not recurse). Their order will
+    # be the same as in *replacement*.
+    #
+    # Runnables from *replacement* that this container cannot contain
+    # are left out.
+    def replace(pattern : Runnable, replacement : Array(Runnable))
+      replacement = replacement.select { |runnable| can_contain?(runnable) }
+
+      @runnables = @runnables.flat_map do |runnable|
+        pattern == runnable ? replacement : runnable
+      end
+    end
+
     # Accepts only those runnable in this container and all nested
     # containers for which *fn* returns true.
     #
@@ -1813,7 +1830,7 @@ module Novika::Resolver
     # (e.g. `R -> R' -> R -> ...`). So please don't do that nor
     # cause that!
     def rewrite
-      @root.recurse(caller: @ancestor.as?(Runnable) || self)
+      @root.down(caller: @ancestor.as?(Runnable) || self)
 
       loop do
         previous = @runnables
@@ -1831,7 +1848,7 @@ module Novika::Resolver
         break if previous == @runnables
       end
     ensure
-      @root.unrecurse
+      @root.up
     end
 
     def specialize(root : RunnableRoot, container : RunnableContainer)
@@ -1861,7 +1878,7 @@ module Novika::Resolver
 
   # Runnable root is available to all containers, and therefore
   # allows to escape deep nesting if need be. It also holds the
-  # list of origins in order to perform an *exhaustive rewrite* -
+  # list of origins in order to perform an *thorough rewrite* -
   # a rewrite after which it is truly unnecessary to rewrite
   # again, assuming the list of origins hasn't changed.
   #
@@ -1920,7 +1937,7 @@ module Novika::Resolver
     @depth = 0
 
     # :nodoc:
-    def recurse(caller)
+    def down(caller)
       if @depth > RESOLVER_RECURSION_LIMIT
         raise ResolverError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
       end
@@ -1929,7 +1946,7 @@ module Novika::Resolver
     end
 
     # :nodoc:
-    def unrecurse
+    def up
       @depth -= 1
     end
 
@@ -2013,35 +2030,71 @@ module Novika::Resolver
       false
     end
 
-    # Exhaustively rewrites the given *base* runnable container. See
+    # Thoroughly rewrites the given *base* runnable container. See
     # `push_origin` for detailed information on the rewrite order etc.
     #
     # Mainly for internal use, deep (very deep!) recursions and
     # neck breaking leaps of faith.
-    def exhaustive_rewrite(base : RunnableContainer)
+    def thorough_rewrite(base : RunnableContainer)
       return if @origins.empty?
 
       @in_primary_origin = true
 
+      # Perform the first rewrite. This will take care of the
+      # easy stuff.
       base.rewrite
 
+      @in_primary_origin = false
+
+      # List of containers we'll skip because they're in a nested/
+      # inner env, so shouldn't be affected by global origins.
+      skiplist = Set(RunnableContainer).new
+
+      # Try to rewrite containers in their respective environments too
+      # (their local origins), assuming they have ones.
+      base.recursive_nonterminal_each do |nonterminal, container|
+        next unless env = @disk.env?(container.abspath)
+        next if env.in?(@origins)
+
+        @origins << env
+
+        begin
+          child = container.child(env, shallow: true)
+          child.append(nonterminal)
+          child.rewrite
+        ensure
+          unless @origins.delete(env)
+            raise "BUG: I added env but could not remove it; consistency lost"
+          end
+        end
+
+        skiplist << container
+
+        container.replace(nonterminal, child.constituents)
+      end
+
+      base.rewrite
+
+      # If that still leaves some unresolved queries, try to
+      # rewrite using global origins.
       each_origin do |origin|
         base.recursive_nonterminal_map! do |nonterminal, container|
+          next nonterminal if container.in?(skiplist)
+
           child = container.child(origin, shallow: true)
           child.append(nonterminal)
           child.rewrite
+
           child
         end
 
         base.rewrite
-
-        @in_primary_origin = false
       end
     end
 
     # Constructs a container from the list of queries (see `push_query`),
     # rewrites it until there is no point in rewriting further (performing
-    # an *exhaustive rewrite*), and yields the resulting container.
+    # an *thorough rewrite*), and yields the resulting container.
     #
     # The list of queries is cleared after the commit.
     #
@@ -2060,7 +2113,7 @@ module Novika::Resolver
 
       @queries.clear
 
-      exhaustive_rewrite(primary)
+      thorough_rewrite(primary)
 
       yield primary
     ensure
