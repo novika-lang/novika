@@ -473,54 +473,31 @@ module Novika::Resolver
       groups
     end
 
-    # Returns an array of application `RunnableGroup`s that have
-    # contributed to this resolution set.
-    def apps : Array(RunnableGroup)
-      apps = [] of RunnableGroup
-      each_group do |group|
-        next unless group.app?
-        apps << group
-      end
-      apps
-    end
+    # Returns whether all resolutions from this set come from the
+    # same `RunnableGroup`. `RunnableGroup` to match is selected by
+    # applying the block to all `RunnableGroup`s in this set.
+    def all_come_from_same?(& : RunnableGroup -> Bool) : Bool
+      return false if empty?
 
-    # Returns an array of library `RunnableGroup`s that have
-    # contributed to this resolution set.
-    def libs : Array(RunnableGroup)
-      libs = [] of RunnableGroup
-      each_group do |group|
-        next unless group.lib?
-        libs << group
-      end
-      libs
+      matching = groups.select! { |group| yield group }
+      return false if size > matching.size
+
+      first = matching.first
+      return false unless matching.all? &.same?(first)
+
+      true
     end
 
     # Returns whether all resolutions in this set come from the
     # same application `RunnableGroup`.
-    def app?
-      return false if empty?
-
-      apps = self.apps
-      return false if apps.size < size
-
-      head = apps.first
-      return false unless apps.all? &.same?(head)
-
-      true
+    def app? : Bool
+      all_come_from_same?(&.app?)
     end
 
     # Returns whether all resolutions in this set come from the
     # same library `RunnableGroup`.
-    def lib?
-      return false if empty?
-
-      libs = self.libs
-      return false if libs.size < size
-
-      head = libs.first
-      return false unless libs.all? &.same?(head)
-
-      true
+    def lib? : Bool
+      all_come_from_same?(&.lib?)
     end
 
     # Yields all `RunnableGroup` objects that have contributed
