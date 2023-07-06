@@ -2005,7 +2005,7 @@ module Novika::Resolver
     # This method must be called during a `commit`.
     def in_primary_origin? : Bool
       unless @committing
-        raise "BUG: cannot call in_primary_or_belongs_to_origin? outside of commit"
+        raise "BUG: cannot call in_primary_origin? outside of commit"
       end
 
       @in_primary_origin
@@ -2222,6 +2222,22 @@ module Novika
       return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
 
       to_resolution_set?(@cwd)
+    end
+
+    def from_query?(query : String)
+      @root.push_query(query)
+
+      submit do |set, nonterminals|
+        unless nonterminals.empty?
+          nonterminals.each do |nonterminal|
+            @rejected << nonterminal
+          end
+          return false
+        end
+        @accepted << set
+      end
+
+      true
     end
 
     def from_queries(queries : Array(String))

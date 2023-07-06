@@ -67,3 +67,16 @@ hello from bar
 ./c-env-doesnt-leak/:
 Hi from bim!
 O hai from outer env foo
+./d-env-default-dist-emul/:
+loading env/core...
+This is an easter egg, you have finally found it :^)
+./e-env-default-dist-emul-symlink/:
+loading env/core...
+Running demo thing
+./f-env-default-dist-emul-app/:
+loading env/core...
+foo-app
+loading env/core...
+foo-app
+loading env/core...
+bar-app

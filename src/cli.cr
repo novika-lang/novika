@@ -265,21 +265,25 @@ module Novika::Frontend::CLI
 
     begin
       # Autoload env and cwd. We don't really care whether env autoloading
-      # had succeeded. On the other hand, if cwd autoloading hadn't, we
-      # have an opportunity to show help.
+      # has succeeded. On the other hand, if cwd autoloading hasn't, we
+      # have an opportunity to load the default runnable, or show help
+      # if the latter doesn't exist.
       env_set, env_q = resolver.autoload_env?
       cwd_set, cwd_q = resolver.autoload_cwd?
 
       resolver.rejected.reject!(env_q) if env_q
       resolver.rejected.reject!(cwd_q) if cwd_q
 
-      if ARGV.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
-        help(STDOUT)
-        exit(0)
+      if args.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
+        unless resolver.from_query?("__default__")
+          help(STDOUT)
+          exit(0)
+        end
+        explicits = [] of Resolver::RunnableQuery
       end
 
-      # Now that autoloading is done, try to process the arguments.
-      explicits = resolver.from_queries(args)
+      # Try to process the arguments.
+      explicits ||= resolver.from_queries(args)
     rescue e : Resolver::ResolverError
       e.runnable.backtrace(STDERR, indent: 2) do |io|
         Frontend.err(e.message, io)
