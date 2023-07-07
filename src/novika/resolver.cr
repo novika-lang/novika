@@ -666,7 +666,17 @@ module Novika::Resolver
       backtrace.each do |runnable|
         io << ws << "╿ in "
         if runnable.is_a?(Resolver::RunnableContainer)
-          runnable.to_s(io, lead: 0, indent: indent + 2)
+          content = String.build { |inner| runnable.to_s(inner, lead: 0, indent: indent + 2) }
+
+          skip = true
+          content.each_line(chomp: true) do |line|
+            if skip
+              io.puts(line)
+              skip = false
+              next
+            end
+            io << "  │" << line << '\n'
+          end
         else
           io << runnable << '\n'
         end
