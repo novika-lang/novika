@@ -242,11 +242,14 @@ module Novika::Frontend::CLI
     end
 
     profiler = nil
+    dry = false
 
     args.reject! do |arg|
       case arg
       when /^\-p(?::([1-9]\d*))?$/
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
+      when /^\-dry$/
+        dry = true
       else
         next false
       end
@@ -345,6 +348,14 @@ module Novika::Frontend::CLI
 
     resolver.accepted.each do |set|
       program.append(set)
+    end
+
+    if dry
+      program.each do |resolution|
+        resolution.to_s(STDOUT, brief: true)
+        puts
+      end
+      exit(0)
     end
 
     permissions = PermissionServer.new(caps, resolver, explicits)

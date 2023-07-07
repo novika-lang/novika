@@ -407,8 +407,11 @@ module Novika::Resolver
       toplevel.import!(from: instance)
     end
 
-    def to_s(io)
-      io << @abspath << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
+    def to_s(io, brief = false)
+      io << @abspath
+      unless brief
+        io << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
+      end
     end
 
     # Two resolutions are considered equal when they point to the
