@@ -1,8 +1,7 @@
 require "csv"
 
 module Dir::Globber
-  # I guess all of this is private for a reason, but I still need
-  # it for performance!
+  # I guess the thing is private for a reason, but I need it anyway!!1
 
   def self.each_child_entry(path, &)
     each_child(path) { |entry| yield entry }
@@ -51,6 +50,27 @@ module Novika::Resolver
     Denied
   end
 
+  # Kinds of signals received by `SignalReceiver`s
+  enum Signal
+    # Ask signal receivers to load whatever data they
+    # can (and should) from disk.
+    LoadFromDisk
+
+    # Ask signal receivers to save whatever data they
+    # can (and should) to disk.
+    SaveToDisk
+  end
+
+  # `SignalReceiver`s can receive signals sent by the `RunnableRoot`.
+  #
+  # This is basically an observer/observable system sitting on top of
+  # runnable root, mainly to have a nice way to communicate, via runnable
+  # root, with objects interested in communication.
+  module SignalReceiver
+    # Receives and reacts to a *signal* sent by `RunnableRoot`.
+    abstract def receive(signal : Signal)
+  end
+
   # Raised when there is an error during resolution.
   class ResolverError < Exception
     # Returns the runnable which is assumed to be the source of
@@ -61,57 +81,85 @@ module Novika::Resolver
     end
   end
 
-  # Mainly a caching/Novika-specific optimization abstraction over
-  # Crystal's `Dir` and `File` methods.
+  # A caching, Novika-specific file system access abstraction on
+  # top of Crystal's `Dir` and `File`.
   class Disk
-    private record InfoPresence, path : Path, info : File::Info
-    private record InfoAbsence
+    # Represents the presence of the requested file system entry
+    # (directory, file, or symlink) at `path`. Also holds its
+    # `File::Info` object, `info`.
+    #
+    # See `info?`.
+    record InfoPresence, path : Path, info : File::Info
 
-    # Sentinel that stands for an absent Info.
-    private InfoAbsent = InfoAbsence.new
+    # Represents the absence of the requested file system entry.
+    #
+    # No need to instantiate; use `InfoAbsent`.
+    #
+    # See `info?`.
+    record InfoAbsence
+
+    # Singleton instance of `InfoAbsence`.
+    InfoAbsent = InfoAbsence.new
 
     def initialize
+      # Records presence/absence of file info for path.
       @info = {} of Path => InfoPresence | InfoAbsence
+
+      # Records presence/absence of an environment directory for path.
+      # Paths that were climbed to find the environment directory are
+      # also here, pointing to the latter (or to the absence of latter).
       @envs = {} of Path => Path?
+
+      # Directory paths mapped to their glob-able content.
       @globs = {} of Path => Array(GlobEntry)
+
+      # Path mapped to file content, to save on reading frequently/
+      # repeatedly accessed files etc.
       @content = {} of Path => String
     end
 
-    # Reads, catches, and returns the `File::Info` object for a
-    # specific *path*. Returns nil if there is nothing at *path*.
-    # The absence is also cached. The returned file info is guaranteed
-    # to contain a real path.
+    # Reads, caches, and returns the `InfoPresence` object for the
+    # given *path*. Returns nil if there is nothing at *path*. The
+    # absence is also cached.
     #
     # *path* is assumed to be absolute and normalized.
+    #
+    # If *path* is a symlink, the symlink is visited. Therefore, the
+    # returned `InfoPresence` will contain the real path rather than
+    # *path*. So prefer to use the resulting `InfoPresence#path` in
+    # favor of *path* after calling this method.
     def info?(path : Path) : InfoPresence?
-      # If there's matching cached info, return that.
       if presence = @info[path]?
         return presence.as?(InfoPresence)
       end
 
-      # If the entry is absent on disk, cache that and
-      # bail out.
+      # If the entry is absent, cache & and bail out.
       unless info = File.info?(path, follow_symlinks: false)
         @info[path] = InfoAbsent
         return
       end
 
-      # If the entry exists but is a symlink, resolve its
-      # real path and repeat.
-      if info.symlink?
-        real = Path[File.realpath(path)]
-        info = File.info?(real, follow_symlinks: false)
-        presence = info.try { |it| InfoPresence.new(real, it) } || InfoAbsent
-        @info[real] = @info[path] = presence
-      else
-        @info[path] = presence = InfoPresence.new(path, info)
+      # If the entry exists and isn't a symlink, cache & bail out.
+      unless info.symlink?
+        return @info[path] = InfoPresence.new(path, info)
       end
+
+      # If the entry exists but is a symlink, try again but with
+      # its real path.
+      real = Path[File.realpath(path)]
+      info = File.info?(real, follow_symlinks: false)
+      presence = info ? InfoPresence.new(real, info) : InfoAbsent
+
+      # Cache both for real and symlink paths, so that we won't
+      # have to realpath again.
+      @info[real] = presence
+      @info[path] = presence
 
       presence.as?(InfoPresence)
     end
 
-    # If *path* points to a file, returns *path*. Otherwise,
-    # returns nil.
+    # If *path* (symlink or not) points to a file, returns the real
+    # path to that file. Otherwise, returns nil.
     def file?(path : Path) : Path?
       return unless presence = info?(path)
       return unless presence.info.file?
@@ -119,8 +167,8 @@ module Novika::Resolver
       Path[presence.path]
     end
 
-    # If *path* points to a directory, returns *path*. Otherwise,
-    # returns nil.
+    # If *path* (symlink or not) points to a directory, returns the
+    # real path to that directory. Otherwise, returns nil.
     def dir?(path : Path) : Path?
       return unless presence = info?(path)
       return unless presence.info.directory?
@@ -128,11 +176,20 @@ module Novika::Resolver
       Path[presence.path]
     end
 
-    # Returns the content of the file *path* points to.
+    # Returns the content of the file that *path* points to.
     #
     # Raises if *path* doesn't point to a file.
     def read(path : Path) : String?
       @content[path] ||= File.read(path)
+    end
+
+    # Yields writable `IO` for the file that *path* points to. The
+    # file is created if it does not exist; its content is cleared
+    # if it does.
+    def write(path : Path, & : IO ->)
+      File.open(path, mode: "w") do |io|
+        yield io
+      end
     end
 
     private struct GlobEntry
@@ -212,6 +269,9 @@ module Novika::Resolver
     # - A file named '.nk.env'
     # - A directory named 'env' containing a file named '.nk.env'
     # - A directory named '.novika'
+    #
+    # The result is cached, recursively, so you can call this method
+    # as many times as you'd like; your disk won't explode.
     def env?(origin : Path) : Path?
       @envs[origin] ||= begin
         env : Path?
@@ -260,11 +320,11 @@ module Novika::Resolver
         def description?(server : PermissionServer) : String?
         end
 
-        def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+        def prompt?(server : PermissionServer, *, for container : RunnableContainer) : Permission
           label = label(server)
 
           prompt = String.build do |io|
-            io << "Allow " << group.abspath << " to load " << label
+            io << "Allow " << container.abspath << " to load " << label
             if description = description?(server)
               io << ", which " << description
             end
@@ -298,16 +358,19 @@ module Novika::Resolver
 
       # Returns the signature of this dependency which can be used
       # to identify it, specifically in the 'permissions' file.
-      abstract def signature(group : RunnableGroup) : Signature
+      #
+      # *container*, assumed to contain this dependency, may be used
+      # to derive the signature.
+      abstract def signature(container : RunnableContainer) : Signature
 
-      # Enables this dependency in the given capability collection *caps*
-      # if this dependency is `allowed?`.
+      # If this dependency is `allowed?`, enables it in the given
+      # capability collection *caps*.
       abstract def enable(*, in caps : CapabilityCollection)
 
       # Promps the user for whether the use of this dependency should
-      # be allowed to *group*, and returns the resulting `Permission`
-      # state.
-      abstract def prompt?(server : PermissionServer, *, for group : RunnableGroup) : Permission
+      # be allowed in *container*'s `RunnableEnvironment`. Returns the
+      # resulting `Permission`.
+      abstract def prompt?(server : PermissionServer, *, for container : RunnableContainer) : Permission
 
       @permission = Permission::Undecided
 
@@ -327,11 +390,10 @@ module Novika::Resolver
         @permission = Permission::Denied
       end
 
-      # Communicates with *server* in order to determine whether
-      # this dependency is allowed for the given *group*.
-      #
-      # See `PermissionServer#request` for more information.
-      def request(server : PermissionServer, *, for group : RunnableGroup)
+      # Communicates with the given permission *server* in order to
+      # determine whether the use of this dependency should be allowed
+      # to *container*.
+      def request(server : PermissionServer, *, for container : RunnableContainer)
         return unless @permission.undecided?
 
         # Ask the server if this dependency is explicit. A dependency
@@ -342,7 +404,7 @@ module Novika::Resolver
           return
         end
 
-        @permission = server.query_permission?(group, self)
+        @permission = server.query_permission?(container, self)
       end
     end
 
@@ -797,8 +859,8 @@ module Novika::Resolver
       super(ancestor)
     end
 
-    def signature(group : RunnableGroup) : Signature
-      {group.abspath.to_s, @datum}
+    def signature(container : RunnableContainer) : Signature
+      {container.abspath.to_s, @datum}
     end
 
     def label(server : PermissionServer) : String
@@ -864,8 +926,8 @@ module Novika::Resolver
       @datum.stem.lchop("lib")
     end
 
-    def signature(group : RunnableGroup) : Signature
-      {group.abspath.to_s, @datum.to_s}
+    def signature(container : RunnableContainer) : Signature
+      {container.abspath.to_s, @datum.to_s}
     end
 
     def label(server : PermissionServer) : String
@@ -957,7 +1019,7 @@ module Novika::Resolver
   abstract class Slot < Runnable
     include Terminal
 
-    # Replaces any occurences of this slot in *local* with a
+    # Replaces any occurences of this slot in *container* with a
     # container holding the runnables this slot stands for.
     #
     # *manifest* is the manifest that contains this slot.
@@ -965,13 +1027,13 @@ module Novika::Resolver
     # *group* is the `RunnableGroup` of the manifest that contains
     # this slot.
     #
-    # Returns the next global container.
+    # Returns the next population container.
     abstract def replace(
       root : RunnableRoot,
       group : RunnableGroup,
       manifest : Manifest::Present,
-      global : RunnableContainer,
-      local : RunnableContainer
+      population : RunnableContainer,
+      container : RunnableContainer
     ) : RunnableContainer
   end
 
@@ -982,14 +1044,14 @@ module Novika::Resolver
       root : RunnableRoot,
       group : RunnableGroup,
       manifest : Manifest::Present,
-      global : RunnableContainer,
-      local : RunnableContainer
+      population : RunnableContainer,
+      container : RunnableContainer
     ) : RunnableContainer
-      mentioned = global.paths
+      mentioned = population.paths
 
-      # Fill a shallow container with Novika scripts from the
+      # Fill a transparent container with Novika scripts from the
       # directory where the manifest is located.
-      content = local.child(manifest.directory, shallow: true)
+      content = container.child(manifest.directory, transparent: true, ancestor: self)
 
       root.disk.glob(manifest.directory, GlobSelector::Scripts) do |datum|
         next if datum.in?(mentioned)
@@ -997,9 +1059,9 @@ module Novika::Resolver
         content.append RunnableScript.new(datum, ancestor: self)
       end
 
-      local.replace(self, content)
+      container.replace(self, content)
 
-      global
+      population
     end
 
     def to_s(io)
@@ -1016,38 +1078,37 @@ module Novika::Resolver
       root : RunnableRoot,
       group : RunnableGroup,
       manifest : Manifest::Present,
-      global : RunnableContainer,
-      local : RunnableContainer
+      population : RunnableContainer,
+      container : RunnableContainer
     ) : RunnableContainer
-      mentioned = global.paths
+      mentioned = population.paths
 
-      # Note how we ignore apps and libs. This is necessary due to
-      # the use of `layout` as it is unaware of our intent.
-      content = local.child(manifest.directory, shallow: true)
+      # Note that we ignore apps and libs. This is necessary due to
+      # the use of `layout`, as it is unaware that we only want to
+      # match manifest-absent directories (and it will match any).
+      #
+      # Now, an outer app/lib will be rejected, henceforth rejecting
+      # all nested ones. Note also, that transparent containers inherit
+      # filters of the transparent containers above, up to and including
+      # the first opaque one. As opaque containers appear only in manifests
+      # (and groups that are the source of them we've rejected already),
+      # the filter below is supposed to have no breaches.
+      content = container.child(manifest.directory, transparent: true, ancestor: self)
       content.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
 
-      local.replace(self, content)
+      container.replace(self, content)
 
       manifest.layout(content, group)
 
-      # Rewrite for good measure. We don't need a thorough rewrite
-      # here because `layout` is file system-only, and all files in the
-      # file system exist by definition.
+      # We don't need a thorough rewrite here because `layout` is file
+      # system-only, and all files in the file system exist by definition --
+      # and therefore it won't leave any "unanwsered" queries.
       content.rewrite
 
-      # Leave only containers for non-application directories, and
-      # optionally those scripts that aren't already specified (incl.
-      # by the scripts slot, which has higher precedence and is therefore
-      # expanded before the subtree slot).
+      # Leave only containers, and optionally those scripts that weren't
+      # already mentioned (incl. by the scripts slot, which has higher
+      # precedence and is therefore expanded before the subtree slot).
       content.recursive_select! do |runnable|
-        case runnable
-        when RunnableScript
-        when RunnableContainer
-          next false if runnable.app? || runnable.lib?
-        end
-
-        # It'd be more elegant to have `else next false` above but
-        # Crystal doesn't get that.
         unless runnable.is_a?(RunnableScript) || runnable.is_a?(RunnableContainer)
           next false
         end
@@ -1055,7 +1116,7 @@ module Novika::Resolver
         !runnable.abspath.in?(mentioned)
       end
 
-      global
+      population
     end
 
     def to_s(io)
@@ -1070,15 +1131,15 @@ module Novika::Resolver
       root : RunnableRoot,
       group : RunnableGroup,
       manifest : Manifest::Present,
-      global : RunnableContainer,
-      local : RunnableContainer
+      population : RunnableContainer,
+      container : RunnableContainer
     ) : RunnableContainer
       # Create an empty container, allow everything in it -- make
       # it opaque to filter inheritance.
-      content = global.child
+      content = population.child(transparent: false, ancestor: self)
 
       # Replace myself with the container.
-      local.replace(self, content)
+      container.replace(self, content)
 
       # Next manifests should continue filling the container.
       content
@@ -1125,11 +1186,11 @@ module Novika::Resolver
     # * A directory with no manifest is laid out directly using `layout`,
     #   since there is no "manifest content" to speak of.
     def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
-      subtree = container.child(shallow: true)
-      subtree.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
-      container.append(subtree)
+      population = container.child(transparent: true, ancestor: origin)
+      population.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
+      container.append(population)
 
-      layout(subtree, origin)
+      layout(population, origin)
     end
   end
 
@@ -1218,27 +1279,35 @@ module Novika::Resolver
       to_fragments(content)
     end
 
-    # Processes *fragments* of a manifest: populates *container*
-    # with matching runnables.
+    # Processes *fragments* of a manifest: fills *population* with
+    # the appropriate runnables.
     #
-    # *inherited* stands for whether `self` was inherited. This
-    # results in more restrictive automatic gathering of files.
+    # *inherited* stands for whether `self` was inherited. Setting
+    # this to `true`  results in more restrictive automatic gathering
+    # of files.
     protected def process(
       root : RunnableRoot,
       group : RunnableGroup,
-      global : RunnableContainer,
+      population : RunnableContainer,
       directives : Array(String),
       fragments : Array(String),
       inherited : Bool
     ) : RunnableContainer
-      # Create a local container for this manifest specifically. Remember
-      # that multiple manifests  can populate the same *container* through
+      # Create a container for this manifest specifically. Remember
+      # that multiple manifests can contribute to *population* through
       # inheritance, therefore, some bit of separation is necessary.
-      local = global.child(directory, shallow: true)
-      global.append(local)
+      container = population.child(directory, transparent: true, ancestor: self)
+
+      # FIXME: this... stinks.
+      case self
+      when App then root.defapp(group, container)
+      when Lib then root.deflib(group, container)
+      end
+
+      population.append(container)
 
       # Disallow apps inside manifests.
-      local.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
+      container.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
 
       # Get an array of queries.
       queries = to_runnables(fragments)
@@ -1247,7 +1316,7 @@ module Novika::Resolver
       slots = queries.select(Slot)
 
       # Populate the manifest container with queries.
-      local.append(queries)
+      container.append(queries)
 
       # If no explicit subtree slot, create one & make it so that
       # it is loaded first (this seems to make most sense).
@@ -1255,34 +1324,37 @@ module Novika::Resolver
         slot : SubtreeSlot
         slot = SubtreeSlot.new(ancestor: self)
         slots.unshift(slot)
-        local.prepend(slot)
+        container.prepend(slot)
       end
 
       # Perform a thorough rewrite. This guarantees the child
       # *truly* cannot be rewritten any further, regardless of
       # origins etc.
-      root.thorough_rewrite(local)
+      container.thorough_rewrite
 
       cons = nil
 
       slots.each do |slot|
-        ingress = slot.replace(root, group, self, global, local)
+        ingress = slot.replace(root, group, self, population, container)
 
         next if cons
-        next if ingress.same?(global)
+        next if ingress.same?(population)
 
         # Set cons to the first "ingress" container different from
-        # the global container.
+        # the population container.
         cons = ingress
       end
 
-      cons || global
+      cons || population
     end
 
     # A set of allowed manifest directives.
     DIRECTIVES = Set{"noinherit", "nolayout"}
 
     def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
+      population = container.child(transparent: false, ancestor: self)
+      container.append(population)
+
       # We have to run manifests in grandparent-parent-child-etc. order,
       # but we climb in child-parent-grandparent order and, moreover,
       # child, parent, etc. can interrupt climbing with 'noinherit' or
@@ -1298,7 +1370,7 @@ module Novika::Resolver
       end
 
       manifests.reverse_each do |manifest, group, directives, fragments, inherited|
-        container = manifest.process(root, group, container, directives, fragments, inherited)
+        population = manifest.process(root, group, population, directives, fragments, inherited)
       end
     end
 
@@ -1331,6 +1403,12 @@ module Novika::Resolver
       new(datum, ancestor)
     end
 
+    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
+      root.defapp(origin, container)
+
+      super
+    end
+
     def layout(container : RunnableContainer, group : RunnableGroup)
       entry = group.entry_name
 
@@ -1361,6 +1439,12 @@ module Novika::Resolver
       return unless datum = disk.file?(path / FILENAME)
 
       new(datum, ancestor)
+    end
+
+    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
+      root.deflib(origin, container)
+
+      super
     end
   end
 
@@ -1421,7 +1505,7 @@ module Novika::Resolver
     end
 
     def specialize(root : RunnableRoot, container : RunnableContainer)
-      child = container.child(@datum)
+      child = container.child(@datum, transparent: true, ancestor: self)
       container.append(child)
 
       # Ask our manifest to populate the container. The decision on how to
@@ -1442,6 +1526,64 @@ module Novika::Resolver
     end
   end
 
+  # Represents a Novika environment.
+  class RunnableEnvironment
+    # Returns the path pointing to this environment's directory.
+    getter path
+
+    def initialize(@root : RunnableRoot, @path : Path)
+      @permissions = uninitialized PermissionServer
+      @permissions = @root.serve_permissions(to: self)
+
+      # Ask root to preload 'core' in me if I have 'core' in me,
+      # otherwise, it'll be silently ignored.
+      @root.preload(@path / "core")
+    end
+
+    # Emits a dependency request (see `Resolution::Dependency#request`)
+    # to the permission server of this environment.
+    def request(dependency : Resolution::Dependency, for container : RunnableContainer)
+      dependency.request(@permissions, for: container)
+    end
+
+    # Returns the content of the permissions file of this environment,
+    # or nil if the permissions file does not exist.
+    def permissions? : String?
+      return unless permissions = @root.disk.file?(@path / PERMISSIONS_FILENAME)
+
+      @root.disk.read(permissions)
+    end
+
+    # Yields writable `IO` for the content of this environment's
+    # permissions file. Creates one if necessary. Previous content
+    # of the file is cleared.
+    def permissions(& : IO ->)
+      @root.disk.write(@path / PERMISSIONS_FILENAME) do |io|
+        yield io
+      end
+    end
+
+    # Returns whether *other* is part of this environment's subtree,
+    # i.e. is this environment directory's direct or indirect child.
+    def includes?(other : Path) : Bool
+      return true if @path == other
+
+      other.each_parent do |parent|
+        return true if parent == @path
+      end
+
+      false
+    end
+
+    # Returns whether *path* points to this environment's directory.
+    def ==(other : Path)
+      @path == other
+    end
+
+    # Two environments are equal when their directories are equal.
+    def_equals_and_hash @path
+  end
+
   # A runnable container is an *ordered*, arbitrarily *filtered*
   # collection of runnables - and a runnable itself.
   class RunnableContainer < Runnable
@@ -1450,20 +1592,21 @@ module Novika::Resolver
       delegate :call, to: fn
     end
 
-    # Returns whether this container is shallow.
-    getter? shallow : Bool
+    # Returns whether this container is transparent.
+    getter? transparent : Bool
 
     # Initializes a new runnable container for the given *dir*ectory.
     #
     # *parent* is the parent runnable container. You don't normally need
     # to specify it. Prefer to call `child` on the parent instead.
     #
-    # *shallow* specifies whether the container is shallow.
+    # *transparent* specifies whether the container is transparent.
     def initialize(
       @root : RunnableRoot,
       @dir : Path,
+      @env : RunnableEnvironment?,
       @parent : RunnableContainer? = nil,
-      @shallow = false,
+      @transparent = false,
       ancestor = nil
     )
       super(ancestor)
@@ -1473,14 +1616,14 @@ module Novika::Resolver
     end
 
     # Recursively collects filters applicable to this container,
-    # starting from this container, to *arr*. Returns *arr*.
-    protected def collect_filters(arr : Array(Filter))
-      arr.concat(@filters)
+    # starting from this container, to *collection*. Returns *collection*.
+    protected def collect_filters(collection : Array(Filter))
+      collection.concat(@filters)
 
-      return arr unless shallow?
-      return arr unless parent = @parent
+      return collection unless transparent?
+      return collection unless parent = @parent
 
-      parent.collect_filters(arr)
+      parent.collect_filters(collection)
     end
 
     @__acc = [] of Filter
@@ -1515,7 +1658,7 @@ module Novika::Resolver
     end
 
     def constituents
-      shallow? ? @runnables : super
+      transparent? ? @runnables : super
     end
 
     # Inserts *runnable* after all other runnables in this container.
@@ -1582,16 +1725,12 @@ module Novika::Resolver
       @dir
     end
 
-    # Returns whether an application `RunnableGroup` is the direct
-    # ancestor of this container.
-    def app?
-      !!@ancestor.as?(RunnableGroup).try &.app?
+    def from?(env : RunnableEnvironment)
+      @env == env
     end
 
-    # Returns whether a library `RunnableGroup` is the direct
-    # ancestor of this container.
-    def lib?
-      !!@ancestor.as?(RunnableGroup).try &.lib?
+    def request(dependency : Resolution::Dependency)
+      @env.try &.request(dependency, for: self)
     end
 
     # Creates a `RunnableDir`, `RunnableScript`, or `RunnableSharedObject`
@@ -1641,7 +1780,7 @@ module Novika::Resolver
         # ensure that doesn't happen, and hundred times easier to
         # notice. With secondary origins on the other hand, you don't
         # even know where they point most of the time.
-        return unless @root.in_primary_origin? || @root.belongs_to_origin?(path, secondary: true)
+        return unless @primary_rewrite || !!@env.try &.includes?(path)
       end
 
       classify?(path, ancestor)
@@ -1773,7 +1912,7 @@ module Novika::Resolver
       recursive_nonterminal_each(fn)
     end
 
-    # Recursively rewrites wrapped shallow containers to
+    # Recursively rewrites wrapped transparent containers to
     # their content.
     def flatten!
       @runnables = @runnables.flat_map do |runnable|
@@ -1789,28 +1928,36 @@ module Novika::Resolver
     # instead.
     #
     # Additionally, you can specify whether the child should
-    # be *shallow*.
+    # be *transparent*.
     #
-    # Shallow containers are transparent to filter inheritance:
-    # this means that *shallow containers can inherit filters of their
-    # parent shallow containers*. Non-shallow containers are opaque
-    # to filter inheritance. This means that *shallow containers
-    # won't inherit filters of containers above a non-shallow container,
-    # and non-shallow containers themselves won't inherit anything
+    # Transparent containers are transparent to filter inheritance:
+    # this means that *transparent containers can inherit filters of their
+    # parent transparent containers*. Opaque containers are opaque
+    # to filter inheritance. This means that *transparent containers
+    # won't inherit filters of containers above a opaque container,
+    # and opaque containers themselves won't inherit anything
     # from the container(s) above*.
-    def child(dir = @dir, shallow = false)
-      RunnableContainer.new(@root, dir, parent: self, shallow: shallow)
+    def child(dir = @dir, ancestor = self, *, transparent : Bool)
+      if envpath = @root.disk.env?(dir)
+        env = @root.defenv(envpath)
+      end
+
+      RunnableContainer.new(@root, dir, env,
+        parent: self,
+        ancestor: ancestor,
+        transparent: transparent,
+      )
     end
 
-    # Builds and returns the `ResolutionSet` with resolutions from
+    # Builds and returns a `ResolutionSet` with resolutions from
     # this container and all nested containers.
     #
     # You must call this after `flatten!`. Otherwise, the resulting
     # `ResolutionSet` will be underpopulated with dependencies due
-    # to shallow containers obstructing the way.
+    # to transparent containers standing in the way.
     #
-    # *inherit* is a set of dependencies that *all* resolutions should
-    # have, regardless of nesting.
+    # *inherit* is a set of dependencies that *all* resolutions in
+    # the resulting set should have, regardless of nesting.
     def to_resolution_set(inherit = Set(Resolution::Dependency).new)
       set = ResolutionSet.new
 
@@ -1864,6 +2011,31 @@ module Novika::Resolver
       @root.up
     end
 
+    @primary_rewrite = false
+
+    def thorough_rewrite
+      @primary_rewrite = true
+
+      # Perform the first rewrite. This will take care of the
+      # easy stuff.
+      rewrite
+
+      @primary_rewrite = false
+
+      return unless env = @env
+
+      recursive_nonterminal_map! do |nonterminal, container|
+        next nonterminal unless container.from?(env)
+        child = container.child(env.path, transparent: true)
+        child.append(nonterminal)
+        child.rewrite
+
+        child
+      end
+
+      rewrite
+    end
+
     def specialize(root : RunnableRoot, container : RunnableContainer)
       return if empty?
 
@@ -1874,7 +2046,7 @@ module Novika::Resolver
 
     def to_s(io, indent = 0, lead = indent)
       io << " " * lead
-      io << "Shallow" if shallow?
+      io << "Transparent" if transparent?
       io << "Container[" << @dir << "#" << object_id << "]:\n"
 
       indent += 2
@@ -1902,11 +2074,79 @@ module Novika::Resolver
     # Returns the disk used by this runnable root.
     getter disk
 
-    def initialize(@caps : CapabilityCollection, @disk : Disk, @ignored : Runnable ->)
+    @env : RunnableEnvironment?
+
+    def initialize(@cwd : Path, @explicits : Array(RunnableQuery), @caps : CapabilityCollection, @disk : Disk, @ignored : Runnable ->)
       @flags = Set(String).new
-      @origins = [] of Path
       @queries = [] of RunnableQuery
+      @preload = [] of RunnableQuery
+      # @permissions = {} of Path => PermissionServer
       @committing = false
+
+      if envpath = @disk.env?(@cwd)
+        @env = defenv(envpath)
+      end
+    end
+
+    @envs = {} of Path => RunnableEnvironment
+
+    # Returns the `RunnableEnvironment` for *path*, creating one
+    # if it does not exist.
+    def defenv(path : Path)
+      @envs[path] ||= RunnableEnvironment.new(self, path)
+    end
+
+    @apps = {} of RunnableGroup => RunnableContainer
+
+    # Maps an application *group* to the given *container*.
+    #
+    # This is the only way someone from the outside can (reliably)
+    # get the container of an application.
+    def defapp(group : RunnableGroup, container : RunnableContainer)
+      @apps[group] = container
+    end
+
+    @libs = {} of RunnableGroup => RunnableContainer
+
+    # Maps an library *group* to the given *container*.
+    #
+    # This is the only way someone from the outside can (reliably)
+    # get the container of an library.
+    def deflib(group : RunnableGroup, container : RunnableContainer)
+      @libs[group] = container
+    end
+
+    # Returns the container of an application or library *group*.
+    #
+    # Raises if *group* is neither an application nor a library.
+    def containerof(group : RunnableGroup)
+      @apps[group]? || @libs[group]? || raise "BUG: unregistered app/lib group"
+    end
+
+    # Sends *signal* to all `SignalReceiver`s subscribed to this
+    # runnable root.
+    def send(signal : Signal)
+      @receivers.each &.receive(signal)
+    end
+
+    # Creates and returns a permission server for the given runnable
+    # environment *env*.
+    def serve_permissions(to env : RunnableEnvironment) : PermissionServer
+      PermissionServer
+        .new(@caps, env, @explicits)
+        .tap { |server| subscribe(server) }
+    end
+
+    @receivers = Set(SignalReceiver).new
+
+    # Subscribes *receiver* to this runnable root.
+    def subscribe(receiver : SignalReceiver)
+      @receivers << receiver
+    end
+
+    # Unsubscribes *receiver* from this runnable root.
+    def unsubscribe(receiver : SignalReceiver)
+      @receivers.delete(receiver)
     end
 
     # :nodoc:
@@ -1975,136 +2215,6 @@ module Novika::Resolver
       RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
     end
 
-    # Pushes an *origin* path to the list of origin paths maintained
-    # by this runnable root.
-    #
-    # You cannot push an origin during a `commit`.
-    #
-    # Origin paths are alternate lookup paths. If no prior origin paths,
-    # *origin* is *the* lookup path. Origins are explored one after
-    # another, in insertion (push) order.
-    #
-    # To *explore* an origin means to rewrite the runnable tree completely
-    # (i.e. until it can no longer be rewritten) using this origin.
-    #
-    # Naturally, in the beginning, your runnable tree is populated mainly
-    # by queries. Most of them are probably going to be rewritten to scripts
-    # in the first (primary) origin.
-    #
-    # With progress through the origin list, the amount of unresolved queries
-    # will reduce. After all origins were exhausted, the only remaining non-
-    # terminal runnables are going to be the so-called "unknowns", i.e.,
-    # queries apparently unrelated to Novika, perhaps typos or something else.
-    def push_origin(origin : Path)
-      if @committing
-        raise "BUG: cannot push new origin during a commit"
-      end
-
-      return if origin.in?(@origins)
-
-      @origins.push(origin)
-    end
-
-    # Yields origin paths maintained by this runnable root.
-    def each_origin(& : Path ->)
-      @origins.each { |origin| yield origin }
-    end
-
-    @in_primary_origin = false
-
-    # Returns whether this runnable root is currently rewriting
-    # using the primary origin.
-    #
-    # This method must be called during a `commit`.
-    def in_primary_origin? : Bool
-      unless @committing
-        raise "BUG: cannot call in_primary_origin? outside of commit"
-      end
-
-      @in_primary_origin
-    end
-
-    # Returns whether *path* belongs to one of the origins
-    # registered in this runnable root.
-    def belongs_to_origin?(path : Path, secondary = false) : Bool
-      each_origin do |origin|
-        if secondary
-          secondary = false
-          next
-        end
-
-        return true if path == origin
-
-        path.each_parent do |parent|
-          return true if parent == origin
-        end
-      end
-
-      false
-    end
-
-    # Thoroughly rewrites the given *base* runnable container. See
-    # `push_origin` for detailed information on the rewrite order etc.
-    #
-    # Mainly for internal use, deep (very deep!) recursions and
-    # neck breaking leaps of faith.
-    def thorough_rewrite(base : RunnableContainer)
-      return if @origins.empty?
-
-      @in_primary_origin = true
-
-      # Perform the first rewrite. This will take care of the
-      # easy stuff.
-      base.rewrite
-
-      @in_primary_origin = false
-
-      # List of containers we'll skip because they're in a nested/
-      # inner env, so shouldn't be affected by global origins.
-      skiplist = Set(RunnableContainer).new
-
-      # Try to rewrite containers in their respective environments too
-      # (their local origins), assuming they have ones.
-      base.recursive_nonterminal_each do |nonterminal, container|
-        next unless env = @disk.env?(container.abspath)
-        next if env.in?(@origins)
-
-        @origins << env
-
-        begin
-          child = container.child(env, shallow: true)
-          child.append(nonterminal)
-          child.rewrite
-        ensure
-          unless @origins.delete(env)
-            raise "BUG: I added env but could not remove it; consistency lost"
-          end
-        end
-
-        skiplist << container
-
-        container.replace(nonterminal, child.constituents)
-      end
-
-      base.rewrite
-
-      # If that still leaves some unresolved queries, try to
-      # rewrite using global origins.
-      each_origin do |origin|
-        base.recursive_nonterminal_map! do |nonterminal, container|
-          next nonterminal if container.in?(skiplist)
-
-          child = container.child(origin, shallow: true)
-          child.append(nonterminal)
-          child.rewrite
-
-          child
-        end
-
-        base.rewrite
-      end
-    end
-
     # Constructs a container from the list of queries (see `push_query`),
     # rewrites it until there is no point in rewriting further (performing
     # an *thorough rewrite*), and yields the resulting container.
@@ -2114,11 +2224,9 @@ module Novika::Resolver
     # Note that it is forbidden to `push_origin` and `push_query` during
     # a commit (i.e., within the block).
     def commit(&)
-      return if @origins.empty?
-
       @committing = true
 
-      primary = RunnableContainer.new(self, @origins[0])
+      primary = RunnableContainer.new(self, @cwd, @env)
 
       @queries.each do |query|
         primary.append(query)
@@ -2126,11 +2234,19 @@ module Novika::Resolver
 
       @queries.clear
 
-      thorough_rewrite(primary)
+      primary.thorough_rewrite
 
       yield primary
     ensure
       @committing = false
+    end
+
+    def preload(query : Query)
+      runnable = RunnableQuery.new(query, else: nil)
+
+      return if runnable.in?(@preload)
+
+      @preload << runnable
     end
   end
 end
@@ -2140,25 +2256,16 @@ module Novika
     include Resolver
 
     getter accepted = [] of ResolutionSet
+    getter preloaded = [] of ResolutionSet
     getter rejected = [] of Runnable
     getter ignored = [] of Runnable
 
-    @env : Path?
+    @global_env : Path?
 
-    def initialize(caps : CapabilityCollection, @cwd : Path)
+    def initialize(caps : CapabilityCollection, @cwd : Path, explicits)
       @disk = Disk.new
-      @root = RunnableRoot.new(caps, @disk, ->(runnable : Runnable) { @ignored << runnable })
-      @env = @disk.env?(cwd)
-
-      # Current working directory is the primary origin. We'll
-      # search there first.
-      @root.push_origin(cwd)
-
-      # If we found an environment directory, we'll search there
-      # later, in case there's no match in cwd.
-      @env.try do |env|
-        @root.push_origin(env)
-      end
+      @root = RunnableRoot.new(cwd, explicits, caps, @disk, ->(runnable : Runnable) { @ignored << runnable })
+      @global_env = @disk.env?(cwd)
 
       # Set flags for OS etc. Only true stuff is stored internally,
       # so don't worry about the mutual exclusivity of all (or most)
@@ -2205,12 +2312,12 @@ module Novika
       {nil, nil}
     end
 
-    def in_env(path : Path, &)
-      @env.try { |env| yield path.expand(env) }
+    def in_global_env(path : Path, &)
+      @global_env.try { |env| yield path.expand(env) }
     end
 
-    def expand_in_env?(path : Path)
-      in_env(path) do |envpath|
+    def expand_in_global_env?(path : Path)
+      in_global_env(path) do |envpath|
         return @disk.file?(envpath)
       end
     end
@@ -2220,13 +2327,7 @@ module Novika
     end
 
     def expand?(path : Path)
-      expand_in_cwd?(path) || expand_in_env?(path)
-    end
-
-    def autoload_env?
-      return nil, nil unless env = @env
-
-      to_resolution_set?(env / "core")
+      expand_in_cwd?(path) || expand_in_global_env?(path)
     end
 
     def autoload_cwd?
@@ -2235,6 +2336,27 @@ module Novika
       return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
 
       to_resolution_set?(@cwd)
+    end
+
+    def preload!
+      @root.@preload.reverse_each do |preload|
+        @root.@queries << preload
+
+        submit do |set, nonterminals|
+          unless nonterminals.empty?
+            nonterminals.each do |nonterminal|
+              @rejected.unshift(nonterminal)
+            end
+            return false
+          end
+
+          @preloaded.unshift(set)
+        end
+      end
+
+      @root.@preload.clear
+
+      true
     end
 
     def from_query?(query : String)
@@ -2290,6 +2412,7 @@ module Novika
   # them on disk for better user experience.
   class PermissionServer
     include Resolver
+    include SignalReceiver
 
     # Creates a new permission server.
     #
@@ -2304,17 +2427,24 @@ module Novika
     # comes to asking for permissions.
     def initialize(
       @caps : CapabilityCollection,
-      @resolver : RunnableResolver,
+      @env : RunnableEnvironment,
       @explicit : Array(RunnableQuery)
     )
       @permissions = {} of Resolution::Dependency::Signature => Permission
     end
 
+    def receive(signal : Signal)
+      case signal
+      in .load_from_disk? then load
+      in .save_to_disk?   then save
+      end
+    end
+
     # Fills the permissions hash with saved permissions.
     def load
-      return unless saved = @resolver.expand_in_env?(Path[PERMISSIONS_FILENAME])
+      return unless saved = @env.permissions?
 
-      csv = CSV.new File.read(saved)
+      csv = CSV.new(saved)
       csv.each do |(dependent, dependency, state)|
         next unless id = state.to_i?
         next unless permission = Permission.from_value?(id)
@@ -2329,25 +2459,23 @@ module Novika
     # Note: this method does nothing in case the internal permissions
     # store is empty.
     def save
-      return if @permissions.empty?
+      return unless @permissions.values.any?(&.allowed?)
 
-      @resolver.in_env(Path[PERMISSIONS_FILENAME]) do |savefile|
-        csv = CSV.build do |builder|
+      @env.permissions do |io|
+        CSV.build(io) do |builder|
           @permissions.each do |(dependent, dependency), permission|
             # Do not save undecided / denied because such decision
-            # is going to be hard to undo, and could have been made
-            # by mistake anyway.
+            # is going to be hard to revert, and could have been
+            # made by mistake anyway.
             next if permission.undecided? || permission.denied?
 
             builder.row(dependent, dependency, permission.to_i)
           end
         end
-
-        File.write(savefile, csv)
       end
     end
 
-    # Tersely describes the purpose of *dependency*.
+    # Briefly describes the purpose of *dependency*.
     def brief(dependency : RunnableCapability) : String
       dependency.purpose(in: @caps)
     end
@@ -2379,56 +2507,9 @@ module Novika
     end
 
     # Queries (possibly prompts) and returns the permission state of
-    # *dependency* for the given *group*.
-    def query_permission?(group : RunnableGroup, dependency : Resolution::Dependency)
-      @permissions[dependency.signature(group)] ||= dependency.prompt?(self, for: group)
-    end
-
-    # Requests *dependency* for the given set of *dependents*.
-    #
-    # This process happens in two steps.
-    #
-    # First, we determine whether the user allows the use of
-    # *dependency* in groups from *dependents* (this is done by
-    # asking the user or reading the saved permissions file).
-    #
-    # The decision is also saved in the permissions file *if it
-    # was positive*.
-    #
-    # Note that you still have to explicitly enable depenendencies
-    # using `Resolution::Dependency#enable`. Dependencies that weren't
-    # allowed are simply going to refuse enabling themselves.
-    def request(dependency : Resolution::Dependency, for dependents : ResolutionSet)
-      skiplist = Set(Resolution).new
-      visited = Set(RunnableGroup).new
-
-      # Go through apps and libs, add their resolutions to the skiplist.
-      # React only to never-seen-before groups.
-      dependents.each_group do |group, resolution|
-        next unless group.app? || group.lib?
-
-        if group.in?(visited)
-          skiplist << resolution
-          next
-        end
-
-        dependency.request(self, for: group)
-
-        visited << group
-        skiplist << resolution
-      end
-
-      # For all resultions not belonging to an app or lib, simply
-      # allow the use of the dependency.
-      #
-      # `request` isn't expected to be called recursively, therefore,
-      # we only allow dependencies from `explicit?` queries -- the same
-      # thing we'd do with some other more "elegant" way.
-      dependents.each do |resolution|
-        next if resolution.in?(skiplist)
-
-        resolution.each_dependency(&.allow)
-      end
+    # *dependency* for the given *container*.
+    def query_permission?(container : RunnableContainer, dependency : Resolution::Dependency)
+      @permissions[dependency.signature(container)] ||= dependency.prompt?(self, for: container)
     end
   end
 end

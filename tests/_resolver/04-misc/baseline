@@ -80,3 +80,8 @@ loading env/core...
 foo-app
 loading env/core...
 bar-app
+./g-nested-env-inheritance/:
+Outer foo
+Nested foo
+./h-subtree-ignores-nested-app-or-lib/:
+somedir

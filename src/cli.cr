@@ -260,7 +260,7 @@ module Novika::Frontend::CLI
     profiler.try { |prof| Engine.trackers << prof }
 
     caps = CapabilityCollection.with_available.enable_default
-    resolver = RunnableResolver.new(caps, cwd)
+    resolver = RunnableResolver.new(caps, cwd, args.map { |arg| Resolver::RunnableQuery.new(arg) })
 
     caps.on_load_library? do |name|
       Library.new?(name, resolver)
@@ -271,10 +271,8 @@ module Novika::Frontend::CLI
       # has succeeded. On the other hand, if cwd autoloading hasn't, we
       # have an opportunity to load the default runnable, or show help
       # if the latter doesn't exist.
-      env_set, env_q = resolver.autoload_env?
       cwd_set, cwd_q = resolver.autoload_cwd?
 
-      resolver.rejected.reject!(env_q) if env_q
       resolver.rejected.reject!(cwd_q) if cwd_q
 
       if args.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
@@ -282,11 +280,11 @@ module Novika::Frontend::CLI
           help(STDOUT)
           exit(0)
         end
-        explicits = [] of Resolver::RunnableQuery
       end
 
       # Try to process the arguments.
-      explicits ||= resolver.from_queries(args)
+      resolver.from_queries(args)
+      resolver.preload!
     rescue e : Resolver::ResolverError
       e.runnable.backtrace(STDERR, indent: 2) do |io|
         Frontend.err(e.message, io)
@@ -343,7 +341,11 @@ module Novika::Frontend::CLI
     #  to run. This take scare of any repetitions, in dependencies, as
     # well as in resolutions themselves.
     program = Resolver::ResolutionSet.new
-    program.append(env_set) if env_set
+
+    resolver.preloaded.each do |set|
+      program.append(set)
+    end
+
     program.append(cwd_set) if cwd_set
 
     resolver.accepted.each do |set|
@@ -358,8 +360,7 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    permissions = PermissionServer.new(caps, resolver, explicits)
-    permissions.load
+    resolver.@root.send(Resolver::Signal::LoadFromDisk)
 
     # Enable dependencies required by these resolution sets.
     #
@@ -368,12 +369,43 @@ module Novika::Frontend::CLI
     # may have provided. There are reasons but hopefully this
     # isn't going to be the case in the future.
     program.each_unique_dependency_with_dependents do |dependency, dependents|
-      permissions.request(dependency, for: dependents)
+      skiplist = Set(Resolver::Resolution).new
+      visited = Set(Resolver::RunnableGroup).new
+
+      # Go through apps and libs, add their resolutions to the skiplist.
+      # React only to never-seen-before groups.
+      dependents.each_group do |group, resolution|
+        next unless group.app? || group.lib?
+
+        if group.in?(visited)
+          skiplist << resolution
+          next
+        end
+
+        # Find container that maps to the group/lib
+        container = resolver.@root.containerof(group)
+        container.request(dependency)
+
+        visited << group
+        skiplist << resolution
+      end
+
+      # For all resultions not belonging to an app or lib, simply
+      # allow the use of the dependency.
+      #
+      # `request` isn't expected to be called recursively, therefore,
+      # we only allow dependencies from `explicit?` queries -- the same
+      # thing we'd do with some other more "elegant" way.
+      dependents.each do |resolution|
+        next if resolution.in?(skiplist)
+
+        resolution.each_dependency(&.allow)
+      end
 
       dependency.enable(in: caps)
     end
 
-    permissions.save
+    resolver.@root.send(Resolver::Signal::SaveToDisk)
 
     # Important: wrap capability block in another block! This is
     # required to make it possible to ignore capability block in
