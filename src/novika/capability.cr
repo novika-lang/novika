@@ -178,8 +178,13 @@ module Novika
     #
     # *callback* should return a `Library` if it successfully
     # loaded it; otherwise, it should return nil.
-    def on_load_library?(&callback : String -> Library?)
+    def on_load_library?(callback : String -> Library?)
       @load_library_callbacks << callback
+    end
+
+    # :ditto:
+    def on_load_library?(&callback : String -> Library?)
+      on_load_library?(callback)
     end
 
     # Tries to load a library (aka shared object) with the given
@@ -217,6 +222,32 @@ module Novika
     # library with the same id.
     def <<(library : Library)
       @libraries[library.id] = library
+    end
+
+    # Copies this capability collection.
+    #
+    # * This collection shares library load callbacks (themselves,
+    #   *not* the list of them) with the returned collection.
+    #
+    # * This collection shares FFI `Library` instances with the
+    #   returned one, by reference.
+    #
+    # * This collection shares capability block parent (see `new`)
+    #   with the returned one, by reference.
+    #
+    # Everything else is copied or created anew.
+    def copy : CapabilityCollection
+      copy = CapabilityCollection.new
+
+      @classes.each_value { |cls| copy << cls }
+      @objects.each_key { |id| copy.enable(id) }
+      @libraries.each_value { |library| copy << library }
+
+      @load_library_callbacks.each do |callback|
+        copy.on_load_library?(callback)
+      end
+
+      copy
     end
 
     # Creates a capability collection, and adds capabilities that

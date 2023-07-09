@@ -1,0 +1,3 @@
+'hello from foo core\n' appendEcho
+
+this #greet [ 'greetings from block in core\n' appendEcho ] opens

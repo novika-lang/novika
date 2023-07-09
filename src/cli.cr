@@ -259,12 +259,7 @@ module Novika::Frontend::CLI
 
     profiler.try { |prof| Engine.trackers << prof }
 
-    caps = CapabilityCollection.with_available.enable_default
-    resolver = RunnableResolver.new(caps, cwd, args.map { |arg| Resolver::RunnableQuery.new(arg) })
-
-    caps.on_load_library? do |name|
-      Library.new?(name, resolver)
-    end
+    resolver = RunnableResolver.new(cwd, args.map { |arg| Resolver::RunnableQuery.new(arg) })
 
     # Autoload env and cwd. We don't really care whether env autoloading
     # has succeeded. On the other hand, if cwd autoloading hasn't, we
@@ -308,7 +303,7 @@ module Novika::Frontend::CLI
     # Collect apps for further analysis.
     apps = Set(Resolver::RunnableGroup).new
     resolver.accepted.each do |set|
-      apps.concat(set.unique_apps)
+      set.each_unique_app { |app| apps << app }
     end
 
     if apps.size > 1
@@ -331,7 +326,7 @@ module Novika::Frontend::CLI
     end
 
     # Form one big ResolutionSet from all ResolutionSets we are going
-    #  to run. This take scare of any repetitions, in dependencies, as
+    # to run. This takes care of any repetitions, in dependencies, as
     # well as in resolutions themselves.
     program = Resolver::ResolutionSet.new
 
@@ -346,10 +341,17 @@ module Novika::Frontend::CLI
     end
 
     if dry
-      program.each do |resolution|
-        resolution.to_s(STDOUT, brief: true)
-        puts
+      puts <<-HINT
+      --> Showing environment designations (which environment is going to run which file).
+      --> Order matters, and is exactly the execution order.
+      HINT
+
+      puts
+
+      program.each_designation(resolver.@root) do |designation|
+        puts designation
       end
+
       exit(0)
     end
 
@@ -394,24 +396,12 @@ module Novika::Frontend::CLI
 
         resolution.each_dependency(&.allow)
       end
-
-      dependency.enable(in: caps)
     end
 
     resolver.@root.send(Resolver::Signal::SaveToDisk)
 
-    # Important: wrap capability block in another block! This is
-    # required to make it possible to ignore capability block in
-    # Image emission, saving some time and space!
-    toplevel = Block.new(caps.block)
-    toplevel.at(Word.new("__runtime__"), Quote.new("novika"))
-
-    engine = Engine.push(caps)
-
     begin
-      program.each do |resolution|
-        resolution.run(engine, toplevel)
-      end
+      program.each_designation(resolver.@root, &.run)
     ensure
       profiler.try { |prof| puts prof.to_table }
     end

@@ -164,7 +164,7 @@ module Novika::Resolver
       return unless presence = info?(path)
       return unless presence.info.file?
 
-      Path[presence.path]
+      presence.path
     end
 
     # If *path* (symlink or not) points to a directory, returns the
@@ -173,7 +173,7 @@ module Novika::Resolver
       return unless presence = info?(path)
       return unless presence.info.directory?
 
-      Path[presence.path]
+      presence.path
     end
 
     # Returns the content of the file that *path* points to.
@@ -408,7 +408,8 @@ module Novika::Resolver
       end
     end
 
-    @abspath : Path
+    # Returns the absolute path to this resolution.
+    getter abspath : Path
 
     # Initializes a runnable resolution for the given runnable *script* and a
     # set of resolution dependency objects *deps*.
@@ -469,11 +470,8 @@ module Novika::Resolver
       toplevel.import!(from: instance)
     end
 
-    def to_s(io, brief = false)
-      io << @abspath
-      unless brief
-        io << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
-      end
+    def to_s(io)
+      io << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
     end
 
     # Two resolutions are considered equal when they point to the
@@ -598,52 +596,66 @@ module Novika::Resolver
       end
     end
 
-    # Returns an array of unique application `RunnableGroup`s that have
-    # contributed to this resolution set.
-    def unique_apps : Array(RunnableGroup)
-      unique_apps = [] of RunnableGroup
-      each_unique_app do |app|
-        unique_apps << app
-      end
-      unique_apps
-    end
+    # Yields all unique `Resolution::Dependency` objects in
+    # this resolution set.
+    def each_unique_dependency(& : Resolution::Dependency ->)
+      visited = Set(Resolution::Dependency).new
 
-    # Returns an array of unique library `RunnableGroup`s that have
-    # contributed to this resolution set.
-    def unique_libs : Array(RunnableGroup)
-      unique_libs = [] of RunnableGroup
-      each_unique_lib do |lib_|
-        unique_libs << lib_
-      end
-      unique_libs
-    end
-
-    # Yields resolutions that were contributed by the given *group*.
-    def each_from_group(group : RunnableGroup, & : Resolution ->)
       each do |resolution|
-        accept = false
-        resolution.each_source_group do |other|
-          next unless group == other
-          break accept = true
+        resolution.each_dependency do |dependency|
+          next if dependency.in?(visited)
+          yield dependency
+          visited << dependency
         end
-        next unless accept
-        yield resolution
       end
     end
 
-    # Yields `Resolution::Dependency` objects and a `ResolutionSet`
-    # of their dependents.
+    # Yields each unique `Resolution::Dependency` object followed
+    # by a `ResolutionSet` of its dependents.
     def each_unique_dependency_with_dependents(& : Resolution::Dependency, ResolutionSet ->)
       map = {} of Resolution::Dependency => ResolutionSet
 
       each do |resolution|
-        resolution.each_dependency do |dep|
-          set = map[dep] ||= ResolutionSet.new
+        resolution.each_dependency do |dependency|
+          set = map[dependency] ||= ResolutionSet.new
           set.append(resolution)
         end
       end
 
-      map.each { |dep, set| yield dep, set }
+      map.each { |dependency, set| yield dependency, set }
+    end
+
+    # Yields environment designations for the given runnable *root*.
+    #
+    # *Environment designations* are resolution sets coupled to an
+    # environment. That is, an environment designation is a "token"
+    # stating *this* environment should handle resolutions out of
+    # *that* resolution set.
+    def each_designation(root : RunnableRoot, & : Designation ->)
+      visited = Set(Resolution).new
+      designations = {} of RunnableEnvironment => ResolutionSet
+
+      each_group do |group, resolution|
+        next if resolution.in?(visited)
+        next unless container = root.containerof?(group)
+
+        set = designations[container.@env] ||= ResolutionSet.new
+        set.append(resolution)
+
+        visited << resolution
+      end
+
+      default = designations[root.default_env] ||= ResolutionSet.new
+
+      each do |resolution|
+        next if resolution.in?(visited)
+
+        default.append(resolution)
+      end
+
+      designations.each do |env, set|
+        yield env.designate(set)
+      end
     end
 
     def to_s(io)
@@ -653,6 +665,49 @@ module Novika::Resolver
         io << " | " << resolution
         io.puts
       end
+    end
+  end
+
+  # Designation objects encapsulate a runnable environment and a
+  # set of resolutions that should be run within that environment.
+  #
+  # The preferred way to create designations is via `RunnableEnvironment#designate`.
+  #
+  # After obtaining a designation, you can `run` it as many times
+  # as you want.
+  struct Designation
+    def initialize(
+      @env : RunnableEnvironment,
+      @set : ResolutionSet,
+      @caps : CapabilityCollection
+    )
+      @set.each_unique_dependency &.enable(in: @caps)
+    end
+
+    # Runs the designated resolutions under a new common
+    # toplevel block.
+    def run
+      # Important: wrap capability block in another block! This is
+      # required to make it possible to ignore capability block in
+      # Image emission, saving some time and space!
+      toplevel = Block.new(@caps.block)
+      toplevel.at(Word.new("__runtime__"), Quote.new("novika"))
+
+      engine = Engine.push(@caps)
+
+      @set.each &.run(engine, toplevel)
+
+      Engine.pop(engine)
+    end
+
+    def to_s(io)
+      io << @env.abspath << ": [\n"
+
+      @set.each do |resolution|
+        io << "  " << resolution.abspath << ",\n"
+      end
+
+      io << "]\n"
     end
   end
 
@@ -1190,6 +1245,8 @@ module Novika::Resolver
       population.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
       container.append(population)
 
+      root.assign(origin, population)
+
       layout(population, origin)
     end
   end
@@ -1297,22 +1354,15 @@ module Novika::Resolver
       # that multiple manifests can contribute to *population* through
       # inheritance, therefore, some bit of separation is necessary.
       container = population.child(directory, transparent: true, ancestor: self)
-
-      # FIXME: this... stinks.
-      case self
-      when App then root.defapp(group, container)
-      when Lib then root.deflib(group, container)
-      end
+      container.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
 
       population.append(container)
 
-      # Disallow apps inside manifests.
-      container.allow?(warn: true) { |r| !(r.is_a?(RunnableGroup) && r.app?) }
+      # BUG: if there is a container for group already then we're
+      # possibly out of sync.
+      root.assign(group, container, overwrite: false)
 
-      # Get an array of queries.
       queries = to_runnables(fragments)
-
-      # Find slots there, if they're there at all.
       slots = queries.select(Slot)
 
       # Populate the manifest container with queries.
@@ -1354,6 +1404,8 @@ module Novika::Resolver
     def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
       population = container.child(transparent: false, ancestor: self)
       container.append(population)
+
+      root.assign(origin, population)
 
       # We have to run manifests in grandparent-parent-child-etc. order,
       # but we climb in child-parent-grandparent order and, moreover,
@@ -1403,12 +1455,6 @@ module Novika::Resolver
       new(datum, ancestor)
     end
 
-    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
-      root.defapp(origin, container)
-
-      super
-    end
-
     def layout(container : RunnableContainer, group : RunnableGroup)
       entry = group.entry_name
 
@@ -1440,12 +1486,6 @@ module Novika::Resolver
 
       new(datum, ancestor)
     end
-
-    def populate(root : RunnableRoot, container : RunnableContainer, origin : RunnableGroup)
-      root.deflib(origin, container)
-
-      super
-    end
   end
 
   # Represents the absence of a manifest.
@@ -1463,6 +1503,11 @@ module Novika::Resolver
   #
   # Runnable groups are rewritten to properly ordered (laid out)
   # `RunnableContainer`s.
+  #
+  # Now to the important bit: since there is never a guaranteed
+  # link between a runnable group and the container it was/will
+  # be rewritten to, you should manually register it with
+  # `RunnableRoot#assign` if you ever want the container to *run*.
   class RunnableGroup < Runnable
     include HasDatum(Path)
 
@@ -1528,60 +1573,113 @@ module Novika::Resolver
 
   # Represents a Novika environment.
   class RunnableEnvironment
-    # Returns the path pointing to this environment's directory.
-    getter path
+    # Returns the absolute path pointing to this environment's directory.
+    getter! abspath
 
-    def initialize(@root : RunnableRoot, @path : Path)
-      @permissions = uninitialized PermissionServer
+    # Returns the permission server used by this environment.
+    private getter! permissions : PermissionServer
+
+    # Returns this environment's personal capability collection.
+    #
+    # For it to be here is weird but on the other hand, kind of
+    # makes sense. For the future-minded, imagine configuring which
+    # capabilities are available to runnables in an environment by
+    # listing them somehow in '.nk.env'. That could be one of the
+    # "whys".
+    private getter! capabilities : CapabilityCollection
+
+    def initialize(@root : RunnableRoot, @abspath : Path?)
       @permissions = @root.serve_permissions(to: self)
+      @capabilities = CapabilityCollection.with_available.enable_default
 
-      # Ask root to preload 'core' in me if I have 'core' in me,
-      # otherwise, it'll be silently ignored.
-      @root.preload(@path / "core")
+      # If the runtime asks for a library that the user didn't specify
+      # in the arguments/that wasn't found in system's library directory,
+      # we'll try to resolve it in root's working directory and here,
+      # in this environment.
+      capabilities.on_load_library? do |name|
+        Library.new?(name, cwd: @root.cwd, env: self)
+      end
+
+      # Ask root to preload my 'core' if I have 'core'; otherwise,
+      # the request will be silently ignored.
+      if abspath = @abspath
+        @root.preload(abspath / "core")
+      end
+    end
+
+    # Expands *datum* in this environment's directory. Returns the
+    # resulting real path if *datum* points to something (a file, a
+    # directory, etc.); if *datum* points to nothing, returns nil.
+    def expand?(datum : Path) : Path?
+      return unless abspath = @abspath
+      return unless info = @root.disk.info?(abspath.expand(datum))
+
+      info.path
+    end
+
+    # Returns whether *datum* is a capability in this environment's
+    # capability collection.
+    def capability?(datum : String) : Bool
+      capabilities.has_capability?(datum)
     end
 
     # Emits a dependency request (see `Resolution::Dependency#request`)
     # to the permission server of this environment.
     def request(dependency : Resolution::Dependency, for container : RunnableContainer)
-      dependency.request(@permissions, for: container)
+      dependency.request(permissions, for: container)
     end
 
     # Returns the content of the permissions file of this environment
     # followed by its path; or nil if the permissions file does not exist.
     def permissions? : {String, Path}?
-      return unless permissions = @root.disk.file?(@path / PERMISSIONS_FILENAME)
+      return unless abspath = @abspath
+      return unless path = @root.disk.file?(abspath / PERMISSIONS_FILENAME)
 
-      {@root.disk.read(permissions), permissions}
+      {@root.disk.read(path), path}
     end
 
     # Yields writable `IO` for the content of this environment's
     # permissions file. Creates one if necessary. Previous content
     # of the file is cleared.
     def permissions(& : IO ->)
-      @root.disk.write(@path / PERMISSIONS_FILENAME) do |io|
+      return unless abspath = @abspath
+
+      @root.disk.write(abspath / PERMISSIONS_FILENAME) do |io|
         yield io
       end
     end
 
-    # Returns whether *other* is part of this environment's subtree,
-    # i.e. is this environment directory's direct or indirect child.
-    def includes?(other : Path) : Bool
-      return true if @path == other
+    # Creates and returns a `Designation` for this environment to
+    # handle the given resolution *set*.
+    def designate(set : ResolutionSet) : Designation
+      Designation.new(self, set, capabilities.copy)
+    end
 
-      other.each_parent do |parent|
-        return true if parent == @path
+    # Returns a brief description of *dependency*.
+    def brief(dependency : Resolution::Dependency)
+      dependency.purpose(in: capabilities)
+    end
+
+    # Returns whether *path* is part of this environment's subtree,
+    # i.e. is this environment directory's direct or indirect child.
+    def includes?(path : Path) : Bool
+      return false unless abspath = @abspath
+      return true if abspath == path
+
+      path.each_parent do |parent|
+        return true if parent == abspath
       end
 
       false
     end
 
     # Returns whether *path* points to this environment's directory.
-    def ==(other : Path)
-      @path == other
+    def ==(path : Path)
+      @abspath == path
     end
 
     # Two environments are equal when their directories are equal.
-    def_equals_and_hash @path
+    def_equals_and_hash @abspath
   end
 
   # A runnable container is an *ordered*, arbitrarily *filtered*
@@ -1604,7 +1702,7 @@ module Novika::Resolver
     def initialize(
       @root : RunnableRoot,
       @dir : Path,
-      @env : RunnableEnvironment?,
+      @env : RunnableEnvironment,
       @parent : RunnableContainer? = nil,
       @transparent = false,
       ancestor = nil
@@ -1762,7 +1860,7 @@ module Novika::Resolver
     #
     # Returns nil if neither succeeded.
     def classify?(datum : String, ancestor : Ancestor?) : Runnable?
-      return RunnableCapability.new(datum, ancestor) if @root.capability?(datum)
+      return RunnableCapability.new(datum, ancestor) if @env.capability?(datum)
 
       path = Path[datum]
       unless path.absolute?
@@ -1938,11 +2036,8 @@ module Novika::Resolver
     # and opaque containers themselves won't inherit anything
     # from the container(s) above*.
     def child(dir = @dir, ancestor = self, *, transparent : Bool)
-      if envpath = @root.disk.env?(dir)
-        env = @root.defenv(envpath)
-      end
-
-      RunnableContainer.new(@root, dir, env,
+      RunnableContainer.new(@root, dir,
+        env: @root.defenv(@root.disk.env?(dir)),
         parent: self,
         ancestor: ancestor,
         transparent: transparent,
@@ -2022,11 +2117,12 @@ module Novika::Resolver
 
       @primary_rewrite = false
 
-      return unless env = @env
+      return unless abspath = @env.abspath?
 
       recursive_nonterminal_map! do |nonterminal, container|
-        next nonterminal unless container.from?(env)
-        child = container.child(env.path, transparent: true)
+        next nonterminal unless container.from?(@env)
+
+        child = container.child(abspath, transparent: true)
         child.append(nonterminal)
         child.rewrite
 
@@ -2074,53 +2170,79 @@ module Novika::Resolver
     # Returns the disk used by this runnable root.
     getter disk
 
-    @env : RunnableEnvironment?
+    # Returns the user's current working directory.
+    getter cwd
 
-    def initialize(@cwd : Path, @explicits : Array(RunnableQuery), @caps : CapabilityCollection, @disk : Disk, @ignored : Runnable ->)
+    def initialize(@cwd : Path, @explicit : Array(RunnableQuery), @disk : Disk, @ignored : Runnable ->)
       @flags = Set(String).new
       @queries = [] of RunnableQuery
       @preload = [] of RunnableQuery
-      # @permissions = {} of Path => PermissionServer
       @committing = false
 
-      if envpath = @disk.env?(@cwd)
-        @env = defenv(envpath)
-      end
+      # Define default (& current working directory) environment.
+      @envs[@cwd] = @envs[nil] = defenv(@disk.env?(@cwd))
     end
 
-    @envs = {} of Path => RunnableEnvironment
+    @envs = {} of Path? => RunnableEnvironment
 
-    # Returns the `RunnableEnvironment` for *path*, creating one
-    # if it does not exist.
-    def defenv(path : Path)
+    # Returns the `RunnableEnvironment` for *path*, creating one if
+    # it does not exist.
+    #
+    # Note that *path* can be nil, which means the created/returned
+    # environment will be so to speak "virtual". The only difference
+    # being the "virtual" environment's response to disk-related
+    # questions. Namely it'll answer does-not-exist (or something
+    # like that) to any disk-related question.
+    #
+    # Note also, that only one pathless environment can ever created;
+    # as a consequence, all runnable containers that have no environments
+    # will share one pathless runnable environment.
+    def defenv(path : Path?)
       @envs[path] ||= RunnableEnvironment.new(self, path)
     end
 
-    @apps = {} of RunnableGroup => RunnableContainer
-
-    # Maps an application *group* to the given *container*.
+    # Returns the default runnable environment.
     #
-    # This is the only way someone from the outside can (reliably)
-    # get the container of an application.
-    def defapp(group : RunnableGroup, container : RunnableContainer)
-      @apps[group] = container
+    # Currently, current working directory environment is used as the
+    # default runnable environment.
+    #
+    # Note that if the current working directory does not have an
+    # environment, a "virtual", pathless environment is returned
+    # (see `defenv`).
+    def default_env : RunnableEnvironment
+      @envs[nil]
     end
 
-    @libs = {} of RunnableGroup => RunnableContainer
+    @containers = {} of RunnableGroup => RunnableContainer
 
-    # Maps an library *group* to the given *container*.
+    # Assigns *container* to the given *group*.
     #
     # This is the only way someone from the outside can (reliably)
-    # get the container of an library.
-    def deflib(group : RunnableGroup, container : RunnableContainer)
-      @libs[group] = container
+    # get the container of a group.
+    #
+    # *overwrite* specifies whether the existing container for *group*
+    # should be overwritten with *container*.
+    #
+    # Returns the container that was assigned to *group*.
+    def assign(group : RunnableGroup, container : RunnableContainer, overwrite = true) : RunnableContainer
+      if overwrite
+        @containers[group] = container
+      else
+        @containers[group] ||= container
+      end
     end
 
-    # Returns the container of an application or library *group*.
+    # Returns the container assigned to *group*.
     #
     # Raises if *group* is neither an application nor a library.
-    def containerof(group : RunnableGroup)
-      @apps[group]? || @libs[group]? || raise "BUG: unregistered app/lib group"
+    def containerof(group : RunnableGroup) : RunnableContainer
+      containerof?(group) || raise "BUG: container was not assigned to #{group}"
+    end
+
+    # Returns the container of an application or library *group*, or
+    # nil if *group* is neither an application nor a library.
+    def containerof?(group : RunnableGroup) : RunnableContainer?
+      @containers[group]?
     end
 
     # Sends *signal* to all `SignalReceiver`s subscribed to this
@@ -2129,12 +2251,10 @@ module Novika::Resolver
       @receivers.each &.receive(signal)
     end
 
-    # Creates and returns a permission server for the given runnable
-    # environment *env*.
+    # Creates and returns a permission server in the given runnable
+    # environment *env* and capability collection *caps*.
     def serve_permissions(to env : RunnableEnvironment) : PermissionServer
-      PermissionServer
-        .new(@caps, env, @explicits)
-        .tap { |server| subscribe(server) }
+      PermissionServer.new(env, @explicit).tap { |server| subscribe(server) }
     end
 
     @receivers = Set(SignalReceiver).new
@@ -2182,11 +2302,6 @@ module Novika::Resolver
       @flags.each { |flag| yield flag }
     end
 
-    # Returns whether *datum* is a capability.
-    def capability?(datum : String)
-      @caps.has_capability?(datum)
-    end
-
     @depth = 0
 
     # :nodoc:
@@ -2226,7 +2341,7 @@ module Novika::Resolver
     def commit(&)
       @committing = true
 
-      primary = RunnableContainer.new(self, @cwd, @env)
+      primary = RunnableContainer.new(self, @cwd, defenv(@cwd))
 
       @queries.each do |query|
         primary.append(query)
@@ -2262,9 +2377,9 @@ module Novika
 
     @global_env : Path?
 
-    def initialize(caps : CapabilityCollection, @cwd : Path, explicits)
+    def initialize(@cwd : Path, explicit)
       @disk = Disk.new
-      @root = RunnableRoot.new(cwd, explicits, caps, @disk, ->(runnable : Runnable) { @ignored << runnable })
+      @root = RunnableRoot.new(cwd, explicit, @disk, ->(runnable : Runnable) { @ignored << runnable })
       @global_env = @disk.env?(cwd)
 
       # Set flags for OS etc. Only true stuff is stored internally,
@@ -2426,7 +2541,6 @@ module Novika
     # explicit query list is mainly used to be less annoying when it
     # comes to asking for permissions.
     def initialize(
-      @caps : CapabilityCollection,
       @env : RunnableEnvironment,
       @explicit : Array(RunnableQuery)
     )
@@ -2480,9 +2594,9 @@ module Novika
       end
     end
 
-    # Briefly describes the purpose of *dependency*.
+    # Returns a brief description of *dependency*.
     def brief(dependency : RunnableCapability) : String
-      dependency.purpose(in: @caps)
+      @env.brief(dependency)
     end
 
     # Asks user a *question*, and returns the answer or an empty

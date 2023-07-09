@@ -317,12 +317,12 @@ module Novika
       LibDl.dlclose(@handle)
     end
 
-    # Tries to find the library with the given *id* in the
-    # system-specific library directories and in the current
-    # working directory.
+    # Tries to find the library with the given *id* in the system-
+    # specific library directories, current working directory *cwd*,
+    # and in the runnable environment *env*.
     #
-    # Returns nil if the library could not be found / loaded.
-    def self.new?(id : String, resolver : RunnableResolver) : Library?
+    # Returns nil if the library could not be found or loaded.
+    def self.new?(id : String, cwd : Path, env : Resolver::RunnableEnvironment) : Library?
       candidates = [] of String
 
       {% if flag?(:windows) %}
@@ -349,10 +349,10 @@ module Novika
         end
       end
 
-      # If not in search paths or no search paths, try looking
-      # in Novika-specific directories.
+      # If not in search paths or no search paths, try looking in
+      # the current working directory or in the environment directory.
       candidates.each do |candidate|
-        next unless path = resolver.expand?(Path[candidate])
+        next unless path = env.expand?(Path[candidate]) || cwd.expand(Path[candidate])
         next unless library = Library.new?(id, path)
         return library
       end

@@ -6,3 +6,22 @@ hello
 ./2-break-out-of-env/:
 outer foo
 inner foo
+./3-core-of-other-env-is-autoloaded/:
+hello from foo core
+Running foo.nk
+greetings from block in core
+./4-envs-are-run-separately/:
+hello from outer
+Defined b!
+env-defines did not find outer!
+env-uses did not find b!
+env-uses did not find outer!
+Defined b!
+env-defines did not find outer!
+env-uses found b!
+env-uses did not find outer!
+hello from outer
+Defined b!
+env-defines found outer!
+env-uses found b!
+env-uses found outer!
