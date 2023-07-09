@@ -75,9 +75,9 @@ module Novika::Resolver
   class ResolverError < Exception
     # Returns the runnable which is assumed to be the source of
     # this error.
-    getter runnable
+    getter? runnable
 
-    def initialize(@message, @runnable : Runnable)
+    def initialize(@message, @runnable : Runnable? = nil)
     end
   end
 
@@ -1546,12 +1546,12 @@ module Novika::Resolver
       dependency.request(@permissions, for: container)
     end
 
-    # Returns the content of the permissions file of this environment,
-    # or nil if the permissions file does not exist.
-    def permissions? : String?
+    # Returns the content of the permissions file of this environment
+    # followed by its path; or nil if the permissions file does not exist.
+    def permissions? : {String, Path}?
       return unless permissions = @root.disk.file?(@path / PERMISSIONS_FILENAME)
 
-      @root.disk.read(permissions)
+      {@root.disk.read(permissions), permissions}
     end
 
     # Yields writable `IO` for the content of this environment's
@@ -2442,14 +2442,19 @@ module Novika
 
     # Fills the permissions hash with saved permissions.
     def load
-      return unless saved = @env.permissions?
+      return unless permissions = @env.permissions?
 
-      csv = CSV.new(saved)
-      csv.each do |(dependent, dependency, state)|
-        next unless id = state.to_i?
-        next unless permission = Permission.from_value?(id)
+      content, path = permissions
 
-        @permissions[{dependent, dependency}] = permission
+      begin
+        CSV.each_row(content.strip) do |(dependent, dependency, state)|
+          next unless id = state.to_i?
+          next unless permission = Permission.from_value?(id)
+
+          @permissions[{dependent, dependency}] = permission
+        end
+      rescue IndexError # Row not found, column not found etc.
+        raise ResolverError.new("malformed 'permissions' file: #{path}")
       end
     end
 

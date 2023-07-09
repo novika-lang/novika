@@ -266,31 +266,24 @@ module Novika::Frontend::CLI
       Library.new?(name, resolver)
     end
 
-    begin
-      # Autoload env and cwd. We don't really care whether env autoloading
-      # has succeeded. On the other hand, if cwd autoloading hasn't, we
-      # have an opportunity to load the default runnable, or show help
-      # if the latter doesn't exist.
-      cwd_set, cwd_q = resolver.autoload_cwd?
+    # Autoload env and cwd. We don't really care whether env autoloading
+    # has succeeded. On the other hand, if cwd autoloading hasn't, we
+    # have an opportunity to load the default runnable, or show help
+    # if the latter doesn't exist.
+    cwd_set, cwd_q = resolver.autoload_cwd?
 
-      resolver.rejected.reject!(cwd_q) if cwd_q
+    resolver.rejected.reject!(cwd_q) if cwd_q
 
-      if args.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
-        unless resolver.from_query?("__default__")
-          help(STDOUT)
-          exit(0)
-        end
+    if args.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
+      unless resolver.from_query?("__default__")
+        help(STDOUT)
+        exit(0)
       end
-
-      # Try to process the arguments.
-      resolver.from_queries(args)
-      resolver.preload!
-    rescue e : Resolver::ResolverError
-      e.runnable.backtrace(STDERR, indent: 2) do |io|
-        Frontend.err(e.message, io)
-      end
-      exit(1)
     end
+
+    # Try to process the arguments.
+    resolver.from_queries(args)
+    resolver.preload!
 
     # If there are any unresolved runnables, print them and their
     # backtraces and quit. This is an error.
@@ -422,6 +415,15 @@ module Novika::Frontend::CLI
     ensure
       profiler.try { |prof| puts prof.to_table }
     end
+  rescue e : Resolver::ResolverError
+    if runnable = e.runnable?
+      runnable.backtrace(STDERR, indent: 2) do |io|
+        Frontend.err(e.message, io)
+      end
+    else
+      Frontend.errln(e.message)
+    end
+    exit(1)
   rescue e : Error
     e.report(STDERR)
     exit(1)
