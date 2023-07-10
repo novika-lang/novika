@@ -1,6 +1,4 @@
 """
-Scaffolds a Novika application/library.
-
 Sub-apps must expose the following two entries:
 
 * `template`: directory name of the template from '_templates' folder
@@ -8,24 +6,7 @@ Sub-apps must expose the following two entries:
 """
 
 this #template entry:exists? not => [
-  '''novika create - a tool for scaffolding Novika applications and libraries
-
-Syntax:
-
-  novika create/[app, lib]
-
-Examples:
-
-  Scaffold a new Novika application:
-    $ mkdir example
-    $ cd example
-    $ novika create/app
-
-  Scaffold a new Novika library:
-    $ mkdir example
-    $ cd example
-    $ novika create/lib
-  ''' echo
+  __preambles__.create echo
 
   0 bye
 ]

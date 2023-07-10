@@ -1,13 +1,3 @@
-"""
-This is a prototype of a Novika REPL. Currently, you can
-only run it from the terminal. Assuming 'core' (Novika's
-standard library directory) and 'repl.nk' exist in the
-working directory, run the following command in your
-favorite shell:
-
- >>> ./bin/novika core repl.nk
-"""
-
 "REPL root block, also persisted for the entire REPL session.
  A child of the block this comment is part of, and so inherits
  all imported capabilities/files (such as core) and essential."

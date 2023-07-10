@@ -658,6 +658,17 @@ module Novika::Resolver
       end
     end
 
+    # Yields preambles of unique application and library `RunnableGroup`s
+    # that have contributed to this resolution set, as well as the
+    # groups themselves.
+    def each_preamble_with_group(root : RunnableRoot, & : String, RunnableGroup ->)
+      each_unique_group do |group|
+        next unless group.app? || group.lib?
+        next unless preamble = root.preambleof?(group)
+        yield preamble, group
+      end
+    end
+
     def to_s(io)
       io.puts("ResolutionSet")
 
@@ -677,6 +688,7 @@ module Novika::Resolver
   # as you want.
   struct Designation
     def initialize(
+      @root : RunnableRoot,
       @env : RunnableEnvironment,
       @set : ResolutionSet,
       @caps : CapabilityCollection
@@ -687,11 +699,19 @@ module Novika::Resolver
     # Runs the designated resolutions under a new common
     # toplevel block.
     def run
+      preambles = Block.new
+
+      # TODO: handle groups with same name, but different actual directories
+      @set.each_preamble_with_group(@root) do |preamble, group|
+        preambles.at(Word.new(group.name), Quote.new(preamble))
+      end
+
       # Important: wrap capability block in another block! This is
       # required to make it possible to ignore capability block in
       # Image emission, saving some time and space!
       toplevel = Block.new(@caps.block)
       toplevel.at(Word.new("__runtime__"), Quote.new("novika"))
+      toplevel.at(Word.new("__preambles__"), preambles)
 
       engine = Engine.push(@caps)
 
@@ -745,6 +765,11 @@ module Novika::Resolver
     module HasDatum(T)
       @datum : T
 
+      # Returns whether the datum of this runnable is equal to *other*.
+      def ==(other : T)
+        @datum == other
+      end
+
       def_equals_and_hash @datum
     end
 
@@ -765,6 +790,16 @@ module Novika::Resolver
       end
     end
 
+    # Returns an array of ancestors of this runnable, starting from
+    # the most recent ancestor and ending with the oldest one.
+    def ancestors : Array(Ancestor)
+      ancestors = [] of Ancestor
+      each_ancestor do |ancestor|
+        ancestors << ancestor
+      end
+      ancestors
+    end
+
     # Appends ancestors leading to this runnable to *io*.
     #
     # *indent* can be used to specify the amount of whitespace
@@ -774,11 +809,8 @@ module Novika::Resolver
     # backtrace. For instance, in case of an error, it can contain
     # the error message.
     def backtrace(io : IO, indent : Int32 = 0, annex : String? = nil)
-      backtrace = [self] of Ancestor
-
-      each_ancestor do |ancestor|
-        backtrace.unshift(ancestor)
-      end
+      backtrace = ancestors.reverse
+      backtrace << self
 
       io << "  ┬\n"
 
@@ -1211,6 +1243,111 @@ module Novika::Resolver
   # order. They are designed to be hidden so as to not interfere
   # with/clutter the user's file tree.
   module Manifest
+    # Base class for several *subtractive preprocessors* for
+    # manifest content.
+    #
+    # They are *subtractive* because they *discard* stuff, at
+    # least from the original content's point of view.
+    #
+    # Also, one might say *subtractive preprocessors* match "edges"
+    # rather than by "structure". If done repeatedly and so to speak
+    # recursively, one might finally arrive at "grains" coarse enough
+    # for "real" content analysis. In this sense subtractive
+    # preprocessors are "noise-friendly" -- and that's just what we
+    # want. Moreover, they may consider each other "noise", too.
+    #
+    # Preprocessors can be chained, and can programmaticaly select
+    # the next preprocessor (or become the terminal one) in `next?`.
+    class Preprocessor
+      def initialize(
+        @root : RunnableRoot,
+        @group : RunnableGroup,
+        @manifest : Manifest::Present
+      )
+      end
+
+      # Returns subtractively preprocessed *content* string. That
+      # is, the returned string will be shorter or of the same
+      # length as *content*.
+      def preprocess(content : String) : String
+        content
+      end
+
+      # Returns the next preprocessor in the chain, or nil if
+      # this preprocessor is terminal.
+      def next? : Preprocessor?
+        PreamblePreprocessor.new(@root, @group, @manifest)
+      end
+    end
+
+    # Strips off manifest preamble and makes the manifest acknowledge it.
+    class PreamblePreprocessor < Preprocessor
+      def preprocess(content : String) : String
+        # Find first line that consists of '---' only (and maybe some
+        # excess whitespace around).
+        open = content.match(/^\s*---\s*$/m)
+
+        return content unless open
+
+        # Similarly find the last line. This time though, it may
+        # not be there and that's perfectly fine. In this case
+        # "postamble" would be a better name, I suppose.
+        close = content.match(/^\s*---\s*$/m, pos: open.end)
+
+        range_outer = open.begin...(close ? close.end : content.size)
+        range_inner = open.end...(close ? close.begin : content.size)
+
+        preamble = content[range_inner].strip
+
+        @manifest.on_preamble(@root, @group, preamble)
+
+        content.sub(range_outer, "")
+      end
+
+      def next? : Preprocessor?
+        CommentPreprocessor.new(@root, @group, @manifest)
+      end
+    end
+
+    # Strips off comments from manifest content.
+    class CommentPreprocessor < Preprocessor
+      def preprocess(content : String) : String
+        content.gsub(/^\s*#[^\n]*/m, "")
+      end
+
+      def next? : Preprocessor?
+        FlagPreprocessor.new(@root, @group, @manifest)
+      end
+    end
+
+    # Expands expressions such as `[windows, ... => dll, so]`, if found
+    # in manifest content: substitutes each with the appropriate value.
+    class FlagPreprocessor < Preprocessor
+      def preprocess(content : String) : String
+        content.gsub(/\[([^\]]+)\]/) do |exp|
+          case $1
+          when /^\s*((?:\w|\.\.\.)+(?:\s*,\s*(?:\w|\.\.\.)+)*)\s*\|\s*(\w+(?:\s*,\s*\w+)*)$/
+            flags = $1.split(/\s*,\s*/, remove_empty: true)
+            blocks = $2.split(/\s*,\s*/, remove_empty: true)
+            next exp unless flags.size == blocks.size
+
+            branches = Hash.zip(flags, blocks)
+            branch = branches["..."]?
+
+            @root.each_true_flag do |flag|
+              next unless block = branches[flag]?
+              break branch = block
+            end
+
+            branch || ""
+          end
+        end
+      end
+
+      def next? : Preprocessor?
+      end
+    end
+
     # Creates and returns a manifest object if *path* contains
     # a manifest. Otherwise, returns nil.
     def self.find(disk : Disk, path : Path, ancestor = nil) : Manifest
@@ -1245,7 +1382,7 @@ module Novika::Resolver
       population.allow? { |r| !(r.is_a?(RunnableGroup) && (r.app? || r.lib?)) }
       container.append(population)
 
-      root.assign(origin, population)
+      root.assign(origin, container: population)
 
       layout(population, origin)
     end
@@ -1262,6 +1399,16 @@ module Novika::Resolver
     # manifest is located.
     def directory
       @path.parent
+    end
+
+    # Invoked when a preamble is found in this manifest. *preamble*
+    # is the inner content of the preamble (i.e. without `---`s).
+    def on_preamble(
+      root : RunnableRoot,
+      group : RunnableGroup,
+      preamble : String
+    )
+      root.assign(group, preamble: preamble)
     end
 
     # Climbs the manifest inheritance chain. Yields manifests
@@ -1281,38 +1428,6 @@ module Novika::Resolver
       end
     end
 
-    # Expands preprocessor expressions in *content*. Returns the
-    # new content, where preprocessor expressions are substituted
-    # with the expanded values.
-    #
-    # *root* is the runnable root, it is mainly needed to check flags.
-    private def expand(root : RunnableRoot, content : String) : String
-      content.gsub(/\[([^\]]+)\]/) do |pexp|
-        case $1
-        when /^\s*(\w+(?:\s*,\s*\w+)*)\s*\|\s*(\w+(?:\s*,\s*\w+)*)$/
-          flags = $1.split(/\s*,\s*/, remove_empty: true)
-          blocks = $2.split(/\s*,\s*/, remove_empty: true)
-          next pexp unless flags.size == blocks.size
-
-          branches = Hash.zip(flags, blocks)
-          branch = branches["_"]?
-
-          root.each_true_flag do |flag|
-            next unless block = branches[flag]?
-            break branch = block
-          end
-
-          branch || ""
-        end
-      end
-    end
-
-    # Splits *content* into a list of string fragments, which are almost
-    # the same as runnable queries.
-    private def to_fragments(content : String) : Array(String)
-      content.split(/(?:#[^\n]*)?\s+/, remove_empty: true)
-    end
-
     # Converts each string fragment in *fragments* into a `Runnable`.
     # Returns the resulting array of `Runnable`s.
     private def to_runnables(fragments : Array(String)) : Array(Runnable)
@@ -1327,13 +1442,17 @@ module Novika::Resolver
       end
     end
 
-    # Reads the manifest content from the disk, expands preprocessor
-    # expressions in it (if any), and it into fragments. Returns the
-    # resulting array of fragments.
-    protected def fragments(*, within root : RunnableRoot) : Array(String)
+    # Returns the preprocessed content of this manifest.
+    protected def preprocessed_content(root : RunnableRoot, group : RunnableGroup) : String
       content = root.disk.read(@path)
-      content = expand(root, content)
-      to_fragments(content)
+
+      preprocessor = Preprocessor.new(root, group, manifest: self)
+
+      while preprocessor = preprocessor.next?
+        content = preprocessor.preprocess(content)
+      end
+
+      content
     end
 
     # Processes *fragments* of a manifest: fills *population* with
@@ -1360,7 +1479,7 @@ module Novika::Resolver
 
       # BUG: if there is a container for group already then we're
       # possibly out of sync.
-      root.assign(group, container, overwrite: false)
+      root.assign(group, container: container, overwrite: false)
 
       queries = to_runnables(fragments)
       slots = queries.select(Slot)
@@ -1405,7 +1524,7 @@ module Novika::Resolver
       population = container.child(transparent: false, ancestor: self)
       container.append(population)
 
-      root.assign(origin, population)
+      root.assign(origin, container: population)
 
       # We have to run manifests in grandparent-parent-child-etc. order,
       # but we climb in child-parent-grandparent order and, moreover,
@@ -1415,7 +1534,10 @@ module Novika::Resolver
       manifests = [] of {Manifest::Present, RunnableGroup, Array(String), Array(String), Bool}
 
       climb(root, origin) do |manifest, group, isself|
-        directives, fragments = manifest.fragments(within: root).partition &.in?(DIRECTIVES)
+        directives, fragments = manifest.preprocessed_content(root, group)
+          .split(/\s+/, remove_empty: true)
+          .partition(&.in?(DIRECTIVES))
+
         manifests << {manifest, group, directives, fragments, !isself}
 
         break if directives.includes?("noinherit")
@@ -1534,12 +1656,17 @@ module Novika::Resolver
       @manifest.is_a?(Manifest::Lib)
     end
 
+    # Returns the name of this group.
+    def name : String
+      @datum.stem
+    end
+
     # Constructs and returns entry filename for this group.
     #
     # For instance, if this group's directory is '/path/to/foo',
     # then its entry filename will be 'foo.nk'.
     def entry_name : String
-      "#{@datum.stem}.nk"
+      "#{name}.nk"
     end
 
     # Returns an absolute path to this group.
@@ -1652,7 +1779,7 @@ module Novika::Resolver
     # Creates and returns a `Designation` for this environment to
     # handle the given resolution *set*.
     def designate(set : ResolutionSet) : Designation
-      Designation.new(self, set, capabilities.copy)
+      Designation.new(@root, self, set, capabilities.copy)
     end
 
     # Returns a brief description of *dependency*.
@@ -2213,6 +2340,7 @@ module Novika::Resolver
       @envs[nil]
     end
 
+    @preambles = {} of RunnableGroup => String
     @containers = {} of RunnableGroup => RunnableContainer
 
     # Assigns *container* to the given *group*.
@@ -2224,12 +2352,21 @@ module Novika::Resolver
     # should be overwritten with *container*.
     #
     # Returns the container that was assigned to *group*.
-    def assign(group : RunnableGroup, container : RunnableContainer, overwrite = true) : RunnableContainer
+    def assign(
+      group : RunnableGroup, *,
+      container : RunnableContainer,
+      overwrite = true
+    ) : RunnableContainer
       if overwrite
         @containers[group] = container
       else
         @containers[group] ||= container
       end
+    end
+
+    # Assigns *preamble* to the given runnable *group*.
+    def assign(group : RunnableGroup, *, preamble : String)
+      @preambles[group] = preamble
     end
 
     # Returns the container assigned to *group*.
@@ -2243,6 +2380,11 @@ module Novika::Resolver
     # nil if *group* is neither an application nor a library.
     def containerof?(group : RunnableGroup) : RunnableContainer?
       @containers[group]?
+    end
+
+    # Returns the preamble of *group*, or nil if it has none.
+    def preambleof?(group : RunnableGroup) : String?
+      @preambles[group]?
     end
 
     # Sends *signal* to all `SignalReceiver`s subscribed to this

@@ -1,3 +1,3 @@
-res/ffi-test.[windows, _ | dll, so]
+res/ffi-test.[windows, ... | dll, so]
 ffi
 disk

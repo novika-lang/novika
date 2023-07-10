@@ -4,3 +4,14 @@ hl/patches
 
 # The following files are exempt from the Chewbacca patch,
 # which requires names to be different from builtins.
+
+---
+
+env/core - Novika's standard library.
+
+  - `core/hl` provides high-level features such as the
+    `choose` statement
+
+  - `core/test` is Novika's standard testing framework
+    which you can use to test your scripts, apps, or
+    libraries.

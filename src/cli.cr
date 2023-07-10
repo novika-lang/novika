@@ -236,20 +236,23 @@ module Novika::Frontend::CLI
   def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
     Colorize.enabled = Novika.colorful?
 
-    if args.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
+    if args.any?(/^\-{1,2}:?(?:h(?:elp)?|\?)$/)
       help(STDOUT)
       exit(0)
     end
 
     profiler = nil
     dry = false
+    help_mode = false
 
     args.reject! do |arg|
       case arg
-      when /^\-p(?::([1-9]\d*))?$/
+      when /^\-:profile(?::([1-9]\d*))?$/
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
-      when /^\-dry$/
+      when /^\-:dry$/
         dry = true
+      when /^help$/
+        help_mode = true
       else
         next false
       end
@@ -300,35 +303,66 @@ module Novika::Frontend::CLI
       end
     end
 
-    # Collect apps for further analysis.
-    apps = Set(Resolver::RunnableGroup).new
-    resolver.accepted.each do |set|
-      set.each_unique_app { |app| apps << app }
-    end
-
-    if apps.size > 1
-      apps.each do |app|
-        app.backtrace(STDERR, indent: 2) do |io|
-          Frontend.note("cannot run #{app} because it's not the only one\n", io)
-        end
+    unless help_mode
+      # Collect apps for further analysis.
+      apps = Set(Resolver::RunnableGroup).new
+      resolver.accepted.each do |set|
+        set.each_unique_app { |app| apps << app }
       end
 
-      Frontend.errln("cannot determine which one of the above apps to run")
+      if apps.size > 1
+        apps.each do |app|
+          app.backtrace(STDERR, indent: 2) do |io|
+            Frontend.note("cannot run #{app} because it's not the only one\n", io)
+          end
+        end
+        Frontend.errln("cannot determine which one of the above apps to run")
 
-      exit(1)
-    end
+        exit(1)
+      end
 
-    # If one app was accepted and cwd is also an app, reject cwd
-    # because it is implicitly loaded (i.e. prefer explicit
-    # app over magic).
-    if cwd_set && cwd_set.app? && (apps.size == 1 || !args.empty?)
-      cwd_set = nil
+      # If one app was accepted and cwd is also an app, reject cwd
+      # because it is implicitly loaded (i.e. prefer explicit
+      # app over magic).
+      if cwd_set && cwd_set.app? && (apps.size == 1 || !args.empty?)
+        cwd_set = nil
+      end
     end
 
     # Form one big ResolutionSet from all ResolutionSets we are going
     # to run. This takes care of any repetitions, in dependencies, as
     # well as in resolutions themselves.
     program = Resolver::ResolutionSet.new
+
+    if help_mode
+      first = true
+
+      resolver.accepted.each do |set|
+        program.append(set)
+      end
+
+      program.each_preamble_with_group(resolver.@root) do |preamble, group|
+        # ↓ Is there a more elegant way?
+        #
+        # TODO: test that preambles aren't "inherited"
+        ancestor_queries = group.ancestors.select(Resolver::RunnableQuery)
+        next if ancestor_queries.empty?
+        next unless ancestor_queries.any? { |query| args.any? { |arg| query == arg } }
+
+        if first
+          first = false
+        else
+          print "\n\n"
+        end
+        puts preamble
+      end
+
+      if first
+        help(STDOUT)
+      end
+
+      exit(0)
+    end
 
     resolver.preloaded.each do |set|
       program.append(set)
