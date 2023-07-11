@@ -25,3 +25,5 @@ Defined b!
 env-defines found outer!
 env-uses found b!
 env-uses found outer!
+./5-cwd-is-realpathd/:
+Hello world

@@ -50,15 +50,43 @@ module Novika::Resolver
     Denied
   end
 
-  # Kinds of signals received by `SignalReceiver`s
-  enum Signal
-    # Ask signal receivers to load whatever data they
-    # can (and should) from disk.
-    LoadFromDisk
+  # Base class of signals received by `SignalReceiver`s
+  abstract struct Signal
+  end
 
-    # Ask signal receivers to save whatever data they
-    # can (and should) to disk.
-    SaveToDisk
+  # Asks signal receivers to load whatever data they can
+  # (and should) from disk.
+  struct DoDiskLoad < Signal
+  end
+
+  # Asks signal receivers to save whatever data they can
+  # (and should) to disk.
+  struct DoDiskSave < Signal
+  end
+
+  # If signal receivers want to ask a question, gives them
+  # a Proc which will do that and return a string answer, or
+  # nil if the user discarded the question.
+  struct ToAskDo < Signal
+    alias Fn = String -> String?
+
+    # Returns the proc which should be used to ask a question.
+    getter fn
+
+    def initialize(&@fn : Fn)
+    end
+  end
+
+  # If signal receivers want to answer a question, gives them
+  # a Proc which will allow them to do that.
+  struct ToAnswerDo < Signal
+    alias Fn = String ->
+
+    # Returns the proc which should be used to answer a question.
+    getter fn
+
+    def initialize(&@fn : Fn)
+    end
   end
 
   # `SignalReceiver`s can receive signals sent by the `RunnableRoot`.
@@ -2517,12 +2545,17 @@ module Novika
     getter rejected = [] of Runnable
     getter ignored = [] of Runnable
 
-    @global_env : Path?
+    @cwd : Path
 
-    def initialize(@cwd : Path, explicit)
+    def initialize(cwd : Path, explicit)
       @disk = Disk.new
+
+      unless cwd = @disk.dir?(cwd)
+        raise ResolverError.new("missing or malformed current working directory")
+      end
+
+      @cwd = cwd
       @root = RunnableRoot.new(cwd, explicit, @disk, ->(runnable : Runnable) { @ignored << runnable })
-      @global_env = @disk.env?(cwd)
 
       # Set flags for OS etc. Only true stuff is stored internally,
       # so don't worry about the mutual exclusivity of all (or most)
@@ -2567,24 +2600,6 @@ module Novika
       end
 
       {nil, nil}
-    end
-
-    def in_global_env(path : Path, &)
-      @global_env.try { |env| yield path.expand(env) }
-    end
-
-    def expand_in_global_env?(path : Path)
-      in_global_env(path) do |envpath|
-        return @disk.file?(envpath)
-      end
-    end
-
-    def expand_in_cwd?(path : Path)
-      @disk.file?(path.expand(@cwd))
-    end
-
-    def expand?(path : Path)
-      expand_in_cwd?(path) || expand_in_global_env?(path)
     end
 
     def autoload_cwd?
@@ -2682,17 +2697,19 @@ module Novika
     # and now rather than receive them from manifest or whatnot. The
     # explicit query list is mainly used to be less annoying when it
     # comes to asking for permissions.
-    def initialize(
-      @env : RunnableEnvironment,
-      @explicit : Array(RunnableQuery)
-    )
+    def initialize(@env : RunnableEnvironment, @explicit : Array(RunnableQuery))
       @permissions = {} of Resolution::Dependency::Signature => Permission
+
+      @ask = ToAskDo::Fn.new { }
+      @answer = ToAnswerDo::Fn.new { }
     end
 
     def receive(signal : Signal)
       case signal
-      in .load_from_disk? then load
-      in .save_to_disk?   then save
+      when ToAskDo    then @ask = signal.fn
+      when ToAnswerDo then @answer = signal.fn
+      when DoDiskLoad then load
+      when DoDiskSave then save
       end
     end
 
@@ -2744,13 +2761,12 @@ module Novika
     # Asks user a *question*, and returns the answer or an empty
     # string in case EOF was received.
     def ask?(question : String) : String?
-      print question, " "
-      gets
+      @ask.call(question)
     end
 
     # Prints *answer* so that it can be seen by the user.
     def answer(answer : String)
-      print answer
+      @answer.call(answer)
     end
 
     # Returns whether *dependency* is explicit.

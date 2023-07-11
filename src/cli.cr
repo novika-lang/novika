@@ -244,6 +244,7 @@ module Novika::Frontend::CLI
     profiler = nil
     dry = false
     help_mode = false
+    abort_on_permission_request = false
 
     args.reject! do |arg|
       case arg
@@ -251,6 +252,8 @@ module Novika::Frontend::CLI
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
       when /^\-:dry$/
         dry = true
+      when /^\-:abort-on-permission-request$/
+        abort_on_permission_request = true
       when /^help$/
         help_mode = true
       else
@@ -389,7 +392,19 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    resolver.@root.send(Resolver::Signal::LoadFromDisk)
+    resolver.@root.send(Resolver::DoDiskLoad.new)
+    resolver.@root.send(Resolver::ToAskDo.new do |question|
+      if abort_on_permission_request
+        abort
+      end
+
+      print question, " "
+      gets
+    end)
+
+    resolver.@root.send(Resolver::ToAnswerDo.new do |answer|
+      print answer
+    end)
 
     # Enable dependencies required by these resolution sets.
     #
@@ -432,7 +447,7 @@ module Novika::Frontend::CLI
       end
     end
 
-    resolver.@root.send(Resolver::Signal::SaveToDisk)
+    resolver.@root.send(Resolver::DoDiskSave.new)
 
     begin
       program.each_designation(resolver.@root, &.run)
