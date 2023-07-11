@@ -233,7 +233,7 @@ module Novika::Frontend::CLI
   end
 
   # Novika command-line frontend entry point.
-  def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
+  def start(args = ARGV, cwd = Path[ENV["NOVIKA_CWD"]? || Dir.current])
     Colorize.enabled = Novika.colorful?
 
     if args.any?(/^\-{1,2}:?(?:h(?:elp)?|\?)$/)

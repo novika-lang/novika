@@ -27,3 +27,19 @@ env-uses found b!
 env-uses found outer!
 ./5-cwd-is-realpathd/:
 Hello world
+./6-cwd-envvar/:
+inner foo
+outer foo
+inner bar/a
+inner bar/b
+inner bar/baz
+inner bar/baz
+outer bar/a
+outer bar/b
+outer bar/baz
+inner boo
+inner bar/a
+outer boo
+outer bar/a
+outer boo
+outer bar/a
