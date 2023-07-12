@@ -1192,7 +1192,7 @@ module Novika
       # whether we create it.
       copy.tape = copy.tape.map! do |form|
         next unless form.is_a?(Block)
-        __tr[form]? || form.instance(copy, __tr: __tr)
+        __tr[form]? || form.instance(same?(form.parent?) ? copy : form, __tr: __tr)
       end
       copy.leaf = false
       copy
