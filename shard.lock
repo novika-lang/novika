@@ -8,9 +8,17 @@ shards:
     git: https://github.com/spider-gazelle/bindata.git
     version: 1.11.1
 
+  concur:
+    git: https://github.com/lbarasti/concur.git
+    version: 1.0.2
+
   lch:
     git: https://github.com/homonoidian/lch.cr.git
     version: 0.1.1
+
+  rate_limiter:
+    git: https://github.com/lbarasti/rate_limiter.git
+    version: 1.0.1
 
   tablo:
     git: https://github.com/hutou/tablo.git

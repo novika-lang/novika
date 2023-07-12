@@ -22,6 +22,8 @@ dependencies:
     github: homonoidian/lch.cr
   tablo:
     github: hutou/tablo
+  concur:
+    github: lbarasti/concur
 
 development_dependencies:
   ameba:
