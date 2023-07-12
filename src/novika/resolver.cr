@@ -1,4 +1,5 @@
 require "csv"
+require "concur"
 
 module Dir::Globber
   # I guess the thing is private for a reason, but I need it anyway!!1
@@ -109,8 +110,8 @@ module Novika::Resolver
     end
   end
 
-  # A caching, Novika-specific file system access abstraction on
-  # top of Crystal's `Dir` and `File`.
+  # A caching, Novika-specific, Mutex'd file system access
+  # abstraction on top of Crystal's `Dir` and `File`.
   class Disk
     # Represents the presence of the requested file system entry
     # (directory, file, or symlink) at `path`. Also holds its
@@ -144,6 +145,8 @@ module Novika::Resolver
       # Path mapped to file content, to save on reading frequently/
       # repeatedly accessed files etc.
       @content = {} of Path => String
+
+      @mutex = Mutex.new(Mutex::Protection::Reentrant)
     end
 
     # Reads, caches, and returns the `InfoPresence` object for the
@@ -157,31 +160,35 @@ module Novika::Resolver
     # *path*. So prefer to use the resulting `InfoPresence#path` in
     # favor of *path* after calling this method.
     def info?(path : Path) : InfoPresence?
-      if presence = @info[path]?
-        return presence.as?(InfoPresence)
+      presence = nil
+
+      @mutex.synchronize do
+        if presence = @info[path]?
+          return presence.as?(InfoPresence)
+        end
+
+        # If the entry is absent, cache & and bail out.
+        unless info = File.info?(path, follow_symlinks: false)
+          @info[path] = InfoAbsent
+          return
+        end
+
+        # If the entry exists and isn't a symlink, cache & bail out.
+        unless info.symlink?
+          return @info[path] = InfoPresence.new(path, info)
+        end
+
+        # If the entry exists but is a symlink, try again but with
+        # its real path.
+        real = Path[File.realpath(path)]
+        info = File.info?(real, follow_symlinks: false)
+        presence = info ? InfoPresence.new(real, info) : InfoAbsent
+
+        # Cache both for real and symlink paths, so that we won't
+        # have to realpath again.
+        @info[real] = presence
+        @info[path] = presence
       end
-
-      # If the entry is absent, cache & and bail out.
-      unless info = File.info?(path, follow_symlinks: false)
-        @info[path] = InfoAbsent
-        return
-      end
-
-      # If the entry exists and isn't a symlink, cache & bail out.
-      unless info.symlink?
-        return @info[path] = InfoPresence.new(path, info)
-      end
-
-      # If the entry exists but is a symlink, try again but with
-      # its real path.
-      real = Path[File.realpath(path)]
-      info = File.info?(real, follow_symlinks: false)
-      presence = info ? InfoPresence.new(real, info) : InfoAbsent
-
-      # Cache both for real and symlink paths, so that we won't
-      # have to realpath again.
-      @info[real] = presence
-      @info[path] = presence
 
       presence.as?(InfoPresence)
     end
@@ -208,15 +215,19 @@ module Novika::Resolver
     #
     # Raises if *path* doesn't point to a file.
     def read(path : Path) : String?
-      @content[path] ||= File.read(path)
+      @mutex.synchronize do
+        @content[path] ||= File.read(path)
+      end
     end
 
     # Yields writable `IO` for the file that *path* points to. The
     # file is created if it does not exist; its content is cleared
     # if it does.
     def write(path : Path, & : IO ->)
-      File.open(path, mode: "w") do |io|
-        yield io
+      @mutex.synchronize do
+        File.open(path, mode: "w") do |io|
+          yield io
+        end
       end
     end
 
@@ -286,7 +297,7 @@ module Novika::Resolver
     # Calls *fn* with paths in *origin* directory that match the
     # given *selector*.
     def glob(origin : Path, selector : GlobSelector, &fn : Path ->)
-      glob(origin, selector, fn)
+      @mutex.synchronize { glob(origin, selector, fn) }
     end
 
     # Determines and returns the path to the environment directory,
@@ -301,20 +312,22 @@ module Novika::Resolver
     # The result is cached, recursively, so you can call this method
     # as many times as you'd like; your disk won't explode.
     def env?(origin : Path) : Path?
-      @envs[origin] ||= begin
-        env : Path?
+      @mutex.synchronize do
+        @envs[origin] ||= begin
+          env : Path?
 
-        return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
-        return env if env = dir?(origin / ENV_GLOBAL_DIRNAME)
-        return env if (env = dir?(origin / ENV_LOCAL_DIRNAME)) && file?(env / ENV_LOCAL_PROOF_FILENAME)
+          return origin if file?(origin / ENV_LOCAL_PROOF_FILENAME)
+          return env if env = dir?(origin / ENV_GLOBAL_DIRNAME)
+          return env if (env = dir?(origin / ENV_LOCAL_DIRNAME)) && file?(env / ENV_LOCAL_PROOF_FILENAME)
 
-        if origin == origin.root
-          # Check one more time, maybe env is in home and we're coming
-          # from a different drive?
-          return dir?(Path.home / ENV_GLOBAL_DIRNAME)
+          if origin == origin.root
+            # Check one more time, maybe env is in home and we're coming
+            # from a different drive?
+            return dir?(Path.home / ENV_GLOBAL_DIRNAME)
+          end
+
+          env?(origin.parent)
         end
-
-        env?(origin.parent)
       end
     end
   end
@@ -486,21 +499,22 @@ module Novika::Resolver
       end
     end
 
-    # Runs this resolution's script with *engine*. Script block
-    # (aka *file block*) is set to be a child of *toplevel*.
-    def run(engine : Engine, toplevel : Block)
-      source = File.read(@abspath)
+    # Opens an instance of *script block* (aka *file block*) with *engine*.
+    #
+    # Extends *script block* itself with `__path__`, `__file__`; therefore,
+    # mutates *script block*.
+    #
+    # Returns the script block instance after evaluation.
+    def run(engine : Engine, script_block : Block) : Block
+      script_block.at(Word.new("__path__"), Quote.new(@abspath.parent.to_s))
+      script_block.at(Word.new("__file__"), Quote.new(@abspath.to_s))
 
-      file_block = Block.new(toplevel).slurp(source)
-      file_block.at(Word.new("__path__"), Quote.new(@abspath.parent.to_s))
-      file_block.at(Word.new("__file__"), Quote.new(@abspath.to_s))
-
-      instance = file_block.instance
+      instance = script_block.instance
       instance.schedule!(engine, stack: Block.new)
 
       engine.exhaust
 
-      toplevel.import!(from: instance)
+      instance
     end
 
     def to_s(io)
@@ -549,6 +563,18 @@ module Novika::Resolver
     # Yields resolutions in this resolution set.
     def each(& : Resolution ->)
       @resolutions.each { |resolution| yield resolution }
+    end
+
+    # Calls *fn* with each resolution from this set in no particular
+    # order; each call is performed on its own fiber. Returns a hash
+    # mapping yielded resolutions to their corresponding results
+    # of *fn*.
+    def parallel_map(&fn : Resolution -> T) : Hash(Resolution, T) forall T
+      Concur
+        .source(@resolutions)
+        .map(workers: size) { |resolution| {resolution, fn.call(resolution)} }
+        .take(size)
+        .to_h
     end
 
     # Yields all `RunnableGroup` objects that have contributed
@@ -746,9 +772,19 @@ module Novika::Resolver
       toplevel.at(Word.new("__runtime__"), Quote.new("novika"))
       toplevel.at(Word.new("__preambles__"), preambles)
 
+      # Slurp in parallel because we can.
+      script_blocks = @set.parallel_map do |resolution|
+        source = @root.disk.read(resolution.abspath)
+
+        Block.new(toplevel).slurp(source)
+      end
+
       engine = Engine.push(@caps)
 
-      @set.each &.run(engine, toplevel)
+      @set.each do |resolution|
+        instance = resolution.run(engine, script_block: script_blocks[resolution])
+        toplevel.import!(from: instance)
+      end
 
       Engine.pop(engine)
     end
@@ -1983,12 +2019,16 @@ module Novika::Resolver
       @dir
     end
 
+    # Returns whether *env* is this container's environment.
     def from?(env : RunnableEnvironment)
       @env == env
     end
 
+    # Communicates with this container's environment permission
+    # server in order to determine whether the use *dependency*
+    # should be allowed to `self`.
     def request(dependency : Resolution::Dependency)
-      @env.try &.request(dependency, for: self)
+      @env.request(dependency, for: self)
     end
 
     # Creates a `RunnableDir`, `RunnableScript`, or `RunnableSharedObject`
@@ -2038,7 +2078,7 @@ module Novika::Resolver
         # ensure that doesn't happen, and hundred times easier to
         # notice. With secondary origins on the other hand, you don't
         # even know where they point most of the time.
-        return unless @primary_rewrite || !!@env.try &.includes?(path)
+        return unless @primary_rewrite || !!path.in?(@env)
       end
 
       classify?(path, ancestor)
