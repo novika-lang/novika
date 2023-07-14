@@ -14,6 +14,9 @@ favorite shell:
 this child $: _pgRoot
 
 
+"Where history should be saved in the home directory:"
+'.novika_history' $: _HISTORY_FILENAME
+
 _pgRoot #la [
   "Outputs all words defined and accessible at this point."
   _pgRoot entry:names* each: [ $: word
@@ -103,6 +106,42 @@ _pgRoot #? [
   "Global stack, persisted for the entire REPL session."
   [ ] $: pgStack
 
+  "Configure readLine* to fit our use case."
+  [ [ 1 = sel: '>>> ' '... ' ] @: prompt
+
+    "If there is no history file, create one."
+    disk:home _HISTORY_FILENAME disk:join $: historyFile
+
+    historyFile disk:hasFile? not => [ historyFile disk:touch ]
+    historyFile disk:read $: history
+
+    [ "( -- ): writes current `history` to disk."
+      history historyFile disk:write
+    ] @: saveHistory
+
+    "If we can't parse, expect more input (go multiline)."
+    [ orphan swap
+
+      false $: slurpDied "< Don't need anything else..."
+
+      [ "Oops, 'slurp' died (note the position of __dies__), so let's
+         try to wait for enough input to not make slurp die..."
+        true =: slurpDied
+      ] @: __died__
+
+      slurp "Regardless of whether `slurp` dies, we end up here" slurpDied
+    ] @: more?
+
+    "These characters cannot be used inside words. Don't remember
+     if there are any other..."
+    '[]\'" ' $: delimiters
+
+    [ 'Showing available toplevel words'
+
+      (_pgRoot entry:names* without: private?)
+    ] @: suggest
+  ] obj $: config
+
 
   [ "( Q -- ): runs a Quote of Novika source code in the context
      of the current REPL session."
@@ -157,10 +196,13 @@ _pgRoot #? [
 
 
   loop: [
-    '>>> ' readLine br:
+    config readLine* br:
       [ "Line was read successfully:" runLine ]
       [ "The user had pressed Ctrl-D:" 'Bye.' echo break ]
   ]
+
+  "Save history when the user quits (but NOT afte REPL error!)."
+  config.saveHistory
 ] @: _startSession
 
   0 87 183 rgb withEchoBg ' ' withColorAppendEcho dropEchoBg
