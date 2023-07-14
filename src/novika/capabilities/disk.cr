@@ -42,6 +42,9 @@ module Novika::Capabilities
     # Returns the working directory.
     abstract def pwd(engine) : Quote
 
+    # Returns current user's home directory.
+    abstract def home(engine) : Quote
+
     # Creates an empty file at *path*. Does nothing if *path*
     # already exists.
     abstract def touch(engine, path : Quote)
@@ -154,6 +157,13 @@ module Novika::Capabilities
       END
       ) do |engine, stack|
         pwd(engine).onto(stack)
+      end
+
+      target.at("disk:home", <<-END
+      ( -- Hd ): leaves current user's Home directory.
+      END
+      ) do |engine, stack|
+        home(engine).onto(stack)
       end
 
       target.at("disk:touch", <<-END

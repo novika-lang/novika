@@ -34,6 +34,10 @@ module Novika::Capabilities::Impl
       Quote.new(Dir.current)
     end
 
+    def home(engine) : Quote
+      Quote.new(Path.home.to_s)
+    end
+
     def touch(engine, path : Quote)
       File.touch(path.string)
     end
