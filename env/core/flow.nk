@@ -91,7 +91,19 @@
 ] @: obj
 
 
-[ """( D br: T F -- ? ): infix version of `br`.
+[ """( ... D sel: T F -- ... T' / ... F' ): infix version of `sel`.
+
+  ```
+  (0 randTo: 100) odd? sel: 'Yay!' 'Nay!' echo
+  ```
+  """
+  ahead thru
+  ahead thru
+  sel
+] @: sel:
+
+
+[ """( ... D br: T F -- ... T' / ... F' ): infix version of `br`.
 
   ```
   (0 randTo: 100) odd? br:
