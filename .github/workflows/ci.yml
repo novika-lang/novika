@@ -36,10 +36,6 @@ jobs:
         uses: crystal-lang/install-crystal@v1
       - name: Build ffi-test
         run: gcc -shared -o tests/res/ffi-test.dll tests/res/ffi-test.c
-      - name: Rename current shard.yml
-        run: mv shard.yml shard.linux.yml
-      - name: Use windows shard.yml
-        run: mv shard.windows.yml shard.yml
       - name: Install dependencies
         run: shards install --without-development
       - name: Build CLI, NKAS, NKI
