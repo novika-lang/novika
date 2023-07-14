@@ -968,23 +968,19 @@ Novika <a href="https://github.com/novika-lang/novika/releases/latest">releases<
     <use href="#octicon-link"/>
   </svg>
 </a>Windows</h3>
-<p>Follow these commands:</p>
-<pre><code class="language-crystal">mv shard.yml shard.old.yml
-mv shard.windows.yml shard.yml
-shards build --without-development --release --progress --no-debug</code></pre>
+<pre><code class="language-crystal">shards build --without-development --release --progress --no-debug</code></pre>
 <h3><a id="linux" class="anchor" href="#linux">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Linux</h3>
-<pre><code class="language-crystal">shards build --without-development --release --progress --no-debug -Dnovika_console -Dnovika_readline</code></pre>
+<pre><code class="language-crystal">shards build --without-development --release --progress --no-debug -Dnovika_console -Dpreview_mt</code></pre>
 <h3><a id="what-do-the-ds-mean" class="anchor" href="#what-do-the-ds-mean">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>What do the <code>-D</code>s mean?</h3>
 <ul>
-<li><code>-Dnovika_readline</code>: use <a href="https://github.com/antirez/linenoise">linenoise</a> instead of <code>gets</code> for <code>readLine</code>.</li>
 <li><code>-Dnovika_console</code>: use <a href="https://github.com/homonoidian/termbox2.cr">termbox2.cr</a> as the backend for capability <em>console</em>.  Otherwise, <em>console</em> won't be available. Since <a href="https://github.com/termbox/termbox2">termbox2</a> doesn't support Windows, you have to drop the flag when compiling for/under it.</li>
 </ul>
 <h3><a id="whats-next" class="anchor" href="#whats-next">
