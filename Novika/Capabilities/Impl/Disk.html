@@ -207,8 +207,18 @@
       
     </li>
   
-  <li class=" " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
+  <li class="parent " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
       <a href="../../../Novika/Capabilities/ISystem.html">ISystem</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/ISystem/PromptConfig" data-name="novika::capabilities::isystem::promptconfig">
+      <a href="../../../Novika/Capabilities/ISystem/PromptConfig.html">PromptConfig</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -917,6 +927,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#home%28engine%29%3AQuote-instance-method" class="signature"><strong>#home</strong>(engine) : Quote</a>
+        
+          <div class="summary"><p>Returns current user's home directory.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#join%28engine%2Cbase%3AQuote%2Cchild%3AQuote%29%3AQuote-instance-method" class="signature"><strong>#join</strong>(engine, base : Quote, child : Quote) : Quote</a>
         
           <div class="summary"><p>Returns path quote which is the result of joining <em>base</em> path and <em>child</em> path quotes using the platform-specific path separator.</p></div>
@@ -1011,6 +1028,11 @@
     <a href="../../../Novika/Capabilities/IDisk.html#has_symlink%3F%28engine%2Cpath%3AQuote%29%3ABoolean-instance-method" class="tooltip">
       <span>has_symlink?(engine, path : Quote) : Boolean</span>
     has_symlink?</a>, 
+    
+  
+    <a href="../../../Novika/Capabilities/IDisk.html#home%28engine%29%3AQuote-instance-method" class="tooltip">
+      <span>home(engine) : Quote</span>
+    home</a>, 
     
   
     <a href="../../../Novika/Capabilities/IDisk.html#inject%28intotarget%3ABlock%29-instance-method" class="tooltip">
@@ -1313,6 +1335,29 @@ if <em>path</em> does not exist.</p>
             </div>
           
           <p>Returns whether <em>path</em> exists and points to a symlink.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="home(engine):Quote-instance-method">
+      <div class="signature">
+        
+        def <strong>home</strong>(engine) : <a href="../../../Novika/Quote.html">Quote</a>
+
+        <a class="method-permalink" href="#home%28engine%29%3AQuote-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class <a href="../../../Novika/Capabilities/IDisk.html">Novika::Capabilities::IDisk</a>
+            </div>
+          
+          <p>Returns current user's home directory.</p>
         </div>
       
       <br/>

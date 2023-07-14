@@ -207,8 +207,18 @@
       
     </li>
   
-  <li class=" " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
+  <li class="parent " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
       <a href="../../../Novika/Capabilities/ISystem.html">ISystem</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/ISystem/PromptConfig" data-name="novika::capabilities::isystem::promptconfig">
+      <a href="../../../Novika/Capabilities/ISystem/PromptConfig.html">PromptConfig</a>
+      
+    </li>
+  
+</ul>
+
       
     </li>
   
@@ -903,6 +913,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#readline_star%28engine%2Cconfig%3APromptConfig%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method" class="signature"><strong>#readline_star</strong>(engine, config : PromptConfig) : Tuple(Quote | Nil, Boolean)</a>
+        
+          <div class="summary"><p>Extended (contextful) version of <code><a href="../../../Novika/Capabilities/Impl/System.html#readline%28engine%2Cprompt%3AForm%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method">#readline</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#report_error%28engine%2Cerror%3AError%29-instance-method" class="signature"><strong>#report_error</strong>(engine, error : Error)</a>
         
           <div class="summary"><p>Reports abound an <em>error</em> to the standard error stream.</p></div>
@@ -950,6 +967,11 @@
     <a href="../../../Novika/Capabilities/ISystem.html#readline%28engine%2Cprompt%3AForm%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method" class="tooltip">
       <span>readline(engine, prompt : Form) : Tuple(Quote | Nil, Boolean)</span>
     readline</a>, 
+    
+  
+    <a href="../../../Novika/Capabilities/ISystem.html#readline_star%28engine%2Cconfig%3APromptConfig%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method" class="tooltip">
+      <span>readline_star(engine, config : PromptConfig) : Tuple(Quote | Nil, Boolean)</span>
+    readline_star</a>, 
     
   
     <a href="../../../Novika/Capabilities/ISystem.html#report_error%28engine%2Cerror%3AError%29-instance-method" class="tooltip">
@@ -1176,6 +1198,29 @@ it together with a status boolean.</p>
 <p>If the user answered with EOF (e.g. CTRL-D), status bool
 is false and answer quote is nil. Else, answer quote
 contains the answer and status bool is true.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="readline_star(engine,config:PromptConfig):Tuple(Quote|Nil,Boolean)-instance-method">
+      <div class="signature">
+        
+        def <strong>readline_star</strong>(engine, config : <a href="../../../Novika/Capabilities/ISystem/PromptConfig.html">PromptConfig</a>) : Tuple(<a href="../../../Novika/Quote.html">Quote</a> | Nil, <a href="../../../Novika/Boolean.html">Boolean</a>)
+
+        <a class="method-permalink" href="#readline_star%28engine%2Cconfig%3APromptConfig%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class <a href="../../../Novika/Capabilities/ISystem.html">Novika::Capabilities::ISystem</a>
+            </div>
+          
+          <p>Extended (contextful) version of <code><a href="../../../Novika/Capabilities/Impl/System.html#readline%28engine%2Cprompt%3AForm%29%3ATuple%28Quote%7CNil%2CBoolean%29-instance-method">#readline</a></code>.</p>
         </div>
       
       <br/>
