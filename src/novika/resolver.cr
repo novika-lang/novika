@@ -65,6 +65,9 @@ module Novika::Resolver
   struct DoDiskSave < Signal
   end
 
+  # Lets signal receivers acknowledge that a runnable was ignored.
+  record RunnableIgnored < Signal, runnable : Runnable
+
   # If signal receivers want to ask a question, gives them
   # a Proc which will do that and return a string answer, or
   # nil if the user discarded the question.
@@ -518,7 +521,7 @@ module Novika::Resolver
     end
 
     def to_s(io)
-      io << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
+      io << @abspath << " (" << @deps.join(", ") << ") ← [" << @sources.join(" | ") << "]"
     end
 
     # Two resolutions are considered equal when they point to the
@@ -644,6 +647,16 @@ module Novika::Resolver
         next unless group.app?
         yield group
       end
+    end
+
+    # Returns an array of unique application `RunnableGroup`s that
+    # have contributed to this resolution set.
+    def unique_apps : Array(RunnableGroup)
+      unique_apps = [] of RunnableGroup
+      each_unique_app do |app|
+        unique_apps << app
+      end
+      unique_apps
     end
 
     # Yields library `RunnableGroup`s that have contributed
@@ -1403,7 +1416,7 @@ module Novika::Resolver
             branches = Hash.zip(flags, blocks)
             branch = branches["..."]?
 
-            @root.each_true_flag do |flag|
+            @root.each_set_flag do |flag|
               next unless block = branches[flag]?
               break branch = block
             end
@@ -1796,10 +1809,10 @@ module Novika::Resolver
         Library.new?(name, cwd: @root.cwd, env: self)
       end
 
-      # Ask root to preload my 'core' if I have 'core'; otherwise,
-      # the request will be silently ignored.
+      # Wish root to preload my 'core' if I have 'core'; else, the
+      # request should be silently ignored.
       if abspath = @abspath
-        @root.preload(abspath / "core")
+        @root.wish RunnableQuery.new(abspath / "core", else: nil)
       end
     end
 
@@ -1942,7 +1955,7 @@ module Novika::Resolver
         each_filter do |filter|
           next if filter.call(runnable)
           if filter.warn
-            @root.ignored(runnable)
+            @root.send RunnableIgnored.new(runnable)
           end
           status = false
           break
@@ -2253,9 +2266,7 @@ module Novika::Resolver
     #
     # *inherit* is a set of dependencies that *all* resolutions in
     # the resulting set should have, regardless of nesting.
-    def to_resolution_set(inherit = Set(Resolution::Dependency).new)
-      set = ResolutionSet.new
-
+    def to_resolution_set(*, inherit = Set(Resolution::Dependency).new, set = ResolutionSet.new)
       # All resolutions under this container will inherit the
       # following dependencies.
       deps = inherit.concat(@runnables.select(Resolution::Dependency).to_set)
@@ -2263,7 +2274,7 @@ module Novika::Resolver
       @runnables.each do |runnable|
         case runnable
         when RunnableContainer
-          resolution = runnable.to_resolution_set(deps.dup)
+          resolution = runnable.to_resolution_set(inherit: deps.dup)
         when RunnableScript
           resolution = Resolution.new(runnable, deps: deps.dup)
         else
@@ -2370,17 +2381,48 @@ module Novika::Resolver
     # Returns the disk used by this runnable root.
     getter disk
 
-    # Returns the user's current working directory.
+    # Returns the user's current working directory. It is also
+    # sometimes referred to as the "primary origin", "origin" as
+    # in "primary origin (source) of files".
     getter cwd
 
-    def initialize(@cwd : Path, @explicit : Array(RunnableQuery), @disk : Disk, @ignored : Runnable ->)
-      @flags = Set(String).new
-      @queries = [] of RunnableQuery
-      @preload = [] of RunnableQuery
-      @committing = false
-
+    def initialize(@disk : Disk, @cwd : Path)
       # Define default (& current working directory) environment.
-      @envs[@cwd] = @envs[nil] = defenv(@disk.env?(@cwd))
+      @envs[@cwd] = @envs[nil] = defenv(disk.env?(@cwd))
+    end
+
+    @wishes = [] of RunnableQuery
+
+    # Appends *query* to the wishlist of this runnable root (the
+    # wishlist is like "outbound queries" or "preload requests").
+    #
+    # Wishes are picked up from the wishlist by outer infrastructure
+    # and loaded distinctly. The only guarantee is that they will
+    # indeed be *preloaded* relative to the query that made the wish,
+    # meaning loaded some time before it.
+    #
+    # Does nothing if *query* is already in the wishlist.
+    def wish(query : RunnableQuery)
+      return if query.in?(@wishes)
+
+      @wishes << query
+    end
+
+    # Yields queries from this runnable root's wishlist of queries.
+    #
+    # See `wish`.
+    def each_wish(& : RunnableQuery ->)
+      @wishes.each { |wish| yield wish }
+    end
+
+    @explicit = [] of RunnableQuery
+
+    # Marks *query* as explicit ("hand-written") within this
+    # runnable root.
+    def defexplicit(query : RunnableQuery)
+      return if query.in?(@explicit)
+
+      @explicit << query
     end
 
     @envs = {} of Path? => RunnableEnvironment
@@ -2460,18 +2502,6 @@ module Novika::Resolver
       @preambles[group]?
     end
 
-    # Sends *signal* to all `SignalReceiver`s subscribed to this
-    # runnable root.
-    def send(signal : Signal)
-      @receivers.each &.receive(signal)
-    end
-
-    # Creates and returns a permission server in the given runnable
-    # environment *env* and capability collection *caps*.
-    def serve_permissions(to env : RunnableEnvironment) : PermissionServer
-      PermissionServer.new(env, @explicit).tap { |server| subscribe(server) }
-    end
-
     @receivers = Set(SignalReceiver).new
 
     # Subscribes *receiver* to this runnable root.
@@ -2484,10 +2514,40 @@ module Novika::Resolver
       @receivers.delete(receiver)
     end
 
-    # :nodoc:
-    def ignored(runnable : Runnable)
-      @ignored.call(runnable)
+    # Sends *signal* to all `SignalReceiver`s subscribed to this
+    # runnable root.
+    def send(signal : Signal)
+      @receivers.each &.receive(signal)
     end
+
+    # Creates and returns a new primary `RunnableContainer`.
+    def new_primary_container : RunnableContainer
+      RunnableContainer.new(self, @cwd, defenv(@cwd))
+    end
+
+    # Creates and returns a permission server in the given runnable
+    # environment *env* and capability collection *caps*.
+    def serve_permissions(to env : RunnableEnvironment) : PermissionServer
+      PermissionServer.new(env, @explicit).tap { |server| subscribe(server) }
+    end
+
+    @depth = 0
+
+    # :nodoc:
+    def down(caller)
+      if @depth > RESOLVER_RECURSION_LIMIT
+        raise ResolverError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
+      end
+
+      @depth += 1
+    end
+
+    # :nodoc:
+    def up
+      @depth -= 1
+    end
+
+    @flags = Set(String).new
 
     # Assigns *state* to a boolean flag with the given *name*.
     #
@@ -2512,212 +2572,9 @@ module Novika::Resolver
       end
     end
 
-    # Yields all *true* flags.
-    def each_true_flag(& : String ->)
+    # Yields all set (true) flags.
+    def each_set_flag(& : String ->)
       @flags.each { |flag| yield flag }
-    end
-
-    @depth = 0
-
-    # :nodoc:
-    def down(caller)
-      if @depth > RESOLVER_RECURSION_LIMIT
-        raise ResolverError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
-      end
-
-      @depth += 1
-    end
-
-    # :nodoc:
-    def up
-      @depth -= 1
-    end
-
-    # Pushes a *query* to the list of queries to-be-resolved during
-    # a `commit`. Returns the `RunnableQuery` object.
-    #
-    # You cannot push a query during a `commit`.
-    def push_query(query : Query) : RunnableQuery
-      if @committing
-        raise "BUG: cannot push new queries during a commit"
-      end
-
-      RunnableQuery.new(query).tap { |obj| @queries.push(obj) }
-    end
-
-    # Constructs a container from the list of queries (see `push_query`),
-    # rewrites it until there is no point in rewriting further (performing
-    # an *thorough rewrite*), and yields the resulting container.
-    #
-    # The list of queries is cleared after the commit.
-    #
-    # Note that it is forbidden to `push_origin` and `push_query` during
-    # a commit (i.e., within the block).
-    def commit(&)
-      @committing = true
-
-      primary = RunnableContainer.new(self, @cwd, defenv(@cwd))
-
-      @queries.each do |query|
-        primary.append(query)
-      end
-
-      @queries.clear
-
-      primary.thorough_rewrite
-
-      yield primary
-    ensure
-      @committing = false
-    end
-
-    def preload(query : Query)
-      runnable = RunnableQuery.new(query, else: nil)
-
-      return if runnable.in?(@preload)
-
-      @preload << runnable
-    end
-  end
-end
-
-module Novika
-  class RunnableResolver
-    include Resolver
-
-    getter accepted = [] of ResolutionSet
-    getter preloaded = [] of ResolutionSet
-    getter rejected = [] of Runnable
-    getter ignored = [] of Runnable
-
-    @cwd : Path
-
-    def initialize(cwd : Path, explicit)
-      @disk = Disk.new
-
-      unless cwd = @disk.dir?(cwd)
-        raise ResolverError.new("missing or malformed current working directory")
-      end
-
-      @cwd = cwd
-      @root = RunnableRoot.new(cwd, explicit, @disk, ->(runnable : Runnable) { @ignored << runnable })
-
-      # Set flags for OS etc. Only true stuff is stored internally,
-      # so don't worry about the mutual exclusivity of all (or most)
-      # of these.
-      @root.set_flag("bsd", {{ flag?(:bsd) }})
-      @root.set_flag("darwin", {{ flag?(:darwin) }})
-      @root.set_flag("dragonfly", {{ flag?(:dragonfly) }})
-      @root.set_flag("freebsd", {{ flag?(:freebsd) }})
-      @root.set_flag("linux", {{ flag?(:linux) }})
-      @root.set_flag("netbsd", {{ flag?(:netbsd) }})
-      @root.set_flag("openbsd", {{ flag?(:openbsd) }})
-      @root.set_flag("unix", {{ flag?(:unix) }})
-      @root.set_flag("windows", {{ flag?(:windows) }})
-    end
-
-    private def submit(&)
-      @root.commit do |container|
-        container.flatten!
-
-        nonterminals = Set(Runnable).new
-        container.recursive_nonterminal_each do |nonterminal|
-          nonterminals << nonterminal
-        end
-
-        yield container.to_resolution_set, nonterminals
-      end
-    end
-
-    private def to_resolution_set?(query : Query)
-      qobj = @root.push_query(query)
-
-      submit do |set, nonterminals|
-        # If the same query object is still in the list of nonterminals,
-        # then it wasn't rewritten. Therefore, autoloading failed.
-        unless nonterminals.empty?
-          nonterminals.each do |nonterminal|
-            @rejected << nonterminal
-          end
-          return nil, qobj
-        end
-        return set, qobj
-      end
-
-      {nil, nil}
-    end
-
-    def autoload_cwd?
-      # Try to autoload core in cwd if cwd is an app
-      # or a lib.
-      return nil, nil if Manifest.find(@disk, @cwd).is_a?(Manifest::Absent)
-
-      to_resolution_set?(@cwd)
-    end
-
-    def preload!
-      @root.@preload.reverse_each do |preload|
-        @root.@queries << preload
-
-        submit do |set, nonterminals|
-          unless nonterminals.empty?
-            nonterminals.each do |nonterminal|
-              @rejected.unshift(nonterminal)
-            end
-            return false
-          end
-
-          @preloaded.unshift(set)
-        end
-      end
-
-      @root.@preload.clear
-
-      true
-    end
-
-    def from_query?(query : String)
-      @root.push_query(query)
-
-      submit do |set, nonterminals|
-        unless nonterminals.empty?
-          nonterminals.each do |nonterminal|
-            @rejected << nonterminal
-          end
-          return false
-        end
-        @accepted << set
-      end
-
-      true
-    end
-
-    def from_queries(queries : Array(String))
-      qobjs = queries.map { |query| @root.push_query(query) }
-
-      submit do |set, nonterminals|
-        unless nonterminals.empty?
-          nonterminals.each do |nonterminal|
-            @rejected << nonterminal
-          end
-          return qobjs
-        end
-
-        @accepted << set
-      end
-
-      qobjs
-    end
-
-    def to_s(io)
-      origins = [] of Path
-      @root.each_origin do |origin|
-        origins << origin
-      end
-
-      io << "("
-      origins.join(io, " | ")
-      io << ")"
     end
   end
 
@@ -2728,7 +2585,6 @@ module Novika
   # appropriate in order to load permissions from disk, and save
   # them on disk for better user experience.
   class PermissionServer
-    include Resolver
     include SignalReceiver
 
     # Creates a new permission server.
@@ -2736,12 +2592,12 @@ module Novika
     # *resolver* is the resolver with which this server will talk about
     # resolver-related things.
     #
-    # *explicit* is the list of explicit runnable queries. An explicit
+    # *explicit* is a list of explicit runnable queries. An explicit
     # query is that query which was specified manually, e.g. via the
-    # arguments. In other words, the user had to *type them in* here
-    # and now rather than receive them from manifest or whatnot. The
-    # explicit query list is mainly used to be less annoying when it
-    # comes to asking for permissions.
+    # arguments. In other words, the user had to *type it* here and
+    # now rather than "acquire" it from somewhere unknowingly. This
+    # list is mainly used to be less annoying when it comes to asking
+    # for permissions.
     def initialize(@env : RunnableEnvironment, @explicit : Array(RunnableQuery))
       @permissions = {} of Resolution::Dependency::Signature => Permission
 
@@ -2822,7 +2678,7 @@ module Novika
     def explicit?(dependency : Resolution::Dependency) : Bool
       dependency.each_ancestor do |ancestor|
         next unless ancestor.is_a?(RunnableQuery)
-        return @explicit.any?(ancestor)
+        return @explicit.any? &.same?(ancestor)
       end
 
       false
@@ -2832,6 +2688,230 @@ module Novika
     # *dependency* for the given *container*.
     def query_permission?(container : RunnableContainer, dependency : Resolution::Dependency)
       @permissions[dependency.signature(container)] ||= dependency.prompt?(self, for: container)
+    end
+  end
+
+  # A mutable response object which is tightly coupled to `Session`,
+  # designed for reuse throughout multiple (rounds of) queries to
+  # the latter.
+  struct Response
+    include SignalReceiver
+
+    # Represents the way a resolution set was accepted.
+    enum AcceptionRoute
+      # The resolution set was accepted because of a *wish*: some
+      # runnable out there "wished" that runnables from the set were
+      # there, and here they are.
+      Wish
+
+      # The resolution set was explicitly mentioned (queried for).
+      Query
+    end
+
+    def initialize
+      @accepted = [] of {AcceptionRoute, ResolutionSet}
+      @ignored = [] of Runnable
+      @rejected = [] of Runnable
+      @wishlist = [] of RunnableQuery
+    end
+
+    def receive(signal : Signal)
+      case signal
+      when RunnableIgnored
+        @ignored << signal.runnable
+      end
+    end
+
+    # Returns `true` if this response does not "wish" to make any more
+    # queries before its accepted sets can be inspected.
+    def wishless? : Bool
+      @wishlist.empty?
+    end
+
+    # Returns whether this response is successful, in that it has no
+    # rejected runnables.
+    def successful? : Bool
+      @rejected.empty?
+    end
+
+    # Joins all accepted resolution sets of this response into one
+    # large resolution set, and returns it. Does not distinguish between
+    # *queried-for* and *wished* resolution sets.
+    #
+    # See `AcceptionRoute` to learn about the difference between
+    # *queried-for* and *wished* routes of set acception.
+    def accepted_set : ResolutionSet
+      accepted_set = ResolutionSet.new
+      @accepted.each do |(_, set)|
+        accepted_set.append(set)
+      end
+      accepted_set
+    end
+
+    # Joins all *queried-for* accepted resolution sets of this response
+    # into one large resolution set, and returns it.
+    #
+    # See `AcceptionRoute` to learn about the difference between
+    # *queried-for* and *wished* routes of set acception.
+    def queried_for_set : ResolutionSet
+      queried_for_set = ResolutionSet.new
+      @accepted.each do |(route, set)|
+        next unless route.query?
+        queried_for_set.append(set)
+      end
+      queried_for_set
+    end
+
+    # Yields runnables that were rejected.
+    def each_rejected_runnable(& : Runnable ->)
+      @rejected.each { |runnable| yield runnable }
+    end
+
+    # Yields runnables that were ignored.
+    def each_ignored_runnable(& : Runnable ->)
+      @ignored.each { |runnable| yield runnable }
+    end
+
+    # Yields wishes from this response's wishlist, then clears
+    # the wishlist (so that this response can perhaps be reused).
+    def drop_wish(& : RunnableQuery ->)
+      @wishlist.each { |wish| yield wish }
+      @wishlist.clear
+    end
+
+    # :nodoc:
+    def accept(session : Session, root : RunnableRoot, route : AcceptionRoute, prepend : Bool) : ResolutionSet
+      container = root.new_primary_container
+
+      session.each_query { |query| container.append(query) }
+      session.each_explicit { |query| root.defexplicit(query) }
+
+      begin
+        root.subscribe(self)
+
+        container.thorough_rewrite
+        container.flatten!
+      ensure
+        root.unsubscribe(self)
+      end
+
+      container.recursive_nonterminal_each do |nonterminal|
+        prepend ? @rejected.unshift(nonterminal) : @rejected.push(nonterminal)
+      end
+
+      root.each_wish do |wish|
+        prepend ? @wishlist.unshift(wish) : @wishlist.push(wish)
+      end
+
+      set = container.to_resolution_set
+
+      prepend ? @accepted.unshift({route, set}) : @accepted.push({route, set})
+
+      set
+    end
+  end
+
+  # A resolver session interacts with a `RunnableRoot` in a way that
+  # allows you to *query*. Querying is done by `push`ing some queries,
+  # and then `pop`ping them "into" a `Response` object which you should
+  # create beforehand, and which you own.
+  #
+  # ```
+  # session = Resolver::Session.new(root)
+  # session.push("foo")
+  # session.push("bar")
+  # session.push("baz")
+  #
+  # response1 = Resolver::Response.new
+  # session.pop(response1)
+  #
+  # # Re-use the same session. Queries were popped, so the session
+  # # is clean.
+  # session.push("xyzzy")
+  # session.push("byzzy")
+  #
+  # response2 = Resolver::Response.new
+  # session.pop(response2)
+  #
+  # # Run the accepted stuff from the responses...
+  # response1.accepted_set.each_designation(root, &.run)
+  # response2.accepted_set.each_designation(root, &.run)
+  # ```
+  struct Session
+    def initialize(@root : RunnableRoot)
+    end
+
+    @explicit = [] of RunnableQuery
+
+    # Yields only those queries from the query list that were
+    # marked as explicit.
+    def each_explicit(& : RunnableQuery ->)
+      @explicit.each { |query| yield query }
+    end
+
+    @queries = [] of RunnableQuery
+
+    # Yields all queries from the query list.
+    def each_query(& : RunnableQuery ->)
+      @queries.each { |query| yield query }
+    end
+
+    # Appends *query* to the list of queries to be resolved during
+    # this session; allows to mark it as *explicit* ("hand-written")
+    # if necessary.
+    def push(query : RunnableQuery, explicit = false)
+      @queries << query
+      @explicit << query if explicit
+    end
+
+    # :ditto:
+    def push(query : Query, explicit = false)
+      push(RunnableQuery.new(query), explicit)
+    end
+
+    # Appends the entire array of *queries* to the list of queries
+    # to be resolved during this session; allows to mark *all* of
+    # them as *explicit* ("hand-written") if necessary.
+    def push(queries : Array(RunnableQuery), explicit = false)
+      @queries.concat(queries)
+      @explicit.concat(queries) if explicit
+    end
+
+    # :ditto:
+    def push(queries : Array(Query) | Array(String) | Array(Path), explicit = false)
+      push(queries.map { |query| RunnableQuery.new(query) }, explicit)
+    end
+
+    @cleared = Set(RunnableQuery).new
+
+    # Resolves the list of queries that were `push`ed, returns the single
+    # resolution set comprised of resolutions for those queries that
+    # were accepted by the resolver.
+    #
+    # Also fills *response*, see `ResolverResponse` for what you can
+    # get out of it.
+    def pop(response : Response) : ResolutionSet
+      pop(response, route: Response::AcceptionRoute::Query, prepend: false)
+    end
+
+    private def pop(response : Response, route : Response::AcceptionRoute, prepend : Bool) : ResolutionSet
+      accepted = response.accept(self, @root, route, prepend)
+
+      @cleared.concat(@queries)
+      @queries.clear
+      @explicit.clear
+
+      response.drop_wish do |wish|
+        next if wish.in?(@cleared)
+
+        @queries << wish
+      end
+
+      unless @queries.empty?
+        pop(response, route: Response::AcceptionRoute::Wish, prepend: true)
+      end
+
+      accepted
     end
   end
 end

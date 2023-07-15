@@ -7,9 +7,10 @@
   Now you can open core/core.nk in your favorite text
   editor and build something cool with Novika!
 
-  You can use the REPL to test out your library:
+  You can try your library out in the REPL by typing
+  the following:
 
-    $ novika repl
+    $ novika
     >>> greet 'John'
     Hello, John!
 ''' echo

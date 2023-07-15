@@ -232,6 +232,49 @@ module Novika::Frontend::CLI
       END
   end
 
+  def argless?(session : Resolver::Session, response : Resolver::Response, cwdpath : Path) : Bool
+    # If no arguments found, try to load an app or lib from the
+    # current working directory.
+    #
+    # Note how we resort to dumb check of whether .nk.app or .nk.lib
+    # exists because otherwise, if `$ novika` is run from the home
+    # directory for example, the disk would just explode.
+    manifest = Resolver::Manifest.find(session.@root.disk, cwdpath)
+
+    if manifest.is_a?(Resolver::Manifest::Absent)
+      # The user ran `$ novika` in a directory that is neither an
+      # app nor a lib, let's try to find the `__default__` runnable
+      # and run that.
+      session.push("__default__")
+      session.pop(response)
+      return response.successful?
+    end
+
+    session.push(cwdpath)
+    session.pop(response)
+
+    return false unless response.successful?
+
+    # If the user ran `$ novika` in a directory that is a Novika
+    # app, we're fine with just running the app.
+    return true if manifest.is_a?(Resolver::Manifest::App)
+
+    # The user ran `$ novika` in a directory that is a Novika lib.
+    # Let's look at the configured __lib_wrapper__ and run that
+    # (making sure it's an app).
+    session.push("__lib_wrapper__")
+
+    wrapper = session.pop(response)
+
+    return false unless response.successful?
+
+    unless wrapper.app?
+      raise Resolver::ResolverError.new("autoloading failed: expected __lib_wrapper__ to be an app")
+    end
+
+    true
+  end
+
   # Novika command-line frontend entry point.
   def start(args = ARGV, cwd = Path[ENV["NOVIKA_CWD"]? || Dir.current])
     Colorize.enabled = Novika.colorful?
@@ -265,92 +308,69 @@ module Novika::Frontend::CLI
 
     profiler.try { |prof| Engine.trackers << prof }
 
-    resolver = RunnableResolver.new(cwd, args.map { |arg| Resolver::RunnableQuery.new(arg) })
+    disk = Resolver::Disk.new
 
-    # Autoload env and cwd. We don't really care whether env autoloading
-    # has succeeded. On the other hand, if cwd autoloading hasn't, we
-    # have an opportunity to load the default runnable, or show help
-    # if the latter doesn't exist.
-    cwd_set, cwd_q = resolver.autoload_cwd?
+    unless cwd = disk.dir?(cwd)
+      raise Resolver::ResolverError.new("missing or malformed current working directory")
+    end
 
-    resolver.rejected.reject!(cwd_q) if cwd_q
+    root = Resolver::RunnableRoot.new(disk, cwd)
+    root.set_flag("bsd", {{ flag?(:bsd) }})
+    root.set_flag("darwin", {{ flag?(:darwin) }})
+    root.set_flag("dragonfly", {{ flag?(:dragonfly) }})
+    root.set_flag("freebsd", {{ flag?(:freebsd) }})
+    root.set_flag("linux", {{ flag?(:linux) }})
+    root.set_flag("netbsd", {{ flag?(:netbsd) }})
+    root.set_flag("openbsd", {{ flag?(:openbsd) }})
+    root.set_flag("unix", {{ flag?(:unix) }})
+    root.set_flag("windows", {{ flag?(:windows) }})
 
-    if args.empty? && resolver.rejected.empty? && (cwd_set.nil? || cwd_set.lib?)
-      unless resolver.from_query?("__default__")
+    session = Resolver::Session.new(root)
+    response = Resolver::Response.new
+
+    explicit = args.map { |arg| Resolver::RunnableQuery.new(arg) }
+
+    if args.empty?
+      unless argless?(session, response, cwd)
         help(STDOUT)
         exit(0)
       end
+    else
+      # If there are some arguments, mark them all as explicit and
+      # pop the response.
+      session.push(explicit, explicit: true)
+      session.pop(response)
     end
 
-    # Try to process the arguments.
-    resolver.from_queries(args)
-    resolver.preload!
-
-    # If there are any unresolved runnables, print them and their
-    # backtraces and quit. This is an error.
-    unless resolver.rejected.empty?
-      resolver.rejected.each do |runnable|
+    # Having an unsuccessful response is an error, and means some
+    # runnables were rejected.
+    unless response.successful?
+      response.each_rejected_runnable do |runnable|
         runnable.backtrace(STDERR, indent: 2) do |io|
           Frontend.err("could not resolve runnable: #{runnable}", io)
         end
       end
 
-      exit(1)
+      abort
     end
 
-    # Then, if there are any ignored runnables, print them as
-    # well but do not quit.
-    resolver.ignored.each do |runnable|
+    # Having some runnables ignored isn't an error, but we should
+    # still notify the user so that they know something is wrong.
+    response.each_ignored_runnable do |runnable|
       runnable.backtrace(STDERR, indent: 2) do |io|
-        Frontend.note("the following runnable is not allowed here: #{runnable}", io)
+        Frontend.note("this runnable is not allowed here, and will be ignored: #{runnable}", io)
       end
     end
-
-    unless help_mode
-      # Collect apps for further analysis.
-      apps = Set(Resolver::RunnableGroup).new
-      resolver.accepted.each do |set|
-        set.each_unique_app { |app| apps << app }
-      end
-
-      if apps.size > 1
-        apps.each do |app|
-          app.backtrace(STDERR, indent: 2) do |io|
-            Frontend.note("cannot run #{app} because it's not the only one\n", io)
-          end
-        end
-        Frontend.errln("cannot determine which one of the above apps to run")
-
-        exit(1)
-      end
-
-      # If one app was accepted and cwd is also an app, reject cwd
-      # because it is implicitly loaded (i.e. prefer explicit
-      # app over magic).
-      if cwd_set && cwd_set.app? && (apps.size == 1 || !args.empty?)
-        cwd_set = nil
-      end
-    end
-
-    # Form one big ResolutionSet from all ResolutionSets we are going
-    # to run. This takes care of any repetitions, in dependencies, as
-    # well as in resolutions themselves.
-    program = Resolver::ResolutionSet.new
 
     if help_mode
       first = true
 
-      resolver.accepted.each do |set|
-        program.append(set)
-      end
-
-      program.each_preamble_with_group(resolver.@root) do |preamble, group|
-        # ↓ Is there a more elegant way?
-        #
+      program = response.queried_for_set
+      program.each_preamble_with_group(root) do |preamble, group|
         # TODO: test that preambles aren't "inherited"
         ancestor_queries = group.ancestors.select(Resolver::RunnableQuery)
         next if ancestor_queries.empty?
-        next unless ancestor_queries.any? { |query| args.any? { |arg| query == arg } }
+        next unless ancestor_queries.any? { |query| explicit.any? &.same?(query) }
 
         if first
           first = false
@@ -367,14 +387,28 @@ module Novika::Frontend::CLI
       exit(0)
     end
 
-    resolver.preloaded.each do |set|
-      program.append(set)
-    end
+    # Okay, so we have one huge response which seems like a valid one.
+    # Now we need to form one big resolution set from it.
+    #
+    # It will eliminate global repetition, allow us to do some global
+    # checks and permission requests, and, finally, we'll run it.
+    program = response.accepted_set
 
-    program.append(cwd_set) if cwd_set
+    apps = program.unique_apps
 
-    resolver.accepted.each do |set|
-      program.append(set)
+    # Listing more than one app is an error. Note that in manifests,
+    # apps are ignored (therefore see above), so here we're basically
+    # handling situations such as `$ novika create/app create/lib`.
+    if apps.size > 1
+      apps.each do |app|
+        app.backtrace(STDERR, indent: 2) do |io|
+          Frontend.noteln("could not run #{app} because it's not the only one", io)
+        end
+      end
+
+      Frontend.errln("could not determine which one of the above apps to run")
+
+      abort
     end
 
     if dry
@@ -385,15 +419,15 @@ module Novika::Frontend::CLI
 
       puts
 
-      program.each_designation(resolver.@root) do |designation|
+      program.each_designation(session.@root) do |designation|
         puts designation
       end
 
       exit(0)
     end
 
-    resolver.@root.send(Resolver::DoDiskLoad.new)
-    resolver.@root.send(Resolver::ToAskDo.new do |question|
+    root.send(Resolver::DoDiskLoad.new)
+    root.send(Resolver::ToAskDo.new do |question|
       if abort_on_permission_request
         abort
       end
@@ -402,15 +436,15 @@ module Novika::Frontend::CLI
       gets
     end)
 
-    resolver.@root.send(Resolver::ToAnswerDo.new do |answer|
+    root.send(Resolver::ToAnswerDo.new do |answer|
       print answer
     end)
 
-    # Enable dependencies required by these resolution sets.
+    # Enable dependencies required by the resolution set.
     #
     # Currently we do it in a way that completely throws away any
     # actual usefulness/safety guarantees the dependency system
-    # may have provided. There are reasons but hopefully this
+    # is designe to provide. There are reasons but hopefully this
     # isn't going to be the case in the future.
     program.each_unique_dependency_with_dependents do |dependency, dependents|
       skiplist = Set(Resolver::Resolution).new
@@ -427,7 +461,7 @@ module Novika::Frontend::CLI
         end
 
         # Find container that maps to the group/lib
-        container = resolver.@root.containerof(group)
+        container = root.containerof(group)
         container.request(dependency)
 
         visited << group
@@ -447,10 +481,10 @@ module Novika::Frontend::CLI
       end
     end
 
-    resolver.@root.send(Resolver::DoDiskSave.new)
+    root.send(Resolver::DoDiskSave.new)
 
     begin
-      program.each_designation(resolver.@root, &.run)
+      program.each_designation(root, &.run)
     ensure
       profiler.try { |prof| puts prof.to_table }
     end
