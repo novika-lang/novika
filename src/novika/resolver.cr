@@ -3166,6 +3166,7 @@ class Novika::RunnableResolver
   # lib. Looks at the configured `__lib_wrapper__` and schedules that.
   # Raises if the latter isn't an app.
   private def resolve_cwd?(manifest : Manifest::Lib) : Bool
+    return false unless sched?(@cwd)
     return false unless wrapper = sched?("__lib_wrapper__")
 
     unless wrapper.app?

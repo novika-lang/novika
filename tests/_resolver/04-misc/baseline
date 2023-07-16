@@ -317,3 +317,5 @@ I am a nested preamble
 I am a nested preamble
 Lorem ipsum dolor sit amet
 I am a nested preamble
+./m-libwrapper/:
+running the wrapper, value from lib is: 123
