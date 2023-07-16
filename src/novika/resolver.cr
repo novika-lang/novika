@@ -77,7 +77,7 @@ module Novika::Resolver
     # Returns the proc which should be used to ask a question.
     getter fn
 
-    def initialize(&@fn : Fn)
+    def initialize(@fn : Fn)
     end
   end
 
@@ -89,7 +89,7 @@ module Novika::Resolver
     # Returns the proc which should be used to answer a question.
     getter fn
 
-    def initialize(&@fn : Fn)
+    def initialize(@fn : Fn)
     end
   end
 
@@ -103,13 +103,38 @@ module Novika::Resolver
     abstract def receive(signal : Signal)
   end
 
-  # Raised when there is an error during resolution.
+  # Base class for resolver and resolver-related exceptions.
   class ResolverError < Exception
+  end
+
+  # Raised when there is an error during runnable resolution.
+  class RunnableError < ResolverError
     # Returns the runnable which is assumed to be the source of
     # this error.
-    getter? runnable
+    getter runnable
 
-    def initialize(@message, @runnable : Runnable? = nil)
+    def initialize(@message, @runnable : Runnable)
+    end
+  end
+
+  # Raised when there are rejected runnables in a response.
+  class ResponseRejectedError < ResolverError
+    # Returns the response which contains some rejected runnables.
+    getter response
+
+    def initialize(@response : Response)
+      @message = "could not resolve runnable"
+    end
+  end
+
+  # Raised when the user tries to run more than one app.
+  class MoreThanOneAppError < ResolverError
+    # Returns the array of apps in the response; more than of
+    # them there.
+    getter apps
+
+    def initialize(@apps : Array(RunnableGroup))
+      @message = "could not determine which one of the apps to run"
     end
   end
 
@@ -899,7 +924,7 @@ module Novika::Resolver
       ws = " " * indent
       backtrace.each do |runnable|
         io << ws << "╿ in "
-        if runnable.is_a?(Resolver::RunnableContainer)
+        if runnable.is_a?(RunnableContainer)
           content = String.build { |inner| runnable.to_s(inner, lead: 0, indent: indent + 2) }
 
           skip = true
@@ -2354,7 +2379,7 @@ module Novika::Resolver
     def to_s(io, indent = 0, lead = indent)
       io << " " * lead
       io << "Transparent" if transparent?
-      io << "Container[" << @dir << "#" << object_id << "]:\n"
+      io << "Container[" << @dir << "]:\n"
 
       indent += 2
 
@@ -2536,7 +2561,7 @@ module Novika::Resolver
     # :nodoc:
     def down(caller)
       if @depth > RESOLVER_RECURSION_LIMIT
-        raise ResolverError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
+        raise RunnableError.new("recursion depth exceeded: maybe there is a dependency cycle?", caller)
       end
 
       @depth += 1
@@ -2791,6 +2816,8 @@ module Novika::Resolver
 
         container.thorough_rewrite
         container.flatten!
+
+        session.on_container_rewritten(container)
       ensure
         root.unsubscribe(self)
       end
@@ -2837,8 +2864,26 @@ module Novika::Resolver
   # response1.accepted_set.each_designation(root, &.run)
   # response2.accepted_set.each_designation(root, &.run)
   # ```
-  struct Session
+  class Session
     def initialize(@root : RunnableRoot)
+    end
+
+    @on_container_rewritten = Set(RunnableContainer ->).new
+
+    # Registers *callback* to be called when a runnable container
+    # is thoroughly rewritten.
+    def on_container_rewritten(&callback : RunnableContainer ->)
+      on_container_rewritten(callback)
+    end
+
+    # :ditto:
+    def on_container_rewritten(callback : RunnableContainer ->)
+      @on_container_rewritten << callback
+    end
+
+    # :nodoc:
+    def on_container_rewritten(container : RunnableContainer)
+      @on_container_rewritten.each &.call(container)
     end
 
     @explicit = [] of RunnableQuery
@@ -2913,5 +2958,310 @@ module Novika::Resolver
 
       accepted
     end
+  end
+end
+
+# A very high-level interface to the Novika resolver. Designed as one-
+# shot, meaning you shouldn't reuse the same object twice or call
+# `resolve?` twice. As a protection, calling `resolve?` twice will raise.
+#
+# See `Session` and `Response` if you want a lower-level interface.
+#
+# ```
+# resolver = Novika::RunnableResolver.new(cwd: Path[Dir.current], args: ["repl"])
+#
+# # Define 'gets' and 'print' to ask for permissions.
+#
+# resolver.on_permissions_gets do |string|
+#   print string
+#   gets
+# end
+#
+# resolver.on_permissions_print do |string|
+#   print string
+# end
+#
+# # Run "repl" and everything it requested.
+#
+# resolver.after_permissions(&.run)
+# resolver.resolve?
+# ```
+class Novika::RunnableResolver
+  include Resolver
+
+  # An object that helps you do high-level things with a `Response`.
+  class ResponseHook
+    # Returns the `Response` object.
+    getter response
+
+    def initialize(@resolver : RunnableResolver, @root : RunnableRoot, @response : Response)
+    end
+
+    # Yields preambles of apps and libs that were queried for in
+    # arguments to `RunnableResolver#new` specifically, followed by
+    # their corresponding runnable groups.
+    def each_queried_for_preamble_with_group(& : String, RunnableGroup ->)
+      @response.queried_for_set.each_preamble_with_group(@root) do |preamble, group|
+        next unless query = group.ancestors.find(RunnableQuery)
+        next unless @resolver.argument?(query)
+
+        yield preamble, group
+      end
+    end
+  end
+
+  # An object that helps you do high-level things with a `ResolutionSet`
+  # for the entire *program*.
+  #
+  # A Novika program is basically a collection of properly arranged
+  # Novika scripts. This is represented by a single `ResolutionSet`,
+  # which is an ordered set. It being a set means that you cannot
+  # execute a single script twice in one session of the resolver,
+  # that is, globally.
+  class ProgramHook
+    # Returns the program `ResolutionSet`.
+    getter program
+
+    def initialize(@resolver : RunnableResolver, @root : RunnableRoot, @program : ResolutionSet)
+    end
+
+    # Makes and yields designations for the program.
+    #
+    # See `Designation` to learn what they are.
+    def each_designation(& : Designation ->)
+      @program.each_designation(@root) { |designation| yield designation }
+    end
+  end
+
+  # Same as `ProgramHook` but also allows you to run the program.
+  class PermissionsHook < ProgramHook
+    # Runs the program.
+    def run
+      @program.each_designation(@root, &.run)
+    end
+  end
+
+  @cwd : Path
+  @args : Array(RunnableQuery)
+
+  # Creates a new resolver for the given current working directory
+  # *cwd* and query arguments *args*.
+  #
+  # See `RunnableResolver`.
+  def initialize(cwd : Path, args : Array(Query))
+    disk = Disk.new
+
+    unless cwd = disk.dir?(cwd)
+      raise ResolverError.new("missing or malformed current working directory")
+    end
+
+    @cwd = cwd
+    @args = args.map { |query| RunnableQuery.new(query) }
+
+    @root = RunnableRoot.new(disk, @cwd)
+    @root.set_flag("bsd", {{ flag?(:bsd) }})
+    @root.set_flag("darwin", {{ flag?(:darwin) }})
+    @root.set_flag("dragonfly", {{ flag?(:dragonfly) }})
+    @root.set_flag("freebsd", {{ flag?(:freebsd) }})
+    @root.set_flag("linux", {{ flag?(:linux) }})
+    @root.set_flag("netbsd", {{ flag?(:netbsd) }})
+    @root.set_flag("openbsd", {{ flag?(:openbsd) }})
+    @root.set_flag("unix", {{ flag?(:unix) }})
+    @root.set_flag("windows", {{ flag?(:windows) }})
+
+    @session = Session.new(@root)
+    @response = Response.new
+    @resolved = false
+  end
+
+  # Returns whether *query* was passed as an argument to this resolver.
+  def argument?(query : RunnableQuery)
+    @args.any? &.same?(query)
+  end
+
+  # Helps get rid of `push(); pop()`s. Returns resolution set specifically
+  # for the pushed query if the response is successful, otherwise nil.
+  private def sched?(*args, **kwargs) : ResolutionSet?
+    @session.push(*args, **kwargs)
+
+    set = @session.pop(@response)
+    set if @response.successful?
+  end
+
+  # Called when some container under this resolver was thoroughly rewritten.
+  #
+  # You'll have to do additional checks to figure out where the
+  # container came from. This is mainly an inspection method.
+  def after_container_rewritten(&callback : RunnableContainer ->)
+    @session.on_container_rewritten(callback)
+  end
+
+  @after_response = Set(ResponseHook ->).new
+
+  # Registers *callback* to run after a valid response is formed.
+  def after_response(&callback : ResponseHook ->)
+    @after_response << callback
+  end
+
+  private def on_response(response : Response)
+    @after_response.each do |callback|
+      callback.call ResponseHook.new(self, @root, response)
+    end
+  end
+
+  @after_program = Set(ProgramHook ->).new
+
+  # Registers *callback* to run after a valid Novika program is formed.
+  # See `ProgramHook` to learn what is considered a Novika program.
+  def after_program(&callback : ProgramHook ->)
+    @after_program << callback
+  end
+
+  private def on_program(program : ResolutionSet)
+    @after_program.each do |callback|
+      callback.call ProgramHook.new(self, @root, program)
+    end
+  end
+
+  @after_permissions = Set(PermissionsHook ->).new
+
+  # Registers *callback* to run after a valid Novika program is formed,
+  # and permissions are given.
+  def after_permissions(&callback : PermissionsHook ->)
+    @after_permissions << callback
+  end
+
+  private def on_permissions(program : ResolutionSet)
+    @after_permissions.each do |callback|
+      callback.call PermissionsHook.new(self, @root, program)
+    end
+  end
+
+  @on_permissions_gets = ->(string : String) { raise "BUG: can't ask anything..." }
+  @on_permissions_print = ->(string : String) { raise "BUG: can't say anything..." }
+
+  # Registers a handler for permissions `gets`. Overrides the previous
+  # handler, if any.
+  def on_permissions_gets(&@on_permissions_gets : String -> String?)
+  end
+
+  # Registers a handler for permissions `print`. Overrides the previous
+  # handler, if any.
+  def on_permissions_print(&@on_permissions_print : String ->)
+  end
+
+  # Called when the user runs `$ novika` in a directory that is neither
+  # an app nor a lib; tries to schedule `__default__`.
+  private def resolve_cwd?(manifest : Manifest::Absent) : Bool
+    !!sched?("__default__")
+  end
+
+  # Called when the user runs `$ novika` in a directory that is a Novika
+  # app; just schedules the app.
+  private def resolve_cwd?(manifest : Manifest::App) : Bool
+    !!sched?(@cwd)
+  end
+
+  # Called when the user runs `$ novika` in a directory that is a Novika
+  # lib. Looks at the configured `__lib_wrapper__` and schedules that.
+  # Raises if the latter isn't an app.
+  private def resolve_cwd?(manifest : Manifest::Lib) : Bool
+    return false unless wrapper = sched?("__lib_wrapper__")
+
+    unless wrapper.app?
+      raise ResolverError.new("autoloading failed: expected __lib_wrapper__ to be an app")
+    end
+
+    true
+  end
+
+  # Performs resolution. Returns `true` if resolution is successful,
+  # `false` if the resolver had nothing to do (not even an error).
+  def resolve? : Bool
+    if @resolved
+      raise "BUG: attempt to RunnableResolver#resolve? twice"
+    end
+
+    if @args.empty?
+      manifest = Manifest.find(@root.disk, @cwd)
+
+      return false unless resolve_cwd?(manifest)
+    else
+      sched?(@args, explicit: true)
+    end
+
+    # Having an unsuccessful response is an error, and means some
+    # runnables were rejected.
+    raise ResponseRejectedError.new(@response) unless @response.successful?
+
+    on_response(@response)
+
+    # Okay, so we have one huge response which seems like a valid one.
+    # Now we need to form a resolution set from it.
+    program = @response.accepted_set
+
+    # Listing more than one app is an error. Note that in manifests,
+    # apps are ignored (therefore see above), so here we're basically
+    # handling situations such as `$ novika create/app create/lib`.
+    apps = program.unique_apps
+
+    raise MoreThanOneAppError.new(apps) if apps.size > 1
+
+    # The program resolution set looks OK now.
+    on_program(program)
+
+    @root.send(DoDiskLoad.new)
+    @root.send(ToAskDo.new(@on_permissions_gets))
+    @root.send(ToAnswerDo.new(@on_permissions_print))
+
+    # Enable dependencies required by the program resolution set.
+    #
+    # Currently we do it in a way that completely throws away any
+    # actual usefulness/safety guarantees the dependency system
+    # is designed to provide. There are reasons but hopefully this
+    # isn't going to be the case in the future.
+    program.each_unique_dependency_with_dependents do |dependency, dependents|
+      skiplist = Set(Resolution).new
+      visited = Set(RunnableGroup).new
+
+      # Go through apps and libs, add their resolutions to the skiplist.
+      # React only to never-seen-before groups.
+      dependents.each_group do |group, resolution|
+        next unless group.app? || group.lib?
+
+        if group.in?(visited)
+          skiplist << resolution
+          next
+        end
+
+        # Find the container that maps to the group/lib.
+        container = @root.containerof(group)
+        container.request(dependency)
+
+        visited << group
+        skiplist << resolution
+      end
+
+      # For all resultions not belonging to an app or lib, simply
+      # allow the use of the dependency.
+      #
+      # `request` isn't expected to be called recursively, therefore,
+      # we only allow dependencies from `explicit?` queries -- the same
+      # thing we'd do with some other more "elegant" way.
+      dependents.each do |resolution|
+        next if resolution.in?(skiplist)
+
+        resolution.each_dependency(&.allow)
+      end
+    end
+
+    @root.send(DoDiskSave.new)
+
+    on_permissions(program)
+
+    # Mark that we don't want to resolve?() again.
+    @resolved = true
+
+    true
   end
 end
