@@ -51,7 +51,9 @@ module Novika::Frontend::Nkas
     HELP
   end
 
-  def start(args = ARGV)
+  def start(args = ARGV, cwd = Path[ENV["NOVIKA_CWD"]? || Dir.current])
+    Colorize.enabled = Novika.colorful?
+
     if args.size < 2
       help(STDOUT)
       exit(0)
@@ -84,66 +86,69 @@ module Novika::Frontend::Nkas
 
     unless imagepath
       Frontend.errln("Please provide a 'path/to/image.nki' as the last argument.")
-      Frontend.noteln("This'll let us know where to save the image.")
+      Frontend.noteln("This will let me know where to save the image.")
       exit(1)
     end
 
-    caps = CapabilityCollection.with_available
-    caps.enable_default
+    resolver = RunnableResolver.new(cwd, runnables)
 
-    resolver = RunnableResolver.new(runnables, caps)
+    resolver.on_permissions_gets do |string|
+      print string, " "
+      gets
+    end
+
+    resolver.on_permissions_print do |string|
+      print string
+    end
+
+    resolver.after_permissions do |hook|
+      designations = hook.designations
+      prefix = designations.size > 1 # Mixed environments in args/cwd
+
+      designations.each do |designation|
+        # Slurp into One Big Block.
+        mod = Novika::Block.new(designation.caps.block)
+
+        Frontend.wait("Bundling #{ARGV[-1]} (#{designation.label})...\n", ok: "Bundled #{ARGV[-1]} (#{designation.label})") do
+          designation.slurp(mod)
+        end
+
+        # Write the image.
+        File.open(img = prefix ? "#{Path[ARGV[-1]].stem}.#{designation.label}.nki" : ARGV[-1], "w") do |file|
+          Frontend.wait("Writing image #{img}...\n", ok: "Wrote image #{img}") do
+            file.write_bytes(Novika::Image.new(mod, designation.caps, compression))
+          end
+        end
+      end
+    end
+
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
     end
-
-    if resolver.apps.size > 1
-      names = resolver.apps.join(", ", &.path.basename)
-      Frontend.errln("could not determine which app to pack (given apps: #{names})")
-      Frontend.noteln("pick one or, if this doesn't seem right, create an issue!")
-      exit(1)
+  rescue e : Resolver::RunnableError
+    e.runnable.backtrace(STDERR, indent: 2) do |io|
+      Frontend.err(e.message, io)
     end
-
-    unless resolver.unknowns.empty?
-      resolver.unknowns.each do |arg|
-        Frontend.errln("could not resolve runnable #{arg.colorize.bold}: it's not a file, directory, app, or capability id")
+    exit(1)
+  rescue e : Resolver::ResponseRejectedError
+    e.response.each_rejected_runnable do |runnable|
+      runnable.backtrace(STDERR, indent: 2) do |io|
+        Frontend.err(e.message, io)
       end
-      exit(1)
     end
-
-    resolver.capabilities.each { |req| caps.enable(req.id) }
-
-    # Flatten to paths in proper order!
-    paths = [] of Path
-
-    resolver.folders.each do |folder|
-      folder.entry?.try { |entry| paths << entry }
-      paths.concat(folder.files)
-    end
-
-    resolver.files.each do |file|
-      paths << file
-    end
-
-    resolver.apps.each do |app|
-      paths.concat(app.files)
-      app.entry?.try { |entry| paths << entry }
-    end
-
-    # Slurp into One Big Block.
-    mod = Novika::Block.new
-    paths.each do |file|
-      Frontend.wait("Bundling #{file}...", ok: "Bundled #{file}") do
-        mod.slurp(File.read(file))
+    exit(1)
+  rescue e : Resolver::MoreThanOneAppError
+    e.apps.each do |app|
+      app.backtrace(STDERR, indent: 2) do |io|
+        Frontend.noteln("could not run this app because it's not the only one", io)
       end
     end
 
-    # Write the image.
-    File.open(img = ARGV[-1], "w") do |file|
-      Frontend.wait("Writing image #{img}...", ok: "Wrote image #{img}") do
-        file.write_bytes(Novika::Image.new(mod, caps, compression))
-      end
-    end
+    Frontend.errln(e.message)
+    exit(1)
+  rescue e : Resolver::ResolverError
+    Frontend.errln(e.message)
   end
 end
 

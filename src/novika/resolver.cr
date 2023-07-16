@@ -784,6 +784,8 @@ module Novika::Resolver
   # After obtaining a designation, you can `run` it as many times
   # as you want.
   struct Designation
+    getter caps
+
     def initialize(
       @root : RunnableRoot,
       @env : RunnableEnvironment,
@@ -793,12 +795,40 @@ module Novika::Resolver
       @set.each_unique_dependency &.enable(in: @caps)
     end
 
+    # Returns the label of this designation, which is formed from
+    # the basename of this designation's runnable environment.
+    def label : String
+      @env.abspath?.try(&.basename) || "unknown"
+    end
+
+    # Parses the designated resolutions and appends the parsed forms
+    # to *target*. Their order is kept, and matches that of the corresponding
+    # resolution in this designation's resolution set.
+    def slurp(target : Block)
+      preambles = target.form_for?(Word.new("__preambles__")).as?(Block)
+      preambles ||= Block.new
+
+      @set.each_preamble_with_group(@root) do |preamble, group|
+        preambles.at(Word.new(group.name), Quote.new(preamble))
+      end
+
+      # Slurp in parallel because we can.
+      script_blocks = @set.parallel_map do |resolution|
+        source = @root.disk.read(resolution.abspath)
+
+        Block.new(target).slurp(source)
+      end
+
+      @set.each do |resolution|
+        target.paste(script_blocks[resolution])
+      end
+    end
+
     # Runs the designated resolutions under a new common
     # toplevel block.
     def run
       preambles = Block.new
 
-      # TODO: handle groups with same name, but different actual directories
       @set.each_preamble_with_group(@root) do |preamble, group|
         preambles.at(Word.new(group.name), Quote.new(preamble))
       end
@@ -3035,6 +3065,15 @@ class Novika::RunnableResolver
 
   # Same as `ProgramHook` but also allows you to run the program.
   class PermissionsHook < ProgramHook
+    # Returns the list of designations in the program.
+    def designations : Array(Designation)
+      designations = [] of Designation
+      @program.each_designation(@root) do |designation|
+        designations << designation
+      end
+      designations
+    end
+
     # Runs the program.
     def run
       @program.each_designation(@root, &.run)
