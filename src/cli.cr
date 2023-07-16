@@ -367,7 +367,6 @@ module Novika::Frontend::CLI
 
       program = response.queried_for_set
       program.each_preamble_with_group(root) do |preamble, group|
-        # TODO: test that preambles aren't "inherited"
         ancestor_queries = group.ancestors.select(Resolver::RunnableQuery)
         next if ancestor_queries.empty?
         next unless ancestor_queries.any? { |query| explicit.any? &.same?(query) }
