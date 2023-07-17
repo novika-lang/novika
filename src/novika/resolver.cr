@@ -2180,13 +2180,13 @@ module Novika::Resolver
       return RunnableCapability.new(datum, ancestor) if @env.capability?(datum)
 
       if datum.starts_with?('^') && (envpath = @env.abspath?)
-        path = envpath / datum.lchop
+        path = (envpath / datum.lchop).normalize
+        return unless path.in?(@env)
       end
 
       path ||= Path[datum]
       unless path.absolute?
-        path = @dir / path
-        path = path.normalize
+        path = (@dir / path).normalize
 
         # Being in primary origin means it's safe to escape it. Current
         # working directory is usually the primary origin, so the user
