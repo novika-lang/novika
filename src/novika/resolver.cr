@@ -795,22 +795,75 @@ module Novika::Resolver
       @set.each_unique_dependency &.enable(in: @caps)
     end
 
+    # Fills *block* with unambiguous preamble mappings.
+    private def fill_preambles_block(block : Block)
+      names = {} of String => RunnableGroup
+      preambles = {} of RunnableGroup => String
+      conflicts = Set({RunnableGroup, RunnableGroup}).new
+
+      @set.each_preamble_with_group(@root) do |preamble, group|
+        preambles[group] = preamble
+
+        # If there's a group with the same name already, remove it from
+        # "names" and add the pair of conflicting groups to "conflicts".
+        if existing = names[group.name]?
+          names.delete(group.name)
+          conflicts << {group, existing}
+          next
+        end
+
+        names[group.name] = group
+      end
+
+      a_disamb = [] of String
+      b_disamb = [] of String
+
+      # Resolve conflicts by starting with the name, then trying to
+      # add more path terms in reverse before the conflict goes away.
+      #
+      #    foo        xyz/foo        a/xyz/foo
+      #          >>>           >>>               >>> CONFLICT RESOLVED
+      #    foo        xyz/foo        b/xyz/foo
+      conflicts.each do |(a, b)|
+        ap = a.abspath.parts
+        bp = b.abspath.parts
+
+        # Let's just hope that a and b are different!
+        loop do
+          l = ap.pop?
+          r = bp.pop?
+          a_disamb.unshift(l) if l
+          b_disamb.unshift(r) if r
+          break unless l == r
+        end
+
+        names[a_disamb.join('/')] = a
+        names[b_disamb.join('/')] = b
+
+        a_disamb.clear
+        b_disamb.clear
+      end
+
+      names.each do |name, group|
+        block.at(Word.new(name), Quote.new(preambles[group]))
+      end
+    end
+
     # Returns the label of this designation, which is formed from
     # the basename of this designation's runnable environment.
     def label : String
       @env.abspath?.try(&.basename) || "unknown"
     end
 
-    # Parses the designated resolutions and appends the parsed forms
-    # to *target*. Their order is kept, and matches that of the corresponding
+    # Parses the designated resolutions and appends the parsed forms to
+    # *target*. Their order is kept, and matches that of the corresponding
     # resolution in this designation's resolution set.
     def slurp(target : Block)
       preambles = target.form_for?(Word.new("__preambles__")).as?(Block)
       preambles ||= Block.new
+      fill_preambles_block(preambles)
 
-      @set.each_preamble_with_group(@root) do |preamble, group|
-        preambles.at(Word.new(group.name), Quote.new(preamble))
-      end
+      target.at(Word.new("__preambles__"), preambles)
 
       # Slurp in parallel because we can.
       script_blocks = @set.parallel_map do |resolution|
@@ -824,14 +877,10 @@ module Novika::Resolver
       end
     end
 
-    # Runs the designated resolutions under a new common
-    # toplevel block.
+    # Runs the designated resolutions under a new common toplevel block.
     def run
       preambles = Block.new
-
-      @set.each_preamble_with_group(@root) do |preamble, group|
-        preambles.at(Word.new(group.name), Quote.new(preamble))
-      end
+      fill_preambles_block(preambles)
 
       # Important: wrap capability block in another block! This is
       # required to make it possible to ignore capability block in

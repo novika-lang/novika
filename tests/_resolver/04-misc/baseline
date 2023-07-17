@@ -337,3 +337,7 @@ This is help for INNER core
 This is help for OUTER core
 Hello from xyzzy INNER
 Hello from XYZZY outer
+./o-preambles-same-names/:
+hello from a/foo.nk
+hello from b/foo.nk
+[ · ${o-preambles-same-names :: 'bar preamble'} ${b/foo :: 'b/foo preamble'} ${a/foo :: 'a/foo preamble'} ${d/xyz/zyx/foo :: 'd foo preamble'} ${c/xyz/zyx/foo :: 'c foo preamble'} ]
