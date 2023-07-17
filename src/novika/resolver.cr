@@ -2130,7 +2130,11 @@ module Novika::Resolver
     def classify?(datum : String, ancestor : Ancestor?) : Runnable?
       return RunnableCapability.new(datum, ancestor) if @env.capability?(datum)
 
-      path = Path[datum]
+      if datum.starts_with?('^') && (envpath = @env.abspath?)
+        path = envpath / datum.lchop
+      end
+
+      path ||= Path[datum]
       unless path.absolute?
         path = @dir / path
         path = path.normalize

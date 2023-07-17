@@ -319,3 +319,21 @@ Lorem ipsum dolor sit amet
 I am a nested preamble
 ./m-libwrapper/:
 running the wrapper, value from lib is: 123
+./n-caret-forces-env/:
+Running OUTER foo
+This is help for OUTER foo
+Running OUTER foo
+This is help for OUTER foo
+Running INNER foo
+This is help for INNER foo
+Running OUTER foo
+This is help for OUTER foo
+Running INNER foo
+Running OUTER foo
+Running NESTED ENV foo
+Running NESTED ENV foo
+This is help for NESTED ENV foo
+This is help for INNER core
+This is help for OUTER core
+Hello from xyzzy INNER
+Hello from XYZZY outer
