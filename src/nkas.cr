@@ -11,7 +11,7 @@ module Novika::Frontend::Nkas
 
     Syntax:
 
-      nkas [switches] [runnables] <path/to/output/image.nki>
+      nkas [switches] [queries] <path/to/output/image.nki>
 
     Switches:
 
@@ -36,17 +36,17 @@ module Novika::Frontend::Nkas
       $ nki repl.nki
       [starts the repl]
 
-    Runnables:
+    Queries:
 
-      In runnable treatment, this tool is fully compatible with
+      In query treatment, this tool is fully compatible with
       the command-line frontend.
 
     Purpose:
 
       A handy tool for packing Novika images e.g. to transfer
       them over the network, or distribute. Novika images can
-      be run by the 'nki' tool which is a bit smaller feature-
-      wise than the Novika command-line frontend.
+      be run by the 'nki' tool which is more restricted than
+      the command-line frontend.
 
     HELP
   end

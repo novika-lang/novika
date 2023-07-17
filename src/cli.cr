@@ -110,76 +110,184 @@ module Novika::Frontend::CLI
 
       Syntax:
 
-        novika [switches] [runnables]
+        novika [switches] [queries]
 
       Switches:
 
-        -h, --help, h, help, ?  prints this message
-        -p[:PERIOD]             enables profiling, samples every PERIOD ticks (default: 16)
+        -h, --help, -?
 
-      Runnables:
+          Prints this message.
 
-        #{"file".colorize.bold}
+        -:profile[:PERIOD=16]
 
-          When runnable is a file, that file is read and run.
+          Enables profiling, samples every PERIOD ticks.
 
-          Examples:
+        -:dry-list
+
+          Prints a list of what needs to run in order to satisfy the queries
+          and in what order. Use this if you don't understand what's going
+          on with run order etc.
+
+        -:dry-tree
+
+          Prints a tree of what needs to run in order to satisfy the queries;
+          entries in the tree, specifically script entries, have backtrace.
+          Use this if -:dry-list doesn't help.
+
+        -:abort-on-permission-request
+
+          exit(1) on a request to give permission.
+
+      Help mode:
+
+        Running `$ novika help [queries]` will print help for each of the
+        queries if help is available. Note that you cannot #{"run".colorize.bright} anything
+        in help mode.
+
+          $ novika help repl
+          novika repl - read-eval-print loop for Novika …
+
+          $ novika help create repl
+          novika create - a tool for scaffolding Novika applications and libraries …
+          novika repl - read-eval-print loop for Novika …
+
+      Queries:
+
+        You run Novika scripts, directories, libraries and apps by
+        #{"querying".colorize.bright} Novika.
+
+        #{"script".colorize.bold}
+
+          If you want to run a script, you should pass the path to that
+          script (absolute or relative) as a query.
 
             $ novika hello.nk
             $ novika a.nk b.nk c.nk
-            # Note: order matters. That is, a.nk <- b.nk <- c.nk,
-            # where '<-' means "is executed before & visible to"
+            #{"# Note: order matters. That is, a.nk <- b.nk <- c.nk,".colorize.dark_gray}
+            #{"# where '<-' means 'is run before & visible to'".colorize.dark_gray}
 
-        #{"library directory".colorize.bold}
+        #{"directory".colorize.bold}
 
-          Any directory is implicitly a library directory. A directory may be
-          explicitly marked as a library directory by putting a .nk.lib manifest
-          file inside it.
+          If you want to run a directory that contains some Novika files,
+          you should pass the path to that directory (absolute or relative)
+          as a query. Files are run in lexicographic order. The first file
+          to run is a file with the same name as that of the directory
+          that holds it. This file is called the entry file. Subdirectories
+          are visited last, in lexicographic order. Apps and libs are
+          ignored. Files and directories prefixed with one or more `_`s
+          are ignored.
 
-          When runnable is a library directory, *.nk files in it are run. First,
-          <directory-name>.nk file is run (if it exists), then, all other files are
-          run. Lastly, this process is repeated on sub-directories (if any).
+            $ ls foo
+            a.nk b.nk c.nk foo.nk
+            $ novika foo
+            #{"# Runs foo.nk".colorize.dark_gray}
+            #{"# Runs a.nk".colorize.dark_gray}
+            #{"# Runs b.nk".colorize.dark_gray}
+            #{"# Runs c.nk".colorize.dark_gray}
+            $ ls bar
+            abc/ xyz/ _def/ m.nk n.nk _temp.nk
+            $ ls bar/abc
+            a.nk b.nk c.nk
+            $ ls bar/xyz
+            x.nk y.nk z.nk
+            $ novika bar
+            #{"# Runs m.nk".colorize.dark_gray}
+            #{"# Runs n.nk".colorize.dark_gray}
+            #{"# Runs abc/a.nk".colorize.dark_gray}
+            #{"# Runs abc/b.nk".colorize.dark_gray}
+            #{"# Runs abc/c.nk".colorize.dark_gray}
+            #{"# Runs xyz/x.nk".colorize.dark_gray}
+            #{"# Runs xyz/y.nk".colorize.dark_gray}
+            #{"# Runs xyz/z.nk".colorize.dark_gray}
 
-          Examples:
+        #{"app".colorize.bold}
+
+          Identified by `.nk.app` manifest. App directories are similar
+          in behavior to simple directories, except that (a) the order in
+          which their content is visited & run can be determined by the
+          manifest, and (b) the entry file is run last rather than first.
+          Only one app be queried for. Trying to query for more than one
+          app is an error.
 
             $ mkdir foo
-            $ echo "'Hi from lib core!' echo" > foo/foo.nk
-            $ echo "'Salutations from lib slave!' echo" > foo/slave.nk
-            $ novika foo
-            Hi from lib core!
-            Salutations from lib slave!
+            $ cd foo
+            $ novika create/app
+            $ ls
+            core/ .nk.app
+            #{"# Note how Novika runs the current working directory here.".colorize.dark_gray}
+            #{"# It does that if it can, and if you don't ask it for".colorize.dark_gray}
+            #{"# something else.".colorize.dark_gray}
+            $ novika
+            Hello World
 
-        #{"application directory".colorize.bold}
+        #{"lib".colorize.bold}
 
-          Mostly similar to library directories. Marked by .nk.app manifest file
-          inside the directory. Note that:
+          Identified by `.nk.lib` manifest. Lib directories are similar to
+          apps. One difference is that several libs can be queried for
+          simultaneously. Another is that a library's entry file is run
+          first rather than last.
 
-          * For appplication directories, <directory-name>.nk file is run last
-            rather than first.
+            $ mkdir foo bar
+            $ touch foo/.nk.lib bar/.nk.lib
+            $ echo '100 $: x' > foo/foo.nk
+            $ echo '200 $: y' > bar/bar.nk
+            $ novika foo bar repl
+            >>> x
+            [ 100 ]
+            >>> y
+            [ 100 200 ]
 
-          * You cannot provide more than one application directory.
+        #{"manifest".colorize.bold}
 
-          Examples:
+          App `.nk.app` and lib `.nk.lib` manifests allow you to control
+          which files, directories, and libs are queried for when you run
+          the app/lib, and in what order. App and lib manifests have the
+          same syntax.
 
-            $ mkdir bar
-            $ touch bar/.nk.app
-            $ echo "'Hi from app core!' echo" > bar/bar.nk
-            $ echo "'Salutations from app slave!' echo" > bar/slave.nk
-            $ novika bar
-            Salutations from app slave!
-            Hi from app core!
+          ╭───────────────────────────────────────────────────────────────────╮
+          │ foo/.nk.lib                                                       │
+          ├───────────────────────────────────────────────────────────────────╯
+          │ #{"# This is a comment. Only full-line comments are supported, like".colorize.dark_gray}
+          │ #{"# this one for instance.".colorize.dark_gray}
+          │ ffi disk sdl
+          │ #{"# Preprocessor expressions are written in brackets [].".colorize.dark_gray}
+          │ /path/to/lib.[windows, darwin, ... | dll, dylib, so]
+          │ /path/to/file.nk
+          │ enter.nk
+          │ #{"# '*' means all files in manifest's directory (foo/) except".colorize.dark_gray}
+          │ #{"# those that were mentioned before/after.".colorize.dark_gray}
+          │ *
+          │ nest.nk
+          │ xyz/a.nk
+          │ #{"# '**' means all files and directories (but not libs or apps)".colorize.dark_gray}
+          │ #{"# except those that were mentioned before/after.".colorize.dark_gray}
+          │ **
+          │ xyz/c.nk
+          │ exit.nk
+          │
+          │ ---
+          │ This is the manifest's preamble (delimited by opening & closing
+          │ `---`, the latter may be omitted if the preamble is at the end,
+          │ like this one).
+          │
+          │ The preamble is shown in help mode, for instance in this case
+          │ it will be shown when you run `$ novika help foo`.
+          ╰
 
-        #{"capability id".colorize.bold}
+        #{"capability".colorize.bold}
 
-          When runnable is a capability id, the corresponding capability is enabled
-          to all other files and capabilities run (that is, everyone is allowed to
-          use it).
+          You can query for a language capability such as `disk` and `ffi`.
+          They expose domain-specific words which are not usually needed,
+          or are in some way unsafe. Some capabilities are turned on by
+          default, so you don't need to request them.
 
-          A runnable might ask you for permission to enable a capability or two
-          (for example, disk and/or ffi). Your choice to allow is remembered;
-          your choice to deny isn't.
+            $ novika ffi my-script.nk
+            $ novika disk repl
+            >>> disk:home
+            [ '/path/to/home' ]
 
-          Here is a list of available capabilities:
+          Here is a list of capabilities that are available to this
+          instance of Novika:
 
       END
 
@@ -187,12 +295,12 @@ module Novika::Frontend::CLI
 
     available_caps.select(&.on_by_default?).each do |cap|
       io.puts
-      io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
+      io << "    - " << on << " " << cap.id << " (" << cap.purpose << ")"
     end
 
     available_caps.reject(&.on_by_default?).each do |cap|
       io.puts
-      io << "      - " << cap.id << " (" << cap.purpose << ")"
+      io << "    - " << cap.id << " (" << cap.purpose << ")"
     end
 
     io.puts
@@ -201,15 +309,51 @@ module Novika::Frontend::CLI
 
       Autoloading:
 
-        Novika autoloads (implicitly loads) the directory named 'core' in the
-        current working directory, and the directory named 'core' in '~/.novika'
-        (assuming they exist at their respective locations.)
+        When no queries are provided, Novika autoloads (implicitly loads)
+        the current working directory if it is an app. If it is a lib it
+        autoloads it only when a `__lib_wrapper__` app is available in the
+        current working directory, or in the environment.
 
-      Home directory:
+        Novika always autoloads the directory named 'core' in the current
+        environment (if it exists of course).
 
-        Novika home directory, '~/.novika', is where globally accessible runnables
-        are found. When a runnable cannot be found in the current working directory,
-        '~/.novika' is searched.
+      Novika environment:
+
+        Novika climbs up the directory tree starting from the current working
+        directory, searching for `env/.nk.env`, `.nk.env`, or `.novika`. If
+        unsuccessful, Novika also checks `~/.novika`. If the environment
+        directory is found, you can use apps, libs, scripts, and directories
+        from there globally: no matter where you are in the file tree, you
+        can query for them.
+
+        Environments are isolated from each other. You cannot run a file,
+        app, or lib from one environment in another.
+
+          $ mkdir -p env/core foo/bar/baz
+          $ touch env/.nk.env
+          #{"# Link so that we have a standard library. Remember that envs".colorize.dark_gray}
+          #{"# are isolated from each other!".colorize.dark_gray}
+          $ ln -s ~/.novika/core/core.nk env/core/core.nk
+          $ ln -s ~/.novika/core/system.nk env/core/system.nk
+          $ echo "'Hello World' echo" > env/greet.nk
+          $ novika greet.nk
+          Hello World
+          $ cd foo/bar/baz
+          #{"# Note how greet.nk isn't, and wasn't, directly accessible. It's".colorize.dark_gray}
+          #{"# being pulled from the environment directory.".colorize.dark_gray}
+          $ novika greet.nk
+          Hello World
+
+        To force Novika to search in the environment instead of the
+        current working directory you should prefix your query with '^':
+
+          $ mkdir repl
+          $ touch repl/repl.nk
+          $ echo -e '---\\nLocal REPL help' > repl/.nk.app
+          $ novika help repl
+          Local REPL help
+          $ novika help ^repl
+          novika repl - read-eval-print loop for Novika …
 
       Examples:
 
@@ -220,10 +364,14 @@ module Novika::Frontend::CLI
           $ novika foo.nk repl
 
         Create a Novika app (you must be inside an empty directory)
-          $ novika new
+          $ novika create/app
 
         Run the snake example:
           $ novika console examples/snake.new.nk
+
+        Get help for an app/lib:
+          $ novika help create
+          $ novika help sdl
 
       Something doesn't seem to work right?
 
