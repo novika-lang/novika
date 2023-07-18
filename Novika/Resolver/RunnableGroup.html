@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.8.2">
+<meta name="crystal_docs.project_version" content="rev10-dev">
+<meta name="crystal_docs.project_name" content="novika">
+
+
+
+<link href="../../css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../../js/doc.js"></script>
+
+  <meta name="repository-name" content="novika">
+  <title>Novika::Resolver::RunnableGroup - novika rev10-dev</title>
+  <script type="text/javascript">
+    CrystalDocs.base_path = "../../";
+  </script>
+</head>
+<body>
+
+<svg class="hidden">
+  <symbol id="octicon-link" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+  </symbol>
+</svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="search-box">
+      <input type="search" class="search-input" placeholder="Search..." spellcheck="false" aria-label="Search">
+    </div>
+
+    <div class="project-summary">
+      <h1 class="project-name">
+        <a href="../../index.html">
+          novika
+        </a>
+      </h1>
+
+      <span class="project-version">
+        rev10-dev
+      </span>
+    </div>
+  </div>
+
+  <div class="search-results hidden">
+    <ul class="search-list"></ul>
+  </div>
+
+  <div class="types-list">
+    <ul>
+  
+  <li class=" " data-id="novika/toplevel" data-name="top level namespace">
+      <a href="../../toplevel.html">Top Level Namespace</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Array" data-name="array(t)">
+      <a href="../../Array.html">Array</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/LibDl" data-name="libdl">
+      <a href="../../LibDl.html">LibDl</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="novika/Novika" data-name="novika">
+      <a href="../../Novika.html">Novika</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Block" data-name="novika::block">
+      <a href="../../Novika/Block.html">Block</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockIdMap" data-name="novika::blockidmap">
+      <a href="../../Novika/BlockIdMap.html">BlockIdMap</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockPool" data-name="novika::blockpool">
+      <a href="../../Novika/BlockPool.html">BlockPool</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BlockRefSnapshot" data-name="novika::blockrefsnapshot">
+      <a href="../../Novika/BlockRefSnapshot.html">BlockRefSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Boolean" data-name="novika::boolean">
+      <a href="../../Novika/Boolean.html">Boolean</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BooleanSnapshot" data-name="novika::booleansnapshot">
+      <a href="../../Novika/BooleanSnapshot.html">BooleanSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Builtin" data-name="novika::builtin">
+      <a href="../../Novika/Builtin.html">Builtin</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BuiltinSnapshot" data-name="novika::builtinsnapshot">
+      <a href="../../Novika/BuiltinSnapshot.html">BuiltinSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Byteslice" data-name="novika::byteslice">
+      <a href="../../Novika/Byteslice.html">Byteslice</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/BytesliceSnapshot" data-name="novika::byteslicesnapshot">
+      <a href="../../Novika/BytesliceSnapshot.html">BytesliceSnapshot</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Capabilities" data-name="novika::capabilities">
+      <a href="../../Novika/Capabilities.html">Capabilities</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IConsole" data-name="novika::capabilities::iconsole">
+      <a href="../../Novika/Capabilities/IConsole.html">IConsole</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IDisk" data-name="novika::capabilities::idisk">
+      <a href="../../Novika/Capabilities/IDisk.html">IDisk</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IFrontend" data-name="novika::capabilities::ifrontend">
+      <a href="../../Novika/Capabilities/IFrontend.html">IFrontend</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/IInk" data-name="novika::capabilities::iink">
+      <a href="../../Novika/Capabilities/IInk.html">IInk</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Capabilities/Impl" data-name="novika::capabilities::impl">
+      <a href="../../Novika/Capabilities/Impl.html">Impl</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Colors" data-name="novika::capabilities::impl::colors">
+      <a href="../../Novika/Capabilities/Impl/Colors.html">Colors</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Console" data-name="novika::capabilities::impl::console">
+      <a href="../../Novika/Capabilities/Impl/Console.html">Console</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Disk" data-name="novika::capabilities::impl::disk">
+      <a href="../../Novika/Capabilities/Impl/Disk.html">Disk</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Essential" data-name="novika::capabilities::impl::essential">
+      <a href="../../Novika/Capabilities/Impl/Essential.html">Essential</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/FFI" data-name="novika::capabilities::impl::ffi">
+      <a href="../../Novika/Capabilities/Impl/FFI.html">FFI</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Frontend" data-name="novika::capabilities::impl::frontend">
+      <a href="../../Novika/Capabilities/Impl/Frontend.html">Frontend</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Ink" data-name="novika::capabilities::impl::ink">
+      <a href="../../Novika/Capabilities/Impl/Ink.html">Ink</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Nki" data-name="novika::capabilities::impl::nki">
+      <a href="../../Novika/Capabilities/Impl/Nki.html">Nki</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/System" data-name="novika::capabilities::impl::system">
+      <a href="../../Novika/Capabilities/Impl/System.html">System</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Capabilities/ISystem" data-name="novika::capabilities::isystem">
+      <a href="../../Novika/Capabilities/ISystem.html">ISystem</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Capabilities/ISystem/PromptConfig" data-name="novika::capabilities::isystem::promptconfig">
+      <a href="../../Novika/Capabilities/ISystem/PromptConfig.html">PromptConfig</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Capability" data-name="novika::capability">
+      <a href="../../Novika/Capability.html">Capability</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/CapabilityCollection" data-name="novika::capabilitycollection">
+      <a href="../../Novika/CapabilityCollection.html">CapabilityCollection</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/CaptureMode" data-name="novika::capturemode">
+      <a href="../../Novika/CaptureMode.html">CaptureMode</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Classifier" data-name="novika::classifier">
+      <a href="../../Novika/Classifier.html">Classifier</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Color" data-name="novika::color">
+      <a href="../../Novika/Color.html">Color</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ColorSnapshot" data-name="novika::colorsnapshot">
+      <a href="../../Novika/ColorSnapshot.html">ColorSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Decimal" data-name="novika::decimal">
+      <a href="../../Novika/Decimal.html">Decimal</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Dict" data-name="novika::dict">
+      <a href="../../Novika/Dict.html">Dict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/EachRelativeFetch" data-name="novika::eachrelativefetch(t)">
+      <a href="../../Novika/EachRelativeFetch.html">EachRelativeFetch</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Engine" data-name="novika::engine">
+      <a href="../../Novika/Engine.html">Engine</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Entry" data-name="novika::entry">
+      <a href="../../Novika/Entry.html">Entry</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Error" data-name="novika::error">
+      <a href="../../Novika/Error.html">Error</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/False" data-name="novika::false">
+      <a href="../../Novika/False.html">False</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FFI" data-name="novika::ffi">
+      <a href="../../Novika/FFI.html">FFI</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FFI/Cchar" data-name="novika::ffi::cchar">
+      <a href="../../Novika/FFI/Cchar.html">Cchar</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Cstr" data-name="novika::ffi::cstr">
+      <a href="../../Novika/FFI/Cstr.html">Cstr</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/DefaultTypeParser" data-name="novika::ffi::defaulttypeparser">
+      <a href="../../Novika/FFI/DefaultTypeParser.html">DefaultTypeParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/F32" data-name="novika::ffi::f32">
+      <a href="../../Novika/FFI/F32.html">F32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/F64" data-name="novika::ffi::f64">
+      <a href="../../Novika/FFI/F64.html">F64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/FixedArityFunction" data-name="novika::ffi::fixedarityfunction">
+      <a href="../../Novika/FFI/FixedArityFunction.html">FixedArityFunction</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ForeignType" data-name="novika::ffi::foreigntype">
+      <a href="../../Novika/FFI/ForeignType.html">ForeignType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ForeignValue" data-name="novika::ffi::foreignvalue">
+      <a href="../../Novika/FFI/ForeignValue.html">ForeignValue</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Function" data-name="novika::ffi::function">
+      <a href="../../Novika/FFI/Function.html">Function</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I16" data-name="novika::ffi::i16">
+      <a href="../../Novika/FFI/I16.html">I16</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I32" data-name="novika::ffi::i32">
+      <a href="../../Novika/FFI/I32.html">I32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I64" data-name="novika::ffi::i64">
+      <a href="../../Novika/FFI/I64.html">I64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/I8" data-name="novika::ffi::i8">
+      <a href="../../Novika/FFI/I8.html">I8</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/InlineStructType" data-name="novika::ffi::inlinestructtype">
+      <a href="../../Novika/FFI/InlineStructType.html">InlineStructType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/InlineStructView" data-name="novika::ffi::inlinestructview">
+      <a href="../../Novika/FFI/InlineStructView.html">InlineStructView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/Nothing" data-name="novika::ffi::nothing">
+      <a href="../../Novika/FFI/Nothing.html">Nothing</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructFieldDesc" data-name="novika::ffi::structfielddesc">
+      <a href="../../Novika/FFI/StructFieldDesc.html">StructFieldDesc</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructLayout" data-name="novika::ffi::structlayout">
+      <a href="../../Novika/FFI/StructLayout.html">StructLayout</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructReferenceType" data-name="novika::ffi::structreferencetype">
+      <a href="../../Novika/FFI/StructReferenceType.html">StructReferenceType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructReferenceView" data-name="novika::ffi::structreferenceview">
+      <a href="../../Novika/FFI/StructReferenceView.html">StructReferenceView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructType" data-name="novika::ffi::structtype">
+      <a href="../../Novika/FFI/StructType.html">StructType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/StructView" data-name="novika::ffi::structview">
+      <a href="../../Novika/FFI/StructView.html">StructView</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FFI/TypeParser" data-name="novika::ffi::typeparser">
+      <a href="../../Novika/FFI/TypeParser.html">TypeParser</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FFI/TypeParser/ForbidsNothing" data-name="novika::ffi::typeparser::forbidsnothing">
+      <a href="../../Novika/FFI/TypeParser/ForbidsNothing.html">ForbidsNothing</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U16" data-name="novika::ffi::u16">
+      <a href="../../Novika/FFI/U16.html">U16</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U32" data-name="novika::ffi::u32">
+      <a href="../../Novika/FFI/U32.html">U32</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U64" data-name="novika::ffi::u64">
+      <a href="../../Novika/FFI/U64.html">U64</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/U8" data-name="novika::ffi::u8">
+      <a href="../../Novika/FFI/U8.html">U8</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UnionType" data-name="novika::ffi::uniontype">
+      <a href="../../Novika/FFI/UnionType.html">UnionType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UnionView" data-name="novika::ffi::unionview">
+      <a href="../../Novika/FFI/UnionView.html">UnionView</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/UntypedPointer" data-name="novika::ffi::untypedpointer">
+      <a href="../../Novika/FFI/UntypedPointer.html">UntypedPointer</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/ValueTypeParser" data-name="novika::ffi::valuetypeparser">
+      <a href="../../Novika/FFI/ValueTypeParser.html">ValueTypeParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FFI/VariadicFunction" data-name="novika::ffi::variadicfunction">
+      <a href="../../Novika/FFI/VariadicFunction.html">VariadicFunction</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ForeignFunction" data-name="novika::foreignfunction">
+      <a href="../../Novika/ForeignFunction.html">ForeignFunction</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Form" data-name="novika::form">
+      <a href="../../Novika/Form.html">Form</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Frontend" data-name="novika::frontend">
+      <a href="../../Novika/Frontend.html">Frontend</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="novika/Novika/Frontend/CLI" data-name="novika::frontend::cli">
+      <a href="../../Novika/Frontend/CLI.html">CLI</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="novika/Novika/Frontend/CLI/Profiler" data-name="novika::frontend::cli::profiler">
+      <a href="../../Novika/Frontend/CLI/Profiler.html">Profiler</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Frontend/CLI/Profiler/Profile" data-name="novika::frontend::cli::profiler::profile">
+      <a href="../../Novika/Frontend/CLI/Profiler/Profile.html">Profile</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Frontend/Nkas" data-name="novika::frontend::nkas">
+      <a href="../../Novika/Frontend/Nkas.html">Nkas</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Frontend/Nki" data-name="novika::frontend::nki">
+      <a href="../../Novika/Frontend/Nki.html">Nki</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/FrozenBlock" data-name="novika::frozenblock">
+      <a href="../../Novika/FrozenBlock.html">FrozenBlock</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Dict" data-name="novika::frozenblock::dict">
+      <a href="../../Novika/FrozenBlock/Dict.html">Dict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Friends" data-name="novika::frozenblock::friends">
+      <a href="../../Novika/FrozenBlock/Friends.html">Friends</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenBlock/Tape" data-name="novika::frozenblock::tape">
+      <a href="../../Novika/FrozenBlock/Tape.html">Tape</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/FrozenEntry" data-name="novika::frozenentry">
+      <a href="../../Novika/FrozenEntry.html">FrozenEntry</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Hole" data-name="novika::hole">
+      <a href="../../Novika/Hole.html">Hole</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Hook" data-name="novika::hook">
+      <a href="../../Novika/Hook.html">Hook</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ICapability" data-name="novika::icapability">
+      <a href="../../Novika/ICapability.html">ICapability</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ICapabilityClass" data-name="novika::icapabilityclass">
+      <a href="../../Novika/ICapabilityClass.html">ICapabilityClass</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IDict" data-name="novika::idict">
+      <a href="../../Novika/IDict.html">IDict</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IExhaustTracker" data-name="novika::iexhausttracker">
+      <a href="../../Novika/IExhaustTracker.html">IExhaustTracker</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Image" data-name="novika::image">
+      <a href="../../Novika/Image.html">Image</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Image/CompressionType" data-name="novika::image::compressiontype">
+      <a href="../../Novika/Image/CompressionType.html">CompressionType</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/ImagePayload" data-name="novika::imagepayload">
+      <a href="../../Novika/ImagePayload.html">ImagePayload</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/ImagePayload/Capabilities" data-name="novika::imagepayload::capabilities">
+      <a href="../../Novika/ImagePayload/Capabilities.html">Capabilities</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ImagePayload/Ver" data-name="novika::imagepayload::ver">
+      <a href="../../Novika/ImagePayload/Ver.html">Ver</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/IReadableStore" data-name="novika::ireadablestore">
+      <a href="../../Novika/IReadableStore.html">IReadableStore</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ISubmittableStore" data-name="novika::isubmittablestore">
+      <a href="../../Novika/ISubmittableStore.html">ISubmittableStore</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/LargeDecimalSnapshot" data-name="novika::largedecimalsnapshot">
+      <a href="../../Novika/LargeDecimalSnapshot.html">LargeDecimalSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Library" data-name="novika::library">
+      <a href="../../Novika/Library.html">Library</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ObjectPool" data-name="novika::objectpool(t)">
+      <a href="../../Novika/ObjectPool.html">ObjectPool</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/OpenEntry" data-name="novika::openentry">
+      <a href="../../Novika/OpenEntry.html">OpenEntry</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Quote" data-name="novika::quote">
+      <a href="../../Novika/Quote.html">Quote</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Quote/GraphemeQuote" data-name="novika::quote::graphemequote">
+      <a href="../../Novika/Quote/GraphemeQuote.html">GraphemeQuote</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Quote/PadSide" data-name="novika::quote::padside">
+      <a href="../../Novika/Quote/PadSide.html">PadSide</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Quote/StringQuote" data-name="novika::quote::stringquote">
+      <a href="../../Novika/Quote/StringQuote.html">StringQuote</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuotedWord" data-name="novika::quotedword">
+      <a href="../../Novika/QuotedWord.html">QuotedWord</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuotedWordSnapshot" data-name="novika::quotedwordsnapshot">
+      <a href="../../Novika/QuotedWordSnapshot.html">QuotedWordSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/QuoteSnapshot" data-name="novika::quotesnapshot">
+      <a href="../../Novika/QuoteSnapshot.html">QuoteSnapshot</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="novika/Novika/Resolver" data-name="novika::resolver">
+      <a href="../../Novika/Resolver.html">Resolver</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ChildSlot" data-name="novika::resolver::childslot">
+      <a href="../../Novika/Resolver/ChildSlot.html">ChildSlot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Designation" data-name="novika::resolver::designation">
+      <a href="../../Novika/Resolver/Designation.html">Designation</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Disk" data-name="novika::resolver::disk">
+      <a href="../../Novika/Resolver/Disk.html">Disk</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Disk/InfoAbsence" data-name="novika::resolver::disk::infoabsence">
+      <a href="../../Novika/Resolver/Disk/InfoAbsence.html">InfoAbsence</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Disk/InfoPresence" data-name="novika::resolver::disk::infopresence">
+      <a href="../../Novika/Resolver/Disk/InfoPresence.html">InfoPresence</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/DoDiskLoad" data-name="novika::resolver::dodiskload">
+      <a href="../../Novika/Resolver/DoDiskLoad.html">DoDiskLoad</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/DoDiskSave" data-name="novika::resolver::dodisksave">
+      <a href="../../Novika/Resolver/DoDiskSave.html">DoDiskSave</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/GlobSelector" data-name="novika::resolver::globselector">
+      <a href="../../Novika/Resolver/GlobSelector.html">GlobSelector</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Manifest" data-name="novika::resolver::manifest">
+      <a href="../../Novika/Resolver/Manifest.html">Manifest</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/Absent" data-name="novika::resolver::manifest::absent">
+      <a href="../../Novika/Resolver/Manifest/Absent.html">Absent</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/App" data-name="novika::resolver::manifest::app">
+      <a href="../../Novika/Resolver/Manifest/App.html">App</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/CommentPreprocessor" data-name="novika::resolver::manifest::commentpreprocessor">
+      <a href="../../Novika/Resolver/Manifest/CommentPreprocessor.html">CommentPreprocessor</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/FlagPreprocessor" data-name="novika::resolver::manifest::flagpreprocessor">
+      <a href="../../Novika/Resolver/Manifest/FlagPreprocessor.html">FlagPreprocessor</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/Lib" data-name="novika::resolver::manifest::lib">
+      <a href="../../Novika/Resolver/Manifest/Lib.html">Lib</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/PreamblePreprocessor" data-name="novika::resolver::manifest::preamblepreprocessor">
+      <a href="../../Novika/Resolver/Manifest/PreamblePreprocessor.html">PreamblePreprocessor</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/Preprocessor" data-name="novika::resolver::manifest::preprocessor">
+      <a href="../../Novika/Resolver/Manifest/Preprocessor.html">Preprocessor</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Manifest/Present" data-name="novika::resolver::manifest::present">
+      <a href="../../Novika/Resolver/Manifest/Present.html">Present</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/MoreThanOneAppError" data-name="novika::resolver::morethanoneapperror">
+      <a href="../../Novika/Resolver/MoreThanOneAppError.html">MoreThanOneAppError</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Permission" data-name="novika::resolver::permission">
+      <a href="../../Novika/Resolver/Permission.html">Permission</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/PermissionServer" data-name="novika::resolver::permissionserver">
+      <a href="../../Novika/Resolver/PermissionServer.html">PermissionServer</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Query" data-name="novika::resolver::query">
+      <a href="../../Novika/Resolver/Query.html">Query</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Resolution" data-name="novika::resolver::resolution">
+      <a href="../../Novika/Resolver/Resolution.html">Resolution</a>
+      
+        <ul>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Resolution/Dependency" data-name="novika::resolver::resolution::dependency">
+      <a href="../../Novika/Resolver/Resolution/Dependency.html">Dependency</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Resolution/Dependency/DefaultPrompt" data-name="novika::resolver::resolution::dependency::defaultprompt">
+      <a href="../../Novika/Resolver/Resolution/Dependency/DefaultPrompt.html">DefaultPrompt</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Resolution/Dependency/Signature" data-name="novika::resolver::resolution::dependency::signature">
+      <a href="../../Novika/Resolver/Resolution/Dependency/Signature.html">Signature</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ResolutionSet" data-name="novika::resolver::resolutionset">
+      <a href="../../Novika/Resolver/ResolutionSet.html">ResolutionSet</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ResolverError" data-name="novika::resolver::resolvererror">
+      <a href="../../Novika/Resolver/ResolverError.html">ResolverError</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Response" data-name="novika::resolver::response">
+      <a href="../../Novika/Resolver/Response.html">Response</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Response/AcceptionRoute" data-name="novika::resolver::response::acceptionroute">
+      <a href="../../Novika/Resolver/Response/AcceptionRoute.html">AcceptionRoute</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ResponseRejectedError" data-name="novika::resolver::responserejectederror">
+      <a href="../../Novika/Resolver/ResponseRejectedError.html">ResponseRejectedError</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/Runnable" data-name="novika::resolver::runnable">
+      <a href="../../Novika/Resolver/Runnable.html">Runnable</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Runnable/Ancestor" data-name="novika::resolver::runnable::ancestor">
+      <a href="../../Novika/Resolver/Runnable/Ancestor.html">Ancestor</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Runnable/HasDatum" data-name="novika::resolver::runnable::hasdatum(t)">
+      <a href="../../Novika/Resolver/Runnable/HasDatum.html">HasDatum</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Runnable/Terminal" data-name="novika::resolver::runnable::terminal">
+      <a href="../../Novika/Resolver/Runnable/Terminal.html">Terminal</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableCapability" data-name="novika::resolver::runnablecapability">
+      <a href="../../Novika/Resolver/RunnableCapability.html">RunnableCapability</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableContainer" data-name="novika::resolver::runnablecontainer">
+      <a href="../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableDir" data-name="novika::resolver::runnabledir">
+      <a href="../../Novika/Resolver/RunnableDir.html">RunnableDir</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableEnvironment" data-name="novika::resolver::runnableenvironment">
+      <a href="../../Novika/Resolver/RunnableEnvironment.html">RunnableEnvironment</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableError" data-name="novika::resolver::runnableerror">
+      <a href="../../Novika/Resolver/RunnableError.html">RunnableError</a>
+      
+    </li>
+  
+  <li class=" current" data-id="novika/Novika/Resolver/RunnableGroup" data-name="novika::resolver::runnablegroup">
+      <a href="../../Novika/Resolver/RunnableGroup.html">RunnableGroup</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableIgnored" data-name="novika::resolver::runnableignored">
+      <a href="../../Novika/Resolver/RunnableIgnored.html">RunnableIgnored</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableQuery" data-name="novika::resolver::runnablequery">
+      <a href="../../Novika/Resolver/RunnableQuery.html">RunnableQuery</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableRoot" data-name="novika::resolver::runnableroot">
+      <a href="../../Novika/Resolver/RunnableRoot.html">RunnableRoot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableScript" data-name="novika::resolver::runnablescript">
+      <a href="../../Novika/Resolver/RunnableScript.html">RunnableScript</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableSelector" data-name="novika::resolver::runnableselector">
+      <a href="../../Novika/Resolver/RunnableSelector.html">RunnableSelector</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/RunnableSharedObject" data-name="novika::resolver::runnablesharedobject">
+      <a href="../../Novika/Resolver/RunnableSharedObject.html">RunnableSharedObject</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ScriptsSlot" data-name="novika::resolver::scriptsslot">
+      <a href="../../Novika/Resolver/ScriptsSlot.html">ScriptsSlot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Session" data-name="novika::resolver::session">
+      <a href="../../Novika/Resolver/Session.html">Session</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Signal" data-name="novika::resolver::signal">
+      <a href="../../Novika/Resolver/Signal.html">Signal</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/SignalReceiver" data-name="novika::resolver::signalreceiver">
+      <a href="../../Novika/Resolver/SignalReceiver.html">SignalReceiver</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/Slot" data-name="novika::resolver::slot">
+      <a href="../../Novika/Resolver/Slot.html">Slot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Resolver/SubtreeSlot" data-name="novika::resolver::subtreeslot">
+      <a href="../../Novika/Resolver/SubtreeSlot.html">SubtreeSlot</a>
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/ToAnswerDo" data-name="novika::resolver::toanswerdo">
+      <a href="../../Novika/Resolver/ToAnswerDo.html">ToAnswerDo</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ToAnswerDo/Fn" data-name="novika::resolver::toanswerdo::fn">
+      <a href="../../Novika/Resolver/ToAnswerDo/Fn.html">Fn</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Resolver/ToAskDo" data-name="novika::resolver::toaskdo">
+      <a href="../../Novika/Resolver/ToAskDo.html">ToAskDo</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Resolver/ToAskDo/Fn" data-name="novika::resolver::toaskdo::fn">
+      <a href="../../Novika/Resolver/ToAskDo/Fn.html">Fn</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/RunnableResolver" data-name="novika::runnableresolver">
+      <a href="../../Novika/RunnableResolver.html">RunnableResolver</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/RunnableResolver/PermissionsHook" data-name="novika::runnableresolver::permissionshook">
+      <a href="../../Novika/RunnableResolver/PermissionsHook.html">PermissionsHook</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/RunnableResolver/ProgramHook" data-name="novika::runnableresolver::programhook">
+      <a href="../../Novika/RunnableResolver/ProgramHook.html">ProgramHook</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/RunnableResolver/ResponseHook" data-name="novika::runnableresolver::responsehook">
+      <a href="../../Novika/RunnableResolver/ResponseHook.html">ResponseHook</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class="parent " data-id="novika/Novika/Schedulable" data-name="novika::schedulable">
+      <a href="../../Novika/Schedulable.html">Schedulable</a>
+      
+        <ul>
+  
+  <li class=" " data-id="novika/Novika/Schedulable/ShouldOpenWhenScheduled" data-name="novika::schedulable::shouldopenwhenscheduled">
+      <a href="../../Novika/Schedulable/ShouldOpenWhenScheduled.html">ShouldOpenWhenScheduled</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Scissors" data-name="novika::scissors">
+      <a href="../../Novika/Scissors.html">Scissors</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/SmallDecimalSnapshot" data-name="novika::smalldecimalsnapshot">
+      <a href="../../Novika/SmallDecimalSnapshot.html">SmallDecimalSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Snapshot" data-name="novika::snapshot">
+      <a href="../../Novika/Snapshot.html">Snapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/SnapshotType" data-name="novika::snapshottype">
+      <a href="../../Novika/SnapshotType.html">SnapshotType</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructLayoutForm" data-name="novika::structlayoutform">
+      <a href="../../Novika/StructLayoutForm.html">StructLayoutForm</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructLayoutParser" data-name="novika::structlayoutparser">
+      <a href="../../Novika/StructLayoutParser.html">StructLayoutParser</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/StructViewForm" data-name="novika::structviewform">
+      <a href="../../Novika/StructViewForm.html">StructViewForm</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Substrate" data-name="novika::substrate(t)">
+      <a href="../../Novika/Substrate.html">Substrate</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Tape" data-name="novika::tape(t)">
+      <a href="../../Novika/Tape.html">Tape</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/True" data-name="novika::true">
+      <a href="../../Novika/True.html">True</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/TypedSnapshot" data-name="novika::typedsnapshot">
+      <a href="../../Novika/TypedSnapshot.html">TypedSnapshot</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/ValueForm" data-name="novika::valueform">
+      <a href="../../Novika/ValueForm.html">ValueForm</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/Word" data-name="novika::word">
+      <a href="../../Novika/Word.html">Word</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Novika/WordSnapshot" data-name="novika::wordsnapshot">
+      <a href="../../Novika/WordSnapshot.html">WordSnapshot</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="novika/Set" data-name="set(t)">
+      <a href="../../Set.html">Set</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/String" data-name="string">
+      <a href="../../String.html">String</a>
+      
+    </li>
+  
+  <li class=" " data-id="novika/Union" data-name="union(*t)">
+      <a href="../../Union.html">Union</a>
+      
+    </li>
+  
+</ul>
+
+  </div>
+</div>
+
+
+<div class="main-content">
+<h1 class="type-name">
+
+  <span class="kind">class</span> Novika::Resolver::RunnableGroup
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../Novika/Resolver/RunnableGroup.html">Novika::Resolver::RunnableGroup</a></li><li class="superclass"><a href="../../Novika/Resolver/Runnable.html">Novika::Resolver::Runnable</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>
+    <a id="overview" class="anchor" href="#overview">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Overview
+  </h2>
+
+  <p>A runnable group is a directory with or without a manifest: that is,
+a directory with awareness of whether it is an application, library,
+or simply that - a directory.</p>
+<p>Runnable groups, through manifests, are directories with a specific
+runnable <em>layout</em>.</p>
+<p>Runnable groups are rewritten to properly ordered (laid out)
+<code><a href="../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a></code>s.</p>
+<p>Now to the important bit: since there is never a guaranteed
+link between a runnable group and the container it was/will
+be rewritten to, you should manually register it with
+<code><a href="../../Novika/Resolver/RunnableRoot.html#assign%28group%3ARunnableGroup%2C%2A%2Ccontainer%3ARunnableContainer%2Coverwrite%3Dtrue%29%3ARunnableContainer-instance-method">RunnableRoot#assign</a></code> if you ever want the container to <em>run</em>.</p>
+
+
+
+
+
+  <h2>
+    <a id="included-modules" class="anchor" href="#included-modules">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Included Modules
+  </h2>
+  <ul class="other-types-list">
+    
+      <li class="other-type"><a href="../../Novika/Resolver/Runnable/HasDatum.html">Novika::Resolver::Runnable::HasDatum(Path)</a></li>
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+  <h2>
+    <a id="defined-in" class="anchor" href="#defined-in">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Defined in:
+  </h2>
+  
+    
+      novika/resolver.cr
+    
+    <br/>
+  
+
+
+
+
+
+  <h2>
+    <a id="constructors" class="anchor" href="#constructors">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructors
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#new%28datum%3APath%2Cmanifest%3AManifest%2Cancestor%3Dnil%29-class-method" class="signature"><strong>.new</strong>(datum : Path, manifest : Manifest, ancestor = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>Creates a new runnable group.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#abspath-instance-method" class="signature"><strong>#abspath</strong></a>
+        
+          <div class="summary"><p>Returns an absolute path to this group.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#app%3F%3ABool-instance-method" class="signature"><strong>#app?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns whether this group represents an app (is laid out according to a '.nk.app' manifest).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#entry_name%3AString-instance-method" class="signature"><strong>#entry_name</strong> : String</a>
+        
+          <div class="summary"><p>Constructs and returns entry filename for this group.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#lib%3F%3ABool-instance-method" class="signature"><strong>#lib?</strong> : Bool</a>
+        
+          <div class="summary"><p>Returns whether this group represents a lib (is laid out according to a '.nk.lib' manifest).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#name%3AString-instance-method" class="signature"><strong>#name</strong> : String</a>
+        
+          <div class="summary"><p>Returns the name of this group.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#specialize%28root%3ARunnableRoot%2Ccontainer%3ARunnableContainer%29-instance-method" class="signature"><strong>#specialize</strong>(root : RunnableRoot, container : RunnableContainer)</a>
+        
+          <div class="summary"><p>Further specializes this runnable.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_s%28io%29-instance-method" class="signature"><strong>#to_s</strong>(io)</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../../Novika/Resolver/Runnable/HasDatum.html">Novika::Resolver::Runnable::HasDatum(Path)</a></code></h3>
+  
+  
+    <a href="../../Novika/Resolver/Runnable/HasDatum.html#%3D%3D%28other%3AT%29-instance-method" class="tooltip">
+      <span>==(other : T)<br/>==(other : <span class="k">self</span>)</span>
+    ==</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable/HasDatum.html#hash%28hasher%29-instance-method" class="tooltip">
+      <span>hash(hasher)</span>
+    hash</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from class <code><a href="../../Novika/Resolver/Runnable.html">Novika::Resolver::Runnable</a></code></h3>
+  
+  
+    <a href="../../Novika/Resolver/Runnable.html#ancestor%3F%3AAncestor%7CNil-instance-method" class="tooltip">
+      <span>ancestor? : Ancestor | Nil</span>
+    ancestor?</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable.html#ancestors%3AArray%28Ancestor%29-instance-method" class="tooltip">
+      <span>ancestors : Array(Ancestor)</span>
+    ancestors</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable.html#backtrace%28io%3AIO%2Cindent%3AInt32%3D0%2Cannex%3AString%7CNil%3Dnil%29-instance-method" class="tooltip">
+      <span>backtrace(io : IO, indent : Int32 = <span class="n">0</span>, annex : String | Nil = <span class="n">nil</span>)<br/>backtrace(*args, **kwargs, & : IO -> )</span>
+    backtrace</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable.html#constituents%3AArray%28Runnable%29-instance-method" class="tooltip">
+      <span>constituents : Array(Runnable)</span>
+    constituents</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable.html#each_ancestor%28%26%3AAncestor-%3E%29-instance-method" class="tooltip">
+      <span>each_ancestor(& : Ancestor -> )</span>
+    each_ancestor</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Runnable.html#specialize%28root%3ARunnableRoot%2Ccontainer%3ARunnableContainer%29-instance-method" class="tooltip">
+      <span>specialize(root : RunnableRoot, container : RunnableContainer)</span>
+    specialize</a>
+    
+  
+
+
+    
+
+  <h3>Constructor methods inherited from class <code><a href="../../Novika/Resolver/Runnable.html">Novika::Resolver::Runnable</a></code></h3>
+  
+  
+    <a href="../../Novika/Resolver/Runnable.html#new%28ancestor%3AAncestor%7CNil%3Dnil%29-class-method" class="tooltip">
+      <span>new(ancestor : Ancestor | Nil = <span class="n">nil</span>)</span>
+    new</a>
+    
+  
+
+
+    
+
+
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../../Novika/Resolver/Runnable/Ancestor.html">Novika::Resolver::Runnable::Ancestor</a></code></h3>
+  
+  
+    <a href="../../Novika/Resolver/Runnable/Ancestor.html#ancestor%3F%3AAncestor%7CNil-instance-method" class="tooltip">
+      <span>ancestor? : Ancestor | Nil</span>
+    ancestor?</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+  <h2>
+    <a id="constructor-detail" class="anchor" href="#constructor-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Constructor Detail
+  </h2>
+  
+    <div class="entry-detail" id="new(datum:Path,manifest:Manifest,ancestor=nil)-class-method">
+      <div class="signature">
+        
+        def self.<strong>new</strong>(datum : Path, manifest : <a href="../../Novika/Resolver/Manifest.html">Manifest</a>, ancestor = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#new%28datum%3APath%2Cmanifest%3AManifest%2Cancestor%3Dnil%29-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Creates a new runnable group.</p>
+<p><em>manifest</em> is the manifest of this group. Manifests control
+the order of runnables in this group.</p>
+<p><em>datum</em> is a <em>normalized</em> path to the group (a directory).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="abspath-instance-method">
+      <div class="signature">
+        
+        def <strong>abspath</strong>
+
+        <a class="method-permalink" href="#abspath-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns an absolute path to this group.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="app?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>app?</strong> : Bool
+
+        <a class="method-permalink" href="#app%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this group represents an app (is laid out
+according to a '.nk.app' manifest).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="entry_name:String-instance-method">
+      <div class="signature">
+        
+        def <strong>entry_name</strong> : <a href="../../String.html">String</a>
+
+        <a class="method-permalink" href="#entry_name%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Constructs and returns entry filename for this group.</p>
+<p>For instance, if this group's directory is '/path/to/foo', then
+its entry filename will be 'foo.nk'.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="lib?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>lib?</strong> : Bool
+
+        <a class="method-permalink" href="#lib%3F%3ABool-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this group represents a lib (is laid out
+according to a '.nk.lib' manifest).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="name:String-instance-method">
+      <div class="signature">
+        
+        def <strong>name</strong> : <a href="../../String.html">String</a>
+
+        <a class="method-permalink" href="#name%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the name of this group.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="specialize(root:RunnableRoot,container:RunnableContainer)-instance-method">
+      <div class="signature">
+        
+        def <strong>specialize</strong>(root : <a href="../../Novika/Resolver/RunnableRoot.html">RunnableRoot</a>, container : <a href="../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a>)
+
+        <a class="method-permalink" href="#specialize%28root%3ARunnableRoot%2Ccontainer%3ARunnableContainer%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class <a href="../../Novika/Resolver/Runnable.html">Novika::Resolver::Runnable</a>
+            </div>
+          
+          <p>Further specializes this runnable. Appends the specialized runnable
+to (or interacts in some other way with) <em>container</em>. The latter is
+assumed to be incomplete (or partially complete, which is really
+the same thing).</p>
+<p><em>root</em> is the runnable root object. It is mainly used for flags and
+thorough rewriting.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_s(io)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_s</strong>(io)
+
+        <a class="method-permalink" href="#to_s%28io%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>
