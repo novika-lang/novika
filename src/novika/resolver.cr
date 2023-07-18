@@ -27,8 +27,7 @@ module Novika::Resolver
   # basically file system depth which isn't too big most of the time.
   RESOLVER_RECURSION_LIMIT = 64
 
-  # Specifies entry name that holds the preambles available to
-  # a toplevel block.
+  # Specifies the name of the entry that holds the preambles.
   PREAMBLES_ENTRY_NAME = Word.new("__preambles__")
 
   # Selector for `Disk#glob`.
@@ -831,8 +830,8 @@ module Novika::Resolver
     end
 
     # Parses the designated resolutions and appends the parsed forms to
-    # *target*. Their order is kept, and matches that of the corresponding
-    # resolution in this designation's resolution set.
+    # *target*. Their order is kept, and matches that of the designated
+    # resolutions.
     def slurp(target : Block)
       preambles = target.form_for?(PREAMBLES_ENTRY_NAME).as?(Block)
       preambles ||= Block.new
@@ -871,10 +870,11 @@ module Novika::Resolver
       Engine.pop(engine)
     end
 
-    # Appends the string representation of this resolution set to *io*.
+    # Appends the string representation of this designation to *io*.
     #
-    # *sm*, if set to true, enables SMall output mode, where only
-    # relative paths of this set's resolutions are printed.
+    # *sm*, if set to true, enables SMall output mode. In this mode,
+    # only relative paths of the designated resolutions are appended
+    # to *io*, separated by newlines.
     def to_s(io, sm = false)
       envpath = @env.abspath?
 
@@ -1124,6 +1124,8 @@ module Novika::Resolver
       server.brief(self)
     end
 
+    # Returns the purpose of this capability in the given capability
+    # collection *caps*.
     def purpose(*, in caps : CapabilityCollection)
       unless cls = caps.get_capability_class?(@datum)
         raise "BUG: capability runnable for which there is no capability class"
@@ -1913,7 +1915,8 @@ module Novika::Resolver
     end
 
     # Returns the content of the permissions file of this environment
-    # followed by its path; or nil if the permissions file does not exist.
+    # followed by the file's path; or nil if the permissions file does
+    # not exist.
     def permissions? : {String, Path}?
       return unless abspath = @abspath
       return unless path = @root.disk.file?(abspath / PERMISSIONS_FILENAME)
@@ -2777,12 +2780,13 @@ module Novika::Resolver
 
     # Represents the way a resolution set was accepted.
     enum AcceptionRoute
-      # The resolution set was accepted because of a *wish*: some
-      # runnable out there "wished" that runnables from the set were
-      # there, and here they are.
+      # The resolution set was accepted due to a *wish*: some runnable
+      # out there "wished" that runnables from the set were there, and
+      # here they are.
       Wish
 
-      # The resolution set was explicitly mentioned (queried for).
+      # The resolution set was explicitly mentioned by the user
+      # somewhere (queried for).
       Query
     end
 
