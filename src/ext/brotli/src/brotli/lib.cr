@@ -1,6 +1,6 @@
 module Compress::Brotli
   {% if flag?(:windows) %}
-    @[Link(ldflags: "\"/LIBPATH:#{__DIR__}\\..\\..\\..\\\" brotlicommon-static.lib brotlidec-static.lib brotlienc-static.lib")]
+    @[Link(ldflags: "\"/LIBPATH:#{__DIR__}\\..\\..\\..\" brotlicommon-static.lib brotlidec-static.lib brotlienc-static.lib")]
   {% else %}
     @[Link(ldflags: "-L#{__DIR__}/../../../ -lbrotlidec -lbrotlienc -lbrotlicommon")]
   {% end %}

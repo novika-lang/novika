@@ -269,15 +269,10 @@ module Novika::Capabilities::Impl
       target.at("shallowNew", <<-END
       ( B -- Si ): leaves a Shallow instance of Block.
 
-      `shallowNew` is different from `new` in that it does not force-
-      reparent sub-blocks to the parent instance, and so on recursively --
-      sometimes such behavior is not desired.
-
-      The difference is very subtle, and you mostly don't need to care.
-      As a word implementor you should, however, choose carefully between
-      `new`, `shallowNew`, and `shallowCopy` (and perhaps `toTape` too).
-      Novika is all about blocks, and there are different ways to copy,
-      instantiate, and work with them.
+      `shallowNew` is different from `new` in that it does not reparent
+      sub-blocks to the parent instance recursively. Instead, it only
+      creates an instance of Block, and does not look at skips its
+      content entirely.
 
       ```
       [ $: x [ x ] ] @: newBox
@@ -291,24 +286,6 @@ module Novika::Capabilities::Impl
       fooBox3 open leaves: 3
 
       [ fooBox1 fooBox2 fooBox3 ] vals $: boxes
-
-      boxes 0 fromLeft open leaves: 1
-      boxes 1 fromLeft open leaves: 2
-      "... and so on, as you'd expect. However, let's try to instantiate boxes:"
-
-      boxes new $: boxesInstance
-      boxesInstance 0 fromLeft open "DIES: x is undefined"
-      boxesInstance 1 fromLeft open "DIES: x is undefined"
-      boxesInstance 2 fromLeft open "DIES: x is undefined"
-
-      "Maybe defining 'x' on boxesInstance can shed some light?"
-      boxesInstance extend: [ 'Hello from boxesInstance' $: x ]
-      boxesInstance 0 fromLeft open leaves: 'Hello from boxesInstance'
-      boxesInstance 1 fromLeft open leaves: 'Hello from boxesInstance'
-      boxesInstance 2 fromLeft open leaves: 'Hello from boxesInstance'
-
-      "You've witnessed the so-called *force-reparenting* done by 'new'.
-       Let's try using 'shallowNew' for our boxesInstance."
 
       boxes shallowNew $: shallowBoxesInstance
       shallowBoxesInstance 0 fromLeft open leaves: 1
@@ -1901,8 +1878,10 @@ module Novika::Capabilities::Impl
         cmp = stack.drop.a(Block)
         block = stack.top.a(Block)
         block.sort_using! do |a, b|
+          stack = Block.with(a, b)
+
           # Hacky hack, see the comment above.
-          Engine.exhaust(Engine.current.capabilities, cmp, Block[a, b]).top.a(Decimal).to_i
+          Engine.exhaust(Engine.current.capabilities, cmp, stack).top.a(Decimal).to_i
         end
       end
 

@@ -409,19 +409,29 @@ module Novika
     # Creates and returns an orphan block with *array* being
     # its tape substrate's container. See `Tape.for`.
     def self.with(array : Array(Form), leaf : Bool? = nil)
-      Block.new(parent: nil, tape: Tape.for(array), leaf: leaf.nil? ? array.includes?(Block) : leaf)
+      new(
+        parent: nil,
+        tape: Tape.for(array),
+        leaf: leaf.nil? ? array.includes?(Block) : leaf
+      )
     end
 
-    # Creates and returns an orphan block whose tape will
-    # contain *forms*.
-    def self.[](*forms : Form)
-      leaf = true
-      array = forms.map do |form|
-        leaf = false if form.is_a?(Block)
-        form.as(Form)
-      end.to_a
+    # Double-*form* optimized version of `Block.with`.
+    def self.with(form1 : Form, form2 : Form)
+      new(
+        parent: nil,
+        tape: Tape.for([form1, form2] of Form),
+        leaf: !(form1.is_a?(Block) || form2.is_a?(Block))
+      )
+    end
 
-      Block.new(parent: nil, tape: Tape.for(array), leaf: leaf)
+    # Single-*form* optimized version of `Block.with`.
+    def self.with(form : Form)
+      new(
+        parent: nil,
+        tape: Tape.for([form] of Form),
+        leaf: !form.is_a?(Block)
+      )
     end
 
     def desc(io : IO)
@@ -629,7 +639,9 @@ module Novika
           END
         ) { |_, stack| impl.call(stack.drop) }
 
-        Engine.exhaust(Engine.current.capabilities, hook, stack: Block[form, default])
+        stack = Block.with(form, default)
+
+        Engine.exhaust(Engine.current.capabilities, hook, stack)
       else
         impl.call(form)
       end
@@ -690,7 +702,9 @@ module Novika
           desc: "( -- ): default __cherry__ implementation."
         ) { impl.call }
 
-        Engine.exhaust(Engine.current.capabilities, hook, Block[default]).top
+        stack = Block.with(default)
+
+        Engine.exhaust(Engine.current.capabilities, hook, stack).top
       else
         impl.call
       end
@@ -1178,7 +1192,7 @@ module Novika
       # whether we create it.
       copy.tape = copy.tape.map! do |form|
         next unless form.is_a?(Block)
-        __tr[form]? || form.instance(copy, __tr: __tr)
+        __tr[form]? || form.instance(same?(form.parent?) ? copy : form, __tr: __tr)
       end
       copy.leaf = false
       copy
@@ -1196,7 +1210,8 @@ module Novika
       end
 
       entry = flat_at?(name) || return
-      result = Engine.exhaust(Engine.current.capabilities, entry, Block[self]).top
+      stack = Block.with(self)
+      result = Engine.exhaust(Engine.current.capabilities, entry, stack).top
 
       if result.is_a?(Block) && !same?(result)
         # Result is a different block. Increment depth to handle

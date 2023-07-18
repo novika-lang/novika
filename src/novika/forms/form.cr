@@ -52,7 +52,7 @@ module Novika
     module ShouldOpenWhenScheduled
       def schedule!(engine : Engine, stack : Block)
         unless stack.same?(engine.stack)
-          engine.schedule!(stack: stack, block: Block[self])
+          engine.schedule!(stack: stack, block: Block.with(self))
         end
 
         on_open(engine)

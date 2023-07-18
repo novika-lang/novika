@@ -1,5 +1,5 @@
 name: novika
-version: 0.0.11
+version: 0.0.12
 repository: https://github.com/novika-lang/novika
 
 authors:
@@ -22,11 +22,13 @@ dependencies:
     github: homonoidian/lch.cr
   tablo:
     github: hutou/tablo
+  reply:
+    github: I3oris/reply
 
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
 
-crystal: ">= 1.8.0"
+crystal: ">= 1.9.0"
 
 license: MIT

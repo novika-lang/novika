@@ -160,23 +160,18 @@ cd novika
 
 ### Windows
 
-Follow these commands:
-
 ```
-mv shard.yml shard.old.yml
-mv shard.windows.yml shard.yml
 shards build --without-development --release --progress --no-debug
 ```
 
 ### Linux
 
 ```
-shards build --without-development --release --progress --no-debug -Dnovika_console -Dnovika_readline
+shards build --without-development --release --progress --no-debug -Dnovika_console -Dpreview_mt
 ```
 
 ### What do the `-D`s mean?
 
-* `-Dnovika_readline`: use [linenoise](https://github.com/antirez/linenoise) instead of `gets` for `readLine`.
 * `-Dnovika_console`: use [termbox2.cr](https://github.com/homonoidian/termbox2.cr) as the backend for capability *console*.  Otherwise, *console* won't be available. Since [termbox2](https://github.com/termbox/termbox2) doesn't support Windows, you have to drop the flag when compiling for/under it.
 
 ### What's next?

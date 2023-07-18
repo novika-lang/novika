@@ -1,3 +1,94 @@
+describe 'new' [
+  in lang
+
+  it should 'force-reparent only immediate children, otherwise simply recurse' [
+    [ $: x [ x ] ] @: newBox
+
+    1 newBox $: fooBox1
+    2 newBox $: fooBox2
+    3 newBox $: fooBox3
+
+    fooBox1 open 1 assert=
+    fooBox2 open 2 assert=
+    fooBox3 open 3 assert=
+
+    [ fooBox1 fooBox2 fooBox3 ] vals $: boxes
+
+    boxes 0 fromLeft open 1 assert=
+    boxes 1 fromLeft open 2 assert=
+
+    boxes new $: boxesInstance
+    boxesInstance 0 fromLeft open 1 assert=
+    boxesInstance 1 fromLeft open 2 assert=
+    boxesInstance 2 fromLeft open 3 assert=
+
+    "fooBox instances are children of the respective fooBoxes"
+    (boxesInstance 0 fromLeft parent) (boxes 0 fromLeft) same? true assert=
+    (boxesInstance 1 fromLeft parent) (boxes 1 fromLeft) same? true assert=
+    (boxesInstance 2 fromLeft parent) (boxes 2 fromLeft) same? true assert=
+
+    boxes boxesInstance same? false assert=
+
+    (boxesInstance parent) boxes same? true assert=
+
+    [ ] $: b
+    [ ] $: ca
+    [ ] $: cb
+
+    b ca << cb << drop
+
+    b new $: bi
+    (bi 0 fromLeft) ca same? false assert=
+    (bi 1 fromLeft) cb same? false assert=
+    (bi 0 fromLeft parent) ca same? true assert=
+    (bi 1 fromLeft parent) cb same? true assert=
+
+    bi new $: bi2
+    (bi2 0 fromLeft) ca same? false assert=
+    (bi2 1 fromLeft) cb same? false assert=
+    (bi2 0 fromLeft parent) (bi 0 fromLeft) same? true assert=
+    (bi2 1 fromLeft parent) (bi 1 fromLeft) same? true assert=
+  ]
+
+  it should 'skip force-reparenting even if member of ancestry' [
+    [ ] $: b
+
+    "ba and bb are immediate children, therefore, they
+    are going to be force-reparented."
+    b new $: ba
+    b new $: bb
+    b ba << bb << drop
+
+    "now these are not immediate children of b even though b is
+     one of their parents; so they won't be force-reparented:"
+    ba new $: ba2
+    bb new $: bb2
+
+    b ba2 << bb2 << drop
+
+
+    b new $: bi
+
+    (bi 0 fromLeft parent) bi same? true assert=
+    (bi 1 fromLeft parent) bi same? true assert=
+    (bi 2 fromLeft parent) ba2 same? true assert=
+    (bi 3 fromLeft parent) bb2 same? true assert=
+  ]
+
+  it should 'self-references carry over after non-reparenting recursive instantiation' [
+    [ ] $: foo
+    [ ] [foo] there $: bar
+
+    foo bar shove
+
+    foo new $: instance
+
+    (instance 0 fromLeft parent) bar same? true assert=
+    (instance 0 fromLeft 0 fromLeft) instance same? true assert=
+  ]
+]
+
+
 describe 'shallowNew' [
   in lang
 
@@ -35,24 +126,6 @@ describe 'shallowNew' [
     fooBox3 open 3 assert=
 
     [ fooBox1 fooBox2 fooBox3 ] vals $: boxes
-
-    boxes 0 fromLeft open 1 assert=
-    boxes 1 fromLeft open 2 assert=
-    "... and so on, as you'd expect. However, let's try to instantiate boxes:"
-
-    boxes new $: boxesInstance
-    [ boxesInstance 0 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
-    [ boxesInstance 1 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
-    [ boxesInstance 2 fromLeft open ] 'definition for x not found in the enclosing block(s)' assertDies
-
-    "Maybe defining 'x' on boxesInstance can shed some light?"
-    boxesInstance extend: [ 'Hello from boxesInstance' $: x ]
-    boxesInstance 0 fromLeft open 'Hello from boxesInstance' assert=
-    boxesInstance 1 fromLeft open 'Hello from boxesInstance' assert=
-    boxesInstance 2 fromLeft open 'Hello from boxesInstance' assert=
-
-    "You've witnessed the so-called *force-reparenting* done by 'new'.
-      Let's try using 'shallowNew' for our boxesInstance."
 
     boxes shallowNew $: shallowBoxesInstance
     shallowBoxesInstance 0 fromLeft open 1 assert=
