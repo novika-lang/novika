@@ -1,0 +1,1 @@
+'running the wrapper, value from lib is: ' appendEcho x appendEcho '\n' appendEcho

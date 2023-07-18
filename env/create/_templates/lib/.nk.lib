@@ -1,0 +1,9 @@
+# This is your library's manifest. Here you can list capabilities,
+# files to run, etc. Order will be respected. You can also use '*'
+# which stands for "not otherwise mentioned Novika scripts in this
+# directory" and '**' which stands for "not otherwise mentioned
+# subdirectories that are not apps nor libs, as well as Novika scripts".
+#
+# Here is an example manifest:
+#
+# start.nk begin.nk * done.nk ** exit.nk

@@ -16,14 +16,20 @@ jobs:
         run: gcc -shared -o tests/res/ffi-test.so tests/res/ffi-test.c
       - name: Install dependencies
         run: shards install --without-development
+      - name: Build CLI, NKAS, NKI
+        run: shards build --without-development
       - name: Run language tests
-        run: crystal run src/cli.cr -- ffi disk tests
+        run: bin/novika -:abort-on-permission-request ffi disk tests/res/ffi-test.so tests
       - name: Build tests via NKAS
-        run: crystal run src/nkas.cr -- -cb:b ffi disk tests tests/tests.nki
+        run: bin/nkas -cb:b ffi disk tests/res/ffi-test.so tests tests/tests.nki
       - name: Copy ffi-test shared object to tests directory
         run: cp tests/res/ffi-test.so tests/ffi-test.so
       - name: Run the tests image using NKI
-        run: crystal run src/nki.cr -- tests/tests.nki
+        run: bin/nki tests/tests.nki
+      - name: Run resolver tests
+        run: |
+          cd tests/_resolver
+          bash run.sh
   test_windows:
     runs-on: windows-latest
     defaults:
@@ -41,9 +47,9 @@ jobs:
       - name: Build CLI, NKAS, NKI
         run: shards build --without-development
       - name: Run language tests
-        run: bin/novika ffi disk tests
+        run: bin/novika -:abort-on-permission-request ffi disk tests/res/ffi-test.dll tests
       - name: Build tests via NKAS
-        run: bin/nkas -cb:b ffi disk tests tests/tests.nki
+        run: bin/nkas -cb:b ffi disk tests/res/ffi-test.dll tests tests/tests.nki
       - name: Copy ffi-test shared object to tests directory
         run: cp tests/res/ffi-test.dll tests/ffi-test.dll
       - name: Run the tests image using NKI

@@ -1,0 +1,3 @@
+'Running foo.nk\n' appendEcho
+
+greet

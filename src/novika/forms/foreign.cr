@@ -317,12 +317,12 @@ module Novika
       LibDl.dlclose(@handle)
     end
 
-    # Tries to find the library with the given *id* in the
-    # system-specific library directories and in the current
-    # working directory.
+    # Tries to find the library with the given *id* in the system-
+    # specific library directories, current working directory *cwd*,
+    # and in the runnable environment *env*.
     #
-    # Returns nil if the library could not be found / loaded.
-    def self.new?(id : String, resolver : RunnableResolver) : Library?
+    # Returns nil if the library could not be found or loaded.
+    def self.new?(id : String, cwd : Path, env : Resolver::RunnableEnvironment) : Library?
       candidates = [] of String
 
       {% if flag?(:windows) %}
@@ -344,16 +344,15 @@ module Novika
         # https://github.com/crystal-lang/crystal/blob/42a3f91335852613824a6a2587da6e590b540518/src/compiler/crystal/loader/msvc.cr#L65
 
         candidates.each do |candidate|
-          if library = Library.new?(id, Path[search_path] / candidate)
-            return library
-          end
+          next unless library = Library.new?(id, Path[search_path] / candidate)
+          return library
         end
       end
 
-      # If not in search paths or no search paths, try looking
-      # in Novika-specific directories.
+      # If not in search paths or no search paths, try looking in
+      # the current working directory or in the environment directory.
       candidates.each do |candidate|
-        next unless path = resolver.expand_runnable_path?(Path[candidate])
+        next unless path = env.expand?(Path[candidate]) || cwd.expand(Path[candidate])
         next unless library = Library.new?(id, path)
         return library
       end

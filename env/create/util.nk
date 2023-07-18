@@ -1,0 +1,11 @@
+[ "( M C -- ): logs Message emphasized, and painted with Color."
+  withEchoFg withEmphasisAppendEcho dropEchoFg
+] @: log
+
+[ "( sorry: M -- ): logs a sorry Message."
+  'Sorry: ' 255 0 0 rgb log ahead thruVal echo
+] @: sorry:
+
+[ "( ok: M -- ): logs an ok Message."
+  'Ok: ' 0 255 0 rgb log ahead thruVal echo
+] @: ok:

@@ -1,0 +1,12 @@
+
+./0-empty/:
+./1-single/:
+1a
+./2-many/:
+2a2b2c
+./3-not-only-nk/:
+3a3b3c
+./4-entry/:
+4E
+./5-ignore-and-entry/:
+[FOO]4a4b4c

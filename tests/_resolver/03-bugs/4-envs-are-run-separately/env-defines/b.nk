@@ -1,0 +1,4 @@
+'Defined b!\n' appendEcho
+
+this #b 100 pushes
+this #outer entry:exists? 'env-defines found outer!\n' 'env-defines did not find outer!\n' sel appendEcho

@@ -1,0 +1,2 @@
+this #b entry:exists? 'env-uses found b!\n' 'env-uses did not find b!\n' sel appendEcho
+this #outer entry:exists? 'env-uses found outer!\n' 'env-uses did not find outer!\n' sel appendEcho

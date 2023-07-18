@@ -1,0 +1,2 @@
+'Running lib/c\n' appendEcho
+'__preambles__ contains the following stuff:\n' appendEcho __preambles__ appendEcho '\n' appendEcho

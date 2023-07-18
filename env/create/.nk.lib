@@ -1,0 +1,29 @@
+nolayout
+
+# This manifest is inherited by manifests below, unless they
+# explicitly say `noinherit` or there is a .nk.app in the chain
+# (but, importantly, .nk.app is *allowed* at the end of the chain!).
+
+disk
+
+** <> entry.nk
+
+---
+
+novika create - a tool for scaffolding Novika applications and libraries
+
+Syntax:
+
+  novika create/[app, lib]
+
+Examples:
+
+  Scaffold a new Novika application:
+    $ mkdir example
+    $ cd example
+    $ novika create/app
+
+  Scaffold a new Novika library:
+    $ mkdir example
+    $ cd example
+    $ novika create/lib

@@ -77,7 +77,10 @@ that *entirely* consist of builtins (at least at here-time).
   ] [form] gsub
 ] @: _chewbaccaTemplate
 
-this $: _toplevel
+"'this' is an instance of the file block for patches.nk, its
+ parent is the raw file block. Use the latter to avoid weird
+ feedback (ish) problems that hurt performance."
+this parent $: _toplevel
 
 "Perform a deep clone of chewbacca via NKI. This is more
  of a hack but nah, all of this is a hack anyway."

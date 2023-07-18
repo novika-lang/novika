@@ -1,0 +1,9 @@
+nolayout
+a/foo
+b/foo
+c/xyz/zyx/foo
+d/xyz/zyx/foo
+bar.nk
+
+---
+bar preamble

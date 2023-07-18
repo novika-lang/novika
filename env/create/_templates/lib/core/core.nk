@@ -1,0 +1,5 @@
+[
+  ahead thruVal asQuote $: name
+
+  [ 'Hello, ' name '!' ] ~* echo
+] @: greet

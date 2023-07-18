@@ -1,0 +1,17 @@
+'lib' $: template
+
+[
+  ok: 'Created a Novika library in the current directory.'
+
+'''
+  Now you can open core/core.nk in your favorite text
+  editor and build something cool with Novika!
+
+  You can try your library out in the REPL by typing
+  the following:
+
+    $ novika
+    >>> greet 'John'
+    Hello, John!
+''' echo
+] @: beforeExit

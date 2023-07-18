@@ -20,6 +20,13 @@ struct Set(T)
   delegate :reject!, to: @hash
 end
 
+class Array(T)
+  def find(type : U.class) : U? forall U
+    needle = find &.is_a?(U)
+    needle.as(U) if needle
+  end
+end
+
 # Order is important (somewhat)!
 require "./novika/object_pool"
 require "./novika/forms/form"

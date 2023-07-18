@@ -101,319 +101,455 @@ module Novika::Frontend::CLI
     end
   end
 
-  # Runs the file at *path* using *engine*. A new block is
-  # created for *path* as a child of *toplevel*.
-  #
-  # Words from the new block are imported into *toplevel*
-  # after the engine successfully exhausts it.
-  #
-  # Returns *toplevel*.
-  def run(engine : Engine, toplevel : Block, path : Path) : Block
-    source = File.read(path)
-    block = Block.new(toplevel).slurp(source)
-    block.at(Word.new("__path__"), Quote.new(path.parent.to_s))
-    block.at(Word.new("__file__"), Quote.new(path.to_s))
-    block.at(Word.new("__runtime__"), Quote.new("novika"))
-    engine.schedule!(block, stack: Block.new)
-    engine.exhaust
-    toplevel.import!(from: block)
-  end
-
-  # Runs the given *folder*.
-  #
-  # If *folder* is an app, all other files in it (if any) are
-  # run first, then its entry file (again, only if it exists).
-  #
-  # If *folder* is a lib, its entry file is run first (if it
-  # exists), followed by all other files.
-  #
-  # The "philosophy" is as follows:
-  #
-  # * For apps, it's all other files contributing to the entry
-  #   file, which generally contains run instructions.
-  #
-  # * For libs, it's the lib's entry file contributing to all
-  #   other files -- allowing to share code in load order-
-  #   agnostic way.
-  def run(engine : Engine, toplevel : Block, folder : Folder)
-    run(engine, toplevel, folder.files) if folder.app?
-
-    if entry = folder.entry?
-      run(engine, toplevel, entry)
-    end
-
-    run(engine, toplevel, folder.files) unless folder.app?
-  end
-
-  # Runs each of the *paths* (each is assumed to be a file).
-  def run(engine : Engine, toplevel : Block, paths : Set(Path))
-    paths.each { |path| run(engine, toplevel, path) }
-  end
-
-  # Runs each of the *folders*.
-  def run(engine : Engine, toplevel : Block, folders : Set(Folder))
-    folders.each { |folder| run(engine, toplevel, folder) }
-  end
-
   # Appends the CLI help message to *io*.
   private def help(io)
-    Colorize.enabled = Colorize.enabled?.tap do
-      # Contextually enable/disable colors depending on whether
-      # the user wants them.
-      Colorize.enabled = Novika.colorful?
+    on = "on by default".colorize.bold
 
-      on = "on by default".colorize.bold
-
-      io << <<-END
+    io << <<-END
       novika - command-line frontend for Novika #{VERSION}
 
-      Syntax:
+      #{"Syntax".colorize.underline}
 
-        novika [switches] [runnables]
+        novika [switches] [queries]
 
-      Switches:
+      #{"Switches".colorize.underline}
 
-        -h, --help, h, help, ?  prints this message
-        -p[:PERIOD]             enables profiling, samples every PERIOD ticks (default: 16)
+        -h, --help, -?
 
-      Runnables:
+          Prints this message.
 
-        #{"file".colorize.bold}
+        -:profile[:PERIOD=16]
 
-          When runnable is a file, that file is read and run.
+          Enables profiling, samples every PERIOD ticks, prints sample
+          table when all queries exit.
 
-          Examples:
+        -:dry-list
 
-            $ novika hello.nk
-            $ novika a.nk b.nk c.nk
-            # Note: order matters. That is, a.nk <- b.nk <- c.nk,
-            # where '<-' means "is executed before & visible to"
+          Prints a list of what needs to run in order to satisfy the queries
+          and in what order. Use this if you don't understand what's going
+          on with run order etc.
 
-        #{"library directory".colorize.bold}
+          +:dry-list-sm
 
-          Any directory is implicitly a library directory. A directory may be
-          explicitly marked as a library directory by putting a .nk.lib manifest
-          file inside it.
+            Enables environment-relative, uncluttered (#{"sm".colorize.underline}all) mode for
+            dry list.
 
-          When runnable is a library directory, *.nk files in it are run. First,
-          <directory-name>.nk file is run (if it exists), then, all other files are
-          run. Lastly, this process is repeated on sub-directories (if any).
+            #{"$ novika -:dry-list +:dry-list-sm repl".colorize.bold}
+            # #{"…".colorize.dark_gray}
 
-          Examples:
+        -:dry-tree
 
-            $ mkdir foo
-            $ echo "'Hi from lib core!' echo" > foo/foo.nk
-            $ echo "'Salutations from lib slave!' echo" > foo/slave.nk
-            $ novika foo
-            Hi from lib core!
-            Salutations from lib slave!
+          Prints a tree of what needs to run in order to satisfy the queries;
+          entries in the tree, notably script entries, have backtrace. Use
+          this if -:dry-list doesn't help.
 
-        #{"application directory".colorize.bold}
+        -:abort-on-permission-request
 
-          Mostly similar to library directories. Marked by .nk.app manifest file
-          inside the directory. Note that:
+          exit(1) on a request to give permission for the use of a language
+          capability or a shared library.
 
-          * For appplication directories, <directory-name>.nk file is run last
-            rather than first.
+      #{"Help mode".colorize.underline}
 
-          * You cannot provide more than one application directory.
+        Running `$ novika help [queries]` will print help for each of the
+        queries if possible. Note that you cannot #{"run".colorize.bright} anything in help mode.
 
-          Examples:
+          #{"$ novika help repl".colorize.bold}
+          novika repl - read-eval-print loop for Novika …
 
-            $ mkdir bar
-            $ touch bar/.nk.app
-            $ echo "'Hi from app core!' echo" > bar/bar.nk
-            $ echo "'Salutations from app slave!' echo" > bar/slave.nk
-            $ novika bar
-            Salutations from app slave!
-            Hi from app core!
+          #{"$ novika create repl help".colorize.bold}
+          novika create - a tool for scaffolding Novika applications and libraries …
+          novika repl - read-eval-print loop for Novika …
 
-        #{"capability id".colorize.bold}
+      #{"Queries".colorize.underline}
 
-          When runnable is a capability id, the corresponding capability is enabled
-          to all other files and capabilities run (that is, everyone is allowed to
-          use it).
+        You run Novika scripts, directories, libraries and apps by
+        #{"querying".colorize.bright} Novika.
 
-          A runnable might ask you for permission to enable a capability or two
-          (for example, disk and/or ffi). Your choice to allow is remembered;
-          your choice to deny isn't.
+        #{"script".colorize.bold}
 
-          Here is a list of available capabilities:
+          If you want to run a script, you should pass the path to that
+          script (absolute or relative) as a query.
+
+            #{"$ novika hello.nk".colorize.bold}
+            #{"$ novika a.nk b.nk c.nk".colorize.bold}
+            #{"# Note: order matters. That is, a.nk <- b.nk <- c.nk,".colorize.dark_gray}
+            #{"# where '<-' means 'is run before & visible to'".colorize.dark_gray}
+
+        #{"directory".colorize.bold}
+
+          If you want to run a directory that contains some Novika files,
+          you should pass the path to that directory (absolute or relative)
+          as a query. Load order is as follows:
+
+            1. Subdirectory named 'core/', recursively.
+            2. File with the same name as the directory, e.g. for 'foo/'
+               it is going to be 'foo/foo.nk'; known as the entry file.
+            3. All other files, in lexicographic order.
+            4. All other subdirectories, recursively.
+
+          App and lib subdirectories are ignored. Files and directories
+          prefixed with one or more `_`s are ignored.
+
+            #{"$ ls foo".colorize.bold}
+            a.nk b.nk c.nk foo.nk
+            #{"$ novika foo".colorize.bold}
+            #{"# Runs foo.nk".colorize.dark_gray}
+            #{"# Runs a.nk".colorize.dark_gray}
+            #{"# Runs b.nk".colorize.dark_gray}
+            #{"# Runs c.nk".colorize.dark_gray}
+            #{"$ ls bar".colorize.bold}
+            abc/ xyz/ _def/ m.nk n.nk _temp.nk
+            #{"$ ls bar/abc".colorize.bold}
+            a.nk b.nk c.nk
+            #{"$ ls bar/xyz".colorize.bold}
+            x.nk y.nk z.nk
+            #{"$ novika bar".colorize.bold}
+            #{"# Runs m.nk".colorize.dark_gray}
+            #{"# Runs n.nk".colorize.dark_gray}
+            #{"# Runs abc/a.nk".colorize.dark_gray}
+            #{"# Runs abc/b.nk".colorize.dark_gray}
+            #{"# Runs abc/c.nk".colorize.dark_gray}
+            #{"# Runs xyz/x.nk".colorize.dark_gray}
+            #{"# Runs xyz/y.nk".colorize.dark_gray}
+            #{"# Runs xyz/z.nk".colorize.dark_gray}
+
+        #{"app".colorize.bold}
+
+          Identified by `.nk.app` manifest. App directories are similar
+          in behavior to simple directories, except that (a) the order in
+          which their content is visited & run can be determined by their
+          manifest, and (b) their entry file is run last rather than first,
+          that is, after the subdirectories step. Only one app be queried
+          for. Trying to query for more than one app is an error.
+
+            #{"$ mkdir foo".colorize.bold}
+            #{"$ cd foo".colorize.bold}
+            #{"$ novika create/app".colorize.bold}
+            #{"$ ls".colorize.bold}
+            core/ .nk.app
+            #{"# Note how Novika runs the current working directory here.".colorize.dark_gray}
+            #{"# It does that if it can, and if you don't ask it for".colorize.dark_gray}
+            #{"# something else.".colorize.dark_gray}
+            #{"$ novika".colorize.bold}
+            Hello World
+
+        #{"lib".colorize.bold}
+
+          Identified by `.nk.lib` manifest. Lib directories are similar to
+          apps. One difference is that several libs can be queried for
+          simultaneously. Another is that a library's entry file is run
+          first rather than last, that is, after the 'core/' step, the same
+          as with simple directories.
+
+            #{"$ mkdir foo bar".colorize.bold}
+            #{"$ touch foo/.nk.lib bar/.nk.lib".colorize.bold}
+            #{"$ echo '100 $: x' > foo/foo.nk".colorize.bold}
+            #{"$ echo '200 $: y' > bar/bar.nk".colorize.bold}
+            #{"$ novika foo bar repl".colorize.bold}
+            >>> x
+            [ 100 ]
+            >>> y
+            [ 100 200 ]
+
+        #{"manifest".colorize.bold}
+
+          App `.nk.app` and lib `.nk.lib` manifests allow you to control
+          which files, directories, and libs are queried for when you run
+          the app/lib, and in what order, without needing to specify all
+          that via the arguments. App and lib manifests share syntax.
+
+          ╭───────────────────────────────────────────────────────────────────╮
+          │ foo/.nk.lib                                                       │
+          ├───────────────────────────────────────────────────────────────────╯
+          │ #{"# This is a comment. Only full-line comments are supported, like".colorize.dark_gray}
+          │ #{"# this one for instance.".colorize.dark_gray}
+          │ ffi disk sdl
+          │ #{"# Preprocessor expressions are written in brackets [].".colorize.dark_gray}
+          │ /path/to/lib.[windows, darwin, ... | dll, dylib, so]
+          │ /path/to/file.nk
+          │ enter.nk
+          │ #{"# '*' means all files in manifest's directory (foo/) except".colorize.dark_gray}
+          │ #{"# those that were mentioned before/after.".colorize.dark_gray}
+          │ *
+          │ nest.nk
+          │ xyz/a.nk
+          │ #{"# '**' means all files and directories (but not libs or apps)".colorize.dark_gray}
+          │ #{"# except those that were mentioned before/after.".colorize.dark_gray}
+          │ **
+          │ xyz/c.nk
+          │ exit.nk
+          │
+          │ ---
+          │ This is the manifest's preamble (delimited by opening & closing
+          │ `---`, the latter may be omitted if the preamble is at the end
+          │ of the manifest like this one).
+          │
+          │ The preamble is shown in help mode, for instance in this case
+          │ it will be shown if you run `$ novika help foo`.
+          ╰
+
+        #{"capability".colorize.bold}
+
+          You can query for a language capability such as `disk` or `ffi`.
+          They expose domain-specific words which are not usually needed,
+          or are in some way unsafe. Some capabilities are turned on by
+          default, so you don't need to request them.
+
+            #{"$ novika ffi my-script.nk".colorize.bold}
+            #{"$ novika disk repl".colorize.bold}
+            >>> disk:home
+            [ '/path/to/home' ]
+
+          Here is a list of capabilities that are available to this
+          instance of Novika:
 
       END
 
-      available_caps = CapabilityCollection.available
+    available_caps = CapabilityCollection.available
 
-      available_caps.select(&.on_by_default?).each do |cap|
-        io.puts
-        io << "      - " << on << " " << cap.id << " (" << cap.purpose << ")"
-      end
-
-      available_caps.reject(&.on_by_default?).each do |cap|
-        io.puts
-        io << "      - " << cap.id << " (" << cap.purpose << ")"
-      end
-
+    available_caps.select(&.on_by_default?).each do |cap|
       io.puts
+      io << "    - " << on << " " << cap.id << " (" << cap.purpose << ")"
+    end
 
-      io << <<-END
+    available_caps.reject(&.on_by_default?).each do |cap|
+      io.puts
+      io << "    - " << cap.id << " (" << cap.purpose << ")"
+    end
 
-      Autoloading:
+    io.puts
 
-        Novika autoloads (implicitly loads) the directory named 'core' in the
-        current working directory, and the directory named 'core' in '~/.novika'
-        (assuming they exist at their respective locations.)
+    io << <<-END
 
-      Home directory:
+      #{"Autoloading".colorize.underline}
 
-        Novika home directory, '~/.novika', is where globally accessible runnables
-        are found. When a runnable cannot be found in the current working directory,
-        '~/.novika' is searched.
+        When no queries are provided, Novika autoloads (implicitly loads)
+        the current working directory if it is an app. If it is a lib it
+        autoloads it only when a `__lib_wrapper__` app is available in the
+        current working directory, or in the environment.
 
-      Examples:
+        Novika always autoloads the directory named 'core' in the current
+        environment (if it exists of course).
+
+      #{"Novika environment".colorize.underline}
+
+        Novika climbs up the directory tree starting from the current working
+        directory, searching for `env/.nk.env`, `.nk.env`, or `.novika`. If
+        unsuccessful, Novika also checks `~/.novika`. If the environment
+        directory is found, you can use apps, libs, scripts, and directories
+        from there globally: no matter where you are in the file tree, you
+        can query for them, assuming the environment is somewhere above.
+
+        Environments are isolated from each other. You cannot run a file,
+        app, or lib from one environment in another.
+
+          #{"$ mkdir -p env/core foo/bar/baz".colorize.bold}
+          #{"$ touch env/.nk.env".colorize.bold}
+          #{"# Link so that we have a standard library. Remember that envs".colorize.dark_gray}
+          #{"# are isolated from each other; even symlinking to `.novika/core`".colorize.dark_gray}
+          #{"# wont't work here.".colorize.dark_gray}
+          #{"$ ln -s ~/.novika/core/core.nk env/core/core.nk".colorize.bold}
+          #{"$ ln -s ~/.novika/core/system.nk env/core/system.nk".colorize.bold}
+          #{"$ echo \"'Hello World' echo\" > env/greet.nk".colorize.bold}
+          #{"$ novika greet.nk".colorize.bold}
+          Hello World
+          #{"$ cd foo/bar/baz".colorize.bold}
+          #{"# Note how greet.nk isn't, and wasn't, directly accessible. It's".colorize.dark_gray}
+          #{"# being pulled from the environment directory.".colorize.dark_gray}
+          #{"$ novika greet.nk".colorize.bold}
+          Hello World
+
+        To force Novika to search in the environment instead of the
+        current working directory you should prefix your query with '^':
+
+          #{"$ mkdir repl".colorize.bold}
+          #{"$ echo \"'Hello from my REPL' echo\" > repl/repl.nk".colorize.bold}
+          #{"$ echo -e '---\\nMy REPL help' > repl/.nk.app".colorize.bold}
+          #{"$ novika repl".colorize.bold}
+          Hello from my REPL
+          #{"$ novika help repl".colorize.bold}
+          My REPL help
+          #{"$ novika ^repl".colorize.bold}
+          >>> …
+          #{"$ novika help ^repl".colorize.bold}
+          novika repl - read-eval-print loop for Novika …
+
+      #{"Examples".colorize.underline}
 
         Run the Novika REPL:
-          $ novika repl
 
-        Run the REPL, but preload a file first:
-          $ novika foo.nk repl
+          #{"$ novika repl".colorize.bold}
+
+        Run the REPL, but load a file first and make it visible to the REPL:
+
+          #{"$ novika foo.nk repl".colorize.bold}
 
         Create a Novika app (you must be inside an empty directory)
-          $ novika new
+
+          #{"$ novika create/app".colorize.bold}
 
         Run the snake example:
-          $ novika console examples/snake.new.nk
 
-      Something doesn't seem to work right?
+          #{"$ novika console examples/snake.new.nk".colorize.bold}
+
+        Get help for an app/lib:
+
+          #{"$ novika help create".colorize.bold}
+          #{"$ novika help sdl".colorize.bold}
+
+      #{"Something doesn't seem to work right?".colorize.underline}
 
         Feel free to file an issue at https://github.com/novika-lang/novika/issues/new.
 
       END
-    end
   end
 
   # Novika command-line frontend entry point.
-  def start(args = ARGV, cwd = Path[ENV["NOVIKA_PATH"]? || Dir.current])
-    if args.any?(/^\-{0,2}(?:h(?:elp)?|\?)$/)
+  def start(args = ARGV, cwd = Path[ENV["NOVIKA_CWD"]? || Dir.current])
+    Colorize.enabled = Novika.colorful?
+
+    if args.any?(/^\-{1,2}:?(?:h(?:elp)?|\?)$/)
       help(STDOUT)
       exit(0)
     end
 
     profiler = nil
+    dry_list = false
+    dry_list_sm = false
+    dry_tree = false
+    help_mode = false
+    abort_on_permission_request = false
 
     args.reject! do |arg|
-      if status = arg =~ /^\-p(?::([1-9]\d*))?$/
+      case arg
+      when /^\-:profile(?::([1-9]\d*))?$/
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
+      when /^\-:dry-list$/
+        dry_list = true
+      when /^\-:dry-tree$/
+        dry_tree = true
+      when /^\+:dry-list-sm$/
+        dry_list_sm = true
+      when /^\-:abort-on-permission-request$/
+        abort_on_permission_request = true
+      when /^help$/
+        help_mode = true
+      else
+        next false
       end
-      status
+
+      true
     end
 
-    profiler.try { |it| Engine.trackers << it }
+    profiler.try { |prof| Engine.trackers << prof }
 
-    # Populate the capability collection with all available
-    # capabilities. Only enable default ones.
-    #
-    # We'll then enable those that the user wants.
-    caps = CapabilityCollection.with_available
-    caps.enable_default
+    resolver = RunnableResolver.new(cwd, args)
 
-    resolver = RunnableResolver.new(args, caps, cwd)
+    resolver.on_permissions_gets do |string|
+      if abort_on_permission_request
+        abort
+      end
+
+      print string, " "
+      gets
+    end
+
+    resolver.on_permissions_print do |string|
+      print string
+    end
+
+    resolver.after_container_rewritten do |container|
+      next unless dry_tree
+
+      puts container
+    end
+
+    resolver.after_response do |hook|
+      if dry_tree
+        exit(0)
+      end
+
+      # Having some runnables ignored isn't an error, but we should
+      # still notify the user so that they know something is wrong.
+      hook.response.each_ignored_runnable do |runnable|
+        runnable.backtrace(STDERR, indent: 2) do |io|
+          Frontend.note("this runnable is not allowed here, and will be ignored: #{runnable}", io)
+        end
+      end
+
+      next unless help_mode
+
+      first = true
+
+      hook.each_queried_for_preamble_with_group do |preamble, group|
+        if first
+          first = false
+        else
+          print "\n\n"
+        end
+        puts preamble
+      end
+
+      if first
+        help(STDOUT)
+      end
+
+      exit(0)
+    end
+
+    resolver.after_program do |hook|
+      next unless dry_list
+
+      unless dry_list_sm
+        puts <<-HINT
+        --> Showing environment designations (which environment is going to run which file).
+        --> Order matters, and is exactly the execution order.
+        HINT
+
+        puts
+      end
+
+      hook.each_designation do |designation|
+        designation.to_s(STDOUT, sm: dry_list_sm)
+        puts
+      end
+
+      exit(0)
+    end
+
+    resolver.after_permissions do |hook|
+      hook.run
+    ensure
+      profiler.try { |prof| puts prof.to_table }
+    end
+
     unless resolver.resolve?
       help(STDOUT)
       exit(0)
     end
-
-    # If more than one app, try to reject core (it is assumed
-    # to be picked up implicitly; the "cost" of ignoring it is
-    # less than that of an explicitly specified app).
-    if resolver.apps.size > 1
-      resolver.apps.reject! do |app|
-        next if !app.core? || app.explicit?
-
-        # Also reject capabilities that the app requested!
-        resolver.capabilities.reject! do |cap|
-          next if cap.manual?
-
-          cap.root == app.path
-        end
-
-        true
+  rescue e : Resolver::RunnableError
+    e.runnable.backtrace(STDERR, indent: 2) do |io|
+      Frontend.err(e.message, io)
+    end
+    exit(1)
+  rescue e : Resolver::ResponseRejectedError
+    e.response.each_rejected_runnable do |runnable|
+      runnable.backtrace(STDERR, indent: 2) do |io|
+        Frontend.err(e.message, io)
+      end
+    end
+    exit(1)
+  rescue e : Resolver::MoreThanOneAppError
+    e.apps.each do |app|
+      app.backtrace(STDERR, indent: 2) do |io|
+        Frontend.noteln("could not run this app because it's not the only one", io)
       end
     end
 
-    # If still more than one, then we don't know what to do
-    # with them.
-    if resolver.apps.size > 1
-      Frontend.errln("cannot determine which app to run (given apps: #{resolver.apps.join(", ", &.path.basename)})")
-      exit(1)
-    end
-
-    # Found a bunch of unknown... things. We don't know what
-    # to do with them either.
-    #
-    # TODO: this takes into account things from .nk.app and .nk.lib
-    # files, which makes everything a bit confusing.
-    unless resolver.unknowns.empty?
-      resolver.unknowns.each do |arg|
-        Frontend.errln(
-          "could not resolve runnable #{arg.colorize.bold}: it's not a file, \
-           directory, shared object, Novika app, or capability id")
-      end
-      exit(1)
-    end
-
-    # Create a library for each shared object, and put it in
-    # the capability collection.
-    #
-    # For each shared object, a library ID is made by taking the stem
-    # of path to the object and stripping it of the lib prefix, if it
-    # has one. For example, given `/lib/libmath.so` or `/lib/math.so`,
-    # the library ID would be `math` in both cases.
-    #
-    # Err if a library with the same id exists already.
-    resolver.shared_objects.each do |shared_object|
-      id = shared_object.stem.lchop("lib")
-
-      if caps.has_library?(id)
-        Frontend.errln("multiple libraries with the same id: #{id}")
-        exit(1)
-      end
-
-      caps << Library.new(id, shared_object)
-    end
-
-    caps.on_load_library? do |id|
-      Library.new?(id, resolver)
-    end
-
-    engine = Engine.push(caps)
-
-    # Important: wrap capability block in another block! This is
-    # required to make it possible to ignore capability block in
-    # Image emission, saving some time and space!
-    toplevel = Block.new(caps.block)
-
-    resolver.capabilities.each do |req|
-      allowed =
-        req.allowed? do
-          # If we've got it here, then it's in the capability
-          # collection, therefore, the capability class exists.
-          purpose = caps.get_capability_class?(req.id).not_nil!.purpose
-
-          print "[novika] Permit '#{req.root.basename}' to use #{req.id} (#{purpose})? [Y/n] "
-          (gets.try &.downcase) == "y"
-        end
-
-      caps.enable(req.id) if allowed
-    end
-
-    begin
-      run(engine, toplevel, resolver.folders)
-      run(engine, toplevel, resolver.files)
-      run(engine, toplevel, resolver.apps)
-    ensure
-      profiler.try { |it| puts it.to_table }
-    end
+    Frontend.errln(e.message)
+    exit(1)
+  rescue e : Resolver::ResolverError
+    Frontend.errln(e.message)
   rescue e : Error
     e.report(STDERR)
     exit(1)

@@ -1,0 +1,343 @@
+
+./0-nolayout-absent/:
+bar.nk
+baz.nk
+foo.nk
+nolayout.nk
+a.nk
+b.nk
+./1-nolayout-only/:
+./2-nolayout-present/:
+a.nk
+bar.nk
+baz.nk
+./3-nolayout-inheritance/:
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+./4-nolayout-inheritance-link/:
+a.nk
+bar.nk
+baz.nk
+Hello from my-demo-app!
+./5-slot/:
+foo
+begin
+end
+foo
+begin
+hello from test app
+end
+./6-file-symlink/:
+a
+./7-dir-symlink/:
+Hello from bar-app
+Hello from foo/a
+Hello from foo/b
+Hello from bar-lib
+Hello from bar-app
+Hello from foo/a
+Hello from foo/b
+Hello from bar-lib
+Hello from bar-app
+./8-recursive-symlink/:
+a
+b
+x
+y
+./9-symlink-ref-in-manifest/:
+ax
+ay
+ba
+bb
+ax
+ay
+./a-symlink-rec-ref-in-manifest-raises/:
+./b-env-from-path-not-cwd/:
+hello from bar
+./c-env-doesnt-leak/:
+Hi from bim!
+O hai from outer env foo
+./d-env-default-dist-emul/:
+loading env/core...
+This is an easter egg, you have finally found it :^)
+./e-env-default-dist-emul-symlink/:
+loading env/core...
+Running demo thing
+./f-env-default-dist-emul-app/:
+loading env/core...
+foo-app
+loading env/core...
+foo-app
+loading env/core...
+bar-app
+./g-nested-env-inheritance/:
+Outer foo
+Nested foo
+./h-subtree-ignores-nested-app-or-lib/:
+somedir
+./j-help-from-manifest/:
+Welcome to the foo app!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+Welcome to the **bar** lib!
+
+# Heading 1
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+## Heading 2
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+Welcome to the foo app!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+
+
+Welcome to the **bar** lib!
+
+# Heading 1
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+## Heading 2
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+Welcome to the foo app!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+
+
+Welcome to the **bar** lib!
+
+# Heading 1
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+## Heading 2
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+Welcome to the foo app!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Cursus metus aliquam
+eleifend mi in. Eget mi proin sed libero enim sed faucibus turpis in.
+
+--- Porttitor massa --------------------------------------------------
+
+Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus:
+
+  - Enim ut tellus elementum sagittis vitae et.
+  - Egestas sed tempus urna et pharetra pharetra.
+  - Eu scelerisque felis imperdiet proin -- fermentum leo.
+  - At volutpat diam ut venenatis tellus in. Venenatis cras sed felis
+    eget velit aliquet sagittis. Pellentesque habitant morbi tristique
+    senectus et. Eget arcu dictum varius duis at consectetur.
+
+--- See also:
+
+Lacus luctus accumsan tortor posuere ac ut. Scelerisque mauris pellentesque
+pulvinar pellentesque habitant morbi tristique. Accumsan in nisl nisi scelerisque
+eu ultrices. Adipiscing diam donec adipiscing tristique risus nec feugiat in.
+Example POSTamble.
+
+# Usage
+
+Showing example usage in POSTamble!
+
+  $ find-friends
+  Finding...
+  $ get-married
+  Marrying...
+  $ have-kids
+  Having...
+  $ die
+  Dying...
+This is core's help
+I'm core and I shouldn't be in help unless explicitly asked for!
+Running the foo app...
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${foo :: 'Welcome to th…c feugiat in.'} ]
+I'm core and I shouldn't be in help unless explicitly asked for!
+Running lib...
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/a
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/b
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/c
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+I'm core and I shouldn't be in help unless explicitly asked for!
+Running the baz app...
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${baz :: 'Example POSTa…ie\n  Dying...'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib...
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${baz :: 'Example POSTa…ie\n  Dying...'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/a
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${baz :: 'Example POSTa…ie\n  Dying...'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/b
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${baz :: 'Example POSTa…ie\n  Dying...'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+Running lib/c
+__preambles__ contains the following stuff:
+[ · ${core :: 'This is core's help'} ${baz :: 'Example POSTa…ie\n  Dying...'} ${bar :: 'Welcome to th…c feugiat in.'} ]
+I'm core and I shouldn't be in help unless explicitly asked for!
+./k-preambles-arent-inherited-with-slot/:
+Lorem ipsum dolor sit amet
+I am a nested preamble
+I am a nested preamble
+Lorem ipsum dolor sit amet
+I am a nested preamble
+./l-preambles-arent-inherited/:
+Lorem ipsum dolor sit amet
+I am a nested preamble
+I am a nested preamble
+Lorem ipsum dolor sit amet
+I am a nested preamble
+./m-libwrapper/:
+running the wrapper, value from lib is: 123
+./n-caret-forces-env/:
+Running OUTER foo
+This is help for OUTER foo
+Running OUTER foo
+This is help for OUTER foo
+Running INNER foo
+This is help for INNER foo
+Running OUTER foo
+This is help for OUTER foo
+Running INNER foo
+Running OUTER foo
+Running NESTED ENV foo
+Running NESTED ENV foo
+This is help for NESTED ENV foo
+This is help for INNER core
+This is help for OUTER core
+Hello from xyzzy INNER
+Hello from XYZZY outer
+./o-preambles-same-names/:
+hello from a/foo.nk
+hello from b/foo.nk
+[ · ${o-preambles-same-names :: 'bar preamble'} ${b/foo :: 'b/foo preamble'} ${a/foo :: 'a/foo preamble'} ${d/xyz/zyx/foo :: 'd foo preamble'} ${c/xyz/zyx/foo :: 'c foo preamble'} ]
