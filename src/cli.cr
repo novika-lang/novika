@@ -108,11 +108,11 @@ module Novika::Frontend::CLI
     io << <<-END
       novika - command-line frontend for Novika #{VERSION}
 
-      Syntax:
+      #{"Syntax".colorize.underline}
 
         novika [switches] [queries]
 
-      Switches:
+      #{"Switches".colorize.underline}
 
         -h, --help, -?
 
@@ -120,7 +120,8 @@ module Novika::Frontend::CLI
 
         -:profile[:PERIOD=16]
 
-          Enables profiling, samples every PERIOD ticks.
+          Enables profiling, samples every PERIOD ticks, prints sample
+          table when all queries exit.
 
         -:dry-list
 
@@ -128,30 +129,35 @@ module Novika::Frontend::CLI
           and in what order. Use this if you don't understand what's going
           on with run order etc.
 
+          +:dry-list-sm
+
+            Enables environment-relative, uncluttered (#{"sm".colorize.underline}all) mode for
+            dry list.
+
         -:dry-tree
 
           Prints a tree of what needs to run in order to satisfy the queries;
-          entries in the tree, specifically script entries, have backtrace.
-          Use this if -:dry-list doesn't help.
+          entries in the tree, notably script entries, have backtrace. Use
+          this if -:dry-list doesn't help.
 
         -:abort-on-permission-request
 
-          exit(1) on a request to give permission.
+          exit(1) on a request to give permission for the use of a language
+          capability or a shared library.
 
-      Help mode:
+      #{"Help mode".colorize.underline}
 
         Running `$ novika help [queries]` will print help for each of the
-        queries if help is available. Note that you cannot #{"run".colorize.bright} anything
-        in help mode.
+        queries if possible. Note that you cannot #{"run".colorize.bright} anything in help mode.
 
-          $ novika help repl
+          #{"$ novika help repl".colorize.bold}
           novika repl - read-eval-print loop for Novika …
 
-          $ novika help create repl
+          #{"$ novika create repl help".colorize.bold}
           novika create - a tool for scaffolding Novika applications and libraries …
           novika repl - read-eval-print loop for Novika …
 
-      Queries:
+      #{"Queries".colorize.underline}
 
         You run Novika scripts, directories, libraries and apps by
         #{"querying".colorize.bright} Novika.
@@ -161,8 +167,8 @@ module Novika::Frontend::CLI
           If you want to run a script, you should pass the path to that
           script (absolute or relative) as a query.
 
-            $ novika hello.nk
-            $ novika a.nk b.nk c.nk
+            #{"$ novika hello.nk".colorize.bold}
+            #{"$ novika a.nk b.nk c.nk".colorize.bold}
             #{"# Note: order matters. That is, a.nk <- b.nk <- c.nk,".colorize.dark_gray}
             #{"# where '<-' means 'is run before & visible to'".colorize.dark_gray}
 
@@ -170,27 +176,31 @@ module Novika::Frontend::CLI
 
           If you want to run a directory that contains some Novika files,
           you should pass the path to that directory (absolute or relative)
-          as a query. Files are run in lexicographic order. The first file
-          to run is a file with the same name as that of the directory
-          that holds it. This file is called the entry file. Subdirectories
-          are visited last, in lexicographic order. Apps and libs are
-          ignored. Files and directories prefixed with one or more `_`s
-          are ignored.
+          as a query. Load order is as follows:
 
-            $ ls foo
+            1. Subdirectory named 'core/', recursively.
+            2. File with the same name as the directory, e.g. for 'foo/'
+               it is going to be 'foo/foo.nk'; known as the entry file.
+            3. All other files, in lexicographic order.
+            4. All other subdirectories, recursively.
+
+          App and lib subdirectories are ignored. Files and directories
+          prefixed with one or more `_`s are ignored.
+
+            #{"$ ls foo".colorize.bold}
             a.nk b.nk c.nk foo.nk
-            $ novika foo
+            #{"$ novika foo".colorize.bold}
             #{"# Runs foo.nk".colorize.dark_gray}
             #{"# Runs a.nk".colorize.dark_gray}
             #{"# Runs b.nk".colorize.dark_gray}
             #{"# Runs c.nk".colorize.dark_gray}
-            $ ls bar
+            #{"$ ls bar".colorize.bold}
             abc/ xyz/ _def/ m.nk n.nk _temp.nk
-            $ ls bar/abc
+            #{"$ ls bar/abc".colorize.bold}
             a.nk b.nk c.nk
-            $ ls bar/xyz
+            #{"$ ls bar/xyz".colorize.bold}
             x.nk y.nk z.nk
-            $ novika bar
+            #{"$ novika bar".colorize.bold}
             #{"# Runs m.nk".colorize.dark_gray}
             #{"# Runs n.nk".colorize.dark_gray}
             #{"# Runs abc/a.nk".colorize.dark_gray}
@@ -204,20 +214,20 @@ module Novika::Frontend::CLI
 
           Identified by `.nk.app` manifest. App directories are similar
           in behavior to simple directories, except that (a) the order in
-          which their content is visited & run can be determined by the
-          manifest, and (b) the entry file is run last rather than first.
-          Only one app be queried for. Trying to query for more than one
-          app is an error.
+          which their content is visited & run can be determined by their
+          manifest, and (b) their entry file is run last rather than first,
+          that is, after the subdirectories step. Only one app be queried
+          for. Trying to query for more than one app is an error.
 
-            $ mkdir foo
-            $ cd foo
-            $ novika create/app
-            $ ls
+            #{"$ mkdir foo".colorize.bold}
+            #{"$ cd foo".colorize.bold}
+            #{"$ novika create/app".colorize.bold}
+            #{"$ ls".colorize.bold}
             core/ .nk.app
             #{"# Note how Novika runs the current working directory here.".colorize.dark_gray}
             #{"# It does that if it can, and if you don't ask it for".colorize.dark_gray}
             #{"# something else.".colorize.dark_gray}
-            $ novika
+            #{"$ novika".colorize.bold}
             Hello World
 
         #{"lib".colorize.bold}
@@ -225,13 +235,14 @@ module Novika::Frontend::CLI
           Identified by `.nk.lib` manifest. Lib directories are similar to
           apps. One difference is that several libs can be queried for
           simultaneously. Another is that a library's entry file is run
-          first rather than last.
+          first rather than last, that is, after the 'core/' step, the same
+          as with simple directories.
 
-            $ mkdir foo bar
-            $ touch foo/.nk.lib bar/.nk.lib
-            $ echo '100 $: x' > foo/foo.nk
-            $ echo '200 $: y' > bar/bar.nk
-            $ novika foo bar repl
+            #{"$ mkdir foo bar".colorize.bold}
+            #{"$ touch foo/.nk.lib bar/.nk.lib".colorize.bold}
+            #{"$ echo '100 $: x' > foo/foo.nk".colorize.bold}
+            #{"$ echo '200 $: y' > bar/bar.nk".colorize.bold}
+            #{"$ novika foo bar repl".colorize.bold}
             >>> x
             [ 100 ]
             >>> y
@@ -241,8 +252,8 @@ module Novika::Frontend::CLI
 
           App `.nk.app` and lib `.nk.lib` manifests allow you to control
           which files, directories, and libs are queried for when you run
-          the app/lib, and in what order. App and lib manifests have the
-          same syntax.
+          the app/lib, and in what order, without needing to specify all
+          that via the arguments. App and lib manifests share syntax.
 
           ╭───────────────────────────────────────────────────────────────────╮
           │ foo/.nk.lib                                                       │
@@ -267,22 +278,22 @@ module Novika::Frontend::CLI
           │
           │ ---
           │ This is the manifest's preamble (delimited by opening & closing
-          │ `---`, the latter may be omitted if the preamble is at the end,
-          │ like this one).
+          │ `---`, the latter may be omitted if the preamble is at the end
+          │ of the manifest like this one).
           │
           │ The preamble is shown in help mode, for instance in this case
-          │ it will be shown when you run `$ novika help foo`.
+          │ it will be shown if you run `$ novika help foo`.
           ╰
 
         #{"capability".colorize.bold}
 
-          You can query for a language capability such as `disk` and `ffi`.
+          You can query for a language capability such as `disk` or `ffi`.
           They expose domain-specific words which are not usually needed,
           or are in some way unsafe. Some capabilities are turned on by
           default, so you don't need to request them.
 
-            $ novika ffi my-script.nk
-            $ novika disk repl
+            #{"$ novika ffi my-script.nk".colorize.bold}
+            #{"$ novika disk repl".colorize.bold}
             >>> disk:home
             [ '/path/to/home' ]
 
@@ -307,7 +318,7 @@ module Novika::Frontend::CLI
 
     io << <<-END
 
-      Autoloading:
+      #{"Autoloading".colorize.underline}
 
         When no queries are provided, Novika autoloads (implicitly loads)
         the current working directory if it is an app. If it is a lib it
@@ -317,63 +328,73 @@ module Novika::Frontend::CLI
         Novika always autoloads the directory named 'core' in the current
         environment (if it exists of course).
 
-      Novika environment:
+      #{"Novika environment".colorize.underline}
 
         Novika climbs up the directory tree starting from the current working
         directory, searching for `env/.nk.env`, `.nk.env`, or `.novika`. If
         unsuccessful, Novika also checks `~/.novika`. If the environment
         directory is found, you can use apps, libs, scripts, and directories
         from there globally: no matter where you are in the file tree, you
-        can query for them.
+        can query for them, assuming the environment is somewhere above.
 
         Environments are isolated from each other. You cannot run a file,
         app, or lib from one environment in another.
 
-          $ mkdir -p env/core foo/bar/baz
-          $ touch env/.nk.env
+          #{"$ mkdir -p env/core foo/bar/baz".colorize.bold}
+          #{"$ touch env/.nk.env".colorize.bold}
           #{"# Link so that we have a standard library. Remember that envs".colorize.dark_gray}
-          #{"# are isolated from each other!".colorize.dark_gray}
-          $ ln -s ~/.novika/core/core.nk env/core/core.nk
-          $ ln -s ~/.novika/core/system.nk env/core/system.nk
-          $ echo "'Hello World' echo" > env/greet.nk
-          $ novika greet.nk
+          #{"# are isolated from each other; even symlinking to `.novika/core`".colorize.dark_gray}
+          #{"# wont't work here.".colorize.dark_gray}
+          #{"$ ln -s ~/.novika/core/core.nk env/core/core.nk".colorize.bold}
+          #{"$ ln -s ~/.novika/core/system.nk env/core/system.nk".colorize.bold}
+          #{"$ echo \"'Hello World' echo\" > env/greet.nk".colorize.bold}
+          #{"$ novika greet.nk".colorize.bold}
           Hello World
-          $ cd foo/bar/baz
+          #{"$ cd foo/bar/baz".colorize.bold}
           #{"# Note how greet.nk isn't, and wasn't, directly accessible. It's".colorize.dark_gray}
           #{"# being pulled from the environment directory.".colorize.dark_gray}
-          $ novika greet.nk
+          #{"$ novika greet.nk".colorize.bold}
           Hello World
 
         To force Novika to search in the environment instead of the
         current working directory you should prefix your query with '^':
 
-          $ mkdir repl
-          $ touch repl/repl.nk
-          $ echo -e '---\\nLocal REPL help' > repl/.nk.app
-          $ novika help repl
-          Local REPL help
-          $ novika help ^repl
+          #{"$ mkdir repl".colorize.bold}
+          #{"$ echo \"'Hello from my REPL' echo\" > repl/repl.nk".colorize.bold}
+          #{"$ echo -e '---\\nMy REPL help' > repl/.nk.app".colorize.bold}
+          #{"$ novika repl".colorize.bold}
+          Hello from my REPL
+          #{"$ novika help repl".colorize.bold}
+          My REPL help
+          #{"$ novika ^repl".colorize.bold}
+          >>> …
+          #{"$ novika help ^repl".colorize.bold}
           novika repl - read-eval-print loop for Novika …
 
-      Examples:
+      #{"Examples".colorize.underline}
 
         Run the Novika REPL:
-          $ novika repl
 
-        Run the REPL, but preload a file first:
-          $ novika foo.nk repl
+          #{"$ novika repl".colorize.bold}
+
+        Run the REPL, but load a file first and make it visible to the REPL:
+
+          #{"$ novika foo.nk repl".colorize.bold}
 
         Create a Novika app (you must be inside an empty directory)
-          $ novika create/app
+
+          #{"$ novika create/app".colorize.bold}
 
         Run the snake example:
-          $ novika console examples/snake.new.nk
+
+          #{"$ novika console examples/snake.new.nk".colorize.bold}
 
         Get help for an app/lib:
-          $ novika help create
-          $ novika help sdl
 
-      Something doesn't seem to work right?
+          #{"$ novika help create".colorize.bold}
+          #{"$ novika help sdl".colorize.bold}
+
+      #{"Something doesn't seem to work right?".colorize.underline}
 
         Feel free to file an issue at https://github.com/novika-lang/novika/issues/new.
 
@@ -390,8 +411,9 @@ module Novika::Frontend::CLI
     end
 
     profiler = nil
-    dry = false
-    dump_tree = false
+    dry_list = false
+    dry_list_sm = false
+    dry_tree = false
     help_mode = false
     abort_on_permission_request = false
 
@@ -399,10 +421,12 @@ module Novika::Frontend::CLI
       case arg
       when /^\-:profile(?::([1-9]\d*))?$/
         profiler = Profiler.new($~[1]?.try(&.to_u64) || 16u64)
-      when /^\-:dry$/
-        dry = true
-      when /^\-:dump-resolver-tree$/
-        dump_tree = true
+      when /^\-:dry-list$/
+        dry_list = true
+      when /^\-:dry-tree$/
+        dry_tree = true
+      when /^\+:dry-list-sm$/
+        dry_list_sm = true
       when /^\-:abort-on-permission-request$/
         abort_on_permission_request = true
       when /^help$/
@@ -432,13 +456,13 @@ module Novika::Frontend::CLI
     end
 
     resolver.after_container_rewritten do |container|
-      next unless dump_tree
+      next unless dry_tree
 
       puts container
     end
 
     resolver.after_response do |hook|
-      if dump_tree
+      if dry_tree
         exit(0)
       end
 
@@ -471,17 +495,20 @@ module Novika::Frontend::CLI
     end
 
     resolver.after_program do |hook|
-      next unless dry
+      next unless dry_list
 
-      puts <<-HINT
-      --> Showing environment designations (which environment is going to run which file).
-      --> Order matters, and is exactly the execution order.
-      HINT
+      unless dry_list_sm
+        puts <<-HINT
+        --> Showing environment designations (which environment is going to run which file).
+        --> Order matters, and is exactly the execution order.
+        HINT
 
-      puts
+        puts
+      end
 
       hook.each_designation do |designation|
-        puts designation
+        designation.to_s(STDOUT, sm: dry_list_sm)
+        puts
       end
 
       exit(0)
