@@ -50,10 +50,11 @@ Hello from foo/b
 Hello from bar-lib
 Hello from bar-app
 ./8-recursive-symlink/:
-a
-b
-x
-y
+foo/a.nk
+foo/b.nk
+
+bar/x.nk
+bar/y.nk
 ./9-symlink-ref-in-manifest/:
 ax
 ay

@@ -1,2 +1,2 @@
-$1 foo
-$1 bar
+$1 -:dry-list +:dry-list-sm foo
+$1 -:dry-list +:dry-list-sm bar
