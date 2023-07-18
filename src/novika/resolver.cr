@@ -3210,8 +3210,8 @@ class Novika::RunnableResolver
     end
   end
 
-  @on_permissions_gets = ->(string : String) { raise "BUG: can't ask anything..." }
-  @on_permissions_print = ->(string : String) { raise "BUG: can't say anything..." }
+  @on_permissions_gets = ->(_string : String) { raise "BUG: can't ask anything..." }
+  @on_permissions_print = ->(_string : String) { raise "BUG: can't say anything..." }
 
   # Registers a handler for permissions `gets`. Overrides the previous
   # handler, if any.
