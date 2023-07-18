@@ -134,6 +134,9 @@ module Novika::Frontend::CLI
             Enables environment-relative, uncluttered (#{"sm".colorize.underline}all) mode for
             dry list.
 
+            #{"$ novika -:dry-list +:dry-list-sm repl".colorize.bold}
+            # #{"…".colorize.dark_gray}
+
         -:dry-tree
 
           Prints a tree of what needs to run in order to satisfy the queries;
