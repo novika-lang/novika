@@ -1293,6 +1293,13 @@ accessed via FFI Novika-side.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#envelope%28container%3ARunnableContainer%29-instance-method" class="signature"><strong>#envelope</strong>(container : RunnableContainer)</a>
+        
+          <div class="summary"><p>Returns the string representation of this dependency's envelope (its container so to speak).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#id-instance-method" class="signature"><strong>#id</strong></a>
         
           <div class="summary"><p>Returns the id of this shared object.</p></div>
@@ -1310,6 +1317,13 @@ accessed via FFI Novika-side.</p>
         <a href="#signature%28container%3ARunnableContainer%29%3ASignature-instance-method" class="signature"><strong>#signature</strong>(container : RunnableContainer) : Signature</a>
         
           <div class="summary"><p>Returns the signature of this dependency which can be used to identify it, most notably in the 'permissions' file.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#specialize%28root%3ARunnableRoot%2Ccontainer%3ARunnableContainer%29-instance-method" class="signature"><strong>#specialize</strong>(root : RunnableRoot, container : RunnableContainer)</a>
+        
+          <div class="summary"><p>Further specializes this runnable.</p></div>
         
       </li>
     
@@ -1334,6 +1348,11 @@ accessed via FFI Novika-side.</p>
     <a href="../../Novika/Resolver/Resolution/Dependency/DefaultPrompt.html#description%3F%28server%3APermissionServer%29%3AString%7CNil-instance-method" class="tooltip">
       <span>description?(server : PermissionServer) : String | Nil</span>
     description?</a>, 
+    
+  
+    <a href="../../Novika/Resolver/Resolution/Dependency/DefaultPrompt.html#envelope%28container%3ARunnableContainer%29-instance-method" class="tooltip">
+      <span>envelope(container : RunnableContainer)</span>
+    envelope</a>, 
     
   
     <a href="../../Novika/Resolver/Resolution/Dependency/DefaultPrompt.html#label%28server%3APermissionServer%29%3AString-instance-method" class="tooltip">
@@ -1603,6 +1622,31 @@ capability collection <em>caps</em>.</p>
       </div>
     </div>
   
+    <div class="entry-detail" id="envelope(container:RunnableContainer)-instance-method">
+      <div class="signature">
+        
+        def <strong>envelope</strong>(container : <a href="../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a>)
+
+        <a class="method-permalink" href="#envelope%28container%3ARunnableContainer%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from module <a href="../../Novika/Resolver/Resolution/Dependency/DefaultPrompt.html">Novika::Resolver::Resolution::Dependency::DefaultPrompt</a>
+            </div>
+          
+          <p>Returns the string representation of this dependency's envelope
+(its container so to speak). The runtime (not specialize-time!)
+<em>container</em> is provided as a fallback option (albeit a <em>very bad one</em>).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="id-instance-method">
       <div class="signature">
         
@@ -1672,6 +1716,34 @@ one way or another. You may also choose to derive the label with
 to identify it, most notably in the 'permissions' file.</p>
 <p><em>container</em>, assumed to contain this dependency, may be used
 to derive the signature.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="specialize(root:RunnableRoot,container:RunnableContainer)-instance-method">
+      <div class="signature">
+        
+        def <strong>specialize</strong>(root : <a href="../../Novika/Resolver/RunnableRoot.html">RunnableRoot</a>, container : <a href="../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a>)
+
+        <a class="method-permalink" href="#specialize%28root%3ARunnableRoot%2Ccontainer%3ARunnableContainer%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+            <div class="doc-inherited">
+              Description copied from class <a href="../../Novika/Resolver/Runnable.html">Novika::Resolver::Runnable</a>
+            </div>
+          
+          <p>Further specializes this runnable. Appends the specialized runnable
+to (or interacts in some other way with) <em>container</em>. The latter is
+assumed to be incomplete (or partially complete, which is really
+the same thing).</p>
+<p><em>root</em> is the runnable root object. It is mainly used for flags and
+thorough rewriting.</p>
         </div>
       
       <br/>

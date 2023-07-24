@@ -1472,7 +1472,7 @@ advances (through rewriting) a <em>generation</em> of runnables.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#to_resolution_set%28%2A%2Cinherit%3DSet%28Resolution%3A%3ADependency%29.new%2Cset%3DResolutionSet.new%29-instance-method" class="signature"><strong>#to_resolution_set</strong>(*, inherit = <span class="t">Set</span>(<span class="t">Resolution</span><span class="t">::</span><span class="t">Dependency</span>).new, set = <span class="t">ResolutionSet</span>.new)</a>
+        <a href="#to_resolution_set%28%2A%2Cdeps%3DSet%28Resolution%3A%3ADependency%29.new%2Cset%3DResolutionSet.new%29-instance-method" class="signature"><strong>#to_resolution_set</strong>(*, deps = <span class="t">Set</span>(<span class="t">Resolution</span><span class="t">::</span><span class="t">Dependency</span>).new, set = <span class="t">ResolutionSet</span>.new)</a>
         
           <div class="summary"><p>Builds and returns a <code><a href="../../Novika/Resolver/ResolutionSet.html">ResolutionSet</a></code> with resolutions from this container and all nested containers.</p></div>
         
@@ -2301,12 +2301,12 @@ thorough rewriting.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="to_resolution_set(*,inherit=Set(Resolution::Dependency).new,set=ResolutionSet.new)-instance-method">
+    <div class="entry-detail" id="to_resolution_set(*,deps=Set(Resolution::Dependency).new,set=ResolutionSet.new)-instance-method">
       <div class="signature">
         
-        def <strong>to_resolution_set</strong>(*, inherit = <span class="t">Set</span>(<span class="t">Resolution</span><span class="t">::</span><span class="t">Dependency</span>).new, set = <span class="t">ResolutionSet</span>.new)
+        def <strong>to_resolution_set</strong>(*, deps = <span class="t">Set</span>(<span class="t">Resolution</span><span class="t">::</span><span class="t">Dependency</span>).new, set = <span class="t">ResolutionSet</span>.new)
 
-        <a class="method-permalink" href="#to_resolution_set%28%2A%2Cinherit%3DSet%28Resolution%3A%3ADependency%29.new%2Cset%3DResolutionSet.new%29-instance-method">#</a>
+        <a class="method-permalink" href="#to_resolution_set%28%2A%2Cdeps%3DSet%28Resolution%3A%3ADependency%29.new%2Cset%3DResolutionSet.new%29-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -2316,8 +2316,9 @@ this container and all nested containers.</p>
 <p>You must call this after <code><a href="../../Novika/Resolver/RunnableContainer.html#flatten%21-instance-method">#flatten!</a></code>. Otherwise, the resulting
 <code><a href="../../Novika/Resolver/ResolutionSet.html">ResolutionSet</a></code> will be underpopulated with dependencies due
 to transparent containers standing in the way.</p>
-<p><em>inherit</em> is a set of dependencies that <em>all</em> resolutions in
-the resulting set should have, regardless of nesting.</p>
+<p><em>deps</em> is a set of dependencies that <em>all</em> resolutions in the
+resulting set should have, regardless of nesting. <em>Beware that
+it is mutated.</em></p>
         </div>
       
       <br/>

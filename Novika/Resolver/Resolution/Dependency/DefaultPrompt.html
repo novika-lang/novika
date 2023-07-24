@@ -1251,6 +1251,13 @@ in turn requiring it to simply specify a <code><a href="../../../../Novika/Resol
       </li>
     
       <li class="entry-summary">
+        <a href="#envelope%28container%3ARunnableContainer%29-instance-method" class="signature"><strong>#envelope</strong>(container : RunnableContainer)</a>
+        
+          <div class="summary"><p>Returns the string representation of this dependency's envelope (its container so to speak).</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#label%28server%3APermissionServer%29%3AString-instance-method" class="signature"><strong>#label</strong>(server : PermissionServer) : String</a>
         
           <div class="summary"><p>Returns a user-friendly string representation of this dependency.</p></div>
@@ -1305,6 +1312,27 @@ the description.</p>
 <p><em>server</em> is the server that will then use the description in
 one way or another, in case it is present. You may also choose
 to derive the description with <em>server</em>'s help.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="envelope(container:RunnableContainer)-instance-method">
+      <div class="signature">
+        abstract 
+        def <strong>envelope</strong>(container : <a href="../../../../Novika/Resolver/RunnableContainer.html">RunnableContainer</a>)
+
+        <a class="method-permalink" href="#envelope%28container%3ARunnableContainer%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the string representation of this dependency's envelope
+(its container so to speak). The runtime (not specialize-time!)
+<em>container</em> is provided as a fallback option (albeit a <em>very bad one</em>).</p>
         </div>
       
       <br/>
