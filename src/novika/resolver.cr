@@ -489,6 +489,11 @@ module Novika::Resolver
     # *server*'s help.
     abstract def label(server : PermissionServer) : String
 
+    # Returns the string representation of this dependency's envelope
+    # (its container so to speak). The runtime (not specialize-time!)
+    # *container* is provided as a fallback option (albeit a *very bad one*).
+    abstract def envelope(container : RunnableContainer)
+
     # Returns a user-friendly description of this dependency, or nil
     # if none can be given. The returned description should be suitable
     # for displaying to the user in a prompt, and should read well after
@@ -506,7 +511,7 @@ module Novika::Resolver
       label = label(server)
 
       prompt = String.build do |io|
-        io << "Allow " << container.abspath << " to load " << label
+        io << "Allow " << envelope(container) << " to load " << label
         if description = description?(server)
           io << ", which " << description
         end
@@ -1112,8 +1117,18 @@ module Novika::Resolver
       super(ancestor)
     end
 
+    def envelope(container : RunnableContainer)
+      return "ancestor(#{container.abspath})" unless envelope = @envelope
+
+      envelope.abspath.to_s
+    end
+
     def signature(container : RunnableContainer) : Signature
-      {container.abspath.to_s, @datum}
+      unless envelope = @envelope
+        raise "BUG: attempt to read the signature of an unmounted capability"
+      end
+
+      {envelope.abspath.to_s, @datum}
     end
 
     def label(server : PermissionServer) : String
@@ -1139,6 +1154,12 @@ module Novika::Resolver
       return if caps.has_capability_enabled?(@datum)
 
       caps.enable(@datum)
+    end
+
+    def specialize(root : RunnableRoot, container : RunnableContainer)
+      @envelope ||= container # Fix container as the true enclosing container.
+
+      super
     end
 
     def to_s(io)
@@ -1178,8 +1199,18 @@ module Novika::Resolver
       @datum.stem.lchop("lib")
     end
 
+    def envelope(container : RunnableContainer)
+      return "ancestor(#{container.abspath})" unless envelope = @envelope
+
+      envelope.abspath.to_s
+    end
+
     def signature(container : RunnableContainer) : Signature
-      {container.abspath.to_s, @datum.to_s}
+      unless envelope = @envelope
+        raise "BUG: attempt to read the signature of an unmounted shared object"
+      end
+
+      {envelope.abspath.to_s, @datum.to_s}
     end
 
     def label(server : PermissionServer) : String
@@ -1191,6 +1222,12 @@ module Novika::Resolver
       return if caps.has_library?(id = self.id)
 
       caps << Library.new(id, @datum)
+    end
+
+    def specialize(root : RunnableRoot, container : RunnableContainer)
+      @envelope ||= container # Fix container as the true enclosing container.
+
+      super
     end
 
     def to_s(io)
@@ -2349,17 +2386,21 @@ module Novika::Resolver
     # `ResolutionSet` will be underpopulated with dependencies due
     # to transparent containers standing in the way.
     #
-    # *inherit* is a set of dependencies that *all* resolutions in
-    # the resulting set should have, regardless of nesting.
-    def to_resolution_set(*, inherit = Set(Resolution::Dependency).new, set = ResolutionSet.new)
+    # *deps* is a set of dependencies that *all* resolutions in the
+    # resulting set should have, regardless of nesting. *Beware that
+    # it is mutated.*
+    def to_resolution_set(*, deps = Set(Resolution::Dependency).new, set = ResolutionSet.new)
       # All resolutions under this container will inherit the
       # following dependencies.
-      deps = inherit.concat(@runnables.select(Resolution::Dependency).to_set)
+      each do |runnable|
+        next unless runnable.is_a?(Resolution::Dependency)
+        deps << runnable
+      end
 
       @runnables.each do |runnable|
         case runnable
         when RunnableContainer
-          resolution = runnable.to_resolution_set(inherit: deps.dup)
+          resolution = runnable.to_resolution_set(deps: deps.dup)
         when RunnableScript
           resolution = Resolution.new(runnable, deps: deps.dup)
         else
