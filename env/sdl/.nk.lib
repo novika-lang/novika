@@ -5,3 +5,7 @@ ffi
 scancode.nk
 sdl_lib.nk
 sdl_ttf.nk
+
+---
+
+sdl - SDL and SDL TTF bindings for Novika
