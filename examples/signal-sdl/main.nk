@@ -1,0 +1,240 @@
+[ "Create an instance of body block because we're
+   going to fiddle with it."
+  ahead thruBlock new $: body
+
+  'Untitled' $: DEFAULT_WINDOW_TITLE
+  500 $: DEFAULT_WINDOW_WIDTH
+  400 $: DEFAULT_WINDOW_HEIGHT
+
+  this $: self
+
+  false $: sdlInitialized?
+  false $: winInitialized?
+
+  orphan $: props
+
+  [ "Initializes SDL and SDL TTF unless they were
+     already sdlInitialized."
+    sdlInitialized? => ^
+
+    sdl:init:everything sdl:init sdl:ensure
+    sdl:ttf:init sdl:ensure
+    self extend: [
+      __path__ '../roboto/Roboto-Regular.ttf' disk:join 11 sdl:ttf:open sdl:notNull $: font
+    ]
+
+    true =: sdlInitialized?
+  ] @: sdlInit
+
+
+  [ "Gracefully deinitializes SDL and SDL TTF unless
+     they were already deinitialized."
+    sdlInitialized? not => ^
+
+    font sdl:ttf:close
+    self #font entry:delete
+    sdl:quit
+    sdl:ttf:quit
+
+    false =: sdlInitialized?
+
+    'sdl deinit' echo
+  ] @: sdlDeinit
+
+
+  [ "Initializes an SDL window and renderer unless they
+     were initialized already."
+    winInitialized? => ^
+
+    self extend: [
+      "Note how we avoid null by defining window (and renderer) on
+       self here. Now, honestly, I don't know which way is better:
+       having window be undefined vs. defined as null."
+      DEFAULT_WINDOW_TITLE (sdl:window:centered sdl:window:centered)
+                           (DEFAULT_WINDOW_WIDTH DEFAULT_WINDOW_HEIGHT)
+        0 sdl:createWindow sdl:notNull $: window
+
+      window -1 sdl:renderer:accelerated
+        sdl:createRenderer sdl:notNull $: renderer
+    ]
+
+    true =: winInitialized?
+  ] @: windowInit
+
+  [ "Destroys window and renderer unless they were
+     destroyed already (or do not exist at all)."
+    winInitialized? not => ^
+
+    window sdl:destroyWindow
+    renderer sdl:destroyRenderer
+
+    self #window entry:delete
+    self #renderer entry:delete
+
+    false =: winInitialized?
+
+    'window deinit' echo
+  ] @: windowDeinit
+
+  [ "Handle death gracefully: first sdlDeinit, and only
+     then die as normal."
+    windowDeinit sdlDeinit die
+  ] @: __died__
+
+  [] $: inputHandler
+  [] $: mouseHandler
+
+  [ sdl:event ffi:allocateUnion $: event
+
+    while: [ event ffi:addressof sdl:waitEvent 0 > ] [
+      event.type sdl:event:quit = => break
+      event.type sdl:event:keydown = => [
+        event.key.keysym.keycode enclose inputHandler hydrate
+      ]
+      event.type sdl:event:mouseMotion = => [
+        event.motion.x
+        event.motion.y
+        2enclose mouseHandler hydrate
+      ]
+
+      renderer 255 255 255 255 sdl:setRenderDrawColor
+      renderer sdl:renderClear sdl:ensure
+      widgets each: [.render]
+      renderer sdl:renderPresent
+    ]
+  ] @: mainloop
+
+  [ new $: body
+
+
+    0 0 @{ getX getY }
+
+    [ [ ] @: render
+      [ ] @: destroy
+    ] obj $: textTextureProxy
+
+    orphan $: labelExtensions
+    labelExtensions extend: [
+      [
+        ahead thru @: getValue
+
+        [ """Here's what happens when we change the value:
+
+          1. The old texture is destroyed. If this is the first time,
+           the old texture is represented by a dummy object with a
+           noop destroy. If there was a texture however, it is
+           indeed destroyed.
+
+          2. A new surface is generated, which is subsequently convereted
+           to a texture. The surface is freed immediately, and the texture
+           is wrapped in a helper object and stored a few blocks above.
+          """
+          textTextureProxy.destroy
+
+          [ 0 0 0 ${ r g b } 0xff $: a ] obj sdl:color ffi:buildStruct~ $: fgColor~
+
+          font getValue sdl:ttf:size ${ w h }
+          font getValue fgColor~ sdl:ttf:getBlendedSurface sdl:notNull $: textSurface
+          renderer textSurface sdl:textureFromSurface sdl:notNull $: textTexture
+          textSurface sdl:freeSurface
+
+          [ "When we're asked to destroy, destroy the underlying
+             text texture."
+            textTexture sdl:destroyTexture
+          ] @: destroy
+
+          [ "When we're asked to render, build source rect and
+             destination rect and do so."
+
+          [ 0 $: x 0 $: y ] obj sdl:intRect ffi:buildStruct& $: srcrect
+          [ getX $: x
+            getY $: y ] obj sdl:intRect ffi:buildStruct& $: dstrect
+
+
+            renderer textTexture srcrect dstrect sdl:renderCopy sdl:ensure
+          ] @: render
+
+          this =: textTextureProxy
+        ] newEffect
+      ] @: value:
+
+      [
+        ahead thru ahead thru ={ getX getY }
+      ] @: position:
+    ]
+
+    [ textTextureProxy.render ] @: render
+
+    body ·> labelExtensions drop
+    body do
+
+    this
+  ] @: createLabel
+
+  orphan $: extensions
+  orphan $: widgets
+
+  extensions extend: [
+    "Handle death of the body block gracefully."
+    this -> __died__ @: __died__
+
+    [ ahead thru @: getTitle
+
+      [ window (getTitle asQuote) sdl:window:setTitle ] newEffect
+    ] @: title:
+
+    [ (ahead thru) (ahead thru) @{ getWidth getHeight }
+
+      [ window getWidth getHeight sdl:window:setSize ] newEffect
+    ] @: size:
+
+    [ widgets (ahead thruBlock createLabel) <<
+    ] @: label:
+
+    [
+      ahead thruBlock =: inputHandler
+    ] @: onInput:
+
+    [
+      ahead thruBlock =: mouseHandler
+    ] @: onMouse:
+  ]
+
+  sdlInit
+    body ·> extensions drop
+    windowInit
+      body do
+      mainloop
+    windowDeinit
+  sdlDeinit
+] @: app:
+
+'Hello World' ~: title
+500 400 ~{ w h }
+0 0 ~{ x y }
+
+app: [
+  title: title
+  size: w h
+  label: [
+    value: title
+    position: x y
+  ]
+  label: [
+    value: [ 'A copy of: ' title ~ ]
+    position: x [ y 20 + ]
+  ]
+  label: [
+    value: [ ['Use WASD to resize the window, current size: ' w 'x' h ] vals join ]
+    position: 0 0
+  ]
+  onInput: [
+    chr $: ch
+    ch 'a' = => [ w 10 - ~>w ^ ]
+    ch 'd' = => [ w 10 + ~>w ^ ]
+    ch 'w' = => [ h 10 - ~>h ^ ]
+    ch 's' = => [ h 10 + ~>h ^ ]
+    title ch ~ ~>title
+  ]
+  onMouse: [ ~>y ~>x ]
+]

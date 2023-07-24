@@ -1,0 +1,96 @@
+newBlockSet $: running
+
+[ $: value
+
+  this $: self
+
+  newBlockSet $: _effects
+
+  [ (ahead thruVal) _effects.remove ] @: removeEffect:
+
+  [ value
+
+    "Determine which effect is trying to get the value. If no
+     effects are running, just leave the value."
+    running empty? => ^
+    running top $: _effect
+
+    "Save the effect in our effects list. We will later
+     notify effects in our effects list that the signal
+     they were reading has changed. Also let the effect
+     know we're going to be notifying it."
+    _effects.add: _effect
+    _effect.addSignal: self
+  ]
+
+  [ (=: value) _effects.each: [.execute] ]
+] @: newSignal
+
+
+[
+  ahead thruWord $: name
+
+  newSignal $: set $: get
+
+  ahead name get opens
+  ahead ('~>' name ~ toWord) set opens
+] @: ~:
+
+[
+  stack $: callerStack
+  ahead $: caller
+
+  (caller |afterOrDie: #}) <-| [ $: name
+    (callerStack cherry) newSignal $: set $: get
+
+    caller name get opens
+    caller ('~>' name ~ toWord) set opens
+  ] drop
+] @: ~{
+
+[ $: payload
+
+  newBlockSet $: _signals
+  newBlockSet $: _nestedEffects
+
+  this $: self
+
+  [ _signals.each: [ .removeEffect: self ]
+
+    newBlockSet =: _signals
+  ] @: cleanup
+
+  [
+    _signals.each: [ .removeEffect: self ]
+  ] @: teardown
+
+  [ (ahead thruVal) _signals.add
+  ] @: addSignal:
+
+  [ running.has: self => ^
+
+    cleanup
+
+    running.add: self
+    running self shove
+      payload do
+    running cherry drop
+    running.remove: self
+
+    _nestedEffects.each: [ .teardown ]
+    running top? br: drop [ newBlockSet =: _nestedEffects ]
+  ] @: execute
+
+  running top? => [ ._nestedEffects.add: self ]
+
+  execute
+] @: newEffect
+
+[ @: block
+
+  #nil newSignal @: set $: get
+
+  [ block set ] newEffect
+
+  get
+] @: newMemo
