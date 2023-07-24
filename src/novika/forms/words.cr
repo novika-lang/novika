@@ -18,8 +18,9 @@ module Novika
       "word"
     end
 
+    # Returns whether this word is private (by convention).
     def private?
-      id.prefixed_by?('_')
+      id.prefixed_by?('_') && !id.ends_with?('_')
     end
 
     # Adds a level of quoting so this word becomes a quoted word.

@@ -99,7 +99,7 @@ module Novika
 
     def import!(donor : IDict)
       donor.each do |k, v|
-        set(k, v) unless k.is_a?(Word) && k.id.prefixed_by?("_")
+        set(k, v) unless k.is_a?(Word) && k.private?
       end
     end
 

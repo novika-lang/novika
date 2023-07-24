@@ -570,8 +570,14 @@ module Novika::Capabilities::Impl
       end
 
       target.at("private?", <<-END
-      ( W -- ): leaves whether Word is prefixed by one or more
-       '_', meaning it is conventionally considered private.
+      ( W -- true/false ): leaves whether Word is private (by convention).
+
+      A Word prefixed by one or more underscores '_' *but that which
+      does not end with one(s)* is considered private by convention.
+      Hook words such as `__quote__` are *not* considered private.
+
+      The fact that privacy is defined "by convention" means that nothing
+      actually stops anyone from obtaining the word's associated value form.
 
       ```
       #hello private? leaves: false
