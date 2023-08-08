@@ -383,7 +383,203 @@ describe 'toOrphan' [
 ]
 
 
-"TODO: test: entry:submit entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
+describe 'entry:submit' [
+  in lang
+
+  it should 'replace the value form of an existing definition in this' [
+    100 $: x
+
+    this #x 'foobar' entry:submit
+
+    x 'foobar' assert=
+    stack count 0 assert=
+  ]
+
+  it should 'replace the value form of an existing definition in parents' [
+    100 $: x
+
+    [ 200 $: y
+      [ 300 $: z
+        this #x 'I am x' entry:submit
+        this #y 'I am y' entry:submit
+        this #z 'I am z' entry:submit
+        z 'I am z' assert=
+      ] do
+      y 'I am y' assert=
+      this #z entry:exists? false assert=
+    ] do
+    x 'I am x' assert=
+    this #y entry:exists? false assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'replace the value form of an existing definition in friends' [
+    [ 100 $: a ] obj toOrphan $: x
+    [ 123 $: a 200 $: b ] obj toOrphan $: y
+
+    x ·> y ·> x drop
+
+    x.a 100 assert=
+    x.b 200 assert=
+
+    y.a 123 assert=
+    y.b 200 assert=
+
+    x #a 'I am a changed from X' entry:submit
+    x #b 'I am b changed from X' entry:submit
+
+    x.a 'I am a changed from X' assert=
+    y.a 123 assert=
+
+    "y owns b so it's changed"
+    x.b 'I am b changed from X' assert=
+    y.b 'I am b changed from X' assert=
+
+    y #a 'I am a changed from Y' entry:submit
+
+    x.a 'I am a changed from X' assert=
+    y.a 'I am a changed from Y' assert=
+
+    x.b 'I am b changed from X' assert=
+    y.b 'I am b changed from X' assert=
+
+    y #b 'I am b changed from Y' entry:submit
+
+    x.a 'I am a changed from X' assert=
+    y.a 'I am a changed from Y' assert=
+
+    x.b 'I am b changed from Y' assert=
+    y.b 'I am b changed from Y' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'replace the value form of an existing definition in deep friends' [
+    'outer' $: testOuter
+
+    [ 123 $: x1 ] obj $: f1 "< note no toOrphan"
+    [ 456 $: x2 ] obj toOrphan $: f2
+    [ 789 $: x3 ] obj toOrphan $: f3
+
+    f1 ·> f2 ·> f3 ·> f1 drop
+
+    f1 #x1 'f1 x1' entry:submit
+    f1.x1 'f1 x1' assert=
+
+    f2 #x1 'f2 x1' entry:submit
+    f1.x1 'f2 x1' assert=
+
+    f3 #x1 'f3 x1' entry:submit
+    f1.x1 'f3 x1' assert=
+
+    f1 #x2 'f1 x2' entry:submit
+    f2.x2 'f1 x2' assert=
+
+    f2 #x2 'f2 x2' entry:submit
+    f2.x2 'f2 x2' assert=
+
+    f3 #x2 'f3 x2' entry:submit
+    f2.x2 'f3 x2' assert=
+
+    f1 #x3 'f1 x3' entry:submit
+    f3.x3 'f1 x3' assert=
+
+    f2 #x3 'f2 x3' entry:submit
+    f3.x3 'f2 x3' assert=
+
+    f3 #x3 'f3 x3' entry:submit
+    f3.x3 'f3 x3' assert=
+
+    f1 #testOuter 'outer changed f1' entry:submit
+    f1.testOuter 'outer changed f1' assert=
+    testOuter 'outer changed f1' assert=
+
+    f2 #testOuter 'outer changed f2' entry:submit
+    f2.testOuter 'outer changed f2' assert=
+    testOuter 'outer changed f2' assert=
+
+    f3 #testOuter 'outer changed f3' entry:submit
+    f3.testOuter 'outer changed f3' assert=
+    testOuter 'outer changed f3' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'leave unchanged whether the definition pushes or opens' [
+    123 $: x
+    [ 123 1 + ] @: y
+
+    x 123 assert=
+    y 124 assert=
+
+    this #x [ 4 5 + ] entry:submit
+    this #y [ 6 7 + ] entry:submit
+
+    x [ 4 5 + ] assert=
+    y 13 assert=
+  ]
+
+  it should 'die if no definition' [
+    [ this #xyzzy 123 entry:submit ] 'no entry to submit to' assertDies
+  ]
+
+  it should 'properly replace if name form is not a word' [
+    [
+      'number' $: 0
+      'quote' $: 'hello world'
+      'quoted word' $: #quotedWord
+      this true 'boolean' pushes
+      'block' $: [1 2 3]
+    ] obj toOrphan $: store
+
+    store 0 'number changed' entry:submit
+    [ store 123 '' entry:submit ] 'no entry to submit to' assertDies
+
+    store 'hello world' 'quote changed' entry:submit
+    [ store 'foobar baz' '' entry:submit ] 'no entry to submit to' assertDies
+
+    store ##quotedWord 'quoted word changed' entry:submit
+    [ store ##booboo '' entry:submit ] 'no entry to submit to' assertDies
+
+    store true 'boolean changed' entry:submit
+    [ store false '' entry:submit ] 'no entry to submit to' assertDies
+
+    store [ 1 2 3 ] 'block changed' entry:submit
+    [ store [ 4 5 6 ] '' entry:submit ] 'no entry to submit to' assertDies
+
+    store -> 0 'number changed' assert=
+    store -> 'hello world' 'quote changed' assert=
+    store -> #quotedWord 'quoted word changed' assert=
+    store true entry:fetch 'boolean changed' assert=
+    store [ 1 2 3 ] entry:fetch 'block changed' assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'work as in the example from docs' [
+    [ 'John Doe' $: fullName
+      [ fullName count ] @: fullNameLength
+    ] obj $: person
+
+    person.fullName 'John Doe' assert=
+    person.fullNameLength 8 assert=
+
+    person #fullName 'Alice Bobette' entry:submit
+
+    person.fullName 'Alice Bobette' assert=
+    person.fullNameLength 13 assert=
+
+    person #fullNameLength [ person.fullName 'tt' occurrences count ] entry:submit
+    person.fullNameLength 1 assert=
+
+    person #fullName 'Tette Mopettitte' entry:submit
+    person.fullName 'Tette Mopettitte' assert=
+    person.fullNameLength 3 assert=
+  ]
+]
+
+"TODO: test: entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
 
 
 describe 'entry:delete' [

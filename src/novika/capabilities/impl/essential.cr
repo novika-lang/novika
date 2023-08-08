@@ -959,6 +959,32 @@ module Novika::Capabilities::Impl
        definition for Name in Submittable store (usually a block)
        to Form. Does not change whether the definition opens
        or pushes.
+
+      ```
+      [ 'John Doe' $: fullName
+        [ fullName count ] @: fullNameLength
+      ] obj $: person
+
+      person.fullName leaves: 'John Doe'
+      person.fullNameLength leaves: 8
+
+      "Let's try to change the name:"
+      person #fullName 'Alice Bobette' entry:submit
+      person.fullName leaves: 'Alice Bobette'
+      person.fullNameLength leaves: 13
+
+      "Now let's change the way we compute the length; let's count
+       how many double-Ts there are in the full name."
+      person #fullNameLength [ person.fullName 'tt' occurrences count ] entry:submit
+
+      "... just one:"
+      person.fullNameLength leaves: 1
+
+      "... or maybe multiple:"
+      person #fullName 'Tette Mopettitte' entry:submit
+      person.fullName leaves: 'Tette Mopettitte'
+      person.fullNameLength leaves: 3
+      ```
       END
       ) do |_, stack|
         form = stack.drop
