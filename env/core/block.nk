@@ -123,9 +123,7 @@
   [ 100 ] |: [ ahead thru + ] 200 123 leaves: [ 300 123 ]
   ```
   """
-  dup
-  ahead dup thru dup block? br: nip [ enclose adopt ]
-  ahead #hydrate inject
+  dup ahead thruBlock ahead #hydrate inject
 ] @: |:
 
 

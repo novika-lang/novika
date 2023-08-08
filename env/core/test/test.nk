@@ -413,7 +413,7 @@ orphan $: _groups
   ```
   """
   stack shallowCopy $: actual
-  ahead thruBlock $: expected
+  ahead thruVals $: expected
 
   [ [ actual ' did not match ' expected ] ~* die ] @: fail
 
