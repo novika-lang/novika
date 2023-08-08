@@ -709,12 +709,14 @@ describe 'entry:exists?' [
     'Alice H.' 19 '250 points' scoreboard.set
     'David A.' 67 '90 points' scoreboard.set
 
+    [ '\r\n' '\n' replaceAll ] @: replaceTheFuckingWindowsThing
+
     "someone has to implement the damn unindent on triplequotes
      someday huuuh?.."
     scoreboard toQuote '''                       John Doe |             42 |      100 points
                    Johnanna Doe |             28 |      170 points
                        Alice H. |             19 |      250 points
-                       David A. |             67 |       90 points''' assert=
+                       David A. |             67 |       90 points''' replaceTheFuckingWindowsThing assert=
 
     'John Doe' 42 scoreboard.get '100 points' assert=
     'Alice H.' 19 scoreboard.get '250 points' assert=
