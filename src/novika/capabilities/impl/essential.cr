@@ -2133,16 +2133,16 @@ module Novika::Capabilities::Impl
       end
 
       target.at("toTape", <<-END
-      ( B -- Tb ): leaves Tape block for Block. Useful for e.g.
-       comparing two blocks only for tape contents, when Block may
-       have dictionary entries.
+      ( B -- Tb ): leaves Tape block for Block, i.e., the tape part
+       of Block. Useful for e.g. comparing two blocks only for tape
+       content, when Block may have dictionary entries.
 
       Lookup hierarchy is destroyed: Tape block is an orphan.
 
       ```
       [ 1 2 3 ] $: a
       a #x 0 pushes
-      a a toTape 2echo
+      a (a toTape) 2echo
       "STDOUT: [ 1 2 3 · ${x :: 0} ]⏎"
       "STDOUT: [ 1 2 3 ]⏎"
       ```
@@ -2150,6 +2150,38 @@ module Novika::Capabilities::Impl
       ) do |_, stack|
         block = stack.drop.a(Block)
         block.to_tape_block.onto(stack)
+      end
+
+      target.at("toDict", <<-END
+      ( B -- Db ): leaves Dictionary block for Block, i.e., the dictionary
+       part of Block. Useful for e.g. comparing two blocks only for dictionary
+       content in case tape contents differ.
+
+      Lookup hierarchy is destroyed: Dictionary block is an orphan.
+
+      ```
+      [ ${ x y } this ] @: createPoint
+
+      10 20 createPoint $: a
+      10 20 createPoint $: b
+
+      a b = leaves: false
+
+      "And not for the reason you might think of. Their TAPES are not
+       equal; `a` and `b` are not only objects, they are also pieces
+       of code that led to each one's creation (sort of)."
+      a toQuote leaves: '[ ${ x y } this · ${x :: 10} ${y :: 20} ]'
+      b toQuote leaves: '[ ${ x y } this · ${x :: 10} ${y :: 20} ]'
+
+      "Let's strip the code using toDict:"
+      a toDict leaves: '[ · ${x :: 10} ${y :: 20} ]'
+      b toDict leaves: '[ · ${x :: 10} ${y :: 20} ]'
+             = leaves: true "< now they're equal"
+      ```
+      END
+      ) do |_, stack|
+        block = stack.drop.a(Block)
+        block.to_dict_block.onto(stack)
       end
 
       target.at("desc", <<-END

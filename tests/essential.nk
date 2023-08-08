@@ -95,7 +95,6 @@ describe 'shallowNew' [
   it should 'instantiate a block but not the sub-blocks' [
     [ "Some docs" [ 1 2 | 3 4 ] | [ 5 6 | 7 8 ] ] $: foos
 
-
     foos extend: [ 100 $: x ]
     foos 0 fromLeft extend: [ 'foo' $: a ]
     foos 0 fromRight extend: [ 'bar' $: b ]
@@ -2357,3 +2356,5 @@ describe 'slurp' [
     [ [ ] ']' slurp ] 'mismatched \']\' in block' assertDies
   ]
 ]
+
+"TODO: test toTape toDict"

@@ -400,7 +400,7 @@ module Novika
 
     protected def initialize(*,
                              @parent : Block?,
-                             @tape : Tape(Form),
+                             @tape : Tape(Form)? = nil,
                              @dict = nil,
                              @prototype = self,
                              @leaf = true)
@@ -1107,11 +1107,20 @@ module Novika
       self
     end
 
-    # Returns tape block for this block. Tape block is an *orphan*
-    # block with a shallow copy of this block's tape set as its tape,
-    # and at all times no dictionary.
-    def to_tape_block : self
-      Block.new(parent: nil, tape: tape.copy, leaf: leaf?)
+    # Builds and returns a tape block for this block.
+    #
+    # Tape block is an *orphan* block whose tape is a shallow copy
+    # of this block's tape; and whose dictionary is empty.
+    def to_tape_block : Block
+      Block.new(parent: nil, tape: has_tape? ? tape.copy : nil, leaf: leaf?)
+    end
+
+    # Builds and returns a dictionary block for this block.
+    #
+    # Dictionary block is an *orphan* block whose dictionary is a shallow
+    # copy of this block's dictionary; and whose tape is empty.
+    def to_dict_block : Block
+      Block.new(parent: nil, dict: has_dict? ? dict.copy : nil)
     end
 
     # Loose equality: for two blocks to be loosely equal, their
