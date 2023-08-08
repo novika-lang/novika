@@ -795,7 +795,7 @@ module Novika
       skip_self : Bool = false,
       history : Block? = nil
     ) : T? forall T
-      return unless !skip_self || has_relatives?
+      return if skip_self && !has_relatives?
 
       # If history is enabled we're screwed with the fast paths.
       unless history
@@ -1166,7 +1166,7 @@ module Novika
 
     # Creates and returns an instance of this block, under the
     # given *parent*.
-    def instance(parent new_parent : Block = self, shallow = false, __tr = nil) : Block
+    def instance(parent new_parent : Block = self, shallow = false, __tr : BlockIdMap? = nil) : Block
       copy = self.class.new(parent: new_parent,
         tape: has_tape? ? tape.copy : nil,
         prototype: prototype
@@ -1194,14 +1194,14 @@ module Novika
       #
       # Therefore, the fact that they are reflections of the
       # parent is maintained.
-      __tr ||= {} of Block => Block
-      __tr[self] = copy
+      __tr ||= BlockIdMap.new
+      __tr[object_id] = copy
 
       # This is never reached with tape empty, so we don't care
       # whether we create it.
       copy.tape = copy.tape.map! do |form|
         next unless form.is_a?(Block)
-        __tr[form]? || form.instance(same?(form.parent?) ? copy : form, __tr: __tr)
+        __tr[form.object_id]? || form.instance(same?(form.parent?) ? copy : form, __tr: __tr)
       end
       copy.leaf = false
       copy

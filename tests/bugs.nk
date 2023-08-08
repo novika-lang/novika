@@ -346,3 +346,19 @@ describe 'Block.with and friends properly instantiating' [
     newFriends first foozy same? false assert=
   ]
 ]
+
+
+describe 'tr map hash bug' [
+  in lang
+
+  it should 'use tr map properly' [
+    "This is the reduced version of the bug. it looks very
+     cryptic but it's better this way."
+
+    this #b [ this #a 0 pushes [ [a] open ] open ] pushes
+
+    [ this #a 2 pushes [ [a] open ] open ] open
+
+    "this piece of code just shouldn't die"
+  ]
+]
