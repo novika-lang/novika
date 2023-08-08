@@ -1866,6 +1866,13 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
+        <a href="#to_dict_block%3ABlock-instance-method" class="signature"><strong>#to_dict_block</strong> : Block</a>
+        
+          <div class="summary"><p>Builds and returns a dictionary block for this block.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#to_quote%3AQuote-instance-method" class="signature"><strong>#to_quote</strong> : Quote</a>
         
           <div class="summary"><p>Returns this form's quote representation.</p></div>
@@ -1878,9 +1885,9 @@ of <em>nested</em> blocks.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#to_tape_block%3Aself-instance-method" class="signature"><strong>#to_tape_block</strong> : <span class="k">self</span></a>
+        <a href="#to_tape_block%3ABlock-instance-method" class="signature"><strong>#to_tape_block</strong> : Block</a>
         
-          <div class="summary"><p>Returns tape block for this block.</p></div>
+          <div class="summary"><p>Builds and returns a tape block for this block.</p></div>
         
       </li>
     
@@ -3841,6 +3848,27 @@ of bounds. See <code><a href="../Novika/Tape.html#to%3F%28cursorposition%29-inst
       </div>
     </div>
   
+    <div class="entry-detail" id="to_dict_block:Block-instance-method">
+      <div class="signature">
+        
+        def <strong>to_dict_block</strong> : <a href="../Novika/Block.html">Block</a>
+
+        <a class="method-permalink" href="#to_dict_block%3ABlock-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Builds and returns a dictionary block for this block.</p>
+<p>Dictionary block is an <em>orphan</em> block whose dictionary is a shallow
+copy of this block's dictionary; and whose tape is empty.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="to_quote:Quote-instance-method">
       <div class="signature">
         
@@ -3878,19 +3906,19 @@ of bounds. See <code><a href="../Novika/Tape.html#to%3F%28cursorposition%29-inst
       </div>
     </div>
   
-    <div class="entry-detail" id="to_tape_block:self-instance-method">
+    <div class="entry-detail" id="to_tape_block:Block-instance-method">
       <div class="signature">
         
-        def <strong>to_tape_block</strong> : <span class="k">self</span>
+        def <strong>to_tape_block</strong> : <a href="../Novika/Block.html">Block</a>
 
-        <a class="method-permalink" href="#to_tape_block%3Aself-instance-method">#</a>
+        <a class="method-permalink" href="#to_tape_block%3ABlock-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Returns tape block for this block. Tape block is an <em>orphan</em>
-block with a shallow copy of this block's tape set as its tape,
-and at all times no dictionary.</p>
+          <p>Builds and returns a tape block for this block.</p>
+<p>Tape block is an <em>orphan</em> block whose tape is a shallow copy
+of this block's tape; and whose dictionary is empty.</p>
         </div>
       
       <br/>

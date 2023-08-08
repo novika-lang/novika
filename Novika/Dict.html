@@ -1161,12 +1161,12 @@
 <div class="main-content">
 <h1 class="type-name">
 
-  <span class="kind">struct</span> Novika::Dict
+  <span class="kind">class</span> Novika::Dict
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/Dict.html">Novika::Dict</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../Novika/Dict.html">Novika::Dict</a></li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
@@ -1246,6 +1246,11 @@ linear scan for now. The semantics for this is unstable.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
+        <a href="#%3D%3D%28other%3ADict%29-instance-method" class="signature"><strong>#==</strong>(other : Dict)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#clear-instance-method" class="signature"><strong>#clear</strong></a>
         
           <div class="summary"><p>Removes all entries in this dictionary.</p></div>
@@ -1277,13 +1282,6 @@ linear scan for now. The semantics for this is unstable.</p>
         <a href="#each%28%26%29-instance-method" class="signature"><strong>#each</strong>(&)</a>
         
           <div class="summary"><p>Yields key, value forms in this dictionary.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#empty%3F%3ABool-instance-method" class="signature"><strong>#empty?</strong> : Bool</a>
-        
-          <div class="summary"><p>Returns whether this dictionary currently stores no entries.</p></div>
         
       </li>
     
@@ -1419,16 +1417,6 @@ linear scan for now. The semantics for this is unstable.</p>
 
 
   
-    
-
-
-    
-
-
-    
-
-
-  
 </div>
 
 
@@ -1444,6 +1432,20 @@ linear scan for now. The semantics for this is unstable.</p>
 </a>
     Instance Method Detail
   </h2>
+  
+    <div class="entry-detail" id="==(other:Dict)-instance-method">
+      <div class="signature">
+        
+        def <strong>==</strong>(other : <a href="../Novika/Dict.html">Dict</a>)
+
+        <a class="method-permalink" href="#%3D%3D%28other%3ADict%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
   
     <div class="entry-detail" id="clear-instance-method">
       <div class="signature">
@@ -1553,29 +1555,6 @@ dictionary if it exists. Otherwise, does nothing.</p>
             </div>
           
           <p>Yields key, value forms in this dictionary.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="empty?:Bool-instance-method">
-      <div class="signature">
-        
-        def <strong>empty?</strong> : Bool
-
-        <a class="method-permalink" href="#empty%3F%3ABool-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-            <div class="doc-inherited">
-              Description copied from module <a href="../Novika/IDict.html">Novika::IDict</a>
-            </div>
-          
-          <p>Returns whether this dictionary currently stores no entries.</p>
         </div>
       
       <br/>
