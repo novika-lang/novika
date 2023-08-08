@@ -33,10 +33,22 @@
 ] @: 2val
 
 
-[ "( B -- Lb ): leaves Literal block after cursor in Block. If
+[ """( B -- Lb ): leaves Literal block after cursor in Block. If
    form after cursor isn't a block, encloses it and opens it with
    an empty stack, Block being the enclosing block's parent, and
-   finally asserts the resulting form is a block."
+   finally asserts the resulting form is a block.
+
+  ```
+  [ 'Hello World' ] $: x
+  [ | x [ 4 ] ] $: foo
+
+  foo thruLitBlock leaves: [[ 'Hello World' ]]
+  foo toQuote leaves: '[ x | [ 4 ] ]'
+
+  foo thruLitBlock leaves: [[ 4 ]]
+  foo toQuote leaves: '[ x [ 4 ] ]'
+  ```
+  """
   dup thru dup block? br: nip [ enclose adopt val asBlock ]
 ] @: thruLitBlock
 
