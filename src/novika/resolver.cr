@@ -193,7 +193,12 @@ module Novika::Resolver
 
       # If the entry exists but is a symlink, try again but with
       # its real path.
-      real = Path[File.realpath(path)]
+      begin
+        real = Path[File.realpath(path)]
+      rescue File::NotFoundError # Don't know if there's a better way to catch it.
+        @info[path] = InfoAbsent
+        return
+      end
       info = File.info?(real, follow_symlinks: false)
       presence = info ? InfoPresence.new(real, info) : InfoAbsent
 
@@ -334,6 +339,7 @@ module Novika::Resolver
         return @envs[origin] = env
       end
 
+      return if origin == origin.anchor
       return unless env = env?(origin.parent)
 
       @envs[origin] = env
