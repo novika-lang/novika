@@ -2370,8 +2370,8 @@ describe 'tally' [
     b 1 shove
     b [ b ] here shove
     b [ ] tally [
-      b 3
       1 1
+      b 3
       [ b ] 1
     ] here assert=
   ]

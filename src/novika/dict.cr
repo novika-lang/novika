@@ -28,9 +28,6 @@ module Novika
     # not imported (they are considered private).
     abstract def import!(donor : IDict)
 
-    # Returns whether this dictionary currently stores no entries.
-    abstract def empty? : Bool
-
     # Returns the amount of entries in this dictionary.
     abstract def count : Int32
 
@@ -43,6 +40,11 @@ module Novika
     # Converts this dictionary to the standard `Dict` implementation
     # (used in e.g. serialization).
     abstract def to_dict : Dict
+
+    # Returns whether this dictionary currently stores no entries.
+    def empty? : Bool
+      count.zero?
+    end
   end
 
   # Default dictionary protocol implementation: default block
@@ -50,51 +52,81 @@ module Novika
   #
   # Note: setting or getting with blocks as keys performs a
   # linear scan for now. The semantics for this is unstable.
-  struct Dict
+  class Dict
     include IDict
+
+    # Stores blocks. Looking up/setting blocks is an O(N) operation.
+    # All of this is invisible to the Novika user and could (or so
+    # I hope) be optimized...
+    private getter blockstore : Array({Block, Entry}) { [] of {Block, Entry} }
 
     # :nodoc:
     def initialize
       @store = {} of Form => Entry
     end
 
-    protected def initialize(@store)
+    protected def initialize(@store, @blockstore = nil)
     end
 
-    def set(name : Form, entry : Entry) : Entry
-      if name.is_a?(Block)
-        @store.each_key do |k|
+    private def set_block(name : Block, entry : Entry) : Entry
+      @blockstore.try do |bs|
+        bs.each_with_index do |(k, _), index|
           next unless k == name
-          @store[k] = entry
+          bs[index] = {k, entry}
           return entry
         end
       end
+
+      blockstore << {name, entry}
+
+      entry
+    end
+
+    private def get_block(name : Block, &) : Entry?
+      return unless bs = @blockstore
+      bs.each do |k, v|
+        next unless k == name
+        return v
+      end
+      yield name
+    end
+
+    private def del_block(name : Block)
+      return unless bs = @blockstore
+      return unless index = bs.index { |k, _| k == name }
+
+      bs.delete_at(index)
+    end
+
+    private def has_block?(name : Block) : Bool
+      return false unless bs = @blockstore
+
+      bs.any? { |k, _| k == name }
+    end
+
+    def set(name : Form, entry : Entry) : Entry
+      return set_block(name, entry) if name.is_a?(Block)
 
       @store[name] = entry
     end
 
     def get(name : Form, &) : Entry?
-      if name.is_a?(Block)
-        @store.each do |k, v|
-          next unless k == name
-          return v
-        end
-        return yield name
-      end
+      return get_block(name) { yield name } if name.is_a?(Block)
 
       @store.fetch(name) { yield name }
     end
 
     def del(name : Form)
-      @store.delete(name)
+      name.is_a?(Block) ? del_block(name) : @store.delete(name)
     end
 
     def clear
       @store.clear
+      @blockstore.try &.clear
     end
 
     def has?(name : Form) : Bool
-      @store.has_key?(name)
+      name.is_a?(Block) ? has_block?(name) : @store.has_key?(name)
     end
 
     def import!(donor : IDict)
@@ -103,24 +135,35 @@ module Novika
       end
     end
 
-    def empty? : Bool
-      @store.empty?
-    end
-
     def count : Int32
-      @store.size
+      @store.size + (@blockstore.try &.size || 0)
     end
 
     def copy : IDict
-      Dict.new(@store.dup)
+      Dict.new(@store.dup, @blockstore.try &.dup)
     end
 
     def each(&)
       @store.each { |k, v| yield k, v }
+      @blockstore.try &.each { |k, v| yield k, v }
     end
 
     def to_dict : Dict
       self
+    end
+
+    def ==(other : Dict)
+      return false unless @store == other.@store
+      return false unless @blockstore.class == other.@blockstore.class
+      return true unless bs_l = @blockstore # return true if both are nil
+
+      bs_r = other.@blockstore.not_nil!
+
+      return false unless bs_l.size == bs_r.size
+
+      # O(n^2) because programmable == override, __=__, is planned,
+      # and it could in principle modify either (or both!) parties.
+      bs_l.all? { |k_l, v_l| bs_r.any? { |k_r, v_r| k_l == k_r && v_l == v_r } }
     end
   end
 
