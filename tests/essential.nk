@@ -578,7 +578,154 @@ describe 'entry:submit' [
   ]
 ]
 
-"TODO: test: entry:exists? entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
+
+describe 'entry:exists?' [
+  in lang
+
+  it should 'leave true/false if exists/doesnt in this' [
+    123 $: x
+    456 @: y
+
+    this #x entry:exists? true assert=
+    this #y entry:exists? true assert=
+    this #foobrazaur entry:exists? false assert=
+    this 12345 entry:exists? false assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'leave true/false if exists/doesnt in parents' [
+    [
+      100 $: x
+
+      [ 200 $: y
+        [ 300 $: z
+          this #x entry:exists? true assert=
+          this #y entry:exists? true assert=
+          this #z entry:exists? true assert=
+        ] do
+        this #x entry:exists? true assert=
+        this #y entry:exists? true assert=
+        this #z entry:exists? false assert=
+      ] do
+      this #x entry:exists? true assert=
+      this #y entry:exists? false assert=
+      this #z entry:exists? false assert=
+    ] do
+
+    this #x entry:exists? false assert=
+    this #y entry:exists? false assert=
+    this #z entry:exists? false assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'leave true/false if exists/doesnt in friends' [
+    [ 123 $: a 'hello' $: c ] obj toOrphan $: x
+    [ 456 $: a 789 $: b ] obj toOrphan $: y
+
+    x #a entry:exists? true assert=
+    x #b entry:exists? false assert=
+    x #c entry:exists? true assert=
+
+    y #a entry:exists? true assert=
+    y #b entry:exists? true assert=
+    y #c entry:exists? false assert=
+
+    x ·> y ·> x drop
+
+    x #a entry:exists? true assert=
+    x #b entry:exists? true assert=
+    x #c entry:exists? true assert=
+    x #foobar entry:exists? false assert=
+    x #x entry:exists? false assert= "check for leak"
+    x #y entry:exists? false assert=
+
+    y #a entry:exists? true assert=
+    y #b entry:exists? true assert=
+    y #c entry:exists? true assert=
+    y #foobar entry:exists? false assert=
+    x #x entry:exists? false assert= "check for leak"
+    y #y entry:exists? false assert=
+  ]
+
+  it should 'leave true/false if exists/doesnt in deep friends' [
+    [ 123 $: x1 ] obj $: f1 "< note no toOrphan"
+    [ 456 $: x2 ] obj toOrphan $: f2
+    [ 789 $: x3 ] obj toOrphan $: f3
+
+    f1 ·> f2 ·> f3 ·> f1 drop
+
+    f1 #x1 entry:exists? true assert=
+    f1 #x2 entry:exists? true assert=
+    f1 #x3 entry:exists? true assert=
+    "check how it climbs"
+    f1 #ahead entry:exists? true assert=
+    f1 #assert= entry:exists? true assert=
+    f1 #foobar entry:exists? false assert=
+
+    f2 #x1 entry:exists? true assert=
+    f2 #x2 entry:exists? true assert=
+    f2 #x3 entry:exists? true assert=
+    "check how it climbs"
+    f2 #ahead entry:exists? true assert=
+    f2 #assert= entry:exists? true assert=
+    f2 #foobar entry:exists? false assert=
+
+    f3 #x1 entry:exists? true assert=
+    f3 #x2 entry:exists? true assert=
+    f3 #x3 entry:exists? true assert=
+    "check how it climbs"
+    f3 #ahead entry:exists? true assert=
+    f3 #assert= entry:exists? true assert=
+    f3 #foobar entry:exists? false assert=
+  ]
+
+  it should 'run example from docs' [
+    [ orphan $: table
+      orphan extendWith: [
+        [ ${ name age score }
+          [ name $: name
+            age  $: age ] obj toDict $: record
+          table record score pushes
+        ] @: set
+        [ ${ name age } table (this toDict) entry:fetch ] @: get
+        [ ${ name age } table (this toDict) entry:exists? ] @: has?
+        [ table entry:names map: [ $: record
+            [
+              record.name (31 ' ' lpad) (31 '...' fit)
+              record.age toQuote (15 ' ' lpad) (15 '...' fit)
+              (table record entry:fetch) toQuote (16 ' ' lpad) (16 '...' fit)
+            ] vals sepBy: ' |'
+          ] sepBy: '\n'
+        ] @: __quote__
+      ]
+    ] @: newScoreboard
+
+    newScoreboard $: scoreboard
+
+    'John Doe' 42 '100 points' scoreboard.set
+    'Johnanna Doe' 28 '170 points' scoreboard.set
+    'Alice H.' 19 '250 points' scoreboard.set
+    'David A.' 67 '90 points' scoreboard.set
+
+    "someone has to implement the damn unindent on triplequotes
+     someday huuuh?.."
+    scoreboard toQuote '''                       John Doe |             42 |      100 points
+                   Johnanna Doe |             28 |      170 points
+                       Alice H. |             19 |      250 points
+                       David A. |             67 |       90 points''' assert=
+
+    'John Doe' 42 scoreboard.get '100 points' assert=
+    'Alice H.' 19 scoreboard.get '250 points' assert=
+
+    'David A.' 67 scoreboard.has? true assert=
+    'David A.' 123 scoreboard.has? false assert=
+    'Peter Peterson' 19 scoreboard.has? false assert=
+  ]
+]
+
+"TODO: test: entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
 
 
 describe 'entry:delete' [

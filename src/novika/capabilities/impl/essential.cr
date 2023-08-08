@@ -996,6 +996,51 @@ module Novika::Capabilities::Impl
       target.at("entry:exists?", <<-END
       ( Rs N -- true/false ): leaves whether Readable store
        (usually a block) can fetch value for Name.
+
+      ```
+      [ orphan $: table
+        orphan extendWith: [
+          [ ${ name age score }
+            [ name $: name
+              age  $: age ] obj toDict $: record
+            table record score pushes
+          ] @: set
+          [ ${ name age } table (this toDict) entry:fetch ] @: get
+          [ ${ name age } table (this toDict) entry:exists? ] @: has?
+          [ table entry:names map: [ $: record
+              [
+                record.name (31 ' ' lpad) (31 '...' fit)
+                record.age toQuote (15 ' ' lpad) (15 '...' fit)
+                (table record entry:fetch) toQuote (16 ' ' lpad) (16 '...' fit)
+              ] vals sepBy: ' |'
+            ] sepBy: '\n'
+          ] @: __quote__
+        ]
+      ] @: newScoreboard
+
+      newScoreboard $: scoreboard
+
+      'John Doe' 42 '100 points' scoreboard.set
+      'Johnanna Doe' 28 '170 points' scoreboard.set
+      'Alice H.' 19 '250 points' scoreboard.set
+      'David A.' 67 '90 points' scoreboard.set
+
+      scoreboard echo
+
+      """STDOUT:
+                       John Doe |             42 |      100 points⏎
+                   Johnanna Doe |             28 |      170 points⏎
+                       Alice H. |             19 |      250 points⏎
+                       David A. |             67 |       90 points⏎
+      """
+
+      'John Doe' 42 scoreboard.get leaves: '100 points'
+      'Alice H.' 19 scoreboard.get leaves: '250 points'
+
+      'David A.' 67 scoreboard.has? leaves: true
+      'David A.' 123 scoreboard.has? leaves: false
+      'Peter Peterson' 19 scoreboard.has? leaves: false
+      ```
       END
       ) do |_, stack|
         name = stack.drop
