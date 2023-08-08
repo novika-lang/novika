@@ -1661,7 +1661,8 @@ module Novika::Capabilities::Impl
       ( Q Tl Pq -- Jq ): appends consecutive characters from Padding quote
        (the last one is repeated if no more follow) to the left of Quote,
        until Quote count becomes equal to Total length. Leaves the resulting
-       Justified quote.
+       Justified quote. If Quote count is greater than or equal to Total
+       length, Quote is left unchanged as the Justified quote.
 
       ```
       'hello' 10 '-' lpad leaves: '-----hello'
@@ -1681,7 +1682,8 @@ module Novika::Capabilities::Impl
       ( Q Tl Pq -- Jq ): appends consecutive characters from Padding quote
        (the last one is repeated if no more follow) to the right of Quote,
        until Quote count becomes equal to Total length. Leaves the resulting
-       Justified quote.
+       Justified quote. If Quote count is greater than or equal to Total
+       length, Quote is left unchanged as the Justified quote.
 
       ```
       'hello' 10 '-' rpad leaves: 'hello-----'
