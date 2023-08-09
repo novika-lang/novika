@@ -1053,6 +1053,14 @@ module Novika::Capabilities::Impl
        in Readable store (usually a block). Does not open the
        value form. Dies if Store does not contain an entry
        for Name.
+
+      ```
+      [ 100 $: x 200 $: y ] obj $: a
+
+      a #x entry:fetch leaves: 100
+      a #y entry:fetch leaves: 200
+      a #a entry:fetch leaves: a "via inheritance"
+      ```
       END
       ) do |_, stack|
         name = stack.drop

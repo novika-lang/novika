@@ -647,6 +647,8 @@ describe 'entry:exists?' [
     y #foobar entry:exists? false assert=
     x #x entry:exists? false assert= "check for leak"
     y #y entry:exists? false assert=
+
+    stack count 0 assert=
   ]
 
   it should 'leave true/false if exists/doesnt in deep friends' [
@@ -679,6 +681,8 @@ describe 'entry:exists?' [
     f3 #ahead entry:exists? true assert=
     f3 #assert= entry:exists? true assert=
     f3 #foobar entry:exists? false assert=
+
+    stack count 0 assert=
   ]
 
   it should 'run example from docs' [
@@ -724,10 +728,91 @@ describe 'entry:exists?' [
     'David A.' 67 scoreboard.has? true assert=
     'David A.' 123 scoreboard.has? false assert=
     'Peter Peterson' 19 scoreboard.has? false assert=
+
+    stack count 0 assert=
   ]
 ]
 
-"TODO: test: entry:fetch entry:fetch? entry:open entry:flatFetch? entry:opener?"
+
+describe 'entry:fetch' [
+  in lang
+
+  it should 'leave the value form with the given name' [
+    123 $: x
+    'z' $: z
+
+    this #x entry:fetch 123 assert=
+    this #z entry:fetch 'z' assert=
+
+    [
+      100 $: y
+      [
+        300 $: z
+        this #x entry:fetch 123 assert=
+        this #y entry:fetch 100 assert=
+        this #z entry:fetch 300 assert=
+      ] open
+    ] open
+
+    [ 123 $: a 456 $: y [ 789 $: z ] $: nested ] obj $: foo
+
+    foo #x entry:fetch 123 assert=
+    foo #y entry:fetch 456 assert=
+    foo #z entry:fetch 'z' assert=
+
+    foo #nested entry:fetch $: nested
+    nested #x entry:fetch 123 assert=
+    nested #y entry:fetch 456 assert=
+    nested #z entry:fetch 'z' assert=
+
+    nested obj $: nestedObj
+    nestedObj #x entry:fetch 123 assert=
+    nestedObj #y entry:fetch 456 assert=
+    nestedObj #z entry:fetch 789 assert=
+
+    [ 'a x' $: x  'a foo' $: foo ] obj $: a
+    [ 'b x' $: x 'b z' $: z ] obj toOrphan $: b
+
+    a ·> b ·> a drop
+
+    a #x entry:fetch 'a x' assert=
+    a #z entry:fetch 'z' assert=
+    a #foo entry:fetch 'a foo' assert=
+    a #ahead entry:fetch builtin? true assert=
+    a #assert= entry:fetch block? true assert=
+
+    b #x entry:fetch 'b x' assert=
+    b #z entry:fetch 'b z' assert=
+    b #foo entry:fetch 'a foo' assert=
+    b #ahead entry:fetch builtin? true assert=
+    b #assert= entry:fetch block? true assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'not open the value form' [
+    [ 1 2 + ] dup $: $foo @: @foo
+
+    this #@foo entry:fetch [ 1 2 + ] assert=
+    this #@foo entry:fetch $foo same? true assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'die if no entry for name' [
+    [ this #xyzzy entry:fetch ] 'no value form for \'xyzzy\'' assertDies
+  ]
+
+  it should 'run example from docs' [
+    [ 100 $: x 200 $: y ] obj $: a
+
+    a #x entry:fetch 100 assert=
+    a #y entry:fetch 200 assert=
+    a #a entry:fetch a same? true assert=
+  ]
+]
+
+"TODO: test: entry:fetch? entry:open entry:flatFetch? entry:opener?"
 
 
 describe 'entry:delete' [
