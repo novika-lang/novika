@@ -257,7 +257,7 @@ module Novika::Capabilities
       ```
       [ ('Enter your name> ' $: prompt) (' .,-' $: delimiters) ] obj $: config
 
-      config readLine* not => [ 1 bye ] $: name
+      config readLine* not => okbye $: name
 
       [ 'Your name is: ' name ] ~* echo
       ```

@@ -17,7 +17,7 @@ disk:pwd $: cwd
 "Quit if it's not empty..."
 cwd disk:dirEmpty? not => [
   sorry: 'please create an empty directory for your next awesome Novika project, and \'cd\' into it!'
-  1 bye
+  okbye
 ]
 
 "... and copy the template folder to the current working

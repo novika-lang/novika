@@ -431,7 +431,7 @@
     index 1 + =: index
     index (numbers count) = => [
       'No odd numbers :(' echo
-      1 bye
+      okbye
     ]
   ]
 
@@ -462,7 +462,7 @@
     index 1 + =: index
     index (numbers count) = => [
       'No odd numbers :(' echo
-      1 bye
+      okbye
     ]
   ]
 
