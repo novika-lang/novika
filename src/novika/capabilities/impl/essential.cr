@@ -1069,17 +1069,21 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:fetch?", <<-END
-      ( Rs N -- F true / false ): leaves the value Form with the
-       given Name in Readable store (usually a block) if an entry
-       for Name exists there, and/or a boolean indicating the
-       latter: `true` (exists), or `false` (does not exist).
+      ( Rs N -- F true / false ): leaves value Form of the entry with
+       the given Name in Readable store (usually a block), follows it
+       with `true`. If there is no entry with the given name leaves
+       `false` only. Does not open the value form.
 
       ```
-      [ ] $: a
-      a #x 100 pushes
+      [ 100 $: x ] obj toOrphan $: a
 
       a #x entry:fetch? leaves: [ 100 true ]
-      a #y entry:fetch? leaves: [ false ]
+      a #y entry:fetch? leaves: false
+
+      a ('Enter name> ' readLine not => okbye toWord) entry:fetch? br:
+        [ 'Here is its value: ' _ ~ ]
+        'Entry does not exist :('
+      echo
       ```
       END
       ) do |_, stack|

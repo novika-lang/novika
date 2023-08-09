@@ -737,7 +737,7 @@ describe 'entry:exists?' [
 describe 'entry:fetch' [
   in lang
 
-  it should 'leave the value form with the given name' [
+  it should 'leave the value form for entry with the given name' [
     123 $: x
     'z' $: z
 
@@ -812,7 +812,104 @@ describe 'entry:fetch' [
   ]
 ]
 
-"TODO: test: entry:fetch? entry:open entry:flatFetch? entry:opener?"
+
+describe 'entry:fetch?' [
+  in lang
+
+  it should 'leave the value form for entry with the given name, followed by true' [
+    123 $: x
+    'z' $: z
+
+    this #x entry:fetch? true assert= 123 assert=
+
+    [ this #z entry:fetch? ] vals [ 'z' true ] vals assert=
+
+    [
+      100 $: y
+      [
+        300 $: z
+        [ this #x entry:fetch? ] vals [ 123 true ] vals assert=
+        [ this #y entry:fetch? ] vals [ 100 true ] vals assert=
+        [ this #z entry:fetch? ] vals [ 300 true ] vals assert=
+      ] open
+    ] open
+
+    [ 123 $: a 456 $: y [ 789 $: z ] $: nested ] obj $: foo
+
+    [ foo #x entry:fetch? ] vals [ 123 true ] vals assert=
+    [ foo #y entry:fetch? ] vals [ 456 true ] vals assert=
+    [ foo #z entry:fetch? ] vals [ 'z' true ] vals assert=
+
+    foo #nested entry:fetch? true assert= $: nested
+    [ nested #x entry:fetch? ] vals [ 123 true ] vals assert=
+    [ nested #y entry:fetch? ] vals [ 456 true ] vals assert=
+    [ nested #z entry:fetch? ] vals [ 'z' true ] vals assert=
+
+    nested obj $: nestedObj
+    [ nestedObj #x entry:fetch? ] vals [ 123 true ] vals assert=
+    [ nestedObj #y entry:fetch? ] vals [ 456 true ] vals assert=
+    [ nestedObj #z entry:fetch? ] vals [ 789 true ] vals assert=
+
+    [ 'a x' $: x  'a foo' $: foo ] obj $: a
+    [ 'b x' $: x 'b z' $: z ] obj toOrphan $: b
+
+    a ·> b ·> a drop
+
+    [ a #x entry:fetch? ] vals [ 'a x' true ] vals assert=
+    [ a #z entry:fetch? ] vals [ 'z' true ] vals assert=
+    [ a #foo entry:fetch? ] vals [ 'a foo' true ] vals assert=
+    a #ahead entry:fetch? true assert= builtin? true assert=
+    a #assert= entry:fetch? true assert= block? true assert=
+
+    [ b #x entry:fetch? ] vals [ 'b x' true ] vals assert=
+    [ b #z entry:fetch? ] vals [ 'b z' true ] vals assert=
+    [ b #foo entry:fetch? ] vals [ 'a foo' true ] vals assert=
+    b #ahead entry:fetch? true assert= builtin? true assert=
+    b #assert= entry:fetch? true assert= block? true assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'not open the value form' [
+    [ 1 2 + ] dup $: $foo @: @foo
+
+    [ this #@foo entry:fetch? ] vals [ [ 1 2 + ] true ] vals assert=
+    this #@foo entry:fetch? true assert= $foo same? true assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'leave false only if no entry for name' [
+    [ this #xyzzy entry:fetch? ] vals [ false ] vals assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'run example from docs' [
+    [ 100 $: x ] obj toOrphan $: a
+
+    a #x entry:fetch? leaves: [ 100 true ]
+    a #y entry:fetch? leaves: false
+
+    [ ${ input expectedOut }
+      a (input toWord) entry:fetch? br:
+        [ 'Here is its value: ' _ ~ ]
+        'Entry does not exist :('
+      expectedOut assert=
+    ] @: prog=
+
+    'foo' 'Entry does not exist :(' prog=
+    'ahead' 'Entry does not exist :(' prog=
+    'assert=' 'Entry does not exist :(' prog=
+    'x' 'Here is its value: 100' prog=
+
+    a #x [ 1 2 + ] opens
+
+    'x' 'Here is its value: [ 1 2 + ]' prog=
+  ]
+]
+
+"TODO: test: entry:open entry:flatFetch? entry:opener?"
 
 
 describe 'entry:delete' [
