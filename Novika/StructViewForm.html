@@ -1338,14 +1338,14 @@ to exsisting entries.</p>
       </li>
     
       <li class="entry-summary">
-        <a href="#opener%3F%28name%3AForm%29-instance-method" class="signature"><strong>#opener?</strong>(name : Form)</a>
+        <a href="#opener%3F%28name%3AForm%29%3ABool-instance-method" class="signature"><strong>#opener?</strong>(name : Form) : Bool</a>
         
           <div class="summary"><p>Returns whether <em>name</em> opens its value form, as defined in this store.</p></div>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#pusher%3F%28name%3AForm%29-instance-method" class="signature"><strong>#pusher?</strong>(name : Form)</a>
+        <a href="#pusher%3F%28name%3AForm%29%3ABool-instance-method" class="signature"><strong>#pusher?</strong>(name : Form) : Bool</a>
         
           <div class="summary"><p>Returns whether <em>name</em> pushes its value form, as defined in this store.</p></div>
         
@@ -1445,13 +1445,13 @@ to exsisting entries.</p>
     has_form_for?</a>, 
     
   
-    <a href="../Novika/IReadableStore.html#opener%3F%28name%3AForm%29-instance-method" class="tooltip">
-      <span>opener?(name : Form)</span>
+    <a href="../Novika/IReadableStore.html#opener%3F%28name%3AForm%29%3ABool-instance-method" class="tooltip">
+      <span>opener?(name : Form) : Bool</span>
     opener?</a>, 
     
   
-    <a href="../Novika/IReadableStore.html#pusher%3F%28name%3AForm%29-instance-method" class="tooltip">
-      <span>pusher?(name : Form)</span>
+    <a href="../Novika/IReadableStore.html#pusher%3F%28name%3AForm%29%3ABool-instance-method" class="tooltip">
+      <span>pusher?(name : Form) : Bool</span>
     pusher?</a>
     
   
@@ -1808,12 +1808,12 @@ nil if no such entry exists.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="opener?(name:Form)-instance-method">
+    <div class="entry-detail" id="opener?(name:Form):Bool-instance-method">
       <div class="signature">
         
-        def <strong>opener?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+        def <strong>opener?</strong>(name : <a href="../Novika/Form.html">Form</a>) : Bool
 
-        <a class="method-permalink" href="#opener%3F%28name%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#opener%3F%28name%3AForm%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -1823,7 +1823,7 @@ nil if no such entry exists.</p>
             </div>
           
           <p>Returns whether <em>name</em> opens its value form, as defined in this
-store. Returns false if <em>name</em> is not defined in this store.</p>
+store. Dies if <em>name</em> is not defined in this store.</p>
         </div>
       
       <br/>
@@ -1832,12 +1832,12 @@ store. Returns false if <em>name</em> is not defined in this store.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="pusher?(name:Form)-instance-method">
+    <div class="entry-detail" id="pusher?(name:Form):Bool-instance-method">
       <div class="signature">
         
-        def <strong>pusher?</strong>(name : <a href="../Novika/Form.html">Form</a>)
+        def <strong>pusher?</strong>(name : <a href="../Novika/Form.html">Form</a>) : Bool
 
-        <a class="method-permalink" href="#pusher%3F%28name%3AForm%29-instance-method">#</a>
+        <a class="method-permalink" href="#pusher%3F%28name%3AForm%29%3ABool-instance-method">#</a>
       </div>
       
         <div class="doc">
@@ -1847,7 +1847,7 @@ store. Returns false if <em>name</em> is not defined in this store.</p>
             </div>
           
           <p>Returns whether <em>name</em> pushes its value form, as defined in this
-store. Returns false if <em>name</em> is not defined in this store.</p>
+store. Dies if <em>name</em> is not defined in this store.</p>
         </div>
       
       <br/>
