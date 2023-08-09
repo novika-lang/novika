@@ -888,8 +888,8 @@ describe 'entry:fetch?' [
   it should 'run example from docs' [
     [ 100 $: x ] obj toOrphan $: a
 
-    a #x entry:fetch? leaves: [ 100 true ]
-    a #y entry:fetch? leaves: false
+    [ a #x entry:fetch? ] vals [ 100 true ] vals assert=
+    [ a #y entry:fetch? ] vals [ false ] vals assert=
 
     [ ${ input expectedOut }
       a (input toWord) entry:fetch? br:
@@ -906,10 +906,76 @@ describe 'entry:fetch?' [
     a #x [ 1 2 + ] opens
 
     'x' 'Here is its value: [ 1 2 + ]' prog=
+
+    stack count 0 assert=
   ]
 ]
 
-"TODO: test: entry:open entry:flatFetch?"
+"TODO: test: entry:open"
+
+describe 'entry:flatFetch?' [
+  in lang
+
+  it should 'leave the value form in blocks own dictionary, followed by true, or false if not in it' [
+    100 $: a
+    [ 1 2 + ] @: b
+
+    this #a entry:flatFetch? true assert= 100 assert=
+    this #b entry:flatFetch? true assert= [ 1 2 + ] assert=
+
+    "ensure parents don't work"
+    [ this #a entry:flatFetch? ] vals [ false ] vals assert=
+    [ this #b entry:flatFetch? ] vals [ false ] vals assert=
+
+    "ensure parents + friends don't work"
+    [ 100 $: x 200 $: y ] obj $: a
+    [ 300 $: z 400 $: foo ] obj $: b
+    a ·> b ·> a drop
+
+    [ a #x entry:flatFetch? ] vals [ 100 true ] vals assert=
+    [ a #y entry:flatFetch? ] vals [ 200 true ] vals assert=
+    [ a #z entry:flatFetch? ] vals [ false ] vals assert=
+    [ a #foo entry:flatFetch? ] vals [ false ] vals assert=
+    [ a #ahead entry:flatFetch? ] vals [ false ] vals assert=
+    [ a #a entry:flatFetch? ] vals [ false ] vals assert=
+    [ a #b entry:flatFetch? ] vals [ false ] vals assert=
+
+    [ b #x entry:flatFetch? ] vals [ false ] vals assert=
+    [ b #y entry:flatFetch? ] vals [ false ] vals assert=
+    [ b #z entry:flatFetch? ] vals [ 300 true ] vals assert=
+    [ b #foo entry:flatFetch? ] vals [ 400 true ] vals assert=
+    [ b #ahead entry:flatFetch? ] vals [ false ] vals assert=
+    [ b #a entry:flatFetch? ] vals [ false ] vals assert=
+    [ b #b entry:flatFetch? ] vals [ false ] vals assert=
+
+    stack count 0 assert=
+  ]
+
+  it should 'leave false if entry doesnt exist' [
+    [ ] obj $: x
+    [ x #xyzzy entry:flatFetch? ] vals [ false ] vals assert=
+  ]
+
+  it should 'run example from docs' [
+    [ 100 $: x 200 $: y ] obj $: myParent
+    [ 'hello' $: x ] obj $: myChild
+
+    (myParent -- myChild) drop
+
+    [ myParent #x entry:flatFetch? ] vals [ 100 true ] vals assert=
+    [ myParent #y entry:flatFetch? ] vals [ 200 true ] vals assert=
+    [ myChild #foobar entry:flatFetch? ] vals [ false ] vals assert=
+
+    [ myChild #x entry:flatFetch? ] vals [ 'hello' true ] vals assert=
+    [ myChild #foobar entry:flatFetch? ] vals [ false ] vals assert=
+
+    [ myChild #y entry:flatFetch? ] vals [ false ] vals assert=
+    [ myChild #y entry:fetch? ] vals [ 200 true ] vals assert=
+
+    stack count 0 assert=
+  ]
+]
+
 
 describe 'entry:opener?' [
   in lang

@@ -1121,10 +1121,32 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:flatFetch?", <<-END
-      ( B N -- F true / false ): leaves the value Form under
-       Name in Block's dictionary followed by `true`, or `false`
-       if no such entry is in Block. Block hierarchy is not
-       traversed (only the Block's own dictionary is looked at).
+      ( B N -- F true / false ): leaves the value Form of the entry with the
+       given Name in Block's dictionary. Follows it by `true` if it exists.
+       Leaves only `false` if there is no such entry in Block. Block hierarchy
+       (friends, parents) is not traversed. This word only looks at Block's
+       own dictionary). Does not open the value Form.
+
+      ```
+      [ 100 $: x 200 $: y ] obj $: myParent
+      [ 'hello' $: x ] obj $: myChild
+
+      (myParent -- myChild) drop
+
+      myParent #x entry:flatFetch? leaves: [ 100 true ]
+      myParent #y entry:flatFetch? leaves: [ 200 true ]
+      myChild #foobar entry:flatFetch? leaves: false
+
+      myChild #x entry:flatFetch? leaves: [ 'hello' true ]
+      myChild #foobar entry:flatFetch? leaves: false
+
+      "Even though myChild is a child of myParent and has access to 'y',
+       `entry:flatFetch?` doesn't care."
+      myChild #y entry:flatFetch? leaves: false "doesn't inherit!"
+
+      "Compare it with `entry:fetch?`:"
+      myChild #y entry:fetch? leaves: [ 200 true ]
+      ```
       END
       ) do |_, stack|
         name = stack.drop
