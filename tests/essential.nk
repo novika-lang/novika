@@ -909,7 +909,60 @@ describe 'entry:fetch?' [
   ]
 ]
 
-"TODO: test: entry:open entry:flatFetch? entry:opener?"
+"TODO: test: entry:open entry:flatFetch?"
+
+describe 'entry:opener?' [
+  in lang
+
+  it should 'leave whether an entry is an opener entry' [
+    100 @: a
+    [ 1 2 + ] @: b
+    300 $: c
+
+    this #a entry:opener? true assert=
+    this #b entry:opener? true assert=
+    this #c entry:opener? false assert=
+
+    400 $: a
+
+    this #a entry:opener? false assert=
+
+    [ [ 100 200 ] @: a 300 $: b ] obj $: x
+    [ 'a' $: foo 'b' @: bar ] obj toOrphan $: y
+
+    x ·> y ·> x drop
+
+    x #a entry:opener? true assert=
+    x #b entry:opener? false assert=
+    x #c entry:opener? false assert= "via inheritance"
+    x #foo entry:opener? false assert=
+    x #bar entry:opener? true assert=
+    x #ahead entry:opener? true assert=
+
+    y #a entry:opener? true assert=
+    y #b entry:opener? false assert=
+    y #c entry:opener? false assert=
+    y #foo entry:opener? false assert=
+    y #bar entry:opener? true assert=
+    y #ahead entry:opener? true assert=
+  ]
+
+  it should 'die if no entry with the given name' [
+    [ this #xyzzy entry:opener? ] 'no value form for \'xyzzy\'' assertDies
+  ]
+
+  it should 'run example from docs' [
+    [ 100 $: x ] obj toOrphan $: foo
+
+    foo #x entry:opener? false assert=
+    foo.x 100 assert=
+
+    foo extend: [ [ 1 2 + ] @: x ]
+
+    foo #x entry:opener? true assert=
+    foo.x 3 assert=
+  ]
+]
 
 
 describe 'entry:delete' [

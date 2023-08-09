@@ -967,12 +967,12 @@ module Novika
       entry_for?(name).try &.submit(form)
     end
 
-    def opener?(name : Form)
-      entry_for?(name).is_a?(OpenEntry)
+    def opener?(name : Form) : Bool
+      entry_for(name).is_a?(OpenEntry)
     end
 
-    def pusher?(name : Form)
-      !!entry_for?(name).try { |entry| !entry.is_a?(OpenEntry) }
+    def pusher?(name : Form) : Bool
+      !opener?(name)
     end
 
     # Returns the dictionary entry corresponding to *name*.

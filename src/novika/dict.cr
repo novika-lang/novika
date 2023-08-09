@@ -222,12 +222,12 @@ module Novika
     abstract def form_for?(name : Form) : Form?
 
     # Returns whether *name* opens its value form, as defined in this
-    # store. Returns false if *name* is not defined in this store.
-    abstract def opener?(name : Form)
+    # store. Dies if *name* is not defined in this store.
+    abstract def opener?(name : Form) : Bool
 
     # Returns whether *name* pushes its value form, as defined in this
-    # store. Returns false if *name* is not defined in this store.
-    abstract def pusher?(name : Form)
+    # store. Dies if *name* is not defined in this store.
+    abstract def pusher?(name : Form) : Bool
 
     # Returns the value form for an entry with the given *name*, or
     # dies if no such entry exists.

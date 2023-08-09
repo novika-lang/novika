@@ -1136,10 +1136,23 @@ module Novika::Capabilities::Impl
       end
 
       target.at("entry:opener?", <<-END
-      ( Rs N -- true/false ): leaves whether an entry with the
-       given Name in Readable store (usually a block) is an
-       opener entry. Dies if Readable store has no entry with
-       the given Name.
+      ( Rs N -- true/false ): leaves whether an entry with the given
+       Name is an opener entry in Readable store (usually a block).
+       Dies if Readable store has no entry with the given Name.
+
+      ```
+      [ 100 $: x ] obj toOrphan $: foo
+
+      foo #x entry:opener? leaves: false
+      foo.x leaves: 100
+
+      "Change not only the value form for 'x' but also its type: make
+       it an opener."
+      foo extend: [ [ 1 2 + ] @: x ]
+
+      foo #x entry:opener? leaves: true
+      foo.x leaves: 3
+      ```
       END
       ) do |_, stack|
         name = stack.drop

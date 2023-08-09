@@ -117,12 +117,16 @@ module Novika
       end
     end
 
-    def opener?(name : Form)
+    def opener?(name : Form) : Bool
+      form_for(name)
+
       false
     end
 
-    def pusher?(name : Form)
-      has_form_for?(name)
+    def pusher?(name : Form) : Bool
+      form_for(name)
+
+      true
     end
 
     # Returns whether this view is a struct reference view.
