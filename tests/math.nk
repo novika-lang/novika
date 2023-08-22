@@ -161,30 +161,32 @@ describe 'mapToRange:' [
 ]
 
 
-describe '->%:' [
+describe '%of:' [
   in lang
 
   it should 'leave percent of range' [
-  -100 %->: 0 100    0 assert=
-     0 %->: 0 100    0 assert=
-    10 %->: 0 100   10 assert=
-    25 %->: 0 100   25 assert=
-   100 %->: 0 100  100 assert=
-   200 %->: 0 100  100 assert=
-
-   30  %->:  0 10_000   3000 assert=
-   60  %->: 64    255  178.6 assert=
+    (-100 %of: 0 100) 0 assert=
+    (0 %of: 0 100) 0 assert=
+    (10 %of: 0 100) 10 assert=
+    (25 %of: 0 100) 25 assert=
+    (100 %of: 0 100) 100 assert=
+    (200 %of: 0 100) 100 assert=
+    (30 %of: 0 10_000) 3000 assert=
+    (60 %of: 64 255) 178.6 assert=
+    (39.0625 %of: 0 256) 100 assert=
   ]
 ]
 
 
-describe '%->:' [
+describe 'to%:' [
   in lang
 
   it should 'leave decimal in range by percent' [
-    100 ->%: 0 256 39.0625 assert=
-    39.0625 %->: 0 256 100 assert=
-    0 %->: -10 256 -10 assert=
-    100 %->: 0 256 256 assert=
+    (-10 to%: -10 256) 0 assert=
+    (256 to%: -10 256) 100 assert=
+    (512 to%: -10 256) 100 assert= "clamp"
+    (100 to%: 0 256) 39.0625 assert=
+    (50 to%: 0 256) 19.53125 assert=
+    (19.53125 %of: 0 256) 50 assert=
   ]
 ]

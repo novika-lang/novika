@@ -204,39 +204,39 @@ PI 180 / $: PI/180
 ] @: mapToRange:
 
 
-[ """( Hp %->: Rb Re -- D ): leaves Decimal, which is Human
+[ """( Hp %of: Rb Re -- D ): leaves Decimal, which is Human
    percentage (0-100) mapped to [Range begin; Range end]
    range. Human percentage is clamped to 0-100.
 
   ```
   "What is 30% of John's salary, $10 000? "
-  30 %->: 0   10_000  leaves: 3000
-  60 %->: 64  255     leaves: 178.6
+  (30 %of: 0 10_000) leaves: 3000
+  (60 %of: 64 255) leaves: 178.6
   ```
   """
   ahead thruVal $: low
   ahead thruVal $: high
 
   mapFromRange: 0 100 toRange: low high
-] @: %->:
+] @: %of:
 
 
-[ """( D ->%: Rb Re -- Hp ): leaves Human percentage for
+[ """( D to%: Rb Re -- Hp ): leaves Human percentage for
    Decimal in the given range [Range begin; Range end].
-   Inverse of `%->:`.
+   Inverse of `%of:`.
 
   ```
-  100 ->%: 0 256 leaves: 39.0625
+  (100 to%: 0 256) leaves: 39.0625
 
-  "Can be checked like so:"
-  39.0625 %->: 0 256 leaves: 100
+  "You can verify the result like so:"
+  (39.0625 %of: 0 256) leaves: 100
   ```
   """
   ahead thruVal $: low
   ahead thruVal $: high
 
   mapFromRange: low high toRange: 0 100
-] @: ->%:
+] @: to%:
 
 
 [ "( Aid -- Air ): leaves Angle in radians for the given

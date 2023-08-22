@@ -1,10 +1,10 @@
 [ "( A B -- true/false ): leaves whether A <= B."
-  2dup < -rot = or
+  swap < not
 ] @: <=
 
 
 [ "( A B -- true/false ): leaves whether A > B."
-  <= not
+  swap <
 ] @: >
 
 
