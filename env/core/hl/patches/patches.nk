@@ -84,7 +84,7 @@ this parent $: _toplevel
 
 "Perform a deep clone of chewbacca via NKI. This is more
  of a hack but nah, all of this is a hack anyway."
-(this -> _chewbaccaTemplate) nki:captureAllRaw nki:toBlock @: chewbacca
+(this -> _chewbaccaTemplate) nki:captureAllRaw nki:toBlock @: _chewbacca
 
 __runtime__ 'novika' = => [
   """For all currenly defined words, apply chewbacca.
@@ -92,10 +92,9 @@ __runtime__ 'novika' = => [
   Note how applying the chewbacca patch to env/core is disabled when
   running NOT under novika. Eg in NKAS, it won't (really) work because
   it will apply to *everything* and not just to env/core -- and it's
-  expected to apply to env/core ONLY. Past env/core invoking chewbacca
-  is up to the user.
+  expected to apply to env/core ONLY.
   """
   _toplevel entry:values* each: [
-    dup block? => [ _toplevel chewbacca ]
+    dup block? => [ _toplevel _chewbacca ]
   ]
 ]
