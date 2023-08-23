@@ -3037,8 +3037,7 @@ module Novika::Resolver
     # resolution set comprised of resolutions for those queries that
     # were accepted by the resolver.
     #
-    # Also fills *response*, see `ResolverResponse` for what you can
-    # get out of it.
+    # Also fills *response*, see `Response` for what you can get out of it.
     def pop(response : Response) : ResolutionSet
       pop(response, route: Response::AcceptionRoute::Query, prepend: false)
     end
