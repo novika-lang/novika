@@ -379,25 +379,25 @@ this echo  "STDOUT: [ this echo · ${__path__ :: '/path/to/folder'} ${__file__ :
 
 A Novika continuation is a block that consists of two blocks: the stack block, and the code block, like so: `[ [ …code… ] [ …stack… ] ]`. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called *builtins*, which are bits of runnable native code as seen from Novika. Here are some examples:
 
-- [hydrate](https://novika-lang.github.io/words/#hydrate), as in:
+- [hydrate](https://novika-lang.github.io/docs/hydrate), as in:
 
   ```novika
   [ 1 2 ] [ + echo ] hydrate  "STDOUT: 3"
   ```
 
-- [open](https://novika-lang.github.io/words/#open) — this is an ancient (and often used) word from which the term *to open* came. What is described as *opening* is in reality a form of *hydration*, but for historical reasons *opening* is used anyway.
+- [open](https://novika-lang.github.io/docs/open) — this is an ancient (and often used) word from which the term *to open* came. What is described as *opening* is in reality a form of *hydration*, but for historical reasons *opening* is used anyway.
 
   ```novika
   4 [ dup + ] open echo  "STDOUT: 8"
   ```
 
-- [do](https://novika-lang.github.io/words/#do) — opens a block with a new empty (isolated) stack:
+- [do](https://novika-lang.github.io/docs/do) — opens a block with a new empty (isolated) stack:
 
   ```novika
   1 2 [ stack echo ] do  "STDOUT: [ ]"
   ```
 
-- And more, see the [words documentation](https://novika-lang.github.io/words) or env/core.
+- And more, see the [words documentation](https://novika-lang.github.io/docs) or env/core.
 
 Stack blocks can be shared between two continuations (as in `open` or opener entries where the block you open shares the stack with the opener block). Code blocks can also be shared, but I have never needed this in practice so there's no word that does something like that in env/core.
 
@@ -453,7 +453,7 @@ Don't be scared, it's just a bunch of letters :)
 ## Want to learn more?
 
 1. Explore files in `tests/` to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.
-2. Explore `help` messages of various words. A less up-to-date but more convenient way to do the same is to read word documentation [here](https://novika-lang.github.io/words/).
+2. Explore `help` messages of various words. Read word documentation [here](https://novika-lang.github.io/docs/).
 3. Explore files in `env/core`, the language's standard library.
 4. Explore the [Wiki](https://github.com/novika-lang/novika/wiki).
 
