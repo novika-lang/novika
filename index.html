@@ -1486,19 +1486,19 @@ definesY.y leaves: 200</code></pre>
 <p>A Novika continuation is a block that consists of two blocks: the stack block, and the code block, like so: <code>[ [ …code… ] [ …stack… ] ]</code>. Many words exist that create, add, remove, or modify continuation blocks and continuations. Most of them are so-called <em>builtins</em>, which are bits of runnable native code as seen from Novika. Here are some examples:</p>
 <ul>
 <li>
-<p><a href="https://novika-lang.github.io/words/#hydrate">hydrate</a>, as in:</p>
+<p><a href="https://novika-lang.github.io/docs/hydrate">hydrate</a>, as in:</p>
 <pre><code class="language-novika">[ 1 2 ] [ + echo ] hydrate  &quot;STDOUT: 3&quot;</code></pre>
 </li>
 <li>
-<p><a href="https://novika-lang.github.io/words/#open">open</a> — this is an ancient (and often used) word from which the term <em>to open</em> came. What is described as <em>opening</em> is in reality a form of <em>hydration</em>, but for historical reasons <em>opening</em> is used anyway.</p>
+<p><a href="https://novika-lang.github.io/docs/open">open</a> — this is an ancient (and often used) word from which the term <em>to open</em> came. What is described as <em>opening</em> is in reality a form of <em>hydration</em>, but for historical reasons <em>opening</em> is used anyway.</p>
 <pre><code class="language-novika">4 [ dup + ] open echo  &quot;STDOUT: 8&quot;</code></pre>
 </li>
 <li>
-<p><a href="https://novika-lang.github.io/words/#do">do</a> — opens a block with a new empty (isolated) stack:</p>
+<p><a href="https://novika-lang.github.io/docs/do">do</a> — opens a block with a new empty (isolated) stack:</p>
 <pre><code class="language-novika">1 2 [ stack echo ] do  &quot;STDOUT: [ ]&quot;</code></pre>
 </li>
 <li>
-<p>And more, see the <a href="https://novika-lang.github.io/words">words documentation</a> or env/core.</p>
+<p>And more, see the <a href="https://novika-lang.github.io/docs">words documentation</a> or env/core.</p>
 </li>
 </ul>
 <p>Stack blocks can be shared between two continuations (as in <code>open</code> or opener entries where the block you open shares the stack with the opener block). Code blocks can also be shared, but I have never needed this in practice so there's no word that does something like that in env/core.</p>
@@ -1546,7 +1546,7 @@ definesY.y leaves: 200</code></pre>
 </a>Want to learn more?</h2>
 <ol>
 <li>Explore files in <code>tests/</code> to see how various words can be used. Beware, however, that those are internal behavior tests — and most of the time, they aren't practical/particularly readable.</li>
-<li>Explore <code>help</code> messages of various words. A less up-to-date but more convenient way to do the same is to read word documentation <a href="https://novika-lang.github.io/words/">here</a>.</li>
+<li>Explore <code>help</code> messages of various words. Read word documentation <a href="https://novika-lang.github.io/docs/">here</a>.</li>
 <li>Explore files in <code>env/core</code>, the language's standard library.</li>
 <li>Explore the <a href="https://github.com/novika-lang/novika/wiki">Wiki</a>.</li>
 </ol>
