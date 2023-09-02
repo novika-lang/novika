@@ -5,6 +5,8 @@ memory used is negligible). Neither the C code for this test
 nor this test itself were written to be leak-free.
 """
 
+needsCapability: ffi
+
 describe 'FFI capability' [
   in lang
 

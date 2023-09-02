@@ -1,3 +1,5 @@
+needsCapability: disk
+
 describe 'essential lookup' [
   in lang
 
