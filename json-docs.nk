@@ -58,6 +58,7 @@ _toplevel entry:names* $: _toplevelWords
   'words'
     _toplevelWords map: [ $: word
       word private? => next
+      word #__preambles__ = => next
 
       _toplevel word entry:fetch $: form
 
