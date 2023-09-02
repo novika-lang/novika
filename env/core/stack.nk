@@ -96,7 +96,7 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: asStack
 
 
-[ """( ... T dip: F -- ... F' T ): opens Form behind Top.
+[ """( ... Tf dip: F -- ... F' Tf ): opens Form behind Top form.
 
   ```
   1 2 4 [ + ] dip leaves: [ 3 4 ]
@@ -107,13 +107,13 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: dip
 
 
-[ "( ... T dip: F -- ... F' T ): infix version of `dip`."
+[ "( ... Tf dip: F -- ... F' Tf ): infix version of `dip`."
   ahead thruBlock dip
 ] @: dip:
 
 
-[ """( ... T F -- ... F' T ): opens Form with Top on top
-   of the stack, restoring Top after it is opened.
+[ """( ... Tf F -- ... F' Tf ): opens Form with Top form on
+   top of the stack. Restores Top form afterwards.
 
   ```
   1 2 4 [ + ] keep leaves: [ 1 6 4 ]
@@ -124,7 +124,7 @@ https://elasticdog.com/2008/12/beginning-factor-shufflers-and-combinators/
 ] @: keep
 
 
-[ "( ... T keep: F -- ... F' T ): infix version of `keep`."
+[ "( ... Tf keep: F -- ... F' Tf ): infix version of `keep`."
   ahead thruBlock keep
 ] @: keep:
 

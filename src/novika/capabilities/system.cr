@@ -202,7 +202,7 @@ module Novika::Capabilities
       [ ('>>> ' $: prompt) ('' $: history) ] obj $: config
 
       loop: [
-        config readLine* not => break
+        config readLine* or: break
 
         [
           'h' [ config.history echo ]
@@ -257,7 +257,7 @@ module Novika::Capabilities
       ```
       [ ('Enter your name> ' $: prompt) (' .,-' $: delimiters) ] obj $: config
 
-      config readLine* not => okbye $: name
+      config readLine* or: okbye $: name
 
       [ 'Your name is: ' name ] ~* echo
       ```

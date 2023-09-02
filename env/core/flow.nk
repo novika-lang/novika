@@ -76,7 +76,7 @@
 
   thruWord $: got
 
-  got exp = not => [ [ 'expected ⸢' exp '⸥, but got: ⸢' got '⸥' ] ~* die ]
+  got exp = or: [ [ 'expected ⸢' exp '⸥, but got: ⸢' got '⸥' ] ~* die ]
 ] @: thruWord:
 
 
@@ -132,15 +132,25 @@
 ] @: br:
 
 
-[ """( D => Tb -- ? ): opens True branch form if Determiner
-   is truthy.
+[ """( D => Tb -- ? ): opens True branch form if Determiner is truthy.
 
   ```
-  (0 randTo: 100) even? => [ 'Yay!' echo ]
+  (0 randTo: 100) even? => [ 'Okay it is even!' echo ]
   ```
   """
   ahead thruBlock [ ] br
 ] @: =>
+
+
+[ """( D or: Fb -- ? ): opens False branch form if Determiner is falsey.
+   Infix inverse of `=>`.
+
+  ```
+  (0 randTo: 100) even? or: [ 'Nah it is odd' echo ]
+  ```
+  """
+  [ ] ahead thruBlock br
+] @: or:
 
 
 [ """( D ~> Tb -- ? ): opens True branch form if Determiner
@@ -292,7 +302,7 @@
    break the loop.
 
   ```
-  [ '> ' readLine not => nextCycle
+  [ '> ' readLine or: nextCycle
     [ 'quit' quitLoop
       'next' nextCycle
     ] choose
@@ -387,7 +397,7 @@
   ```
   'Hello! Type `quit` to quit!' echo
 
-  [ '> ' readLine not => next
+  [ '> ' readLine or: next
     [ 'quit' break
       'next' next
     ] choose

@@ -23,8 +23,7 @@ orphan $: _groups
 [ "( N -- Tg ): fetches (creates or retrieves) a Test group
    with the given Name."
   asWord $: name
-  _groups name entry:fetch? not =>
-    [ name _createTestGroup ]
+  _groups name entry:fetch? or: [ name _createTestGroup ]
 ] @: _fetchTestGroup
 
 
@@ -38,14 +37,17 @@ orphan $: _groups
 ] @: _appendReportDot
 
 
-[ "( runTestsInGroup: G -- B ): runs all test cases under Group.
-   Reports the results on-the-fly. Dies if Group doesn't exist.
-   Leaves Boolean for whether all tests in Group succeeded."
+[ """( runTestsInGroup: G -- true/false ): runs all test cases in the
+   given Group. Reports to the standard output stream. Dies if Group
+   doesn't exist. Leaves whether *all* tests succeeded.
+
+  See `describe` for an example.
+  """
   ahead thru asWord $: groupName
 
   "Fetch the test group. If none, die out of this word. Else,
    put it under `group` for use later on."
-  _groups groupName entry:fetch? not =>
+  _groups groupName entry:fetch? or:
     [ 'no such test group: ' groupName 2die ]
   $: group
 
@@ -54,7 +56,7 @@ orphan $: _groups
   "Run cases, collect failed ones. This is the part that
    produces the '.'s."
   group.cases each: [ .run $: reportBlock
-    reportBlock dup _appendReportDot .ok? not =>
+    reportBlock dup _appendReportDot .ok? or:
       [ failedCases reportBlock shove ]
   ]
 
@@ -359,7 +361,7 @@ orphan $: _groups
       block #__died__ [ true =: ok? self resume ] opens
       block do
 
-      ok? not => [
+      ok? or: [
         'die ' description stitch =: description
         'Did not die ' description stitch failures gulp
       ]
@@ -420,6 +422,6 @@ orphan $: _groups
   actual count expected count < => fail
 
   expected eachWithIndex: [ $: form $: index
-    form actual expected count 1 - index - fromRight = not => fail
+    form actual expected count 1 - index - fromRight = or: fail
   ]
 ] @: leaves:

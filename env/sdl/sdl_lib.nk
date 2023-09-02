@@ -1,4 +1,4 @@
-'SDL2' ffi:getLibrary? not => [ 'could not find SDL2' die ] @: _sdlExport
+'SDL2' ffi:getLibrary? or: [ 'could not find SDL2' die ] @: _sdlExport
 
 
 "--- EVENT TYPES --------------------------------"

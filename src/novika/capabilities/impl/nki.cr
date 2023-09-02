@@ -108,8 +108,9 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureAllRaw", <<-END
-      ( B -- Bf ): same as `nki:captureAll`, but doesn't archive
-       image payload. May yield very large Byteslice forms.
+      ( B -- Bf ): same as `nki:captureAll`, but does not archive
+       image payload obtained from capturing Block. May yield very
+       large Byteslice forms.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -123,8 +124,9 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureNeighborhoodRaw", <<-END
-      ( B -- Bf ): same as `nki:captureNeighborhood`, but doesn't
-       archive image payload. May yield large Byteslice forms.
+      ( B -- Bf ): same as `nki:captureNeighborhood`, but does not
+       archive image payload obtained from capturing Block. May yield
+       large Byteslice forms.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -138,8 +140,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureAllGzipBest", <<-END
-      ( B -- Bf ): same as `nki:captureAll`, but archives image
-       payload using Gzip, best.
+      ( B -- Bf ): same as `nki:captureAll`, but archives image payload
+       obtained from capturing Block using Gzip, best.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -153,8 +155,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureNeighborhoodGzipBest", <<-END
-      ( B -- Bf ): same as `nki:captureNeighborhood`, but
-       archives image payload using Gzip, best.
+      ( B -- Bf ): same as `nki:captureNeighborhood`, but archives image
+       payload obtained from capturing Block using Gzip, best.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -168,8 +170,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureAllBrotliFast", <<-END
-      ( B -- Bf ): same as `nki:captureAll`, but archives image
-       payload using Brotli, fast.
+      ( B -- Bf ): same as `nki:captureAll`, but archives image payload
+       obtained from capturing Block using Brotli, fast.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -183,8 +185,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureNeighborhoodBrotliFast", <<-END
-      ( B -- Bf ): same as `nki:captureNeighborhood`, but
-       archives image payload using Brotli, fast.
+      ( B -- Bf ): same as `nki:captureNeighborhood`, but archives image
+       payload obtained from capturing Block using Brotli, fast.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -198,8 +200,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureAllBrotliBest", <<-END
-      ( B -- Bf ): same as `nki:captureAll`, but archives image
-       payload using Brotli, best.
+      ( B -- Bf ): same as `nki:captureAll`, but archives image payload
+       obtained from capturing Block using Brotli, best.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)
@@ -213,8 +215,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("nki:captureNeighborhoodBrotliBest", <<-END
-      ( B -- Bf ): same as `nki:captureNeighborhood`, but
-       archives image payload using Brotli, best.
+      ( B -- Bf ): same as `nki:captureNeighborhood`, but archives image
+       payload obtained from capturing Block using Brotli, best.
       END
       ) do |engine, stack|
         block = stack.drop.a(Block)

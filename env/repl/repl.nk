@@ -102,7 +102,7 @@ _pgRoot #? [
     "If there is no history file, create one."
     disk:home _HISTORY_FILENAME disk:join $: historyFile
 
-    historyFile disk:hasFile? not => [ historyFile disk:touch ]
+    historyFile disk:hasFile? or: [ historyFile disk:touch ]
     historyFile disk:read $: history
 
     [ "( -- ): writes current `history` to disk."

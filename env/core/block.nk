@@ -307,9 +307,9 @@
 ] @: last?
 
 
-[ """( B/Q F/Fq -- Sb ): leaves Status boolean for whether
-   Block ends with Form (as per `=`), or Quote ends with
-   Fragment quote.
+[ """( B/Q F/Fq -- true/false ): leaves whether Block ends
+   with Form (as per `=`), or if Quote is given, whether Quote
+   ends with Fragment quote.
 
   Always leaves true if Form or Fragment quote is empty.
 
@@ -344,8 +344,8 @@
 ] @: startsWith?
 
 
-[ """( B/Q F/Fq -- Sb ): leaves Status boolean for
-   whether Block ends with Form (as per `=`), or if Quote
+[ """( B/Q F/Fq -- true/false ): leaves whether Block ends
+   with Form (as per `=`), or if Quote is given, whether Quote
    ends with Fragment quote.
 
   Always leaves true if Form or Fragment quote is empty.
@@ -394,12 +394,13 @@
 ] @: surroundedBy?
 
 
-[ "( P C -- C ): same as `reparent`, but in different order."
+[ "( Pb Cb -- Cb ): same as `reparent`, but takes the blocks in
+   different order."
   swap reparent
 ] @: adopt
 
 
-[ """( P `--` C -- C ): infix version of `adopt`.
+[ """( Pb `--` Cb -- Cb ): infix version of `adopt`.
 
   ```
   [ 100 $: x ] obj $: a
@@ -448,7 +449,7 @@
 ] @: child
 
 
-[ dup block? not => [ entry:fetch ^ ]
+[ dup block? or: [ entry:fetch ^ ]
 
   swap $: container
 
@@ -1215,7 +1216,7 @@
 
   "Go thru each item and check if block opens to true there;
    if it doesn't, quit the loop with status = false."
-  each: [ block not => [ false =: status break ] ]
+  each: [ block or: [ false =: status break ] ]
 
   status
 ] @: all?
@@ -1268,8 +1269,10 @@
 ] @: anyof:
 
 
-[ """( A B -- Z ): leaves Zipped A, B. Dies if there is a
-   different amount of items in A and B.
+[ """( A B -- Zb ): leaves Zipped block obtained by following
+  each form from A, with the form in the same position in B.
+  Dies if there is a different amount of forms in A and B, if
+  this is the case you might want to consider using `zipWithDefault`.
 
   ```
   [ ] [ ] zip leaves: [ [ ] ]
@@ -1278,7 +1281,7 @@
   """
   $: b $: a
 
-  (a count) (b count) = not =>
+  (a count) (b count) = or:
     [ 'counts must be equal with zip, otherwise use zipWithDefault' die ]
 
   (a count) collect: [ dup
@@ -1288,8 +1291,9 @@
 ] @: zip
 
 
-[ """( A B D -- Zb ): leaves Zipped A, B with holes
-   filled by the given Default form.
+[ """( A B Df -- Zb ): leaves Zipped block obtained from
+   zipping (see `zip`) A and B, having holes filled by
+   the given Default form.
 
   ```
   [ ] [ ] #hole zipWithDefault leaves: [ [ ] ]
@@ -1328,8 +1332,8 @@
 ] @: zipWithDefault
 
 
-[ """( A zip: B -- Z | A zip: B withDefault: D -- Z ): combined
-   infix for `zip` and `zipWithDefault`.
+[ """( A zip: B -- Zb | A zip: B withDefault: Df -- Zb ): combined infix
+   for `zip` and `zipWithDefault`.
 
   ```
   [ 1 2 ] zip: [ 3 4 ] leaves: [ [ [ 1 3 ] [ 2 4 ] ] ]
@@ -1344,7 +1348,7 @@
 
   "Fallback to `zip` when there isn't any word following
    the B form."
-  caller peek? not => [ a b zip ^ ]
+  caller peek? or: [ a b zip ^ ]
 
   [ "( A zip: B withDefault: D )"
     #withDefault: [ drop
@@ -1612,7 +1616,7 @@
 
   block [ current max < ]
   [
-    current enclose swap there dup empty? not =>
+    current enclose swap there dup empty? or:
       [ cherry result gulp ]
     current 1 + =: current
   ] createDetachedLoop open
@@ -1721,9 +1725,8 @@
 ] @: groupBy:
 
 
-[ """( B E -- Rb ): leaves Range block containing decimals
-   between the given Begin, End decimal boundaries: [B; E],
-   [E; B] if  E < B.
+[ """( Rb Re -- Db ): leaves Decimal block containing decimals
+   within [Range begin, Range end].
 
   ```
   "Note: `...` means there's more. These 'leaves:'
@@ -1743,11 +1746,11 @@
 ] @: range
 
 
-[ """( B to: E -- Rb ): infix version of `range`.
+[ """( Rb to: Re -- Db ): infix version of `range`.
 
   ```
-  "Note: `...` means there's more. These 'leaves:'
-   expressions won't run right away."
+  "Note: `...` means there's more. These 'leaves:' expressions
+   won't run right away."
 
   1 to: 100 leaves: [ 1 2 3 "..." 98 99 100 ]
   10 to: 0 leaves: [ 10 9 8 "..." 0 ]
@@ -1823,7 +1826,7 @@
 
   formList eachWithIndex: [ $: form $: index
     result form toQuote stitch
-    index formList count 1 - = not =>
+    index formList count 1 - = or:
       [ sep stitch ]
     =: result
   ]
@@ -1838,9 +1841,9 @@
       @: join:
 
 
-[ """( B1 B2 -- B1 ): adds elements before cursor in B2
-   after cursor in B1. Advances the cursor in B1 by the
-   number of added elements.
+[ """( B1 B2 -- B1 ): takes all elements before the cursor
+   in B2 and adds them after the cursor in B1. Advances the
+   cursor in B1 by the number of added elements.
 
   ```
   [ 1 2 3 ] [ 4 5 6 ] concat!
@@ -1851,7 +1854,8 @@
 ] @: concat!
 
 
-[ """( B1 B2 -- Br ): concatenates two Blocks.
+[ """( B1 B2 -- B ): concatenates two Blocks (see `concat!`),
+   leaves the resulting new Block.
 
   ```
   [ 1 2 3 ] [ 4 5 6 ] concat
@@ -1888,7 +1892,7 @@
 
   "Support literal pattern arguments like `[ 1 2 3 4 ] 3 |afterOrToEnd?`
    by wrapping in a block together with '=' (`[ 3 = ]`)."
-  dup block? not => [ #= 2enclose caller reparent ] @: cond
+  dup block? or: [ #= 2enclose caller reparent ] @: cond
 
   false  $: match
   orphan $: memo
@@ -1993,7 +1997,7 @@
 
   |afterOrDie
 
-  list empty? not => [ list 1 |- ]
+  list empty? or: [ list 1 |- ]
 ] @: |beforeOrDie
 
 
@@ -2370,7 +2374,7 @@
 
   ahead $: caller
 
-  pat block? not =>
+  pat block? or:
     [ "Pattern is *not* a block. If it is a word, quote it;
        otherwise it would get evaluated prematurely."
       pat word? => [ pat toQuotedWord =: pat ]

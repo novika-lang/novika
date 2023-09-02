@@ -1,4 +1,4 @@
-[ dup empty? not => [ dup count 1 - sliceQuoteAt drop ] ] @: rchop
+[ dup empty? or: [ dup count 1 - sliceQuoteAt drop ] ] @: rchop
 
 needsCapability: console
 
@@ -400,7 +400,7 @@ orphan $: operators
   true $: running?
 
   [
-    console:hadKeyPressed? not => ^
+    console:hadKeyPressed? or: ^
 
     console:hadCtrlPressed?
     console:getCharPressed 'c' = and
@@ -439,7 +439,7 @@ orphan $: operators
     console:hadLeftPressed?  => [ prompt.moveCursorLeft ^ ]
     console:hadRightPressed? => [ prompt.moveCursorRight ^ ]
 
-    console:hadCharPressed? not => ^
+    console:hadCharPressed? or: ^
 
     console:getCharPressed
     prompt.insertBeforeCursor

@@ -20,7 +20,7 @@ module Novika::Capabilities::Impl
 
       # TODO: example
       target.at("prototype", <<-END
-      ( B -- P ): leaves the Prototype of Block.
+      ( B -- Pb ): leaves the Prototype block of Block.
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -29,7 +29,7 @@ module Novika::Capabilities::Impl
 
       # TODO: example
       target.at("parent", <<-END
-      ( B -- P ): leaves the Parent of Block.
+      ( B -- Pb ): leaves the Parent block of Block.
       END
       ) do |_, stack|
         block = stack.drop.a(Block)
@@ -799,8 +799,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("asBoolean", <<-END
-      ( F -- B ): asserts that Form is a Boolean form, dies if
-       it's not.
+      ( F -- true/false ): asserts that Form is a boolean form, dies
+       if it's not.
 
       For example, the following expression dies:
 
@@ -1080,7 +1080,7 @@ module Novika::Capabilities::Impl
       a #x entry:fetch? leaves: [ 100 true ]
       a #y entry:fetch? leaves: false
 
-      a ('Enter name> ' readLine not => okbye toWord) entry:fetch? br:
+      a ('Enter name> ' readLine or: okbye toWord) entry:fetch? br:
         [ 'Here is its value: ' _ ~ ]
         'Entry does not exist :('
       echo
@@ -2089,8 +2089,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("reparent", <<-END
-      ( C P -- C ): changes the parent of Child to Parent. Lookup
-       cycles are allowed and handled gracefully.
+      ( Cb Pb -- Cb ): changes the parent of Child block to Parent block.
+       Lookup cycles are allowed and handled gracefully.
       END
       ) do |_, stack|
         parent = stack.drop.a(Block)
@@ -2197,11 +2197,49 @@ module Novika::Capabilities::Impl
         block.slurp(source.string)
       end
 
-      target.at("orphan", "( -- O ): Leaves an Orphan (a parent-less block).") do |_, stack|
+      target.at("orphan", <<-END
+      ( -- B ): creates and leaves a new orphan Block.
+
+      Orphan blocks are blocks without a parent. Therefore, they do not
+      participate in any block hierarchy until they acquire some friends,
+      or a parent, and when (and whether) this should happen if for you —
+      not Novika, as is usually the case — to decide.
+
+      ```
+      'Outer A' $: a
+      'Outer B' $: b
+
+      orphan $: x
+
+      [ [ drop 'I die!' ] @: __died__ x.a ] do leaves: 'I die!'
+      [ [ drop 'I die too!' ] @: __died__ x.b ] do leaves: 'I die too!'
+
+      "Define `a` and `b` on the block itself. As you can see there
+       is no inheritance."
+      x extend: [
+        100 $: a
+        200 $: b
+      ]
+
+      "Now `a` and `b` are looked up fine."
+      x.a leaves: 100
+      x.b leaves: 200
+      ```
+      END
+      ) do |_, stack|
         Block.new.onto(stack)
       end
 
-      target.at("orphan?", "( B -- true/false ): leaves whether Block is an orphan") do |_, stack|
+      target.at("orphan?", <<-END
+      ( B -- true/false ): leaves whether the given Block is an orphan
+       (see `orphan`).
+
+      ```
+      orphan orphan? leaves: true
+      [ "I'm not an orphan" ] orphan? leaves: false
+      ```
+      END
+      ) do |_, stack|
         Boolean[!stack.drop.a(Block).parent?].onto(stack)
       end
 

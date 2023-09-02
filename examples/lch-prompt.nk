@@ -239,7 +239,7 @@ console:truecolor
 
 
 [ "( -- ): processes keyboard input."
-  console:hadKeyPressed? not => ^
+  console:hadKeyPressed? or: ^
 
   "Ctrl-C => quit"
   console:hadCtrlPressed?

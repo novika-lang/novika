@@ -123,9 +123,9 @@ module Novika::Capabilities
       end
 
       target.at("disk:dirEmpty?", <<-END
-      ( Ptd -- B ): leaves Boolean for whether Path to directory
-       is empty. Dies if Path to directory points to something
-       other than a directory, or doesn't exist.
+      ( Pq -- true/false ): leaves whether the directory at Path quote
+       is empty. Dies if Path quote points to something other than
+       a directory, or doesn't exist.
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)
@@ -138,8 +138,9 @@ module Novika::Capabilities
       end
 
       target.at("disk:join", <<-END
-      ( Bp Cp -- P ): leaves Path, which is the result of joining Base
-       path and Child path using the platform-specific path separator.
+      ( Bpq Cpq -- Pq ): leaves Path quote, which is the result of joining
+       Base path quote and Child path quote using the platform-specific
+       path separator.
 
       ```
       'hello' 'world' disk:join leaves: 'hello/world' "On Unix"
@@ -153,22 +154,28 @@ module Novika::Capabilities
       end
 
       target.at("disk:pwd", <<-END
-      ( -- Wd ): leaves current Working directory.
+      ( -- Pq ): leaves Path quote pointing to the current working directory.
       END
       ) do |engine, stack|
         pwd(engine).onto(stack)
       end
 
       target.at("disk:home", <<-END
-      ( -- Hd ): leaves current user's Home directory.
+      ( -- Pq ): leaves Path quote pointing to the user's home directory.
       END
       ) do |engine, stack|
         home(engine).onto(stack)
       end
 
       target.at("disk:touch", <<-END
-      ( P -- ): creates an empty file at Path. Does nothing
-       if Path already exists.
+      ( Pq -- ): creates an empty file at the location that Path quote
+       points to. Does nothing if Path already exists.
+
+      ```
+      disk:pwd 'demo.txt' disk:join $: demoPath
+      demoPath disk:touch 'Hey!' demoPath disk:write
+      demoPath disk:read leaves: 'Hey!'
+      ```
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)
@@ -176,9 +183,19 @@ module Novika::Capabilities
       end
 
       target.at("disk:mkdir", <<-END
-      ( P -- ): creates an empty directory at Path, including
-       any non-existing intermediate directories. Does nothing
-       if Path already exists.
+      ( Pq -- ): creates an empty directory at the location that Path
+       quote points to. Also creates any non-existing intermediate
+       directories. Does nothing if Path quote already points to an
+       existing directory, file, symlink, etc.
+
+      ```
+      disk:pwd 'demo-dir-a' disk:join
+               'demo-dir-b' disk:join
+               'demo-dir-c' disk:join $: demoDirPath
+
+      demoDirPath disk:mkdir
+      demoDirPath disk:hasDir? leaves: true
+      ```
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)
@@ -186,11 +203,23 @@ module Novika::Capabilities
       end
 
       target.at("disk:copy", <<-END
-      ( S D -- ): copies Source (quote path to a file, symlink,
-       or directory) to Destination (also a quote).
+      ( Spq Dpq -- ): copies whatever Source path quote points to, to the
+       location that Destination path quote points to. If Source is a
+       directory, it is copied recursively.
 
-      If Source is a directory, copies it recursively.
-      If copy process failed, dies.
+      If copy process failed (for instance if there is already something
+      at Destination path quote), dies.
+
+      ```
+      disk:pwd 'a.txt' disk:join $: pathToA
+      disk:pwd 'b.txt' disk:join $: pathToB
+
+      pathToA disk:touch pathToA 'Content of file a.txt' disk:write
+      pathToA pathToB disk:copy
+
+      pathToA disk:read leaves: 'Content of file a.txt'
+      pathToB disk:read leaves: 'Content of file a.txt'
+      ```
       END
       ) do |engine, stack|
         dst = stack.drop.a(Quote)
@@ -201,8 +230,15 @@ module Novika::Capabilities
       end
 
       target.at("disk:read", <<-END
-      ( F -- C ): reads and leaves the Contents of File. Dies
-       if there is no File.
+      ( Pq -- Q ): leaves Quote containing the content of the file that
+       Path quote points to. Dies if Path quote points to nothing or if
+       it points to something other than a file.
+
+      ```
+      disk:pwd 'a.txt' disk:join $: pathToA
+      pathToA disk:touch 'Hello World' pathToA disk:write
+      pathToA disk:read leaves: 'Hello World'
+      ```
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)
@@ -211,9 +247,40 @@ module Novika::Capabilities
       end
 
       target.at("disk:write", <<-END
-      ( Cq/B Fp -- ): (over)writes content of file at File path
-       with Content quote/Byteslice. Dies if File path doesn't
-       exist or doesn't point to a file.
+      ( Q/Bf Pq -- ): (over)writes the content of the file that Path quote
+       points to, with the given Quote or Byteslice form. Dies if Path quote
+       points to nothing or if it points to something other than a file.
+
+      ```
+      disk:pwd 'a.txt' disk:join $: pathToA
+      pathToA disk:touch 'Hello World' pathToA disk:write
+      pathToA disk:read leaves: 'Hello World'
+
+      [ 0 $: count
+        [ count dup 1 + =: count ]
+      ] @: counter
+
+      counter @: inc
+      inc leaves: 0
+      inc leaves: 1
+      inc leaves: 2
+
+      disk:pwd 'counter.nki' disk:join $: pathToCounter
+      pathToCounter disk:touch
+
+      "Save inc state using NKI and write the resulting byteslice
+       to the file we've just created. Note that captureAll is similar
+       to deep copy (it copies the *entire* Novika environment including
+       the standard library), it's not the best way to do this but
+       by far the easiest."
+      (this -> inc nki:captureAll) pathToCounter disk:write
+
+      pathToCounter disk:read toByteslice nki:toBlock @: incFromDisk
+
+      incFromDisk leaves: 3
+      incFromDisk leaves: 4
+      incFromDisk leaves: 5
+      ```
       END
       ) do |engine, stack|
         path = stack.drop.a(Quote)

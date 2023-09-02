@@ -29,7 +29,7 @@
 
   [ "Gracefully deinitializes SDL and SDL TTF unless
      they were already deinitialized."
-    sdlInitialized? not => ^
+    sdlInitialized? or: ^
 
     font sdl:ttf:close
     self #font entry:delete
@@ -63,7 +63,7 @@
 
   [ "Destroys window and renderer unless they were
      destroyed already (or do not exist at all)."
-    winInitialized? not => ^
+    winInitialized? or: ^
 
     window sdl:destroyWindow
     renderer sdl:destroyRenderer

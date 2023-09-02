@@ -96,7 +96,7 @@ this #@: [
    isn't enabled, or if Id isn't a capability id at all."
   ahead thru toQuote $: capId
 
-  capId anyof: novika:capabilities not =>
+  capId anyof: novika:capabilities or:
     [
       244 67 54 rgb withEchoFg
         '! This program requires the `' capId stitch '` capability. Consult the frontend' stitch

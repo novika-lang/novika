@@ -85,73 +85,65 @@ module Novika::Capabilities
     #   state after receiving input.
     abstract def read_key(engine, timeout : Decimal)
 
-    # Returns boolean for whether any key was pressed.
+    # Returns whether any key was pressed.
     abstract def had_key_pressed?(engine) : Boolean
 
-    # leaves Boolean for whether the CTRL key was pressed.
+    # Returns whether the CTRL key was pressed.
     abstract def had_ctrl_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the ALT key was pressed.
+    # Returns whether the ALT key was pressed.
     abstract def had_alt_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the SHIFT key was pressed.
+    # Returns whether the SHIFT key was pressed.
     abstract def had_shift_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the Backspace key
-    # was pressed.
+    # Returns whether the Backspace key was pressed.
     abstract def had_backspace_pressed?(engine) : Boolean
 
-    # Returns boolean for whether one of the function
-    # keys F1-F12 was pressed.
+    # Returns whether one of the function keys F1-F12 was pressed.
     abstract def had_fn_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the INSERT key was pressed.
+    # Returns whether the INSERT key was pressed.
     abstract def had_insert_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the DELETE key was pressed.
+    # Returns whether the DELETE key was pressed.
     abstract def had_delete_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the HOME key was pressed.
+    # Returns whether the HOME key was pressed.
     abstract def had_home_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the END key was pressed.
+    # Returns whether the END key was pressed.
     abstract def had_end_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the PAGE UP key was pressed.
+    # Returns whether the PAGE UP key was pressed.
     abstract def had_pgup_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the PAGE DOWN key was pressed.
+    # Returns whether the PAGE DOWN key was pressed.
     abstract def had_pgdn_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the LEFT ARROW key
-    # was pressed.
+    # Returns whether the LEFT ARROW key was pressed.
     abstract def had_left_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the RIGHT ARROW key
-    # was pressed.
+    # Returns whether the RIGHT ARROW key was pressed.
     abstract def had_right_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the UP ARROW key
-    # was pressed.
+    # Returns whether the UP ARROW key was pressed.
     abstract def had_up_pressed?(engine) : Boolean
 
-    # Returns boolean for whether the DOWN ARROW key
-    # was pressed.
+    # Returns whether the DOWN ARROW key was pressed.
     abstract def had_down_pressed?(engine) : Boolean
 
-    # Returns boolean for whether EXCLUSIVELY a printable
-    # character key was pressed (no CTRL, ALT, etc.) Whether
-    # the SHIFT key was pressed or not is ignored.
+    # Returns whether EXCLUSIVELY a printable character key was pressed
+    # (no CTRL, ALT, etc.) Whether the SHIFT key was pressed or not
+    # is ignored.
     abstract def had_char_pressed?(engine) : Boolean
 
-    # Leaves char quote for the key that was pressed.
-    # Usually a lowercase or uppercase letter; but also may
-    # look like `'\\n'` or `'\\t'`, etc.)
+    # Returns char quote for the key that was pressed. Usually a lowercase
+    # or uppercase letter; but also may look like `'\\n'` or `'\\t'`, etc.)
     #
-    # In case the key that was pressed cannot be represented
-    # by the means of a quote, or if the user did not press
-    # any key, an empty quote is left in place of Char
-    # quote.
+    # In case the key that was pressed cannot be represented by the means
+    # of a quote, or if the user did not press any key, an empty quote
+    # is returned.
     abstract def get_char_pressed(engine) : Quote
 
     # Appends echo of *quote* colorized with *fg* and *bg*
@@ -245,93 +237,88 @@ module Novika::Capabilities
       ) { |engine| read_key(engine, @timeout) }
 
       target.at("console:hadKeyPressed?", <<-END
-      ( -- B ): leaves Boolean for whether any key was pressed.
+      ( -- true/false ): leaves whether any key was pressed.
       END
       ) { |engine, stack| had_key_pressed?(engine).onto(stack) }
 
       target.at("console:hadCtrlPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the CTRL key was pressed.
+      ( -- true/false ): leaves whether the CTRL key was pressed.
       END
       ) { |engine, stack| had_ctrl_pressed?(engine).onto(stack) }
 
       target.at("console:hadAltPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the ALT key was pressed.
+      ( -- true/false ): leaves whether the ALT key was pressed.
       END
       ) { |engine, stack| had_alt_pressed?(engine).onto(stack) }
 
       target.at("console:hadShiftPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the SHIFT key was pressed.
+      ( -- true/false ): leaves whether the SHIFT key was pressed.
       END
       ) { |engine, stack| had_shift_pressed?(engine).onto(stack) }
 
       target.at("console:hadBackspacePressed?", <<-END
-      ( -- B ): leaves Boolean for whether the Backspace key
-       was pressed.
+      ( -- true/false ): leaves whether the Backspace key was pressed.
       END
       ) { |engine, stack| had_backspace_pressed?(engine).onto(stack) }
 
       target.at("console:hadFnPressed?", <<-END
-      ( -- B ): leaves Boolean for whether one of the function
-       keys F1-F12 was pressed.
+      ( -- true/false ): leaves whether one of the function keys
+       F1-F12 was pressed.
       END
       ) { |engine, stack| had_fn_pressed?(engine).onto(stack) }
 
       target.at("console:hadInsertPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the INSERT key was pressed.
+      ( -- true/false ): leaves whether the INSERT key was pressed.
       END
       ) { |engine, stack| had_insert_pressed?(engine).onto(stack) }
 
       target.at("console:hadDeletePressed?", <<-END
-      ( -- B ): leaves Boolean for whether the DELETE key was pressed.
+      ( -- true/false ): leaves whether the DELETE key was pressed.
       END
       ) { |engine, stack| had_delete_pressed?(engine).onto(stack) }
 
       target.at("console:hadHomePressed?", <<-END
-      ( -- B ): leaves Boolean for whether the HOME key was pressed.
+      ( -- true/false ): leaves whether the HOME key was pressed.
       END
       ) { |engine, stack| had_home_pressed?(engine).onto(stack) }
 
       target.at("console:hadEndPressed?", <<-DOC
-      ( -- B ): leaves Boolean for whether the END key was pressed.
+      ( -- true/false ): leaves whether the END key was pressed.
       DOC
       ) { |engine, stack| had_end_pressed?(engine).onto(stack) }
 
       target.at("console:hadPageUpPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the PAGE UP key was pressed.
+      ( -- true/false ): leaves whether the PAGE UP key was pressed.
       END
       ) { |engine, stack| had_pgup_pressed?(engine).onto(stack) }
 
       target.at("console:hadPageDownPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the PAGE DOWN key was pressed.
+      ( -- true/false ): leaves whether the PAGE DOWN key was pressed.
       END
       ) { |engine, stack| had_pgdn_pressed?(engine).onto(stack) }
 
       target.at("console:hadLeftPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the LEFT ARROW key
-       was pressed.
+      ( -- true/false ): leaves whether the LEFT ARROW key was pressed.
       END
       ) { |engine, stack| had_left_pressed?(engine).onto(stack) }
 
       target.at("console:hadRightPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the RIGHT ARROW key
-       was pressed.
+      ( -- true/false ): leaves whether the RIGHT ARROW key was pressed.
       END
       ) { |engine, stack| had_right_pressed?(engine).onto(stack) }
 
       target.at("console:hadUpPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the UP ARROW key
-       was pressed.
+      ( -- true/false ): leaves whether the UP ARROW key was pressed.
       END
       ) { |engine, stack| had_up_pressed?(engine).onto(stack) }
 
       target.at("console:hadDownPressed?", <<-END
-      ( -- B ): leaves Boolean for whether the DOWN ARROW key
-       was pressed.
+      ( -- true/false ): leaves whether the DOWN ARROW key was pressed.
       END
       ) { |engine, stack| had_down_pressed?(engine).onto(stack) }
 
       target.at("console:hadCharPressed?", <<-END
-      ( -- B ): leaves Boolean for whether EXCLUSIVELY a printable
+      ( -- true/false ): leaves whether EXCLUSIVELY a printable
        character key was pressed (no CTRL, ALT, etc.) Whether the
        SHIFT key was pressed or not is ignored.
       END

@@ -4,6 +4,24 @@
 ] @: echo
 
 
+[ """( say: F -- ): infix version of `echo`.
+
+  ```
+  say: 'Hello World'
+  say: [ 1 2 + ]
+  ```
+
+  The above prints:
+
+  ```text
+  Hello World
+  3
+  ```
+  """
+  ahead thruVal echo
+] @: say:
+
+
 [ "( help F -- ): echoes help for Form. If form is a word, fetches
    it in caller first."
   ahead dup thru dup word?
@@ -27,6 +45,23 @@
    the stack."
   2dup 2echo
 ] @: 2p
+
+
+[ "( Pf -- Aq ): same as `readLine`, but Answer quote is left even
+   if the user rejected the prompt (in such case it is empty)."
+  readLine or: ''
+] @: ask
+
+
+[ """( ask: Pf -- Aq ): infix version of `ask`.
+
+  ```
+  ask: 'What is your name? ' $: name
+  say: [ ['Nice to meet you, ' name '!'] ~* ]
+  ```
+  """
+  ahead thruVal ask
+] @: ask:
 
 
 [ "( B -- Mt ): leaves Monotonic time difference in milliseconds

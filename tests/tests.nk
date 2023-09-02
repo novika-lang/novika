@@ -9,7 +9,7 @@ Inside the repo root, run:
 needsCapability: ffi
 needsCapability: disk
 
-[ runTestsInGroup: lang "Leaves success/failure boolean." not => okbye
+[ runTestsInGroup: lang "Leaves success/failure boolean." or: okbye
 ] measure $: delta
 
 [ 'Tests took: ' delta 'ms' ] ~* echo

@@ -23,7 +23,7 @@
 
   block pairs: [ $: body $: cond
     cond word? => [ caller child cond << =: cond ]
-    cond block? not => [ [ cond #= ] here =: cond ]
+    cond block? or: [ [ cond #= ] here =: cond ]
     form enclose cond there cherry => [
       body word? => [ body enclose caller reparent =: body ]
       body =: chose

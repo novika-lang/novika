@@ -1,4 +1,4 @@
-'SDL2_ttf' ffi:getLibrary? not => [ 'could not find SDL2_ttf' die ] @: _lib
+'SDL2_ttf' ffi:getLibrary? or: [ 'could not find SDL2_ttf' die ] @: _lib
 
 [
   [ """( -- 0/-1 ): initializes the truetype font API.

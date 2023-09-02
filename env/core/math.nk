@@ -14,9 +14,9 @@ PI 180 / $: PI/180
  Change this if you want more precision."
 0.001 $: EPSILON
 
-[ """( A B -- Min Max ): sorts two decimals, A and B, in
-   ascending (min to max) order. In case A = B, order is
-   unchanged.
+[ """( A B -- L H ): sorts two decimals, A and B, in ascending
+   (Low to High) order. If A = B, the order is unchanged (this
+   is relevant for blocks implementing `__decimal__`).
 
   ```
   1 2 2asc leaves: [ 1 2 ]
@@ -27,9 +27,9 @@ PI 180 / $: PI/180
 ] @: 2asc
 
 
-[ """( A B -- Max Min ): sorts two decimals, A and B, in
-   descending (max to min) order. In case A = B, order is
-   unchanged.
+[ """( A B -- H L ): sorts two decimals, A and B, in descending
+   (High to Low) order. If A = B, the order is unchanged (this
+   is relevant for blocks implementing `__decimal__`).
 
   ```
   1 2 2desc leaves: [ 2 1 ]
@@ -40,7 +40,10 @@ PI 180 / $: PI/180
 ] @: 2desc
 
 
-[ """( A B -- M ): leaves Minimum of two decimals, A and B.
+[ """( A B -- L ): leaves Low (minimum) decimal of the two decimals
+   A and B. If you're curious, the words "high" and "low" are used
+   because "minimum" and "maximum" start with the same letter, which
+   would end up being pretty confusing doc comment-wise.
 
   ```
   3 10 2min leaves: 3
@@ -50,7 +53,10 @@ PI 180 / $: PI/180
 ] @: 2min
 
 
-[ """( A B -- M ): leaves Maximum of two decimals, A and B.
+[ """( A B -- H ): leaves High (maximum) decimal of the two decimals
+   A and B. If you're curious, the words "high" and "low" are used
+   because "minimum" and "maximum" start with the same letter, which
+   would end up being pretty confusing doc comment-wise.
 
   ```
   3 10 2max leaves: 10
@@ -60,15 +66,25 @@ PI 180 / $: PI/180
 ] @: 2max
 
 
-[ "( L H -- N ): generates random Number between Low and
-   High, *including* both Low and High."
+[ "( L H -- D ): generates random Decimal between Low and High,
+   *including* both Low and High."
   "Formula: rand * (max - min) + min"
   1 + over - + rand * trunc
 ] @: randFromTo
 
 
-[ "( L randTo: H -- N ): infix version of `randFromTo`."
-  ahead thruVal randFromTo
+[ """( L randTo: H -- D ): infix version of `randFromTo`.
+
+  ```
+  1 randTo: 100 leaves: [ "a random decimal within [1; 100]" ]
+
+  [ ask: 'L = ' parseDecimal ]
+    randTo: [ ask: 'H = ' parseDecimal ]
+    leaves: [ "a random decimal based on user input"]
+    echo
+  ```
+  """
+  open ahead thruVal randFromTo
 ] @: randTo:
 
 
@@ -126,7 +142,7 @@ PI 180 / $: PI/180
   100 % 100 * leaves: 1
   ```
   """
-  dup zero? not => [ 1 swap / ]
+  dup zero? or: [ 1 swap / ]
 ] @: %
 
 

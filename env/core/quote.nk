@@ -2,7 +2,7 @@
    letter of Quote to uppercase."
   $: qq
 
-  qq quote? not => [
+  qq quote? or: [
     "We could have enquoted it of course, but that would be against
      the language's shaky philosophy of having more-or-less type-
      centric words."
@@ -55,7 +55,7 @@
   [ 'foo = ' foo ] vals join leaves: 'foo = 3'
   ```
   """
-  dup block? not => [ toQuote ^ ]
+  dup block? or: [ toQuote ^ ]
 
   ahead $: caller
 
@@ -76,6 +76,6 @@
   ```
   """
   orphan swap slurp bi:
-    [ count 1 = not => [ 'expected decimal number in quote' die ] ]
+    [ count 1 = or: [ 'expected decimal number in quote' die ] ]
     [ top asDecimal ]
 ] @: parseDecimal

@@ -5,7 +5,7 @@ Sub-apps must expose the following two entries:
 * `beforeExit`: some code to run before quitting
 """
 
-this #template entry:exists? not => [
+this #template entry:exists? or: [
   __preambles__.create echo
 
   0 bye
@@ -15,7 +15,7 @@ this #template entry:exists? not => [
 disk:pwd $: cwd
 
 "Quit if it's not empty..."
-cwd disk:dirEmpty? not => [
+cwd disk:dirEmpty? or: [
   sorry: 'please create an empty directory for your next awesome Novika project, and \'cd\' into it!'
   okbye
 ]

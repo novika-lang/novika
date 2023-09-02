@@ -16,11 +16,11 @@
    '' $: htmlContent
 
   htmlResult htmlBlock hydrate
-  htmlResult empty? not =>
+  htmlResult empty? or:
     [ "Hydration added something to the result block. Figure
        out whether that was a quote."
       htmlResult cherry $: htmlResultTop
-      htmlResultTop quote? not => [ HTML_VAL_ERR htmlResultTop 2die ]
+      htmlResultTop quote? or: [ HTML_VAL_ERR htmlResultTop 2die ]
       htmlResultTop =: htmlContent
     ]
 
@@ -31,7 +31,7 @@
 [ ahead thru $: innerHTML
 
   "Die if the argument isn't a block."
-  innerHTML block? not => [ HTML_ARG_ERR innerHTML 2die ]
+  innerHTML block? or: [ HTML_ARG_ERR innerHTML 2die ]
 
   orphan $: htmlContext
 
@@ -60,10 +60,10 @@
     ahead thru $: argument
 
     tagName 0 fromRight ':' = br:
-      [ argument quote? not => [ HTML_ATTR_ERR argument 2die ]
+      [ argument quote? or: [ HTML_ATTR_ERR argument 2die ]
         tagName dup count 1 - sliceQuoteAt drop $: name
         outer . attrs [ name '="' argument '"' ] ~* shove ]
-      [ argument block? not => [ HTML_ARG_ERR argument 2die ]
+      [ argument block? or: [ HTML_ARG_ERR argument 2die ]
         [ ] $: attrs argument  #attrs    attrs pushes
         argument getHTMLContent $: argumentHTMLContent
 

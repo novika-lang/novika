@@ -61,8 +61,9 @@ _toplevel entry:names* $: _toplevelWords
 
       _toplevel word entry:fetch $: form
 
-      form typedesc anyof: [ 'builtin' 'block' 'foreign struct layout' 'foreign function' ]
-        not => next
+      form typedesc
+        anyof: [ 'builtin' 'block' 'foreign struct layout' 'foreign function' ]
+        or: next
 
       word toQuote [
         'name' word toQuote string property
