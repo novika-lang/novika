@@ -1480,8 +1480,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("fromLeft", <<-END
-      ( B/Q/Bf I -- E ): leaves Index-th Element from the left
-       in Block, Quote, or Byteslice form.
+      ( B/Q/Bf I -- E ): leaves Index-th Element from left in Block,
+       Quote, or Byteslice form.
 
       ```
       [ 1 2 3 ] 0 fromLeft leaves: 1
@@ -1494,8 +1494,8 @@ module Novika::Capabilities::Impl
       end
 
       target.at("fromRight", <<-END
-      ( B/Q/Bf I -- E ): leaves Index-th Element from the right
-       in Block, Quote, or Byteslice form.
+      ( B/Q/Bf I -- E ): leaves Index-th Element from right in Block,
+       Quote, or Byteslice form.
 
       ```
       [ 1 2 3 ] 0 fromRight leaves: 3

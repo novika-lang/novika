@@ -1,0 +1,114 @@
+describe 'bit:fromLeft' [
+  in lang
+
+  it should 'leave the indexth most significant bit, ignores sign' [
+    0b10001 0 bit:fromLeft 1 assert=
+    0b10001 1 bit:fromLeft 0 assert=
+    0b10001 2 bit:fromLeft 0 assert=
+    0b10001 3 bit:fromLeft 0 assert=
+    0b10001 4 bit:fromLeft 1 assert=
+
+    0b10001 flipSign 0 bit:fromLeft 1 assert=
+    0b10001 flipSign 1 bit:fromLeft 0 assert=
+    0b10001 flipSign 2 bit:fromLeft 0 assert=
+    0b10001 flipSign 3 bit:fromLeft 0 assert=
+    0b10001 flipSign 4 bit:fromLeft 1 assert=
+  ]
+
+  it should 'die if decimal has a fractional part' [
+    [ 12.34 0 bit:fromLeft ] 'decimal is not an integer' assertDies
+  ]
+
+  it should 'die if index is invalid' [
+    [ 0b00010001 1000 bit:fromLeft ] 'bit index out of bounds' assertDies
+    [ 0b00010001 -1000 bit:fromLeft ] 'decimal is not a positive integer' assertDies
+    [ 0b00010001 1000.123 bit:fromLeft ] 'decimal is not a positive integer' assertDies
+  ]
+]
+
+
+describe 'bit:fromRight' [
+  in lang
+
+  it should 'leave the indexth least significant bit, ignores sign' [
+    0b00010001 0 bit:fromRight 1 assert=
+    0b00010001 1 bit:fromRight 0 assert=
+    0b00010001 2 bit:fromRight 0 assert=
+    0b00010001 3 bit:fromRight 0 assert=
+    0b00010001 4 bit:fromRight 1 assert=
+    0b00010001 5 bit:fromRight 0 assert=
+    0b00010001 1000 bit:fromRight 0 assert=
+
+    0b10001 flipSign 0 bit:fromRight 1 assert=
+    0b10001 flipSign 1 bit:fromRight 0 assert=
+    0b10001 flipSign 2 bit:fromRight 0 assert=
+    0b10001 flipSign 3 bit:fromRight 0 assert=
+    0b10001 flipSign 4 bit:fromRight 1 assert=
+    0b10001 flipSign 1000 bit:fromRight 0 assert=
+  ]
+
+  it should 'die if decimal has a fractional part' [
+    [ 12.34 0 bit:fromRight ] 'decimal is not an integer' assertDies
+  ]
+
+  it should 'die if index is invalid' [
+    [ 0b00010001 -1000 bit:fromRight ] 'decimal is not a positive integer' assertDies
+    [ 0b00010001 1000.123 bit:fromRight ] 'decimal is not a positive integer' assertDies
+  ]
+]
+
+describe 'bit:count' [
+  in lang
+
+  it should 'leave the number of bits in decimal' [
+    0b00010001 bit:count 5 assert=
+    0xffffffff bit:count 32 assert=
+  ]
+
+  it should 'die if decimal has a fractional part' [
+    [ 12.34 bit:count ] 'decimal is not an integer' assertDies
+  ]
+]
+
+
+describe 'bit:or' [
+  in lang
+
+  it should 'combine two decimals using bitwise or' [
+    0b00010001 0b10001000 bit:or 0b10011001 assert=
+  ]
+
+  it should 'die if any of the decimals has a fractional part' [
+    [ 12.34 100 bit:or ] 'decimal is not an integer' assertDies
+    [ 100 12.34 bit:or ] 'decimal is not an integer' assertDies
+  ]
+]
+
+describe 'bit:and' [
+  in lang
+
+  it should 'combine two decimals using bitwise and' [
+    0b10011001 0b00011000 bit:and 0b00011000 assert=
+  ]
+
+  it should 'die if any of the decimals has a fractional part' [
+    [ 12.34 100 bit:and ] 'decimal is not an integer' assertDies
+    [ 100 12.34 bit:and ] 'decimal is not an integer' assertDies
+  ]
+]
+
+
+describe 'bit:bits/bit:fromBits' [
+  in lang
+
+  it should 'leave bit block of bits in a decimal' [
+    0b00010001 bit:bits $: bits
+    bits orphan? true assert=
+    bits [ 1 0 0 0 1 ] assert=
+  ]
+
+  it should 'leave decimal from a block of bits' [
+    [ 1 0 0 0 1 ] $: bits
+    bits bit:fromBits 0b00010001 assert=
+  ]
+]

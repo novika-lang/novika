@@ -73,7 +73,7 @@ module Novika
 
     # Returns the remainder of this and *other* decimal numbers.
     def %(other : Decimal) : Decimal
-      self - other * (self / other).floor
+      Decimal.new(val % other.val)
     end
 
     # Raises this decimal to the power of *other*.
@@ -93,6 +93,24 @@ module Novika
     # Returns whether this decimal is smaller than *other*.
     def <(other : Decimal) : Bool
       val < other.val
+    end
+
+    # Combines this and *other* decimals using bitwise and.
+    def &(other : Decimal) : Decimal
+      Decimal.new(val.value & other.val.value)
+    end
+
+    # Combines this and *other* decimals using bitwise or.
+    def |(other : Decimal) : Decimal
+      Decimal.new(val.value | other.val.value)
+    end
+
+    # Yields each bit in this decimal.
+    def each_bit(& : Decimal ->)
+      val.value.to_s(2).each_char do |char|
+        next if char == '-'
+        yield Decimal.new(char == '1' ? 1 : 0)
+      end
     end
 
     # Rounds this decimal.
@@ -125,6 +143,25 @@ module Novika
       Decimal.new(Math.sin(val))
     end
 
+    # Returns *n*-th most significant bit
+    def nth_ms_bit?(n : Decimal) : Decimal?
+      str = val.value.to_s(2)
+      nint = n.to_i
+      return unless nint < str.size
+
+      Decimal.new(str[nint + (val.negative? ? 1 : 0)]? == '1' ? 1 : 0)
+    end
+
+    # Returns *n*-th least significant bit
+    def nth_ls_bit(n : Decimal) : Decimal
+      Decimal.new(val.value.abs.bit(n.to_i))
+    end
+
+    # Returns the number of bits in this decimal.
+    def bitcount : Decimal
+      Decimal.new(val.value.bit_length)
+    end
+
     # Asserts this decimal is in one of *ranges*. Dies if it isn't.
     def in(*ranges) : Decimal
       return self if ranges.any? &.includes?(val)
@@ -143,16 +180,28 @@ module Novika
       die(message)
     end
 
+    # Asserts this decimal is an integer. Dies if it isn't.
+    def int : Decimal
+      return self if integer?
+
+      die("decimal is not an integer")
+    end
+
     # Asserts this decimal is a positive integer (i.e., >= 0).
     # Dies if it isn't.
     def posint : Decimal
-      return self if val >= 0 && val == val.to_big_i
+      return self if val >= 0 && integer?
 
       die("decimal is not a positive integer")
     end
 
+    # Returns whether this decimal is an integer.
+    def integer?
+      val.trunc == val
+    end
+
     def to_s(io)
-      io << (val.scale.zero? ? val.value : val)
+      io << (integer? ? val.to_big_i : val)
     end
 
     def_equals_and_hash val
