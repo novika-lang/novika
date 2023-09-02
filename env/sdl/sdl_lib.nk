@@ -711,6 +711,7 @@ Flags used when creating a rendering context
   [ [ SDL_DestroyWindow sdl:destroyWindow ] pointer -- nothing ]
   [ [ SDL_SetWindowTitle sdl:window:setTitle ] pointer cstr -- nothing ]
   [ [ SDL_SetWindowSize sdl:window:setSize ] pointer i32 i32 -- nothing ]
+  [ [ SDL_GetWindowSize sdl:window:putSize ] pointer pointer pointer -- nothing ]
   [ [ SDL_DestroyRenderer sdl:destroyRenderer ] pointer -- nothing ]
   [ [ SDL_RenderCopy sdl:renderCopy ] pointer pointer &sdl:intRect &sdl:intRect -- i32 ]
   [ [ SDL_RenderPresent sdl:renderPresent ] pointer -- nothing ]
@@ -719,6 +720,18 @@ Flags used when creating a rendering context
   [ [ SDL_FreeSurface sdl:freeSurface ] pointer -- nothing ]
   [ [ SDL_Quit sdl:quit ] -- nothing ]
 ] _sdlExport
+
+
+[ "( Wp -- W H ): leaves the Width and Height of the window pointed
+   to by Window pointer."
+  #i32 ffi:hole $: w
+  #i32 ffi:hole $: h
+
+  w h sdl:window:putSize
+
+  w open
+  h open
+] @: sdl:window:size
 
 
 [ """( S -- ): dies with `sdl:error` if Status is negative.

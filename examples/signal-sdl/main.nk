@@ -52,7 +52,7 @@
        having window be undefined vs. defined as null."
       DEFAULT_WINDOW_TITLE (sdl:window:centered sdl:window:centered)
                            (DEFAULT_WINDOW_WIDTH DEFAULT_WINDOW_HEIGHT)
-        0 sdl:createWindow sdl:notNull $: window
+        sdl:window:resizable sdl:createWindow sdl:notNull $: window
 
       window -1 sdl:renderer:accelerated
         sdl:createRenderer sdl:notNull $: renderer
@@ -83,6 +83,7 @@
 
   [] $: inputHandler
   [] $: mouseHandler
+  [] $: resizeHandler
 
   [ sdl:event ffi:allocateUnion $: event
 
@@ -95,6 +96,9 @@
         event.motion.x
         event.motion.y
         2enclose mouseHandler hydrate
+      ]
+      event.type sdl:event:window = => [
+        window sdl:window:size 2enclose resizeHandler hydrate
       ]
 
       renderer 255 255 255 255 sdl:setRenderDrawColor
@@ -198,6 +202,10 @@
     [
       ahead thruBlock =: mouseHandler
     ] @: onMouse:
+
+    [
+      ahead thruBlock =: resizeHandler
+    ] @: onResize:
   ]
 
   sdlInit
@@ -236,5 +244,6 @@ app: [
     ch 's' = => [ h 10 + ~>h ^ ]
     title ch ~ ~>title
   ]
+  onResize: [ ~>h ~>w ]
   onMouse: [ ~>y ~>x ]
 ]
