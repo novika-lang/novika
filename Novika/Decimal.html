@@ -157,6 +157,11 @@
       
         <ul>
   
+  <li class=" " data-id="novika/Novika/Capabilities/Impl/Bit" data-name="novika::capabilities::impl::bit">
+      <a href="../Novika/Capabilities/Impl/Bit.html">Bit</a>
+      
+    </li>
+  
   <li class=" " data-id="novika/Novika/Capabilities/Impl/Colors" data-name="novika::capabilities::impl::colors">
       <a href="../Novika/Capabilities/Impl/Colors.html">Colors</a>
       
@@ -1291,6 +1296,13 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#%26%28other%3ADecimal%29%3ADecimal-instance-method" class="signature"><strong>#&</strong>(other : Decimal) : Decimal</a>
+        
+          <div class="summary"><p>Combines this and <em>other</em> decimals using bitwise and.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#%2A%28other%3ADecimal%29%3ADecimal-instance-method" class="signature"><strong>#*</strong>(other : Decimal) : Decimal</a>
         
           <div class="summary"><p>Returns the product of this and <em>other</em> decimal numbers.</p></div>
@@ -1340,6 +1352,20 @@
       </li>
     
       <li class="entry-summary">
+        <a href="#%7C%28other%3ADecimal%29%3ADecimal-instance-method" class="signature"><strong>#|</strong>(other : Decimal) : Decimal</a>
+        
+          <div class="summary"><p>Combines this and <em>other</em> decimals using bitwise or.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#bitcount%3ADecimal-instance-method" class="signature"><strong>#bitcount</strong> : Decimal</a>
+        
+          <div class="summary"><p>Returns the number of bits in this decimal.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
         <a href="#ceil%3ADecimal-instance-method" class="signature"><strong>#ceil</strong> : Decimal</a>
         
           <div class="summary"><p>Rounds this decimal up.</p></div>
@@ -1357,6 +1383,13 @@
         <a href="#desc%28io%3AIO%29-instance-method" class="signature"><strong>#desc</strong>(io : IO)</a>
         
           <div class="summary"><p>Appends a string description of this form to <em>io</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#each_bit%28%26%3ADecimal-%3E%29-instance-method" class="signature"><strong>#each_bit</strong>(& : Decimal -> )</a>
+        
+          <div class="summary"><p>Yields each bit in this decimal.</p></div>
         
       </li>
     
@@ -1385,6 +1418,34 @@
         <a href="#in%28%2Aranges%29%3ADecimal-instance-method" class="signature"><strong>#in</strong>(*ranges) : Decimal</a>
         
           <div class="summary"><p>Asserts this decimal is in one of <em>ranges</em>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#int%3ADecimal-instance-method" class="signature"><strong>#int</strong> : Decimal</a>
+        
+          <div class="summary"><p>Asserts this decimal is an integer.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#integer%3F-instance-method" class="signature"><strong>#integer?</strong></a>
+        
+          <div class="summary"><p>Returns whether this decimal is an integer.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#nth_ls_bit%28n%3ADecimal%29%3ADecimal-instance-method" class="signature"><strong>#nth_ls_bit</strong>(n : Decimal) : Decimal</a>
+        
+          <div class="summary"><p>Returns <em>n</em>-th least significant bit</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#nth_ms_bit%3F%28n%3ADecimal%29%3ADecimal%7CNil-instance-method" class="signature"><strong>#nth_ms_bit?</strong>(n : Decimal) : Decimal | Nil</a>
+        
+          <div class="summary"><p>Returns <em>n</em>-th most significant bit</p></div>
         
       </li>
     
@@ -1767,6 +1828,25 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="&amp;(other:Decimal):Decimal-instance-method">
+      <div class="signature">
+        
+        def <strong>&</strong>(other : <a href="../Novika/Decimal.html">Decimal</a>) : <a href="../Novika/Decimal.html">Decimal</a>
+
+        <a class="method-permalink" href="#%26%28other%3ADecimal%29%3ADecimal-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Combines this and <em>other</em> decimals using bitwise and.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="*(other:Decimal):Decimal-instance-method">
       <div class="signature">
         
@@ -1904,6 +1984,44 @@
       </div>
     </div>
   
+    <div class="entry-detail" id="|(other:Decimal):Decimal-instance-method">
+      <div class="signature">
+        
+        def <strong>|</strong>(other : <a href="../Novika/Decimal.html">Decimal</a>) : <a href="../Novika/Decimal.html">Decimal</a>
+
+        <a class="method-permalink" href="#%7C%28other%3ADecimal%29%3ADecimal-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Combines this and <em>other</em> decimals using bitwise or.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="bitcount:Decimal-instance-method">
+      <div class="signature">
+        
+        def <strong>bitcount</strong> : <a href="../Novika/Decimal.html">Decimal</a>
+
+        <a class="method-permalink" href="#bitcount%3ADecimal-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns the number of bits in this decimal.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
     <div class="entry-detail" id="ceil:Decimal-instance-method">
       <div class="signature">
         
@@ -1957,6 +2075,25 @@
             </div>
           
           <p>Appends a string description of this form to <em>io</em>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="each_bit(&amp;:Decimal-&gt;)-instance-method">
+      <div class="signature">
+        
+        def <strong>each_bit</strong>(& : <a href="../Novika/Decimal.html">Decimal</a> -> )
+
+        <a class="method-permalink" href="#each_bit%28%26%3ADecimal-%3E%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Yields each bit in this decimal.</p>
         </div>
       
       <br/>
@@ -2037,6 +2174,82 @@
         <div class="doc">
           
           <p>Asserts this decimal is in one of <em>ranges</em>. Dies if it isn't.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="int:Decimal-instance-method">
+      <div class="signature">
+        
+        def <strong>int</strong> : <a href="../Novika/Decimal.html">Decimal</a>
+
+        <a class="method-permalink" href="#int%3ADecimal-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Asserts this decimal is an integer. Dies if it isn't.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="integer?-instance-method">
+      <div class="signature">
+        
+        def <strong>integer?</strong>
+
+        <a class="method-permalink" href="#integer%3F-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns whether this decimal is an integer.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="nth_ls_bit(n:Decimal):Decimal-instance-method">
+      <div class="signature">
+        
+        def <strong>nth_ls_bit</strong>(n : <a href="../Novika/Decimal.html">Decimal</a>) : <a href="../Novika/Decimal.html">Decimal</a>
+
+        <a class="method-permalink" href="#nth_ls_bit%28n%3ADecimal%29%3ADecimal-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns <em>n</em>-th least significant bit</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="nth_ms_bit?(n:Decimal):Decimal|Nil-instance-method">
+      <div class="signature">
+        
+        def <strong>nth_ms_bit?</strong>(n : <a href="../Novika/Decimal.html">Decimal</a>) : <a href="../Novika/Decimal.html">Decimal</a> | Nil
+
+        <a class="method-permalink" href="#nth_ms_bit%3F%28n%3ADecimal%29%3ADecimal%7CNil-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Returns <em>n</em>-th most significant bit</p>
         </div>
       
       <br/>
