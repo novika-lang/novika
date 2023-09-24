@@ -7,7 +7,7 @@ module Novika::Capabilities::Impl
     end
 
     def self.purpose : String
-      "allows to interpret decimals as sequences of bits and manipulate those bits"
+      "allows to interpret decimals as sequences of bits"
     end
 
     def self.on_by_default? : Bool

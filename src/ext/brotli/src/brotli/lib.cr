@@ -2,7 +2,7 @@ module Compress::Brotli
   {% if flag?(:windows) %}
     @[Link(ldflags: "\"/LIBPATH:#{__DIR__}\\..\\..\\..\" brotlicommon-static.lib brotlidec-static.lib brotlienc-static.lib")]
   {% else %}
-    @[Link(ldflags: "-L#{__DIR__}/../../../ -lbrotlidec -lbrotlienc -lbrotlicommon")]
+    @[Link(ldflags: "-L#{__DIR__}/../../../ -lm -lbrotlidec -lbrotlienc -lbrotlicommon")]
   {% end %}
   lib LibBrotli
     alias Uint8T = UInt8

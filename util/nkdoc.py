@@ -257,7 +257,8 @@ class ZygoteWord(DictEq):
     # with simple ' '.
     inline_markdown = RE_WS.sub(' ', self.markdown)
     # Use the first sentence of the markdown as the primer.
-    primer = nltk.sent_tokenize(inline_markdown)[0]
+    primer = nltk.sent_tokenize(inline_markdown)
+    primer = '' if len(primer) == 0 else primer[0]
     return NLProcessorWord(self, ' '.join(datum.strip() for datum in corpus), primer, outbound)
 
   def __repr__(self):
