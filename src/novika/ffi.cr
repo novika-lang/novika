@@ -933,18 +933,16 @@ module Novika::FFI
     # Similar to `exec_recursive`, but instead of using object_id
     # (which is not available nor useful here), uses the handle
     # pointer (which is the same thing as object_id but "viewed
-    # from the side").
+    # from outside").
     private def exec_recursive_by_handle(method, &)
       hash = Reference::ExecRecursive.hash
       key = {@handle.address, method}
-      if hash[key]?
-        false
-      else
-        hash[key] = true
+      hash.put(key, nil) do
         yield
         hash.delete(key)
-        true
+        return true
       end
+      false
     end
 
     def ==(other : StructReferenceView)

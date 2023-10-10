@@ -29,6 +29,6 @@ development_dependencies:
   ameba:
     github: crystal-ameba/ameba
 
-crystal: ">= 1.9.0"
+crystal: ">= 1.10.0"
 
 license: MIT

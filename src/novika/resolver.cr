@@ -232,7 +232,7 @@ module Novika::Resolver
     #
     # Raises if *path* doesn't point to a file.
     def read(path : Path) : String?
-      @content[path] ||= File.read(path)
+      @content.put_if_absent(path) { File.read(path) }
     end
 
     # Yields writable `IO` for the file that *path* points to. The
@@ -696,7 +696,7 @@ module Novika::Resolver
 
       each do |resolution|
         resolution.each_dependency do |dependency|
-          set = map[dependency] ||= ResolutionSet.new
+          set = map.put_if_absent(dependency) { ResolutionSet.new }
           set.append(resolution)
         end
       end
@@ -718,13 +718,13 @@ module Novika::Resolver
         next if resolution.in?(visited)
         return unless container = root.containerof?(group)
 
-        set = designations[container.env] ||= ResolutionSet.new
+        set = designations.put_if_absent(container.env) { ResolutionSet.new }
         set.append(resolution)
 
         visited << resolution
       end
 
-      default = designations[root.default_env] ||= ResolutionSet.new
+      default = designations.put_if_absent(root.default_env) { ResolutionSet.new }
 
       each do |resolution|
         next if resolution.in?(visited)
@@ -2576,7 +2576,7 @@ module Novika::Resolver
     # as a consequence, all runnable containers that have no environments
     # will share one pathless runnable environment.
     def defenv(path : Path?)
-      @envs[path] ||= RunnableEnvironment.new(self, path)
+      @envs.put_if_absent(path) { RunnableEnvironment.new(self, path) }
     end
 
     # Returns the default runnable environment.
@@ -2607,7 +2607,7 @@ module Novika::Resolver
       if overwrite
         @containers[group] = container
       else
-        @containers[group] ||= container
+        @containers.put_if_absent(group, container)
       end
     end
 
@@ -2815,7 +2815,9 @@ module Novika::Resolver
     # Queries (possibly prompts) and returns the permission state of
     # *dependency* for the given *container*.
     def query_permission?(container : RunnableContainer, dependency : Resolution::Dependency)
-      @permissions[dependency.signature(container)] ||= dependency.prompt?(self, for: container)
+      @permissions.put_if_absent(dependency.signature(container)) do
+        dependency.prompt?(self, for: container)
+      end
     end
   end
 
