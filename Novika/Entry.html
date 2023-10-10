@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.8.2">
+<meta name="generator" content="Crystal Docs 1.9.2">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -23,7 +23,7 @@
 
 <svg class="hidden">
   <symbol id="octicon-link" viewBox="0 0 16 16">
-    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
   </symbol>
 </svg>
 <input type="checkbox" id="sidebar-btn">
@@ -652,11 +652,6 @@
       
     </li>
   
-  <li class=" " data-id="novika/Novika/OpenEntry" data-name="novika::openentry">
-      <a href="../Novika/OpenEntry.html">OpenEntry</a>
-      
-    </li>
-  
   <li class="parent " data-id="novika/Novika/Quote" data-name="novika::quote">
       <a href="../Novika/Quote.html">Quote</a>
       
@@ -1166,7 +1161,7 @@
 <div class="main-content">
 <h1 class="type-name">
 
-  <span class="kind">class</span> Novika::Entry
+  <span class="kind">class</span> Novika::<wbr>Entry
 
 </h1>
 
@@ -1210,20 +1205,6 @@ value form.</p>
 
 
 
-  <h2>
-    <a id="direct-known-subclasses" class="anchor" href="#direct-known-subclasses">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Direct Known Subclasses
-  </h2>
-  <ul class="other-types-list">
-    
-      <li class="other-type"><a href="../Novika/OpenEntry.html">Novika::OpenEntry</a></li>
-    
-  </ul>
-
 
 
 
@@ -1259,7 +1240,7 @@ value form.</p>
   <ul class="list-summary">
     
       <li class="entry-summary">
-        <a href="#new%28form%3ANovika%3A%3AForm%29-class-method" class="signature"><strong>.new</strong>(form : Novika::Form)</a>
+        <a href="#new%28form%3AForm%2Copener%3ABool%3Dfalse%29-class-method" class="signature"><strong>.new</strong>(form : Form, opener : Bool = <span class="n">false</span>)</a>
         
       </li>
     
@@ -1289,21 +1270,15 @@ value form.</p>
       <li class="entry-summary">
         <a href="#effect%28%2Aargs%2C%2A%2Aoptions%29-instance-method" class="signature"><strong>#effect</strong>(*args, **options)</a>
         
-          <div class="summary"><p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p></div>
-        
       </li>
     
       <li class="entry-summary">
         <a href="#effect%28%2Aargs%2C%2A%2Aoptions%2C%26%29-instance-method" class="signature"><strong>#effect</strong>(*args, **options, &)</a>
         
-          <div class="summary"><p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p></div>
-        
       </li>
     
       <li class="entry-summary">
-        <a href="#form%3AForm-instance-method" class="signature"><strong>#form</strong> : Form</a>
-        
-          <div class="summary"><p>Returns the form currently held by this entry.</p></div>
+        <a href="#form%3ANovika%3A%3AForm-instance-method" class="signature"><strong>#form</strong> : Novika::Form</a>
         
       </li>
     
@@ -1317,28 +1292,39 @@ value form.</p>
       <li class="entry-summary">
         <a href="#on_open%28engine%3AEngine%29%3ANil-instance-method" class="signature"><strong>#on_open</strong>(engine : Engine) : Nil</a>
         
-          <div class="summary"><p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p></div>
-        
       </li>
     
       <li class="entry-summary">
         <a href="#onto%28%2Aargs%2C%2A%2Aoptions%29-instance-method" class="signature"><strong>#onto</strong>(*args, **options)</a>
-        
-          <div class="summary"><p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p></div>
         
       </li>
     
       <li class="entry-summary">
         <a href="#onto%28%2Aargs%2C%2A%2Aoptions%2C%26%29-instance-method" class="signature"><strong>#onto</strong>(*args, **options, &)</a>
         
-          <div class="summary"><p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p></div>
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#opener%3F%3ABool-instance-method" class="signature"><strong>#opener?</strong> : Bool</a>
         
       </li>
     
       <li class="entry-summary">
-        <a href="#submit%28form%3ANovika%3A%3AForm%29%3Aself-instance-method" class="signature"><strong>#submit</strong>(form : Novika::Form) : <span class="k">self</span></a>
+        <a href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule</strong>(engine : Engine, stack : Block)</a>
         
-          <div class="summary"><p>Makes <em>form</em> the value form of this entry.</p></div>
+          <div class="summary"><p>Safe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method" class="signature"><strong>#schedule!</strong>(engine : Engine, stack : Block)</a>
+        
+          <div class="summary"><p>Unsafe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#submit%28form%3ANovika%3A%3AForm%29-instance-method" class="signature"><strong>#submit</strong>(form : Novika::Form)</a>
         
       </li>
     
@@ -1406,12 +1392,12 @@ value form.</p>
     Constructor Detail
   </h2>
   
-    <div class="entry-detail" id="new(form:Novika::Form)-class-method">
+    <div class="entry-detail" id="new(form:Form,opener:Bool=false)-class-method">
       <div class="signature">
         
-        def self.<strong>new</strong>(form : <a href="../Novika/Form.html">Novika::Form</a>)
+        def self.<strong>new</strong>(form : <a href="../Novika/Form.html">Form</a>, opener : Bool = <span class="n">false</span>)
 
-        <a class="method-permalink" href="#new%28form%3ANovika%3A%3AForm%29-class-method">#</a>
+        <a class="method-permalink" href="#new%28form%3AForm%2Copener%3ABool%3Dfalse%29-class-method">#</a>
       </div>
       
       <br/>
@@ -1465,11 +1451,6 @@ value form.</p>
         <a class="method-permalink" href="#effect%28%2Aargs%2C%2A%2Aoptions%29-instance-method">#</a>
       </div>
       
-        <div class="doc">
-          
-          <p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p>
-        </div>
-      
       <br/>
       <div>
         
@@ -1484,29 +1465,19 @@ value form.</p>
         <a class="method-permalink" href="#effect%28%2Aargs%2C%2A%2Aoptions%2C%26%29-instance-method">#</a>
       </div>
       
-        <div class="doc">
-          
-          <p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p>
-        </div>
-      
       <br/>
       <div>
         
       </div>
     </div>
   
-    <div class="entry-detail" id="form:Form-instance-method">
+    <div class="entry-detail" id="form:Novika::Form-instance-method">
       <div class="signature">
         
-        def <strong>form</strong> : <a href="../Novika/Form.html">Form</a>
+        def <strong>form</strong> : <a href="../Novika/Form.html">Novika::Form</a>
 
-        <a class="method-permalink" href="#form%3AForm-instance-method">#</a>
+        <a class="method-permalink" href="#form%3ANovika%3A%3AForm-instance-method">#</a>
       </div>
-      
-        <div class="doc">
-          
-          <p>Returns the form currently held by this entry.</p>
-        </div>
       
       <br/>
       <div>
@@ -1545,11 +1516,6 @@ value form.</p>
         <a class="method-permalink" href="#on_open%28engine%3AEngine%29%3ANil-instance-method">#</a>
       </div>
       
-        <div class="doc">
-          
-          <p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p>
-        </div>
-      
       <br/>
       <div>
         
@@ -1563,11 +1529,6 @@ value form.</p>
 
         <a class="method-permalink" href="#onto%28%2Aargs%2C%2A%2Aoptions%29-instance-method">#</a>
       </div>
-      
-        <div class="doc">
-          
-          <p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p>
-        </div>
       
       <br/>
       <div>
@@ -1583,9 +1544,45 @@ value form.</p>
         <a class="method-permalink" href="#onto%28%2Aargs%2C%2A%2Aoptions%2C%26%29-instance-method">#</a>
       </div>
       
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="opener?:Bool-instance-method">
+      <div class="signature">
+        
+        def <strong>opener?</strong> : Bool
+
+        <a class="method-permalink" href="#opener%3F%3ABool-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="schedule(engine:Engine,stack:Block)-instance-method">
+      <div class="signature">
+        
+        def <strong>schedule</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
+
+        <a class="method-permalink" href="#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
+      </div>
+      
         <div class="doc">
           
-          <p>See the same method in <code><a href="../Novika/Form.html">Form</a></code>.</p>
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Schedulable.html">Novika::Schedulable</a>
+            </div>
+          
+          <p>Safe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>. Schedules this form for opening (aka
+execution or evaluation) in <em>engine</em>, or opens it
+immediately (see <code><a href="../Novika/Schedulable/ShouldOpenWhenScheduled.html">ShouldOpenWhenScheduled</a></code>).</p>
+<p>See <code><a href="../Novika/Engine.html">Engine</a></code> to learn about the difference between <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>,
+<code><a href="../Novika/Entry.html#on_open%28engine%3AEngine%29%3ANil-instance-method">#on_open</a></code>, and <code>on_parent_open</code>.</p>
         </div>
       
       <br/>
@@ -1594,18 +1591,42 @@ value form.</p>
       </div>
     </div>
   
-    <div class="entry-detail" id="submit(form:Novika::Form):self-instance-method">
+    <div class="entry-detail" id="schedule!(engine:Engine,stack:Block)-instance-method">
       <div class="signature">
         
-        def <strong>submit</strong>(form : <a href="../Novika/Form.html">Novika::Form</a>) : <span class="k">self</span>
+        def <strong>schedule!</strong>(engine : <a href="../Novika/Engine.html">Engine</a>, stack : <a href="../Novika/Block.html">Block</a>)
 
-        <a class="method-permalink" href="#submit%28form%3ANovika%3A%3AForm%29%3Aself-instance-method">#</a>
+        <a class="method-permalink" href="#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#</a>
       </div>
       
         <div class="doc">
           
-          <p>Makes <em>form</em> the value form of this entry.</p>
+            <div class="doc-inherited">
+              Description copied from module <a href="../Novika/Schedulable.html">Novika::Schedulable</a>
+            </div>
+          
+          <p>Unsafe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>. Use <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code> unless you have instantiated
+this form yourself, or know what you're doing.</p>
+<p>Override this if you want to implement both safe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>
+and unsafe <code><a href="../Novika/Entry.html#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule!</a></code> for your form type: safe <code><a href="../Novika/Entry.html#schedule%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule</a></code>
+simply delegates to <code><a href="../Novika/Entry.html#schedule%21%28engine%3AEngine%2Cstack%3ABlock%29-instance-method">#schedule!</a></code> unless it is explicitly
+overridden.</p>
+<p>By default, simply pushes this form onto <em>stack</em>.</p>
         </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="submit(form:Novika::Form)-instance-method">
+      <div class="signature">
+        
+        def <strong>submit</strong>(form : <a href="../Novika/Form.html">Novika::Form</a>)
+
+        <a class="method-permalink" href="#submit%28form%3ANovika%3A%3AForm%29-instance-method">#</a>
+      </div>
       
       <br/>
       <div>
