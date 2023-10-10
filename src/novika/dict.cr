@@ -172,35 +172,31 @@ module Novika
   class Entry
     include Schedulable
 
-    # Returns the form currently held by this entry.
-    getter form : Form
+    getter? opener
+    getter form
 
-    def initialize(@form)
+    def initialize(@form : Form, @opener = false)
     end
 
-    # See the same method in `Form`.
-    delegate :effect, :onto, to: form
+    delegate :effect, :onto, to: @form
 
-    # :ditto:
     def on_open(engine : Engine) : Nil
-      onto(engine.stack)
-
-      nil
+      @opener ? @form.on_open(engine) : onto(engine.stack)
     end
 
-    # Makes *form* the value form of this entry.
-    def submit(@form) : self
+    def schedule(engine : Engine, stack : Block)
+      @opener ? @form.schedule(engine, stack) : super
+    end
+
+    def schedule!(engine : Engine, stack : Block)
+      @opener ? @form.schedule!(engine, stack) : super
+    end
+
+    def submit(@form)
       self
     end
 
-    def_equals_and_hash form
-  end
-
-  # A kind of entry that, when opened, in turn opens its
-  # value form.
-  class OpenEntry < Entry
-    # See the same method in `Form`.
-    delegate :on_open, :schedule, :schedule!, to: form
+    def_equals_and_hash @form, @opener
   end
 
   # Implementors act like a form-to-form mapping where entry

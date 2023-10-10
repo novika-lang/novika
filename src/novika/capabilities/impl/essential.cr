@@ -951,7 +951,7 @@ module Novika::Capabilities::Impl
         form = stack.drop
         name = stack.drop
         block = stack.drop.a(Block)
-        block.at name, OpenEntry.new(form)
+        block.at name, Entry.new(form, opener: true)
       end
 
       target.at("entry:submit", <<-END
@@ -1113,7 +1113,7 @@ module Novika::Capabilities::Impl
         end
 
         entry = store.entry_for(name)
-        if entry.is_a?(OpenEntry)
+        if entry.opener?
           caller.inject(Word.new("open"))
         end
 

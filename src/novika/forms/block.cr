@@ -968,7 +968,7 @@ module Novika
     end
 
     def opener?(name : Form) : Bool
-      entry_for(name).is_a?(OpenEntry)
+      entry_for(name).opener?
     end
 
     def pusher?(name : Form) : Bool
@@ -1009,7 +1009,7 @@ module Novika
 
     # :ditto:
     def at(name : String, desc = "a builtin", &code : Engine, Block ->) : self
-      at Word.new(name), OpenEntry.new Builtin.new(name, desc, code)
+      at Word.new(name), Entry.new(Builtin.new(name, desc, code), opener: true)
     end
 
     # Yields forms from left to right until the block returns `true`
@@ -1326,7 +1326,7 @@ module Novika
         if has_dict? && !dict.empty?
           io << " ·"
           dict.each do |name, entry|
-            io << " " << (entry.is_a?(OpenEntry) ? "@" : "$") << "{" << name << " :: "
+            io << " " << (entry.opener? ? "@" : "$") << "{" << name << " :: "
             entry.effect(io)
             io << "}"
           end

@@ -54,7 +54,7 @@ module Novika::Capabilities
       def suggest?(word : String, prior : String) : {Quote, Block}?
         return unless entry = @carrier.entry_for?(SUGGEST)
 
-        if entry.is_a?(OpenEntry)
+        if entry.opener?
           # If entry is an opener entry, we should get the title and
           # the results from the stack.
           stack = Block.with(Quote.new(prior), Quote.new(word))

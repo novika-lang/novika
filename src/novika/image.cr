@@ -405,14 +405,14 @@ module Novika
     def melt(assembler, block)
       k = key.not_nil!.to_form(assembler)
       v = value.not_nil!.to_form(assembler)
-      block.at(k, (opens ? OpenEntry : Entry).new(v))
+      block.at(k, Entry.new(v, opens))
     end
 
     def self.new(key : Form, entry : Entry)
       frozen = new
       frozen.key = TypedSnapshot.new(key)
       frozen.value = TypedSnapshot.new(entry.form)
-      frozen.opens = entry.is_a?(OpenEntry)
+      frozen.opens = entry.opener?
       frozen
     end
   end

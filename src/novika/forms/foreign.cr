@@ -515,7 +515,7 @@ module Novika
       # blocks work: they "inherit" their doc comment from their prototype.
       fn = ForeignFunction.new(self, ffi_fn, fdecl.prototype.comment?)
 
-      this.at(opener_name, OpenEntry.new(fn))
+      this.at(opener_name, Entry.new(fn, opener: true))
     end
 
     def on_open(engine : Engine) : self
