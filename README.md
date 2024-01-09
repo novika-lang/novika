@@ -41,6 +41,15 @@ And the syntax of Novika? Well, there is no syntax. That is to say, almost no sy
 
 ## Examples
 
+A quine:
+
+```novika
+[ 'Some payload here perhaps?' ]
+this
+each:
+echo
+```
+
 Hello World:
 
 ```novika
@@ -49,7 +58,7 @@ Hello World:
 
 ---
 
-Factorial. Note that parentheses `()` do not mean anything in Novika. They're like single-character comments.
+Factorial. Note that parentheses `()` are treated as whitespace in Novika. They also don't have to be matched.
 
 ```novika
 (5 to: 1) product "120"
@@ -335,16 +344,18 @@ Voilá! It does rotate: `1 2 3 -- 2 3 1`.
 
 Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: *is a friend of*, and *is **the** parent of*.
 
-- Blocks can have only one *parent*, or no parents.
+- Blocks can have zero or one *parent*.
 - Blocks can have zero or more *friends*.
 
 Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how, which, and whose entries are looked up and opened.
 
-Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...)
+Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...) that roughly goes as follows:
 
-For instance, first, *is the parent of* relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as *the first echelon* in Novika.
+- *Is the parent of* relationships of block A are traversed;
+- A's friends are traversed;
+- The friends of A's parents are traversed.
 
-*The second echelon* is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.
+Together they are known as *the first echelon* in Novika. Then *the second echelon* — parents, friends, and friends of parents of the first echelon — is explored. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered. In general, you can look at the numerous A\* or Dijkstra pathfinding visualizations over at YouTube to see how such traversal might look like. Although the visualizations won't directly apply to Novika, they're still super helpful.
 
 <br clear="right"/>
 
@@ -353,8 +364,8 @@ For instance, first, *is the parent of* relationships of block A are traversed, 
 [ 200 $: y ] obj $: definesY
 
 """
-Establish a cyclic relationship (parentheses are like comments,
-they don't mean anything and don't have to be matched):
+Establish a cyclic relationship (remember that parentheses are
+treated as whitespace!)
 """
 (definesX -- definesY -- definesX) drop
 
@@ -429,7 +440,7 @@ In the code block, the cursor is kept immediately after the form that is being o
   1 2 sneakyPeaky 3 4  "STDOUT: [ 1 2 sneakyPeaky | 3 4 ]"
   ```
 
-Finally, the *continuations block* is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type `conts shallowCopy each: echo` in the REPL. Do not forget `shallowCopy`, or the language will gain consciousness — and this never ends well!! :)
+Finally, the *continuations block* is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type `conts shallowCopy each: echo` in the REPL. Do not forget `shallowCopy`, or the language will gain consciousness — and this never ends well!!! :)
 
 ```novika
 [ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
