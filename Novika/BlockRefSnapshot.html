@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.9.2">
+<meta name="generator" content="Crystal Docs 1.10.1">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -1320,6 +1320,34 @@ the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.<
 
 
   <h2>
+    <a id="macro-summary" class="anchor" href="#macro-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Macro Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#novika_block_ref_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro" class="signature"><strong>novika_block_ref_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>A unique, integer id-based reference to a block found in the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#novika_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro" class="signature"><strong>novika_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)</a>
+        
+          <div class="summary"><p>A unique, integer id-based reference to a block found in the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
+  <h2>
     <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -1357,34 +1385,6 @@ the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.<
 
 
 
-  <h2>
-    <a id="macro-summary" class="anchor" href="#macro-summary">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Macro Summary
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#novika_block_ref_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro" class="signature"><strong>novika_block_ref_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)</a>
-        
-          <div class="summary"><p>A unique, integer id-based reference to a block found in the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#novika_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro" class="signature"><strong>novika_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)</a>
-        
-          <div class="summary"><p>A unique, integer id-based reference to a block found in the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p></div>
-        
-      </li>
-    
-  </ul>
-
-
-
 <div class="methods-inherited">
   
     
@@ -1414,6 +1414,18 @@ the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.<
   
 
 
+    
+
+  <h3>Macros inherited from class <code><a href="../Novika/Snapshot.html">Novika::Snapshot</a></code></h3>
+  
+  
+    <a href="../Novika/Snapshot.html#novika_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro" class="tooltip">
+      <span>novika_snapshot(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)</span>
+    novika_snapshot</a>
+    
+  
+
+
   
     
 
@@ -1424,17 +1436,26 @@ the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.<
     
 
 
-  
-    
-
-
-    
-
-
     
 
 
   
+    
+
+
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
     
 
 
@@ -1503,6 +1524,60 @@ the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.<
         def self.<strong>bit_fields</strong>
 
         <a class="method-permalink" href="#bit_fields-class-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>A unique, integer id-based reference to a block found in
+the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p>
+<p>Its type is <code><a href="../Novika/SnapshotType.html#BlockRef">SnapshotType::BlockRef</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>
+    <a id="macro-detail" class="anchor" href="#macro-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Macro Detail
+  </h2>
+  
+    <div class="entry-detail" id="novika_block_ref_snapshot(name,onlyif=nil,verify=nil,value=nil)-macro">
+      <div class="signature">
+        
+        macro <strong>novika_block_ref_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#novika_block_ref_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>A unique, integer id-based reference to a block found in
+the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p>
+<p>Its type is <code><a href="../Novika/SnapshotType.html#BlockRef">SnapshotType::BlockRef</a></code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="novika_snapshot(name,onlyif=nil,verify=nil,value=nil)-macro">
+      <div class="signature">
+        
+        macro <strong>novika_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)
+
+        <a class="method-permalink" href="#novika_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro">#</a>
       </div>
       
         <div class="doc">
@@ -1591,60 +1666,6 @@ in <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p>
 
         <a class="method-permalink" href="#to_form%28assembler%29-instance-method">#</a>
       </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-
-
-
-  <h2>
-    <a id="macro-detail" class="anchor" href="#macro-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Macro Detail
-  </h2>
-  
-    <div class="entry-detail" id="novika_block_ref_snapshot(name,onlyif=nil,verify=nil,value=nil)-macro">
-      <div class="signature">
-        
-        macro <strong>novika_block_ref_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)
-
-        <a class="method-permalink" href="#novika_block_ref_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>A unique, integer id-based reference to a block found in
-the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p>
-<p>Its type is <code><a href="../Novika/SnapshotType.html#BlockRef">SnapshotType::BlockRef</a></code>.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="novika_snapshot(name,onlyif=nil,verify=nil,value=nil)-macro">
-      <div class="signature">
-        
-        macro <strong>novika_snapshot</strong>(name, onlyif = <span class="n">nil</span>, verify = <span class="n">nil</span>, value = <span class="n">nil</span>)
-
-        <a class="method-permalink" href="#novika_snapshot%28name%2Conlyif%3Dnil%2Cverify%3Dnil%2Cvalue%3Dnil%29-macro">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>A unique, integer id-based reference to a block found in
-the one-and-only <code><a href="../Novika/BlockPool.html">BlockPool</a></code>.</p>
-<p>Its type is <code><a href="../Novika/SnapshotType.html#BlockRef">SnapshotType::BlockRef</a></code>.</p>
-        </div>
       
       <br/>
       <div>

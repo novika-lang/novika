@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.9.2">
+<meta name="generator" content="Crystal Docs 1.10.1">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -1346,88 +1346,6 @@ blocks pivoted at <code><a href="../Novika/BlockPool.html#pivot%3AUInt64-instanc
 
 
   <h2>
-    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Instance Method Summary
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#__format__%3AIO%3A%3AByteFormat-instance-method" class="signature"><strong>#__format__</strong> : IO::ByteFormat</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#blocks%3AArray%28FrozenBlock%29-instance-method" class="signature"><strong>#blocks</strong> : Array(FrozenBlock)</a>
-        
-          <div class="summary"><p>Lists the frozen blocks in this pool.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#blocks%3D%28blocks%3AArray%28FrozenBlock%29%29-instance-method" class="signature"><strong>#blocks=</strong>(blocks : Array(FrozenBlock))</a>
-        
-          <div class="summary"><p>Lists the frozen blocks in this pool.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#cb%3AUInt64-instance-method" class="signature"><strong>#cb</strong> : UInt64</a>
-        
-          <div class="summary"><p>Holds the capability block id.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#cb%3D%28cb%3AUInt64%29-instance-method" class="signature"><strong>#cb=</strong>(cb : UInt64)</a>
-        
-          <div class="summary"><p>Holds the capability block id.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#count%3AUInt64-instance-method" class="signature"><strong>#count</strong> : UInt64</a>
-        
-          <div class="summary"><p>Holds the amount of blocks in this pool.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#count%3D%28count%3AUInt64%29-instance-method" class="signature"><strong>#count=</strong>(count : UInt64)</a>
-        
-          <div class="summary"><p>Holds the amount of blocks in this pool.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#pivot%3AUInt64-instance-method" class="signature"><strong>#pivot</strong> : UInt64</a>
-        
-          <div class="summary"><p>Holds the pivot block id.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#pivot%3D%28pivot%3AUInt64%29-instance-method" class="signature"><strong>#pivot=</strong>(pivot : UInt64)</a>
-        
-          <div class="summary"><p>Holds the pivot block id.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#to_block%28caps%3ACapabilityCollection%29-instance-method" class="signature"><strong>#to_block</strong>(caps : CapabilityCollection)</a>
-        
-          <div class="summary"><p>Reconstructs (melts if necessary) the pivot block, its block hierarchy, its forms etc.</p></div>
-        
-      </li>
-    
-  </ul>
-
-
-
-  <h2>
     <a id="macro-summary" class="anchor" href="#macro-summary">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -1567,6 +1485,88 @@ blocks pivoted at <code><a href="../Novika/BlockPool.html#pivot%3AUInt64-instanc
 
 
 
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#__format__%3AIO%3A%3AByteFormat-instance-method" class="signature"><strong>#__format__</strong> : IO::ByteFormat</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#blocks%3AArray%28FrozenBlock%29-instance-method" class="signature"><strong>#blocks</strong> : Array(FrozenBlock)</a>
+        
+          <div class="summary"><p>Lists the frozen blocks in this pool.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#blocks%3D%28blocks%3AArray%28FrozenBlock%29%29-instance-method" class="signature"><strong>#blocks=</strong>(blocks : Array(FrozenBlock))</a>
+        
+          <div class="summary"><p>Lists the frozen blocks in this pool.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cb%3AUInt64-instance-method" class="signature"><strong>#cb</strong> : UInt64</a>
+        
+          <div class="summary"><p>Holds the capability block id.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#cb%3D%28cb%3AUInt64%29-instance-method" class="signature"><strong>#cb=</strong>(cb : UInt64)</a>
+        
+          <div class="summary"><p>Holds the capability block id.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#count%3AUInt64-instance-method" class="signature"><strong>#count</strong> : UInt64</a>
+        
+          <div class="summary"><p>Holds the amount of blocks in this pool.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#count%3D%28count%3AUInt64%29-instance-method" class="signature"><strong>#count=</strong>(count : UInt64)</a>
+        
+          <div class="summary"><p>Holds the amount of blocks in this pool.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pivot%3AUInt64-instance-method" class="signature"><strong>#pivot</strong> : UInt64</a>
+        
+          <div class="summary"><p>Holds the pivot block id.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#pivot%3D%28pivot%3AUInt64%29-instance-method" class="signature"><strong>#pivot=</strong>(pivot : UInt64)</a>
+        
+          <div class="summary"><p>Holds the pivot block id.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_block%28caps%3ACapabilityCollection%29-instance-method" class="signature"><strong>#to_block</strong>(caps : CapabilityCollection)</a>
+        
+          <div class="summary"><p>Reconstructs (melts if necessary) the pivot block, its block hierarchy, its forms etc.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
 <div class="methods-inherited">
   
     
@@ -1578,17 +1578,26 @@ blocks pivoted at <code><a href="../Novika/BlockPool.html#pivot%3AUInt64-instanc
     
 
 
-  
-    
-
-
-    
-
-
     
 
 
   
+    
+
+
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
     
 
 
@@ -1665,213 +1674,6 @@ the way of dictionary/tape content.</p>
 and an id reference to the pivot block in that list.</p>
 <p>Block pools can be assembled back into a hierarchy of
 blocks pivoted at <code><a href="../Novika/BlockPool.html#pivot%3AUInt64-instance-method">#pivot</a></code> using <code>melt</code>.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-
-
-
-  <h2>
-    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Instance Method Detail
-  </h2>
-  
-    <div class="entry-detail" id="__format__:IO::ByteFormat-instance-method">
-      <div class="signature">
-        
-        def <strong>__format__</strong> : IO::ByteFormat
-
-        <a class="method-permalink" href="#__format__%3AIO%3A%3AByteFormat-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="blocks:Array(FrozenBlock)-instance-method">
-      <div class="signature">
-        
-        def <strong>blocks</strong> : <a href="../Array.html">Array</a>(<a href="../Novika/FrozenBlock.html">FrozenBlock</a>)
-
-        <a class="method-permalink" href="#blocks%3AArray%28FrozenBlock%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Lists the frozen blocks in this pool.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="blocks=(blocks:Array(FrozenBlock))-instance-method">
-      <div class="signature">
-        
-        def <strong>blocks=</strong>(blocks : <a href="../Array.html">Array</a>(<a href="../Novika/FrozenBlock.html">FrozenBlock</a>))
-
-        <a class="method-permalink" href="#blocks%3D%28blocks%3AArray%28FrozenBlock%29%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Lists the frozen blocks in this pool.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="cb:UInt64-instance-method">
-      <div class="signature">
-        
-        def <strong>cb</strong> : UInt64
-
-        <a class="method-permalink" href="#cb%3AUInt64-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the capability block id. Even though during serialization,
-capability block is skipped (as serializing it would be of no
-particular use), its id is still stored so that client-side
-(nki-side), it can be replaced with the client capability
-block, hopefully with all necessary capabilities.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="cb=(cb:UInt64)-instance-method">
-      <div class="signature">
-        
-        def <strong>cb=</strong>(cb : UInt64)
-
-        <a class="method-permalink" href="#cb%3D%28cb%3AUInt64%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the capability block id. Even though during serialization,
-capability block is skipped (as serializing it would be of no
-particular use), its id is still stored so that client-side
-(nki-side), it can be replaced with the client capability
-block, hopefully with all necessary capabilities.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="count:UInt64-instance-method">
-      <div class="signature">
-        
-        def <strong>count</strong> : UInt64
-
-        <a class="method-permalink" href="#count%3AUInt64-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the amount of blocks in this pool.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="count=(count:UInt64)-instance-method">
-      <div class="signature">
-        
-        def <strong>count=</strong>(count : UInt64)
-
-        <a class="method-permalink" href="#count%3D%28count%3AUInt64%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the amount of blocks in this pool.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="pivot:UInt64-instance-method">
-      <div class="signature">
-        
-        def <strong>pivot</strong> : UInt64
-
-        <a class="method-permalink" href="#pivot%3AUInt64-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the pivot block id.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="pivot=(pivot:UInt64)-instance-method">
-      <div class="signature">
-        
-        def <strong>pivot=</strong>(pivot : UInt64)
-
-        <a class="method-permalink" href="#pivot%3D%28pivot%3AUInt64%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the pivot block id.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="to_block(caps:CapabilityCollection)-instance-method">
-      <div class="signature">
-        
-        def <strong>to_block</strong>(caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>)
-
-        <a class="method-permalink" href="#to_block%28caps%3ACapabilityCollection%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Reconstructs (melts if necessary) the pivot block, its
-block hierarchy, its forms etc. Returns the resulting
-<code><a href="../Novika/Block.html">Block</a></code> form.</p>
         </div>
       
       <br/>
@@ -2352,6 +2154,213 @@ the way of dictionary/tape content.</p>
 and an id reference to the pivot block in that list.</p>
 <p>Block pools can be assembled back into a hierarchy of
 blocks pivoted at <code><a href="../Novika/BlockPool.html#pivot%3AUInt64-instance-method">#pivot</a></code> using <code>melt</code>.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="__format__:IO::ByteFormat-instance-method">
+      <div class="signature">
+        
+        def <strong>__format__</strong> : IO::ByteFormat
+
+        <a class="method-permalink" href="#__format__%3AIO%3A%3AByteFormat-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="blocks:Array(FrozenBlock)-instance-method">
+      <div class="signature">
+        
+        def <strong>blocks</strong> : <a href="../Array.html">Array</a>(<a href="../Novika/FrozenBlock.html">FrozenBlock</a>)
+
+        <a class="method-permalink" href="#blocks%3AArray%28FrozenBlock%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Lists the frozen blocks in this pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="blocks=(blocks:Array(FrozenBlock))-instance-method">
+      <div class="signature">
+        
+        def <strong>blocks=</strong>(blocks : <a href="../Array.html">Array</a>(<a href="../Novika/FrozenBlock.html">FrozenBlock</a>))
+
+        <a class="method-permalink" href="#blocks%3D%28blocks%3AArray%28FrozenBlock%29%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Lists the frozen blocks in this pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cb:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>cb</strong> : UInt64
+
+        <a class="method-permalink" href="#cb%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the capability block id. Even though during serialization,
+capability block is skipped (as serializing it would be of no
+particular use), its id is still stored so that client-side
+(nki-side), it can be replaced with the client capability
+block, hopefully with all necessary capabilities.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="cb=(cb:UInt64)-instance-method">
+      <div class="signature">
+        
+        def <strong>cb=</strong>(cb : UInt64)
+
+        <a class="method-permalink" href="#cb%3D%28cb%3AUInt64%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the capability block id. Even though during serialization,
+capability block is skipped (as serializing it would be of no
+particular use), its id is still stored so that client-side
+(nki-side), it can be replaced with the client capability
+block, hopefully with all necessary capabilities.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="count:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>count</strong> : UInt64
+
+        <a class="method-permalink" href="#count%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the amount of blocks in this pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="count=(count:UInt64)-instance-method">
+      <div class="signature">
+        
+        def <strong>count=</strong>(count : UInt64)
+
+        <a class="method-permalink" href="#count%3D%28count%3AUInt64%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the amount of blocks in this pool.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pivot:UInt64-instance-method">
+      <div class="signature">
+        
+        def <strong>pivot</strong> : UInt64
+
+        <a class="method-permalink" href="#pivot%3AUInt64-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the pivot block id.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="pivot=(pivot:UInt64)-instance-method">
+      <div class="signature">
+        
+        def <strong>pivot=</strong>(pivot : UInt64)
+
+        <a class="method-permalink" href="#pivot%3D%28pivot%3AUInt64%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the pivot block id.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_block(caps:CapabilityCollection)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_block</strong>(caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>)
+
+        <a class="method-permalink" href="#to_block%28caps%3ACapabilityCollection%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Reconstructs (melts if necessary) the pivot block, its
+block hierarchy, its forms etc. Returns the resulting
+<code><a href="../Novika/Block.html">Block</a></code> form.</p>
         </div>
       
       <br/>

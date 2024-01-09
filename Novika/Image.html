@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.9.2">
+<meta name="generator" content="Crystal Docs 1.10.1">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -1331,91 +1331,6 @@ the (optionally compressed) payload itself (see
 
 
   <h2>
-    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Instance Method Summary
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#__format__%3AIO%3A%3AByteFormat-instance-method" class="signature"><strong>#__format__</strong> : IO::ByteFormat</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#compression%3ACompressionType-instance-method" class="signature"><strong>#compression</strong> : CompressionType</a>
-        
-          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#compression%3D%28compression%3AUInt8%29-instance-method" class="signature"><strong>#compression=</strong>(compression : UInt8)</a>
-        
-          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#compression%3D%28value%3ACompressionType%29-instance-method" class="signature"><strong>#compression=</strong>(value : CompressionType)</a>
-        
-          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#payload%3ABytes-instance-method" class="signature"><strong>#payload</strong> : Bytes</a>
-        
-          <div class="summary"><p>Holds the payload, which may or may not be compressed.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#payload%3D%28payload%3ABytes%29-instance-method" class="signature"><strong>#payload=</strong>(payload : Bytes)</a>
-        
-          <div class="summary"><p>Holds the payload, which may or may not be compressed.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#reserved%3AUInt8-instance-method" class="signature"><strong>#reserved</strong> : UInt8</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#reserved%3D%28reserved%3AUInt8%29-instance-method" class="signature"><strong>#reserved=</strong>(reserved : UInt8)</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#signature%3AString-instance-method" class="signature"><strong>#signature</strong> : String</a>
-        
-          <div class="summary"><p>Holds Novika image signature, the string 'NKI'.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#signature%3D%28signature%3AString%29-instance-method" class="signature"><strong>#signature=</strong>(signature : String)</a>
-        
-          <div class="summary"><p>Holds Novika image signature, the string 'NKI'.</p></div>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#to_block%28caps%3ACapabilityCollection%29-instance-method" class="signature"><strong>#to_block</strong>(caps : CapabilityCollection)</a>
-        
-          <div class="summary"><p>Reconstructs the pivot block and its hierarchy from this image.</p></div>
-        
-      </li>
-    
-  </ul>
-
-
-
-  <h2>
     <a id="macro-summary" class="anchor" href="#macro-summary">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -1590,6 +1505,91 @@ the (optionally compressed) payload itself (see
 
 
 
+  <h2>
+    <a id="instance-method-summary" class="anchor" href="#instance-method-summary">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Summary
+  </h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#__format__%3AIO%3A%3AByteFormat-instance-method" class="signature"><strong>#__format__</strong> : IO::ByteFormat</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#compression%3ACompressionType-instance-method" class="signature"><strong>#compression</strong> : CompressionType</a>
+        
+          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#compression%3D%28compression%3AUInt8%29-instance-method" class="signature"><strong>#compression=</strong>(compression : UInt8)</a>
+        
+          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#compression%3D%28value%3ACompressionType%29-instance-method" class="signature"><strong>#compression=</strong>(value : CompressionType)</a>
+        
+          <div class="summary"><p>Holds compression method used to compress the payload.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#payload%3ABytes-instance-method" class="signature"><strong>#payload</strong> : Bytes</a>
+        
+          <div class="summary"><p>Holds the payload, which may or may not be compressed.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#payload%3D%28payload%3ABytes%29-instance-method" class="signature"><strong>#payload=</strong>(payload : Bytes)</a>
+        
+          <div class="summary"><p>Holds the payload, which may or may not be compressed.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved%3AUInt8-instance-method" class="signature"><strong>#reserved</strong> : UInt8</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#reserved%3D%28reserved%3AUInt8%29-instance-method" class="signature"><strong>#reserved=</strong>(reserved : UInt8)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#signature%3AString-instance-method" class="signature"><strong>#signature</strong> : String</a>
+        
+          <div class="summary"><p>Holds Novika image signature, the string 'NKI'.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#signature%3D%28signature%3AString%29-instance-method" class="signature"><strong>#signature=</strong>(signature : String)</a>
+        
+          <div class="summary"><p>Holds Novika image signature, the string 'NKI'.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#to_block%28caps%3ACapabilityCollection%29-instance-method" class="signature"><strong>#to_block</strong>(caps : CapabilityCollection)</a>
+        
+          <div class="summary"><p>Reconstructs the pivot block and its hierarchy from this image.</p></div>
+        
+      </li>
+    
+  </ul>
+
+
+
 <div class="methods-inherited">
   
     
@@ -1601,17 +1601,26 @@ the (optionally compressed) payload itself (see
     
 
 
-  
-    
-
-
-    
-
-
     
 
 
   
+    
+
+
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
     
 
 
@@ -1701,215 +1710,6 @@ for a list of available visit modes.</p>
 compression type (see <code><a href="../Novika/Image/CompressionType.html">Image::CompressionType</a></code>), and
 the (optionally compressed) payload itself (see
 <code><a href="../Novika/ImagePayload.html">ImagePayload</a></code>).</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-
-
-
-  <h2>
-    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Instance Method Detail
-  </h2>
-  
-    <div class="entry-detail" id="__format__:IO::ByteFormat-instance-method">
-      <div class="signature">
-        
-        def <strong>__format__</strong> : IO::ByteFormat
-
-        <a class="method-permalink" href="#__format__%3AIO%3A%3AByteFormat-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="compression:CompressionType-instance-method">
-      <div class="signature">
-        
-        def <strong>compression</strong> : <a href="../Novika/Image/CompressionType.html">CompressionType</a>
-
-        <a class="method-permalink" href="#compression%3ACompressionType-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds compression method used to compress the payload.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="compression=(compression:UInt8)-instance-method">
-      <div class="signature">
-        
-        def <strong>compression=</strong>(compression : UInt8)
-
-        <a class="method-permalink" href="#compression%3D%28compression%3AUInt8%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds compression method used to compress the payload.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="compression=(value:CompressionType)-instance-method">
-      <div class="signature">
-        
-        def <strong>compression=</strong>(value : <a href="../Novika/Image/CompressionType.html">CompressionType</a>)
-
-        <a class="method-permalink" href="#compression%3D%28value%3ACompressionType%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds compression method used to compress the payload.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="payload:Bytes-instance-method">
-      <div class="signature">
-        
-        def <strong>payload</strong> : Bytes
-
-        <a class="method-permalink" href="#payload%3ABytes-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the payload, which may or may not be compressed.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="payload=(payload:Bytes)-instance-method">
-      <div class="signature">
-        
-        def <strong>payload=</strong>(payload : Bytes)
-
-        <a class="method-permalink" href="#payload%3D%28payload%3ABytes%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds the payload, which may or may not be compressed.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="reserved:UInt8-instance-method">
-      <div class="signature">
-        
-        def <strong>reserved</strong> : UInt8
-
-        <a class="method-permalink" href="#reserved%3AUInt8-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="reserved=(reserved:UInt8)-instance-method">
-      <div class="signature">
-        
-        def <strong>reserved=</strong>(reserved : UInt8)
-
-        <a class="method-permalink" href="#reserved%3D%28reserved%3AUInt8%29-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="signature:String-instance-method">
-      <div class="signature">
-        
-        def <strong>signature</strong> : <a href="../String.html">String</a>
-
-        <a class="method-permalink" href="#signature%3AString-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds Novika image signature, the string 'NKI'.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="signature=(signature:String)-instance-method">
-      <div class="signature">
-        
-        def <strong>signature=</strong>(signature : <a href="../String.html">String</a>)
-
-        <a class="method-permalink" href="#signature%3D%28signature%3AString%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Holds Novika image signature, the string 'NKI'.</p>
-        </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="to_block(caps:CapabilityCollection)-instance-method">
-      <div class="signature">
-        
-        def <strong>to_block</strong>(caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>)
-
-        <a class="method-permalink" href="#to_block%28caps%3ACapabilityCollection%29-instance-method">#</a>
-      </div>
-      
-        <div class="doc">
-          
-          <p>Reconstructs the pivot block and its hierarchy from this
-image. Returns the resulting block.</p>
-<p>Capability collection <em>caps</em> is required to make sure all
-required capabilities are enabled/available.</p>
         </div>
       
       <br/>
@@ -2428,6 +2228,215 @@ the (optionally compressed) payload itself (see
 compression type (see <code><a href="../Novika/Image/CompressionType.html">Image::CompressionType</a></code>), and
 the (optionally compressed) payload itself (see
 <code><a href="../Novika/ImagePayload.html">ImagePayload</a></code>).</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+
+
+
+  <h2>
+    <a id="instance-method-detail" class="anchor" href="#instance-method-detail">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>
+    Instance Method Detail
+  </h2>
+  
+    <div class="entry-detail" id="__format__:IO::ByteFormat-instance-method">
+      <div class="signature">
+        
+        def <strong>__format__</strong> : IO::ByteFormat
+
+        <a class="method-permalink" href="#__format__%3AIO%3A%3AByteFormat-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="compression:CompressionType-instance-method">
+      <div class="signature">
+        
+        def <strong>compression</strong> : <a href="../Novika/Image/CompressionType.html">CompressionType</a>
+
+        <a class="method-permalink" href="#compression%3ACompressionType-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds compression method used to compress the payload.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="compression=(compression:UInt8)-instance-method">
+      <div class="signature">
+        
+        def <strong>compression=</strong>(compression : UInt8)
+
+        <a class="method-permalink" href="#compression%3D%28compression%3AUInt8%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds compression method used to compress the payload.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="compression=(value:CompressionType)-instance-method">
+      <div class="signature">
+        
+        def <strong>compression=</strong>(value : <a href="../Novika/Image/CompressionType.html">CompressionType</a>)
+
+        <a class="method-permalink" href="#compression%3D%28value%3ACompressionType%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds compression method used to compress the payload.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="payload:Bytes-instance-method">
+      <div class="signature">
+        
+        def <strong>payload</strong> : Bytes
+
+        <a class="method-permalink" href="#payload%3ABytes-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the payload, which may or may not be compressed.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="payload=(payload:Bytes)-instance-method">
+      <div class="signature">
+        
+        def <strong>payload=</strong>(payload : Bytes)
+
+        <a class="method-permalink" href="#payload%3D%28payload%3ABytes%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds the payload, which may or may not be compressed.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved:UInt8-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved</strong> : UInt8
+
+        <a class="method-permalink" href="#reserved%3AUInt8-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="reserved=(reserved:UInt8)-instance-method">
+      <div class="signature">
+        
+        def <strong>reserved=</strong>(reserved : UInt8)
+
+        <a class="method-permalink" href="#reserved%3D%28reserved%3AUInt8%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="signature:String-instance-method">
+      <div class="signature">
+        
+        def <strong>signature</strong> : <a href="../String.html">String</a>
+
+        <a class="method-permalink" href="#signature%3AString-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds Novika image signature, the string 'NKI'.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="signature=(signature:String)-instance-method">
+      <div class="signature">
+        
+        def <strong>signature=</strong>(signature : <a href="../String.html">String</a>)
+
+        <a class="method-permalink" href="#signature%3D%28signature%3AString%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Holds Novika image signature, the string 'NKI'.</p>
+        </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="to_block(caps:CapabilityCollection)-instance-method">
+      <div class="signature">
+        
+        def <strong>to_block</strong>(caps : <a href="../Novika/CapabilityCollection.html">CapabilityCollection</a>)
+
+        <a class="method-permalink" href="#to_block%28caps%3ACapabilityCollection%29-instance-method">#</a>
+      </div>
+      
+        <div class="doc">
+          
+          <p>Reconstructs the pivot block and its hierarchy from this
+image. Returns the resulting block.</p>
+<p>Capability collection <em>caps</em> is required to make sure all
+required capabilities are enabled/available.</p>
         </div>
       
       <br/>

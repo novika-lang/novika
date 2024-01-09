@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Crystal Docs 1.9.2">
+<meta name="generator" content="Crystal Docs 1.10.1">
 <meta name="crystal_docs.project_version" content="rev10-dev">
 <meta name="crystal_docs.project_name" content="novika">
 
@@ -1202,10 +1202,15 @@ wood, chairs, and whatnot. With LEGO, it's another story — an infinite amount 
     <use href="#octicon-link"/>
   </svg>
 </a>Examples</h2>
+<p>A quine:</p>
+<pre><code class="language-novika">[ 'Some payload here perhaps?' ]
+this
+each:
+echo</code></pre>
 <p>Hello World:</p>
 <pre><code class="language-novika">'Hello World' echo</code></pre>
 <hr />
-<p>Factorial. Note that parentheses <code>()</code> do not mean anything in Novika. They're like single-character comments.</p>
+<p>Factorial. Note that parentheses <code>()</code> are treated as whitespace in Novika. They also don't have to be matched.</p>
 <pre><code class="language-novika">(5 to: 1) product &quot;120&quot;</code></pre>
 <hr />
 <p>First 100 Fizz buzz rounds:</p>
@@ -1448,20 +1453,24 @@ B.x B.y 2echo &quot;STDOUT: 300⏎400⏎&quot;</code></pre>
 <img src="img/blocks-are-vertices.svg" align=right width=512 />
 <p>Scoping, inheritance, and composition are all achieved through block relationships in Novika. There are two kinds of relationships: <em>is a friend of</em>, and <em>is <strong>the</strong> parent of</em>.</p>
 <ul>
-<li>Blocks can have only one <em>parent</em>, or no parents.</li>
+<li>Blocks can have zero or one <em>parent</em>.</li>
 <li>Blocks can have zero or more <em>friends</em>.</li>
 </ul>
 <p>Blocks can change their (and other blocks') relationships (i.e. edges) at runtime, thereby affecting how, which, and whose entries are looked up and opened.</p>
-<p>Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...)</p>
-<p>For instance, first, <em>is the parent of</em> relationships of block A are traversed, followed by a traversal over A's friends, followed by a traversal over the friends of A's parents. Together they are known as <em>the first echelon</em> in Novika.</p>
-<p><em>The second echelon</em> is parents, friends, and friends of parents of the first echelon. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered.</p>
+<p>Block relationships can be cyclic: already-queried blocks are simply skipped. For those interested, Novika entry lookup is a weird (mainly for historical reasons and for convenience) combination of DFS and BFS (I guess...) that roughly goes as follows:</p>
+<ul>
+<li><em>Is the parent of</em> relationships of block A are traversed;</li>
+<li>A's friends are traversed;</li>
+<li>The friends of A's parents are traversed.</li>
+</ul>
+<p>Together they are known as <em>the first echelon</em> in Novika. Then <em>the second echelon</em> — parents, friends, and friends of parents of the first echelon — is explored. Novika lookup machinery (and machinery it is!) simply recurses on members of the second echelon; prior to that it queries each member for whatever it is interested in, and turns to recursion only when the query remains unanswered. In general, you can look at the numerous A* or Dijkstra pathfinding visualizations over at YouTube to see how such traversal might look like. Although the visualizations won't directly apply to Novika, they're still super helpful.</p>
 <br clear="right"/>
 <pre><code class="language-novika">[ 100 $: x ] obj $: definesX
 [ 200 $: y ] obj $: definesY
 
 &quot;&quot;&quot;
-Establish a cyclic relationship (parentheses are like comments,
-they don't mean anything and don't have to be matched):
+Establish a cyclic relationship (remember that parentheses are
+treated as whitespace!)
 &quot;&quot;&quot;
 (definesX -- definesY -- definesX) drop
 
@@ -1523,7 +1532,7 @@ definesY.y leaves: 200</code></pre>
 1 2 sneakyPeaky 3 4  &quot;STDOUT: [ 1 2 sneakyPeaky | 3 4 ]&quot;</code></pre>
 </li>
 </ul>
-<p>Finally, the <em>continuations block</em> is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type <code>conts shallowCopy each: echo</code> in the REPL. Do not forget <code>shallowCopy</code>, or the language will gain consciousness — and this never ends well!! :)</p>
+<p>Finally, the <em>continuations block</em> is a single large block that holds individual continuation blocks. The top continuation block is the one that is currently executed. Below is (roughly) what you'd get if you type <code>conts shallowCopy each: echo</code> in the REPL. Do not forget <code>shallowCopy</code>, or the language will gain consciousness — and this never ends well!!! :)</p>
 <pre><code class="language-novika">[ [ … REPL code … · ${__path__ :: '/path/to/novika/env'} ${__file__ :: '/path/to/novika/env/repl/repl.nk'} ${_pgRoot :: a block} @{startSession :: a block} ] [ ] ]
 [ [ … More REPL code … · ${error :: false} ${pgStack :: a block} @{runLine :: ( Q -- )} ] [ ] ]
 [ [ ahead thruBlock loop ] [ ] ]
